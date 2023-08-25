@@ -10,7 +10,7 @@ const appInsights = new ApplicationInsights({
 appInsights.loadAppInsights();
 
 const additionalProperties = {
-    source: 'aquifer-web',
+    source: 'content-manager-web',
     environment: config.PUBLIC_ENV,
 };
 
