@@ -16,6 +16,7 @@
     let auth0ClientId = config.PUBLIC_AUTH0_CLIENT_ID;
     let userNickName: string | undefined = ' ';
     let theme: string | null;
+    let userToken: string = '';
 
     onMount(async () => {
         if (typeof window !== 'undefined') {
@@ -27,6 +28,9 @@
             clientId: auth0ClientId,
             useRefreshTokens: true,
             cacheLocation: 'localstorage',
+            authorizationParams: {
+                audience: 'aquifer-server-dev.azurewebsites.net',
+            },
         });
 
         isAuthenticated = await auth0Client.isAuthenticated();
@@ -38,6 +42,7 @@
             isAuthenticated = await auth0Client.isAuthenticated();
         } else if (isAuthenticated) {
             // Can get claims information out of this.
+            userToken = await auth0Client.getTokenSilently();
             let profile = await auth0Client.getUser();
             userNickName = profile?.nickname;
         }
@@ -61,7 +66,7 @@
 
     const toggleTheme = (event: Event) => {
         const input = event.target as HTMLInputElement;
-        theme = input.checked ? 'cupcake' : 'business';
+        theme = input.checked ? 'light' : 'night';
 
         //document.documentElement.setAttribute('data-theme', theme);
 
@@ -129,6 +134,6 @@
         </div>
     </div>
 </div>
-<button on:click={toggleTheme}>click me</button>
+<p>{userToken}</p>
 
 <slot />
