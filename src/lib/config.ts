@@ -8,4 +8,5 @@ export interface Configuration {
     PUBLIC_AQUIFER_API_URL: string;
     PUBLIC_AUTH0_DOMAIN: string;
     PUBLIC_AUTH0_CLIENT_ID: string;
+    PUBLIC_AUTH0_AUDIENCE: string;
 }

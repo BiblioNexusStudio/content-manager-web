@@ -1,7 +1,7 @@
 ﻿import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
-    const theme = event.cookies.get('dataTheme');
+    const theme = event.cookies.get('dataTheme') ?? 'biblioNexusLight';
     console.log(theme);
 
     return resolve(event, {
