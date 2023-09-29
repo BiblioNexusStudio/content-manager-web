@@ -3,7 +3,7 @@
     import { onMount } from 'svelte';
 
     onMount(async () => {
-        new Chart('areaChartCanvas', { type: 'line', data: data });
+        new Chart('areaChartCanvas', { type: 'line', data: data, options: options });
     });
 
     const getLastFiveMonths = () => {
@@ -29,6 +29,14 @@
                 tension: 0.1,
             },
         ],
+    };
+
+    const options = {
+        plugins: {
+            legend: { display: false },
+            subtitle: { display: true, text: 'Month', position: 'bottom' },
+            title: { display: true, text: 'Count', position: 'left' },
+        },
     };
 </script>
 
