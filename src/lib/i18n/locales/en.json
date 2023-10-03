@@ -1,0 +1,24 @@
+{
+    "page": {
+        "dashboard": {},
+        "sidebar": {
+            "dashboard": {
+                "value": "Dashboard",
+                "_context": "The label for the dashboard link"
+            },
+            "resources": {
+                "value": "Resources",
+                "_context": "The label for the resources link"
+            },
+            "reporting": {
+                "value": "Reporting",
+                "_context": "The label for the reporting link"
+            },
+            "users": {
+                "value": "Users",
+                "_context": "The label for the users link"
+            }
+        },
+        "errorMessage": {}
+    }
+}

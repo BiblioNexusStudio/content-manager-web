@@ -13,6 +13,7 @@
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import config from '$lib/config';
+    import { _ as translate } from 'svelte-i18n';
 
     let isAuthenticated: boolean;
     let auth0Client: Auth0Client;
@@ -92,22 +93,22 @@
 
     let sidebarNavigation = [
         {
-            name: 'Dashboard',
+            name: $translate('page.sidebar.dashboard.value'),
             icon: BarChartIcon,
             goto: '/',
         },
         {
-            name: 'Resources',
+            name: $translate('page.sidebar.resources.value'),
             icon: SquareStackIcon,
             goto: '/resources',
         },
         {
-            name: 'Reporting',
+            name: $translate('page.sidebar.reporting.value'),
             icon: PieChartIcon,
             goto: '/reporting',
         },
         {
-            name: 'Users',
+            name: $translate('page.sidebar.users.value'),
             icon: UsersIcon,
             goto: '/users',
             hidden: true,
