@@ -1,6 +1,45 @@
 {
     "page": {
-        "dashboard": {},
+        "dashboard": {
+            "header": {
+                "value": "Resource Overview",
+                "_context": "The page title header at the top of the page"
+            },
+            "resourceSnapshot": {
+                "header": {
+                    "value": "Resource Snapshot",
+                    "_context": "Header title for the resource snapshot"
+                },
+                "total": {
+                    "value": "Total",
+                    "_context": "Label above number of resources"
+                },
+                "languages": {
+                    "value": "Languages",
+                    "_context": "Label below number of resources, indicating number of languages the resources support"
+                }
+            },
+            "dropdowns": {
+                "allLanguages": {
+                    "value": "All Languages",
+                    "_context": "Label for dropdown to select a language"
+                },
+                "allResources": {
+                    "value": "All Resources",
+                    "_context": "Label for dropdown to select resources"
+                }
+            },
+            "charts": {
+                "totalResources": {
+                    "value": "Total Resources",
+                    "_context": "Title for Total Resources chart"
+                },
+                "translatedResources": {
+                    "value": "Translated Resources",
+                    "_context": "Title for Translated Resources chart"
+                }
+            }
+        },
         "sidebar": {
             "dashboard": {
                 "value": "Dashboard",
@@ -17,6 +56,10 @@
             "users": {
                 "value": "Users",
                 "_context": "The label for the users link"
+            },
+            "logout": {
+                "value": "Logout",
+                "_context": "Hover text for logout button"
             }
         },
         "errorMessage": {}

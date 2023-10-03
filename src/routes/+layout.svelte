@@ -154,7 +154,7 @@
                         {userFullName}
                     </div>
                     <div class="flex items-center justify-end">
-                        <div class="tooltip tooltip-left" data-tip="Logout">
+                        <div class="tooltip tooltip-left" data-tip={$translate('page.sidebar.logout.value')}>
                             <button
                                 class="btn btn-link text-secondary m-0 p-0 w-4 h-4 min-h-0"
                                 on:click={() => logout()}
