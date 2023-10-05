@@ -1,18 +1,27 @@
 ﻿<script lang="ts">
     import Chart from 'chart.js/auto';
     import { onMount } from 'svelte';
-    import { getLastFiveMonths } from '$lib/charts/ChartUtilities';
+
+    export let allData: { month: string; sum: number }[] = [];
+    //export let completedData: { month: string; sum: number }[] = [];
+
+    console.log(allData.map((item) => item.month));
 
     const chart = {
         type: 'line',
         data: {
-            labels: getLastFiveMonths(),
+            labels: allData.map((item) => item.month),
             datasets: [
                 {
-                    data: [13, 84, 162, 203, 268],
+                    data: allData.map((item) => item.sum),
                     fill: true,
                     tension: 0.1,
                 },
+                // {
+                //     data: completedData.map((item) => item.sum),
+                //     fill: true,
+                //     tension: 0.1,
+                // },
             ],
         },
         options: {
