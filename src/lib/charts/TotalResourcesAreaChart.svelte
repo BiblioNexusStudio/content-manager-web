@@ -1,27 +1,31 @@
 ﻿<script lang="ts">
     import Chart from 'chart.js/auto';
     import { onMount } from 'svelte';
+    import type { TotalsByMonth } from '../../routes/+page';
 
-    export let allData: { month: string; sum: number }[] = [];
-    //export let completedData: { month: string; sum: number }[] = [];
+    export let allData: TotalsByMonth[] = [];
 
-    console.log(allData.map((item) => item.month));
+    let chart: Chart | undefined;
+    $: updateChart(allData);
+    const updateChart = (data: TotalsByMonth[]) => {
+        console.log('called updateChart');
+        console.log(chart);
+        if (chart !== undefined) {
+            chart.data.datasets[0].data = allData.map((item) => item.resourceCount);
+            chart.update();
+        }
+    };
 
-    const chart = {
+    const chartData = {
         type: 'line',
         data: {
-            labels: allData.map((item) => item.month),
+            labels: allData.map((item) => item.monthAbbreviation),
             datasets: [
                 {
-                    data: allData.map((item) => item.sum),
+                    data: allData.map((item) => item.resourceCount),
                     fill: true,
                     tension: 0.1,
                 },
-                // {
-                //     data: completedData.map((item) => item.sum),
-                //     fill: true,
-                //     tension: 0.1,
-                // },
             ],
         },
         options: {
@@ -50,10 +54,10 @@
             let gradient = canvasContext.createLinearGradient(0, 0, 0, 300);
             gradient.addColorStop(0, '#81755690');
             gradient.addColorStop(1, '#81755600');
-            chart.data.datasets[0].backgroundColor = gradient;
+            chartData.data.datasets[0].backgroundColor = gradient;
         }
 
-        new Chart('totalResourcesAreaChart', chart);
+        chart = new Chart('totalResourcesAreaChart', chartData);
     });
 </script>
 

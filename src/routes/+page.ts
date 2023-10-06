@@ -8,23 +8,26 @@ export const load: PageLoad = async ({ fetch, params }) => {
     return { summary };
 };
 
-export interface ResourcesByType {
+export interface ResourcesByType extends TotalsByMonth {
     resourceType: string;
-    date: Date;
-    status: number;
-    resourceCount: number;
 }
 
-export interface ResourcesByLanguage {
-    languageName: string;
-    resourceType: string;
+export interface ResourcesByLanguage extends ResourcesByType {
+    language: string;
+}
+
+export interface TotalsByMonth {
     date: Date;
+    monthAbbreviation: string;
     resourceCount: number;
 }
 
 export interface ResourcesSummary {
     resourcesByType: ResourcesByType[];
     resourcesByLanguage: ResourcesByLanguage[];
+    totalsByMonth: TotalsByMonth[];
     allResourcesCount: number;
     multiLanguageResourcesCount: number;
+    languages: string[];
+    resourceTypes: string[];
 }

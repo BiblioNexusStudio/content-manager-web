@@ -5,46 +5,96 @@
     import TranslateIcon from '$lib/icons/TranslateIcon.svelte';
     import FileIcon from '$lib/icons/FileIcon.svelte';
     import { _ as translate } from 'svelte-i18n';
-    import type { ResourcesByType } from './+page';
+    import type { ResourcesByType, TotalsByMonth } from './+page';
 
     export let data: PageData;
 
-    const getLastFiveMonthsTotals = (resourcesByTypes: ResourcesByType[], completedOnly: boolean) => {
-        if (completedOnly) {
-            resourcesByTypes = resourcesByTypes.filter((record) => record.status === 3);
-        }
-
-        let groupedData = resourcesByTypes.reduce((acc, curr) => {
-            let key = curr.date;
-            if (!acc[key]) {
-                acc[key] = [];
-            }
-            acc[key].push(curr);
-            return acc;
-        }, {});
-
-        let sortedData = Object.keys(groupedData).sort((a, b) => {
-            return new Date(a) - new Date(b);
-        });
-
-        return sortedData
-            .map((key) => {
-                let sum: number = groupedData[key].reduce(
-                    (acc: number, curr: ResourcesByType) => acc + curr.resourceCount,
-                    0
-                );
-                return { month: new Date(key).toLocaleString('default', { month: 'short' }), sum };
-            })
-            .slice(0, 5);
-    };
-
-    let languageOptions = [...new Set(data.summary.resourcesByLanguage.map((item) => item.languageName))].sort();
-    let resourceTypes = [...new Set(data.summary.resourcesByType.map((item) => item.resourceType))].sort();
+    let languageOptions = data.summary.languages.sort();
+    let resourceTypes = data.summary.resourceTypes.sort();
     let totalResources = data.summary.allResourcesCount;
     let totalResourcesMultiLanguage = data.summary.multiLanguageResourcesCount;
 
-    let allData: { month: string; sum: number }[] = getLastFiveMonthsTotals(data.summary.resourcesByType, false);
-    //let completedData: { month: string; sum: number }[] = getLastFiveMonthsTotals(data.summary.resourcesByType, true);
+    const defaultSelection = 'default';
+    let selectedLanguage: string = defaultSelection;
+    let selectedResource: string = defaultSelection;
+
+    $: allData = updateGraphsBySelection(selectedLanguage, selectedResource);
+
+    const updateGraphsBySelection = (language: string, resource: string): TotalsByMonth[] => {
+        console.log(language);
+        console.log(resource);
+
+        if (language === defaultSelection && resource === defaultSelection) {
+            return data.summary.totalsByMonth;
+        } else if (language === defaultSelection && resource !== defaultSelection) {
+            return data.summary.resourcesByType.reduce((resources: TotalsByMonth[], r) => {
+                if (r.resourceType === resource) {
+                    resources.push({
+                        date: r.date,
+                        monthAbbreviation: r.monthAbbreviation,
+                        resourceCount: r.resourceCount,
+                    });
+                }
+                return resources;
+            }, []);
+        } else if (language !== defaultSelection && resource === defaultSelection) {
+            let languageResources = data.summary.resourcesByLanguage.filter(
+                (resource) => resource.language === language
+            );
+
+            let monthGroup = languageResources.reduce((group, resource) => {
+                const { monthAbbreviation } = resource;
+                group[monthAbbreviation] = group[monthAbbreviation] ?? [];
+                group[monthAbbreviation].push(resource);
+                return group;
+            }, {});
+
+            let totals: TotalsByMonth[] = [];
+            for (let month in monthGroup) {
+                let group = monthGroup[month];
+                let total: number = 0;
+                for (let i = 0; i < group.length; i++) {
+                    total += group[i].resourceCount;
+                }
+                totals.push({
+                    resourceCount: total,
+                    monthAbbreviation: group[0].monthAbbreviation,
+                    date: group[0].date,
+                });
+            }
+
+            return totals;
+        } else if (language !== defaultSelection && resource !== defaultSelection) {
+            let languageResources = data.summary.resourcesByLanguage.filter(
+                (item) => item.language === language && item.resourceType === resource
+            );
+
+            let monthGroup = languageResources.reduce((group, resource) => {
+                const { monthAbbreviation } = resource;
+                group[monthAbbreviation] = group[monthAbbreviation] ?? [];
+                group[monthAbbreviation].push(resource);
+                return group;
+            }, {});
+
+            let totals: TotalsByMonth[] = [];
+            for (let month in monthGroup) {
+                let group = monthGroup[month];
+                let total: number = 0;
+                for (let i = 0; i < group.length; i++) {
+                    total += group[i].resourceCount;
+                }
+                totals.push({
+                    resourceCount: total,
+                    monthAbbreviation: group[0].monthAbbreviation,
+                    date: group[0].date,
+                });
+            }
+
+            return totals;
+        }
+
+        return data.summary.totalsByMonth;
+    };
 </script>
 
 <div class="grid grid-cols-2 mx-4">
@@ -52,16 +102,16 @@
     <div class="text-lg font-bold mt-4">{$translate('page.dashboard.resourceSnapshot.header.value')}</div>
     <div class="justify-self-end mt-4">
         <span>
-            <select class="select select-bordered w-5/12 max-w-xs mr-2">
-                <option selected>{$translate('page.dashboard.dropdowns.allLanguages.value')}</option>
+            <select bind:value={selectedLanguage} class="select select-bordered w-5/12 max-w-xs mr-2">
+                <option value="default" selected>{$translate('page.dashboard.dropdowns.allLanguages.value')}</option>
                 {#each languageOptions as language}
                     <option>{language}</option>
                 {/each}
             </select>
         </span>
         <span>
-            <select class="select select-bordered w-5/12 max-w-xs">
-                <option selected>{$translate('page.dashboard.dropdowns.allResources.value')}</option>
+            <select bind:value={selectedResource} class="select select-bordered w-5/12 max-w-xs">
+                <option value="default" selected>{$translate('page.dashboard.dropdowns.allResources.value')}</option>
                 {#each resourceTypes as resource}
                     <option>{resource}</option>
                 {/each}
