@@ -1,17 +1,73 @@
 ﻿<script lang="ts">
     import Chart from 'chart.js/auto';
     import { onMount } from 'svelte';
-    import { getLastFiveMonths } from '$lib/charts/ChartUtilities';
+    import type { ResourcesByLanguage } from '../../routes/+page';
 
-    const colors = ['#3c372d', '#585133', '#817556', '#B5AC8B'];
-    let tokPisinData = { label: 'Tok Pisin', data: [33, 58, 103, 203, 312], backgroundColor: colors[0] };
-    let englishData = { label: 'English', data: [109, 200, 205, 345, 512], backgroundColor: colors[1] };
+    export let resourcesByLanguage: ResourcesByLanguage[];
+    export let defaultSelection: string = 'default';
+    export let languages: string[];
+    export let selectedLanguage: string;
+    export let selectedResource: string;
+    export let months: string[];
 
-    const chart = {
+    let chart: Chart | undefined;
+
+    $: updateTranslatedResourcesChart(selectedLanguage, selectedResource);
+
+    const colors = ['#776E5A', '#E2AF77', '#E6C89D', '#D7BE87', '#965D3B'];
+
+    const updateTranslatedResourcesChart = (language: string, resource: string) => {
+        console.log('made it to updateTranslatedResourceChart');
+        let resources = resourcesByLanguage;
+
+        if (language === defaultSelection && resource !== defaultSelection) {
+            resources = resources.filter((x) => x.resourceType === resource);
+        } else if (language !== defaultSelection && resource === defaultSelection) {
+            resources = resources.filter((x) => x.language === language);
+        } else if (language !== defaultSelection && resource !== defaultSelection) {
+            resources = resources.filter((x) => x.language === language && x.resourceType === resource);
+        }
+
+        let langMonthGroup = resources.reduce((group, resource) => {
+            const { language, monthAbbreviation } = resource;
+            group[`${language}-${monthAbbreviation}`] = group[`${language}-${monthAbbreviation}`] ?? [];
+            group[`${language}-${monthAbbreviation}`].push(resource);
+
+            return group;
+        }, {} as { [monthLanguage: string]: ResourcesByLanguage[] });
+
+        let translatedData = languages.map((x: string) => ({ label: x, data: [] as number[] }));
+
+        for (let langMonth in langMonthGroup) {
+            let group = langMonthGroup[langMonth];
+            let total: number = 0;
+            for (let i = 0; i < group.length; i++) {
+                total += group[i].resourceCount;
+            }
+            translatedData?.find((x) => x.label === group[0].language)?.data.push(total);
+        }
+
+        updateChart(translatedData);
+    };
+
+    const updateChart = (data: { label: string; data: number[] }[]) => {
+        for (let i = 0; i < data.length; i++) {
+            data[i].backgroundColor = colors[i];
+        }
+
+        if (chart !== undefined) {
+            chart.data.datasets = data;
+            chart.update();
+        } else {
+            chartData.data.datasets = data;
+        }
+    };
+
+    const chartData = {
         type: 'bar',
         data: {
-            labels: getLastFiveMonths(),
-            datasets: [tokPisinData, englishData],
+            labels: months,
+            datasets: [] as { label: string; data: number[] }[],
         },
         options: {
             plugins: {
@@ -39,6 +95,12 @@
                         display: false,
                     },
                 },
+                y: {
+                    stacked: true,
+                    ticks: {
+                        precision: 0,
+                    },
+                },
             },
             barPercentage: 0.5,
         },
@@ -50,10 +112,10 @@
             let gradient = canvasContext.createLinearGradient(0, 0, 0, 300);
             gradient.addColorStop(0, '#81755690');
             gradient.addColorStop(1, '#81755600');
-            data.datasets[0].backgroundColor = gradient;
+            chartData.data.datasets[0].backgroundColor = gradient;
         }
 
-        new Chart('translatedResourcesBarChart', chart);
+        chart = new Chart('translatedResourcesBarChart', chartData);
     });
 </script>
 

@@ -1,30 +1,88 @@
 ﻿<script lang="ts">
     import Chart from 'chart.js/auto';
     import { onMount } from 'svelte';
-    import type { TotalsByMonth } from '../../routes/+page';
+    import type { ResourcesByLanguage, ResourcesByType, TotalsByMonth } from '../../routes/+page';
 
-    export let allData: TotalsByMonth[] = [];
+    export let totalsByMonth: TotalsByMonth[];
+    export let resourcesByLanguage: ResourcesByLanguage[];
+    export let resourcesByType: ResourcesByType[];
+    export let defaultSelection: string = 'default';
+    export let selectedLanguage: string;
+    export let selectedResource: string;
+    export let months: string[];
 
     let chart: Chart | undefined;
-    $: updateChart(allData);
+
+    $: updateTotalResourcesChart(selectedLanguage, selectedResource);
+
+    const updateTotalResourcesChart = (language: string, resource: string) => {
+        if (language === defaultSelection && resource !== defaultSelection) {
+            let totals = resourcesByType.reduce((resources: TotalsByMonth[], r) => {
+                if (r.resourceType === resource) {
+                    resources.push({
+                        date: r.date,
+                        monthAbbreviation: r.monthAbbreviation,
+                        resourceCount: r.resourceCount,
+                    });
+                }
+                return resources;
+            }, []);
+
+            updateChart(totals);
+        } else if (language !== defaultSelection) {
+            let languageResources =
+                resource === defaultSelection
+                    ? resourcesByLanguage.filter((resource) => resource.language === language)
+                    : resourcesByLanguage.filter(
+                          (item) => item.language === language && item.resourceType === resource
+                      );
+
+            let monthGroup = languageResources.reduce((group, resource) => {
+                const { monthAbbreviation } = resource;
+                group[monthAbbreviation] = group[monthAbbreviation] ?? [];
+                group[monthAbbreviation].push(resource);
+                return group;
+            }, {} as { [month: string]: ResourcesByLanguage[] });
+
+            let totals: TotalsByMonth[] = [];
+            for (let month in monthGroup) {
+                let group = monthGroup[month];
+                let total: number = 0;
+                for (let i = 0; i < group.length; i++) {
+                    total += group[i].resourceCount;
+                }
+                totals.push({
+                    resourceCount: total,
+                    monthAbbreviation: group[0].monthAbbreviation,
+                    date: group[0].date,
+                });
+            }
+
+            updateChart(totals);
+        } else {
+            updateChart(totalsByMonth);
+        }
+    };
+
     const updateChart = (data: TotalsByMonth[]) => {
-        console.log('called updateChart');
-        console.log(chart);
+        let counts = data.map((item) => item.resourceCount);
         if (chart !== undefined) {
-            chart.data.datasets[0].data = allData.map((item) => item.resourceCount);
+            chart.data.datasets[0].data = counts;
             chart.update();
+        } else {
+            chartData.data.datasets[0].data = counts;
         }
     };
 
     const chartData = {
         type: 'line',
         data: {
-            labels: allData.map((item) => item.monthAbbreviation),
+            labels: months,
             datasets: [
                 {
-                    data: allData.map((item) => item.resourceCount),
+                    data: [] as number[],
                     fill: true,
-                    tension: 0.1,
+                    tension: 0.0,
                 },
             ],
         },
@@ -42,6 +100,11 @@
                 x: {
                     grid: {
                         display: false,
+                    },
+                },
+                y: {
+                    ticks: {
+                        precision: 0,
                     },
                 },
             },
