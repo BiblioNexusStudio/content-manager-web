@@ -40,28 +40,75 @@
                 }
             }
         },
-        "sidebar": {
-            "dashboard": {
-                "value": "Dashboard",
-                "_context": "The label for the dashboard link"
-            },
-            "resources": {
+        "resources": {
+            "header": {
                 "value": "Resources",
-                "_context": "The label for the resources link"
+                "_context": "The page title header at the top of the page"
             },
-            "reporting": {
-                "value": "Reporting",
-                "_context": "The label for the reporting link"
+            "dropdowns": {
+                "allLanguages": {
+                    "value": "All Languages",
+                    "_context": "Label for dropdown to select a language"
+                },
+                "allResources": {
+                    "value": "All Types",
+                    "_context": "Label for dropdown to select resource types"
+                }
             },
-            "users": {
-                "value": "Users",
-                "_context": "The label for the users link"
+            "searchBox": {
+                "value": "Search",
+                "_context": "Hint text for search box"
             },
-            "logout": {
-                "value": "Logout",
-                "_context": "Hover text for logout button"
+            "table": {
+                "nameHeader": {
+                    "value": "Name",
+                    "_context": "The table header for the name column"
+                },
+                "typeHeader": {
+                    "value": "Type",
+                    "_context": "The table header for the resource type column"
+                },
+                "statusHeader": {
+                    "value": "Status",
+                    "_context": "The table header for the resource status column"
+                },
+                "navigation": {
+                    "previous": {
+                        "value": "Previous",
+                        "_context": "Button label to navigate to the previous page in the table"
+                    },
+                    "next": {
+                        "value": "Next",
+                        "_context": "Button label to navigate to the next page in the table"
+                    },
+                    "pageNumber": {
+                        "value": "Page {currentPage} of {totalPages}"
+                    }
+                }
             }
         },
         "errorMessage": {}
+    },
+    "sidebar": {
+        "dashboard": {
+            "value": "Dashboard",
+            "_context": "The label for the dashboard link"
+        },
+        "resources": {
+            "value": "Resources",
+            "_context": "The label for the resources link"
+        },
+        "reporting": {
+            "value": "Reporting",
+            "_context": "The label for the reporting link"
+        },
+        "users": {
+            "value": "Users",
+            "_context": "The label for the users link"
+        },
+        "logout": {
+            "value": "Logout",
+            "_context": "Hover text for logout button"
+        }
     }
 }

@@ -1,5 +1,6 @@
 <script lang="ts">
     import '../app.css';
+    import AquiferLogo from '$lib/images/AquiferPrimaryColor.svg';
     import LoginIcon from '$lib/icons/LoginIcon.svelte';
     import BarChartIcon from '$lib/icons/BarChartIcon.svelte';
     import SquareStackIcon from '$lib/icons/SquareStackIcon.svelte';
@@ -93,22 +94,22 @@
 
     let sidebarNavigation = [
         {
-            name: $translate('page.sidebar.dashboard.value'),
+            name: $translate('sidebar.dashboard.value'),
             icon: BarChartIcon,
             goto: '/',
         },
         {
-            name: $translate('page.sidebar.resources.value'),
+            name: $translate('sidebar.resources.value'),
             icon: SquareStackIcon,
             goto: '/resources',
         },
         {
-            name: $translate('page.sidebar.reporting.value'),
+            name: $translate('sidebar.reporting.value'),
             icon: PieChartIcon,
             goto: '/reporting',
         },
         {
-            name: $translate('page.sidebar.users.value'),
+            name: $translate('sidebar.users.value'),
             icon: UsersIcon,
             goto: '/users',
             hidden: true,
@@ -133,7 +134,7 @@
         <!-- Sidebar content here -->
         <label for="main-drawer" class="drawer-overlay" />
         <div class="flex flex-col pb-1 w-48 h-full bg-primary">
-            <div class="flex-grow-0">BiblioNexus Logo</div>
+            <div class="flex-grow-0 m-2"><img src={AquiferLogo} alt="Aquifer" /></div>
 
             {#each sidebarNavigation as navItem}
                 {#if !navItem.hidden}
@@ -154,7 +155,7 @@
                         {userFullName}
                     </div>
                     <div class="flex items-center justify-end">
-                        <div class="tooltip tooltip-left" data-tip={$translate('page.sidebar.logout.value')}>
+                        <div class="tooltip tooltip-left" data-tip={$translate('sidebar.logout.value')}>
                             <button
                                 class="btn btn-link text-secondary m-0 p-0 w-4 h-4 min-h-0"
                                 on:click={() => logout()}
