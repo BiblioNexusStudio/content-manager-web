@@ -8,15 +8,28 @@ export const load: PageLoad = async ({ fetch, params }) => {
     const resourceTypeRes = await fetch(`${config.PUBLIC_AQUIFER_API_URL}/resources/types`);
     const resourceTypes: ResourceType[] = await resourceTypeRes.json();
 
-    return { languages, resourceTypes, getResourceList };
+    return { languages, resourceTypes, getResourceList, getResourceListCount };
 };
 
-const getResourceList = async (skip: number, take: number, query: string) => {
-    console.log('getResourceList called');
+const getResourceList = async (
+    currentPage: number,
+    take: number,
+    languageId: number,
+    resourceTypeId: number,
+    query: string
+) => {
+    let skip = (currentPage - 1) * take;
     const response = await fetch(
-        `${config.PUBLIC_AQUIFER_API_URL}/resources/list?skip=${skip}&take=${take}&query=${query}`
+        `${config.PUBLIC_AQUIFER_API_URL}/resources/list?skip=${skip}&take=${take}&languageId=${languageId}&resourceTypeId=${resourceTypeId}&query=${query}`
     );
     return (await response.json()) as ResourceListItem[];
+};
+
+const getResourceListCount = async (languageId: number, resourceTypeId: number, query: string) => {
+    const response = await fetch(
+        `${config.PUBLIC_AQUIFER_API_URL}/resources/list/count?languageId=${languageId}&resourceTypeId=${resourceTypeId}&query=${query}`
+    );
+    return +(await response.text());
 };
 
 export interface ResourceType {
