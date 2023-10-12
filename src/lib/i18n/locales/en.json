@@ -100,7 +100,12 @@
                         "_context": "Button label to navigate to the next page in the table"
                     },
                     "pageNumber": {
-                        "value": "Page {currentPage} of {totalPages}"
+                        "value": "Page {currentPage} of {totalPages}",
+                        "_context": "Indicates the user's current page number among total number of pages"
+                    },
+                    "perPage": {
+                        "value": "per page",
+                        "_context": "Number per page, indicates how many records are shown"
                     }
                 }
             }

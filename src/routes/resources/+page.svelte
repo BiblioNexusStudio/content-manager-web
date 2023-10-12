@@ -4,22 +4,26 @@
     import PencilIcon from '$lib/icons/PencilIcon.svelte';
     import type { ResourceListItem } from './+page';
     import { goto } from '$app/navigation';
+    import { onMount } from 'svelte';
 
     export let data: PageData;
 
+    let mounted = false;
     let recordCount = 0;
     let selectedLanguage: string = '0';
     let selectedResource: string = '0';
     let searchQuery: string = '';
     let searchInputValue: string;
     let currentPage = 1;
-    let recordsPerPage = '10';
+    let recordsPerPage = 10;
     let resourceList: ResourceListItem[] = [];
 
-    const onPageChange = async (currentPage: number, recordsPerPage: string) => {
+    const onPageChange = async (currentPage: number, recordsPerPage: number) => {
+        if (!mounted) return;
+
         resourceList = await data.getResourceList(
             currentPage,
-            +recordsPerPage,
+            recordsPerPage,
             +selectedLanguage,
             +selectedResource,
             searchQuery
@@ -27,8 +31,9 @@
     };
 
     const onFilterChange = async (selectedLanguage: number, selectedResource: number, searchQuery: string) => {
-        currentPage = 1;
+        if (!mounted) return;
 
+        currentPage = 1;
         [resourceList, recordCount] = await Promise.all([
             data.getResourceList(currentPage, +recordsPerPage, +selectedLanguage, +selectedResource, searchQuery),
             data.getResourceListCount(+selectedLanguage, +selectedResource, searchQuery),
@@ -52,13 +57,22 @@
         }
     };
 
-    $: totalPages = Math.ceil(recordCount / +recordsPerPage) || 1;
+    $: totalPages = Math.ceil(recordCount / recordsPerPage) || 1;
     $: onPageChange(currentPage, recordsPerPage);
     $: onFilterChange(+selectedLanguage, +selectedResource, searchQuery);
+
+    onMount(async () => {
+        [resourceList, recordCount] = await Promise.all([
+            data.getResourceList(currentPage, recordsPerPage, +selectedLanguage, +selectedResource, searchQuery),
+            data.getResourceListCount(+selectedLanguage, +selectedResource, searchQuery),
+        ]);
+
+        mounted = true;
+    });
 </script>
 
-<div class="flex flex-col mx-4 h-screen">
-    <div class="text-3xl mt-4">{$translate('page.resources.header.value')}</div>
+<div class="flex flex-col mx-4 pt-0 h-[95vh] lg:h-screen lg:pt-4">
+    <div class="text-3xl">{$translate('page.resources.header.value')}</div>
     <div class="grid grid-cols-2">
         <div class="mt-4 mb-6">
             <span>
@@ -113,13 +127,7 @@
                     <th class="w-[40%]">{$translate('page.resources.table.nameHeader.value')}</th>
                     <th class="w-[40%]">{$translate('page.resources.table.typeHeader.value')}</th>
                     <th class="w-[18%]">{$translate('page.resources.table.statusHeader.value')}</th>
-                    <th class="w-[2%] grid justify-items-end">
-                        <select bind:value={recordsPerPage} class="select select-bordered select-xs select-ghost">
-                            <option value="10" selected>10</option>
-                            <option value="50">50</option>
-                            <option value="100">100</option>
-                        </select>
-                    </th>
+                    <th class="w-[2%] grid justify-items-end" />
                 </tr>
             </thead>
             <tbody>
@@ -139,22 +147,31 @@
             </tbody>
         </table>
     </div>
-    <div class="grid grid-cols-3 p-4 mb-2 border-[1px] border-t-0 rounded-md rounded-t-none">
+    <div class="grid grid-cols-3 p-2 mb-2 border-[1px] border-t-0 rounded-md rounded-t-none">
         <button
-            class="btn btn-outline justify-self-start"
+            class="btn btn-outline justify-self-start self-center"
             class:btn-disabled={currentPage === 1}
             on:click={() => currentPage--}>{$translate('page.resources.table.navigation.previous.value')}</button
         >
-        <div class="place-self-center">
-            {$translate('page.resources.table.navigation.pageNumber.value', {
-                values: {
-                    currentPage,
-                    totalPages,
-                },
-            })}
+        <div class="grid place-self-center">
+            <div class="mb-2">
+                {$translate('page.resources.table.navigation.pageNumber.value', {
+                    values: {
+                        currentPage,
+                        totalPages,
+                    },
+                })}
+            </div>
+            <select bind:value={recordsPerPage} class="select select-bordered select-xs select-ghost">
+                {#each [10, 50, 100] as count, i}
+                    <option value={count} selected={i === 0}>
+                        {`${count} ${$translate('page.resources.table.navigation.perPage.value')}`}
+                    </option>
+                {/each}
+            </select>
         </div>
         <button
-            class="btn btn-outline justify-self-end"
+            class="btn btn-outline justify-self-end self-center"
             class:btn-disabled={currentPage === totalPages}
             on:click={() => currentPage++}>{$translate('page.resources.table.navigation.next.value')}</button
         >
