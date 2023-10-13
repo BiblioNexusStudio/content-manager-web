@@ -1,14 +1,15 @@
 ﻿<script lang="ts">
-    import type { PageData } from './$types';
+    import type { PageData, Snapshot } from './$types';
     import { _ as translate } from 'svelte-i18n';
     import PencilIcon from '$lib/icons/PencilIcon.svelte';
-    import type { ResourceListItem } from './+page';
+    import type { Language, ResourceListItem, ResourceType } from './+page';
     import { goto } from '$app/navigation';
-    import { onMount } from 'svelte';
+    import { onMount, tick } from 'svelte';
 
     export let data: PageData;
 
-    let mounted = false;
+    let loadedFromSnapshot = false;
+    let waitingForMount = true;
     let recordCount = 0;
     let selectedLanguage: string = '0';
     let selectedResource: string = '0';
@@ -17,9 +18,11 @@
     let currentPage = 1;
     let recordsPerPage = 10;
     let resourceList: ResourceListItem[] = [];
+    let languages: Language[] = [];
+    let resourceTypes: ResourceType[] = [];
 
-    const onPageChange = async (currentPage: number, recordsPerPage: number) => {
-        if (!mounted) return;
+    const onPageChange = async () => {
+        if (waitingForMount) return;
 
         resourceList = await data.getResourceList(
             currentPage,
@@ -30,8 +33,8 @@
         );
     };
 
-    const onFilterChange = async (selectedLanguage: number, selectedResource: number, searchQuery: string) => {
-        if (!mounted) return;
+    const onFilterChange = async () => {
+        if (waitingForMount) return;
 
         currentPage = 1;
         [resourceList, recordCount] = await Promise.all([
@@ -57,18 +60,57 @@
         }
     };
 
+    $: snapshotValues = {
+        currentPage,
+        recordsPerPage,
+        selectedLanguage,
+        selectedResource,
+        searchQuery,
+        searchInputValue,
+        resourceList,
+        recordCount,
+        languages,
+        resourceTypes,
+    };
     $: totalPages = Math.ceil(recordCount / recordsPerPage) || 1;
-    $: onPageChange(currentPage, recordsPerPage);
-    $: onFilterChange(+selectedLanguage, +selectedResource, searchQuery);
+    $: [currentPage, recordsPerPage] && onPageChange();
+    $: [selectedLanguage, selectedResource, searchQuery] && onFilterChange();
 
     onMount(async () => {
-        [resourceList, recordCount] = await Promise.all([
-            data.getResourceList(currentPage, recordsPerPage, +selectedLanguage, +selectedResource, searchQuery),
-            data.getResourceListCount(+selectedLanguage, +selectedResource, searchQuery),
-        ]);
+        // Snapshot randomly runs before or after onMount, and this makes sure it's ran
+        await tick();
 
-        mounted = true;
+        waitingForMount = false;
+        if (!loadedFromSnapshot) {
+            [languages, resourceTypes] = await Promise.all([
+                data.getLanguages(),
+                data.getResourceTypes(),
+                onPageChange(),
+                onFilterChange(),
+            ]);
+        }
     });
+
+    export const snapshot: Snapshot<{}> = {
+        capture: () => snapshotValues,
+        restore: (value) => {
+            if (value.resourceList.length === 0) return;
+            ({
+                currentPage,
+                recordsPerPage,
+                selectedLanguage,
+                selectedResource,
+                searchQuery,
+                searchInputValue,
+                resourceList,
+                recordCount,
+                languages,
+                resourceTypes,
+            } = value);
+
+            loadedFromSnapshot = true;
+        },
+    };
 </script>
 
 <div class="flex flex-col mx-4 pt-0 h-[95vh] lg:h-screen lg:pt-4">
@@ -78,7 +120,7 @@
             <span>
                 <select bind:value={selectedLanguage} class="select select-bordered w-2/6 max-w-xs mr-2">
                     <option value="0" selected>{$translate('page.resources.dropdowns.allLanguages.value')}</option>
-                    {#each data.languages as language}
+                    {#each languages as language}
                         <option value={language.id}>{language.englishDisplay}</option>
                     {/each}
                 </select>
@@ -86,7 +128,7 @@
             <span>
                 <select bind:value={selectedResource} class="select select-bordered w-2/6 max-w-xs">
                     <option value="0" selected>{$translate('page.resources.dropdowns.allResources.value')}</option>
-                    {#each data.resourceTypes as resourceType}
+                    {#each resourceTypes as resourceType}
                         <option value={resourceType.id}>{resourceType.displayName}</option>
                     {/each}
                 </select>

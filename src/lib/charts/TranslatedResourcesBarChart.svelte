@@ -17,7 +17,6 @@
     const colors = ['#776E5A', '#E2AF77', '#E6C89D', '#D7BE87', '#965D3B'];
 
     const updateTranslatedResourcesChart = (language: string, resource: string) => {
-        console.log('made it to updateTranslatedResourceChart');
         let resources = resourcesByLanguage;
 
         if (language === defaultSelection && resource !== defaultSelection) {

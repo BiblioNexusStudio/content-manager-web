@@ -2,13 +2,17 @@
 import config from '$lib/config';
 
 export const load: PageLoad = async ({ fetch, params }) => {
+    return { getLanguages, getResourceTypes, getResourceList, getResourceListCount };
+};
+
+const getLanguages = async () => {
     const languageRes = await fetch(`${config.PUBLIC_AQUIFER_API_URL}/languages`);
-    const languages: Language[] = await languageRes.json();
+    return (await languageRes.json()) as Language[];
+};
 
+const getResourceTypes = async () => {
     const resourceTypeRes = await fetch(`${config.PUBLIC_AQUIFER_API_URL}/resources/types`);
-    const resourceTypes: ResourceType[] = await resourceTypeRes.json();
-
-    return { languages, resourceTypes, getResourceList, getResourceListCount };
+    return (await resourceTypeRes.json()) as ResourceType[];
 };
 
 const getResourceList = async (

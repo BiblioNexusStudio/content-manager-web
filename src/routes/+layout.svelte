@@ -43,12 +43,10 @@
 
         isAuthenticated = await auth0Client.isAuthenticated();
 
-        console.log(isAuthenticated);
         if (!isAuthenticated && $page.url.searchParams.has('code') && $page.url.searchParams.has('state')) {
             await auth0Client.handleRedirectCallback();
             await goto('/');
             isAuthenticated = await auth0Client.isAuthenticated();
-            console.log('went through isAuth with code');
         }
 
         if (isAuthenticated) {
@@ -58,7 +56,6 @@
                 let profile = await auth0Client.getUser();
                 userEmail = profile?.email;
                 userFullName = profile?.name;
-                console.log('went through regular auth');
             } catch (e) {
                 await logout();
             }
