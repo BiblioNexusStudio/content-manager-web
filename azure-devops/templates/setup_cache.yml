@@ -1,0 +1,18 @@
+stages:
+    # this is needed to setup the cache due to a limitation in Azure Devops
+    # where deployments using the Cache task can only read from and not write
+    # to the cache
+    # https://github.com/microsoft/azure-pipelines-tasks/issues/11869
+    - stage: setup_cache
+      dependsOn: []
+      jobs:
+          - job: setup
+            steps:
+                - script: mkdir cache
+
+                - task: Cache@2
+                  inputs:
+                      key: 'v1 | setup_cache'
+                      path: cache
+
+                - script: touch cache/file

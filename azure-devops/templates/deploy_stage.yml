@@ -1,0 +1,110 @@
+parameters:
+    - name: DeployEnv
+      type: string
+    - name: AzureDevopsEnvName
+      type: string
+    - name: DeployApiToken
+      type: string
+    - name: DeployUrl
+      type: string
+    - name: GithubAppPrivateKeyBase64
+      type: string
+    - name: SourceBranchForPreviewEnvironment
+      type: string
+      default: ''
+    - name: DependsOn
+      type: object
+    - name: CheckoutTemplate
+      type: string
+    - name: CreateGithubRelease
+      type: boolean
+      default: false
+    - name: SourceDirectory
+      type: string
+      default: '.'
+
+stages:
+    - stage: deploy_to_${{ parameters.DeployEnv }}
+      displayName: ${{ parameters.AzureDevopsEnvName }}
+      dependsOn: ${{ parameters.DependsOn }}
+      jobs:
+          - deployment: deploy
+            environment: ${{ parameters.AzureDevopsEnvName }}
+            strategy:
+                runOnce:
+                    deploy:
+                        steps:
+                            - template: ${{ parameters.CheckoutTemplate }}
+                              parameters:
+                                  WorkingDirectory: $(Build.SourcesDirectory)/${{ parameters.SourceDirectory }}
+
+                            - ${{ if ne(parameters.SourceBranchForPreviewEnvironment, '') }}:
+                                  - script: echo "##vso[task.setvariable variable=DeployPreviewName]pr$(echo $SOURCE_BRANCH | grep -oP "refs/pull/\K[0-9]+")"
+                                    env:
+                                        SOURCE_BRANCH: ${{ parameters.SourceBranchForPreviewEnvironment }}
+                                    displayName: Calculate deploy preview name
+
+                            - ${{ if eq(parameters.SourceBranchForPreviewEnvironment, '') }}:
+                                  - script: echo "##vso[task.setvariable variable=DeployPreviewName]"
+                                    displayName: Skip setting deploy preview name
+
+                            - template: install_deps.yml
+                              parameters:
+                                  WorkingDirectory: $(Build.SourcesDirectory)/${{ parameters.SourceDirectory }}
+
+                            - script: yarn use-config ${{ parameters.DeployEnv }}
+                              workingDirectory: $(Build.SourcesDirectory)/${{ parameters.SourceDirectory }}
+                              displayName: Setup env
+
+                            - script: yarn build
+                              workingDirectory: $(Build.SourcesDirectory)/${{ parameters.SourceDirectory }}
+                              displayName: Build
+
+                            - script: cp staticwebapp.config.json build
+                              workingDirectory: $(Build.SourcesDirectory)/${{ parameters.SourceDirectory }}
+                              displayName: Copy Azure Static Web App config
+
+                            - publish: $(Build.SourcesDirectory)/${{ parameters.SourceDirectory }}/build
+                              artifact: build-${{ parameters.DeployEnv }}
+                              displayName: Publish artifact (for introspection)
+
+                            - task: AzureStaticWebApp@0
+                              inputs:
+                                  cwd: $(Build.SourcesDirectory)/${{ parameters.SourceDirectory }}
+                                  skip_app_build: true
+                                  app_location: './'
+                                  api_location: 'build/server'
+                                  deployment_environment: $(DeployPreviewName)
+                                  output_location: 'build/static'
+                                  azure_static_web_apps_api_token: ${{ parameters.DeployApiToken }}
+                              displayName: Deploy Azure Static Web App
+
+                            - checkout: devops
+                              path: devops
+
+                            - script: |
+                                  $(Pipeline.Workspace)/devops/github-cli/script.sh deployment \
+                                      --privateKeyBase64 "$GITHUB_APP_PRIVATE_KEY_BASE64" \
+                                      --environment "${DEPLOY_PREVIEW_NAME:-$ENVIRONMENT}" \
+                                      --ref "$(git rev-parse HEAD)" \
+                                      --deployedUrl "$DEPLOY_URL" \
+                                      --previewEnvName "$DEPLOY_PREVIEW_NAME" \
+                                      --repo content-manager-web
+                              displayName: Create deployment in GitHub
+                              workingDirectory: $(Build.SourcesDirectory)/${{ parameters.SourceDirectory }}
+                              env:
+                                  ENVIRONMENT: ${{ parameters.DeployEnv }}
+                                  DEPLOY_URL: ${{ parameters.DeployUrl }}
+                                  DEPLOY_PREVIEW_NAME: $(DeployPreviewName)
+                                  GITHUB_APP_PRIVATE_KEY_BASE64: ${{ parameters.GithubAppPrivateKeyBase64 }}
+
+                            - ${{ if eq(parameters.CreateGithubRelease, true) }}:
+                                  - script: |
+                                        $(Pipeline.Workspace)/devops/github-cli/script.sh release \
+                                            --privateKeyBase64 "$GITHUB_APP_PRIVATE_KEY_BASE64" \
+                                            --ref "$(git rev-parse HEAD)" \
+                                            --repo content-manager-web
+                                    env:
+                                        GITHUB_APP_PRIVATE_KEY_BASE64: $(GithubAppPrivateKeyBase64)
+                                    workingDirectory: $(Build.SourcesDirectory)/${{ parameters.SourceDirectory }}
+                                    displayName: Create GitHub release
