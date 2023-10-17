@@ -72,6 +72,7 @@
         languages,
         resourceTypes,
     };
+    type SnapshotValues = typeof snapshotValues;
     $: totalPages = Math.ceil(recordCount / recordsPerPage) || 1;
     $: [currentPage, recordsPerPage] && onPageChange();
     $: [selectedLanguage, selectedResource, searchQuery] && onFilterChange();
@@ -91,9 +92,9 @@
         }
     });
 
-    export const snapshot: Snapshot<{}> = {
+    export const snapshot: Snapshot<SnapshotValues> = {
         capture: () => snapshotValues,
-        restore: (value) => {
+        restore: (value: SnapshotValues) => {
             if (value.resourceList.length === 0) return;
             ({
                 currentPage,
@@ -113,12 +114,12 @@
     };
 </script>
 
-<div class="flex flex-col mx-4 pt-0 h-[95vh] lg:h-screen lg:pt-4">
+<div class="mx-4 flex h-[95vh] flex-col pt-0 lg:h-screen lg:pt-4">
     <div class="text-3xl">{$translate('page.resources.header.value')}</div>
     <div class="grid grid-cols-2">
-        <div class="mt-4 mb-6">
+        <div class="mb-6 mt-4">
             <span>
-                <select bind:value={selectedLanguage} class="select select-bordered w-2/6 max-w-xs mr-2">
+                <select bind:value={selectedLanguage} class="select select-bordered mr-2 w-2/6 max-w-xs">
                     <option value="0" selected>{$translate('page.resources.dropdowns.allLanguages.value')}</option>
                     {#each languages as language}
                         <option value={language.id}>{language.englishDisplay}</option>
@@ -134,8 +135,8 @@
                 </select>
             </span>
         </div>
-        <div class="mt-4 mb-6 grid">
-            <div class="relative text-gray-600 w-1/2 justify-self-end">
+        <div class="mb-6 mt-4 grid">
+            <div class="relative w-1/2 justify-self-end text-gray-600">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-2">
                     <button type="submit" class="p-1" on:click={() => (searchQuery = searchInputValue)}>
                         <svg
@@ -145,7 +146,7 @@
                             stroke-linejoin="round"
                             stroke-width="2"
                             viewBox="0 0 24 24"
-                            class="w-6 h-6"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg
+                            class="h-6 w-6"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg
                         >
                     </button>
                 </span>
@@ -155,21 +156,21 @@
                         if (e.key === 'Enter') searchQuery = searchInputValue;
                     }}
                     type="search"
-                    class="py-2 text-sm rounded-md pl-10 focus:outline-none text-gray-900 border-[1px] min-h-12 w-full"
+                    class="min-h-12 w-full rounded-md border-[1px] py-2 pl-10 text-sm text-gray-900 focus:outline-none"
                     placeholder={$translate('page.resources.searchBox.value')}
                 />
             </div>
         </div>
     </div>
 
-    <div class="overflow-auto flex-1 border-[1px] rounded-md rounded-b-none">
+    <div class="flex-1 overflow-auto rounded-md rounded-b-none border-[1px]">
         <table class="table table-pin-rows">
             <thead>
                 <tr class="bg-gray-100">
                     <th class="w-[40%]">{$translate('page.resources.table.nameHeader.value')}</th>
                     <th class="w-[40%]">{$translate('page.resources.table.typeHeader.value')}</th>
                     <th class="w-[18%]">{$translate('page.resources.table.statusHeader.value')}</th>
-                    <th class="w-[2%] grid justify-items-end" />
+                    <th class="grid w-[2%] justify-items-end" />
                 </tr>
             </thead>
             <tbody>
@@ -180,7 +181,7 @@
                         <td>{resource.type}</td>
                         <td><div class="badge {normalizedStatus.class}">{normalizedStatus.value}</div></td>
                         <td class="w-4"
-                            ><button on:click={() => goto(`/resources/${resource.id}`)} class="btn btn-sm btn-link"
+                            ><button on:click={() => goto(`/resources/${resource.id}`)} class="btn btn-link btn-sm"
                                 ><PencilIcon /></button
                             ></td
                         >
@@ -189,9 +190,9 @@
             </tbody>
         </table>
     </div>
-    <div class="grid grid-cols-3 p-2 mb-2 border-[1px] border-t-0 rounded-md rounded-t-none">
+    <div class="mb-2 grid grid-cols-3 rounded-md rounded-t-none border-[1px] border-t-0 p-2">
         <button
-            class="btn btn-outline justify-self-start self-center"
+            class="btn btn-outline self-center justify-self-start"
             class:btn-disabled={currentPage === 1}
             on:click={() => currentPage--}>{$translate('page.resources.table.navigation.previous.value')}</button
         >
@@ -204,7 +205,7 @@
                     },
                 })}
             </div>
-            <select bind:value={recordsPerPage} class="select select-bordered select-xs select-ghost">
+            <select bind:value={recordsPerPage} class="select select-bordered select-ghost select-xs">
                 {#each [10, 50, 100] as count, i}
                     <option value={count} selected={i === 0}>
                         {`${count} ${$translate('page.resources.table.navigation.perPage.value')}`}
@@ -213,7 +214,7 @@
             </select>
         </div>
         <button
-            class="btn btn-outline justify-self-end self-center"
+            class="btn btn-outline self-center justify-self-end"
             class:btn-disabled={currentPage === totalPages}
             on:click={() => currentPage++}>{$translate('page.resources.table.navigation.next.value')}</button
         >

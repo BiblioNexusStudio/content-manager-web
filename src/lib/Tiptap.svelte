@@ -72,14 +72,14 @@
     <div class="m-4">
         <span class="join join-horizontal my-1">
             <button
-                class="btn btn-outline btn-xs join-item"
+                class="btn btn-outline join-item btn-xs"
                 on:click={() => editor.chain().focus().toggleBold().run()}
                 class:btn-primary={editor.isActive('bold')}
             >
                 B
             </button>
             <button
-                class="btn btn-outline btn-xs join-item"
+                class="btn btn-outline join-item btn-xs"
                 on:click={() => editor.chain().focus().toggleItalic().run()}
                 class:btn-primary={editor.isActive('italic')}
             >
@@ -109,22 +109,22 @@
         </button>
         <span class="join join-horizontal my-1">
             <button
-                class="btn btn-outline btn-xs join-item"
+                class="btn btn-outline join-item btn-xs"
                 on:click={() => editor.chain().focus().toggleBulletList().run()}
                 class:btn-primary={editor.isActive('bulletList')}
             >
                 Bullet
             </button>
             <button
-                class="btn btn-outline btn-xs join-item"
+                class="btn btn-outline join-item btn-xs"
                 on:click={() => editor.chain().focus().toggleOrderedList().run()}
                 class:btn-primary={editor.isActive('orderedList')}
             >
                 Ordered
             </button>
         </span>
-        <button class="btn btn-outline btn-accent btn-xs my-1" on:click={addImage}> Image </button>
-        <button class="btn btn-outline btn-accent btn-xs my-1" on:click={addLink}> Link </button>
+        <button class="btn btn-accent btn-outline btn-xs my-1" on:click={addImage}> Image </button>
+        <button class="btn btn-accent btn-outline btn-xs my-1" on:click={addLink}> Link </button>
     </div>
 {/if}
 

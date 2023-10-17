@@ -1,4 +1,4 @@
-﻿<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="inline-block w-8 h-8" viewBox="0 0 16 16">
+﻿<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="inline-block h-8 w-8" viewBox="0 0 16 16">
     <path
         d="M4.545 6.714 4.11 8H3l1.862-5h1.284L8 8H6.833l-.435-1.286H4.545zm1.634-.736L5.5 3.956h-.049l-.679 2.022H6.18z"
     />

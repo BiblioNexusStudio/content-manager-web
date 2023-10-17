@@ -1,6 +1,6 @@
 import { env } from '$env/dynamic/public';
 
-export default env as Configuration;
+export default env as unknown as Configuration;
 
 export interface Configuration {
     PUBLIC_APPLICATION_INSIGHTS_CONNECTION_STRING: string;

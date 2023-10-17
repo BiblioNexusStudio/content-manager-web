@@ -1,0 +1,6 @@
+{
+    "trailingSlash": "auto",
+    "mimeTypes": {
+        ".json": "text/json"
+    }
+}

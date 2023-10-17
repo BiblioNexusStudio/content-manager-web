@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-    import Chart from 'chart.js/auto';
+    import Chart, { type ChartConfiguration, type ChartDataset } from 'chart.js/auto';
     import { onMount } from 'svelte';
     import type { ResourcesByLanguage } from '../../routes/+page';
 
@@ -27,13 +27,16 @@
             resources = resources.filter((x) => x.language === language && x.resourceType === resource);
         }
 
-        let langMonthGroup = resources.reduce((group, resource) => {
-            const { language, monthAbbreviation } = resource;
-            group[`${language}-${monthAbbreviation}`] = group[`${language}-${monthAbbreviation}`] ?? [];
-            group[`${language}-${monthAbbreviation}`].push(resource);
+        let langMonthGroup = resources.reduce(
+            (group, resource) => {
+                const { language, monthAbbreviation } = resource;
+                group[`${language}-${monthAbbreviation}`] = group[`${language}-${monthAbbreviation}`] ?? [];
+                group[`${language}-${monthAbbreviation}`].push(resource);
 
-            return group;
-        }, {} as { [monthLanguage: string]: ResourcesByLanguage[] });
+                return group;
+            },
+            {} as { [monthLanguage: string]: ResourcesByLanguage[] }
+        );
 
         let translatedData = languages.map((x: string) => ({ label: x, data: [] as number[] }));
 
@@ -49,7 +52,7 @@
         updateChart(translatedData);
     };
 
-    const updateChart = (data: { label: string; data: number[] }[]) => {
+    const updateChart = (data: ChartDataset[]) => {
         for (let i = 0; i < data.length; i++) {
             data[i].backgroundColor = colors[i];
         }
@@ -62,11 +65,11 @@
         }
     };
 
-    const chartData = {
+    const chartData: ChartConfiguration = {
         type: 'bar',
         data: {
             labels: months,
-            datasets: [] as { label: string; data: number[] }[],
+            datasets: [],
         },
         options: {
             plugins: {
@@ -101,12 +104,12 @@
                     },
                 },
             },
-            barPercentage: 0.5,
         },
     };
 
     onMount(async () => {
-        let canvasContext = document?.getElementById('areaChartCanvas')?.getContext('2d');
+        let canvas = document?.getElementById('areaChartCanvas') as HTMLCanvasElement | undefined;
+        let canvasContext = canvas?.getContext('2d');
         if (canvasContext != null) {
             let gradient = canvasContext.createLinearGradient(0, 0, 0, 300);
             gradient.addColorStop(0, '#81755690');
@@ -118,4 +121,4 @@
     });
 </script>
 
-<canvas class="!w-full !h-full" id="translatedResourcesBarChart" />
+<canvas class="!h-full !w-full" id="translatedResourcesBarChart" />

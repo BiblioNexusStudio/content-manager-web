@@ -24,5 +24,7 @@ module.exports = {
     ],
     rules: {
         'svelte/no-at-html-tags': 0,
+        '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+        '@typescript-eslint/no-non-null-assertion': 'off',
     },
 };
