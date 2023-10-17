@@ -6,7 +6,7 @@
     export let totalsByMonth: TotalsByMonth[];
     export let resourcesByLanguage: ResourcesByLanguage[];
     export let resourcesByType: ResourcesByType[];
-    export let defaultSelection: string = 'default';
+    export let defaultSelection = 'default';
     export let selectedLanguage: string;
     export let selectedResource: string;
     export let months: string[];
@@ -37,17 +37,20 @@
                           (item) => item.language === language && item.resourceType === resource
                       );
 
-            let monthGroup = languageResources.reduce((group, resource) => {
-                const { monthAbbreviation } = resource;
-                group[monthAbbreviation] = group[monthAbbreviation] ?? [];
-                group[monthAbbreviation].push(resource);
-                return group;
-            }, {} as { [month: string]: ResourcesByLanguage[] });
+            let monthGroup = languageResources.reduce(
+                (group, resource) => {
+                    const { monthAbbreviation } = resource;
+                    group[monthAbbreviation] = group[monthAbbreviation] ?? [];
+                    group[monthAbbreviation].push(resource);
+                    return group;
+                },
+                {} as { [month: string]: ResourcesByLanguage[] }
+            );
 
             let totals: TotalsByMonth[] = [];
             for (let month in monthGroup) {
                 let group = monthGroup[month];
-                let total: number = 0;
+                let total = 0;
                 for (let i = 0; i < group.length; i++) {
                     total += group[i].resourceCount;
                 }
@@ -124,4 +127,4 @@
     });
 </script>
 
-<canvas class="!w-full !h-full" id="totalResourcesAreaChart" />
+<canvas class="!h-full !w-full" id="totalResourcesAreaChart" />
