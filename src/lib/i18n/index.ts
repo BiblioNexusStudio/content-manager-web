@@ -1,14 +1,21 @@
 import { browser } from '$app/environment';
-import { init, register } from 'svelte-i18n';
+import { init as svelteI18nInit, register, locale } from 'svelte-i18n';
 
-const defaultLocale = 'en';
+register('eng', () => import('./locales/eng.json'));
 
-register('en', () => import('./locales/en.json'));
-register('en-US', () => import('./locales/en.json'));
-
-export async function init18n() {
-    await init({
-        fallbackLocale: defaultLocale,
-        initialLocale: browser ? window.navigator.language : defaultLocale,
+export async function initI18n() {
+    const language = browserLanguageToISO6393(browser ? navigator.language : 'en-US');
+    locale.set(language);
+    await svelteI18nInit({
+        fallbackLocale: 'eng',
+        initialLocale: language,
     });
+}
+
+function browserLanguageToISO6393(browserLanguage: string) {
+    const twoDigit = browserLanguage.toLowerCase().split('-')[0];
+    if (twoDigit === 'en') {
+        return 'eng';
+    }
+    return null;
 }

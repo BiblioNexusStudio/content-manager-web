@@ -1,0 +1,17 @@
+parameters:
+    - name: WorkingDirectory
+      type: string
+      default: '.'
+
+steps:
+    - template: templates/setup_node.yml@devops
+
+    - task: Cache@2
+      inputs:
+          key: 'v1 | yarn | "$(Agent.OS)" | ${{ parameters.WorkingDirectory }}/yarn.lock'
+          path: ${{ parameters.WorkingDirectory }}/node_modules
+      displayName: Cache yarn dependencies
+
+    - script: yarn install --frozen-lockfile
+      workingDirectory: ${{ parameters.WorkingDirectory }}
+      displayName: Install dependencies

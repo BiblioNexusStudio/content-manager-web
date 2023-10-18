@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-    import Chart from 'chart.js/auto';
+    import Chart, { type ChartConfiguration } from 'chart.js/auto';
     import { onMount } from 'svelte';
     import type { ResourcesByLanguage, ResourcesByType, TotalsByMonth } from '../../routes/+page';
 
@@ -37,12 +37,15 @@
                           (item) => item.language === language && item.resourceType === resource
                       );
 
-            let monthGroup = languageResources.reduce((group, resource) => {
-                const { monthAbbreviation } = resource;
-                group[monthAbbreviation] = group[monthAbbreviation] ?? [];
-                group[monthAbbreviation].push(resource);
-                return group;
-            }, {} as { [month: string]: ResourcesByLanguage[] });
+            let monthGroup = languageResources.reduce(
+                (group, resource) => {
+                    const { monthAbbreviation } = resource;
+                    group[monthAbbreviation] = group[monthAbbreviation] ?? [];
+                    group[monthAbbreviation].push(resource);
+                    return group;
+                },
+                {} as { [month: string]: ResourcesByLanguage[] }
+            );
 
             let totals: TotalsByMonth[] = [];
             for (let month in monthGroup) {
@@ -74,7 +77,7 @@
         }
     };
 
-    const chartData = {
+    const chartData: ChartConfiguration = {
         type: 'line',
         data: {
             labels: months,
@@ -112,7 +115,8 @@
     };
 
     onMount(async () => {
-        let canvasContext = document?.getElementById('totalResourcesAreaChart')?.getContext('2d');
+        let canvas = document?.getElementById('totalResourcesAreaChart') as HTMLCanvasElement | undefined;
+        let canvasContext = canvas?.getContext('2d');
         if (canvasContext != undefined) {
             let gradient = canvasContext.createLinearGradient(0, 0, 0, 300);
             gradient.addColorStop(0, '#81755690');
@@ -124,4 +128,4 @@
     });
 </script>
 
-<canvas class="!w-full !h-full" id="totalResourcesAreaChart" />
+<canvas class="!h-full !w-full" id="totalResourcesAreaChart" />
