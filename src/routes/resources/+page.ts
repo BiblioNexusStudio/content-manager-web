@@ -1,7 +1,7 @@
 ﻿import type { PageLoad } from './$types';
 import config from '$lib/config';
 
-export const load: PageLoad = async ({ fetch, params }) => {
+export const load: PageLoad = async () => {
     return { getLanguages, getResourceTypes, getResourceList, getResourceListCount };
 };
 
@@ -22,7 +22,7 @@ const getResourceList = async (
     resourceTypeId: number,
     query: string
 ) => {
-    let skip = (currentPage - 1) * take;
+    const skip = (currentPage - 1) * take;
     const response = await fetch(
         `${config.PUBLIC_AQUIFER_API_URL}/resources/list?skip=${skip}&take=${take}&languageId=${languageId}&resourceTypeId=${resourceTypeId}&query=${query}`
     );
