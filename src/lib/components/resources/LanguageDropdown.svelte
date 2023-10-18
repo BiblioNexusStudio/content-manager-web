@@ -1,20 +1,13 @@
 <script lang="ts">
-    let lang = '';
+    import type { Language } from '$lib/types/resources';
+    import { languageId } from '$lib/store/resources';
 
-    const supportedLanguages = [
-        { code: 'eng', label: 'English' },
-        { code: 'hin', label: 'हिंदी' },
-        { code: 'tpi', label: 'Tok Pisin' },
-    ];
-
-    function onLanguageSelected() {
-        console.log('lang', lang);
-    }
+    export let languageSet: Language[];
 </script>
 
-<select on:change={onLanguageSelected} bind:value={lang} class="select select-info font-semibold">
+<select bind:value={$languageId} class="select select-info font-semibold">
     <option value="" disabled selected>Select a Language</option>
-    {#each supportedLanguages as { code, label }}
-        <option value={code}>{label}</option>
+    {#each languageSet as { id, displayName }}
+        <option value={id}>{displayName}</option>
     {/each}
 </select>

@@ -5,6 +5,7 @@
 
     export let translationStatusText: string;
     export let sizeText: string;
+    export let hasAudio: boolean;
 </script>
 
 <Accordion title="Details" closable={true}>
@@ -17,11 +18,13 @@
                 <span class="mr-2 font-bold">Size</span><span>{sizeText}</span>
             </div>
         </div>
-        <div class="flex flex-col">
-            <div class="mb-4">
-                <Icon data={volumeUp} scale={2} />
+        {#if hasAudio}
+            <div class="flex flex-col">
+                <div class="mb-4">
+                    <Icon data={volumeUp} scale={2} />
+                </div>
+                <div class="mb-4">Yes</div>
             </div>
-            <div class="mb-4">yes i want change</div>
-        </div>
+        {/if}
     </div>
 </Accordion>
