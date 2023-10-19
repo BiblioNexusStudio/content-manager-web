@@ -45,6 +45,7 @@ interface Tiptap {
 interface ContentItem {
     stepNumber: number;
     tiptap: Tiptap;
+    url?: string;
 }
 
 export interface Language {

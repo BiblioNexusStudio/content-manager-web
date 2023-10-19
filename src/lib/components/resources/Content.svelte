@@ -1,6 +1,8 @@
 <script lang="ts">
     import Accordion from './Accordion.svelte';
-    import TranslationGuide from './contentComponents/TranslationGuide.svelte';
+    import Image from './content-components/Image.svelte';
+    import Video from './content-components/Video.svelte';
+    import TranslationGuide from './content-components/TranslationGuide.svelte';
 
     export let typeText: string;
 </script>
@@ -9,9 +11,9 @@
     {#if typeText === 'Translation Guide (SRV)'}
         <TranslationGuide />
     {:else if typeText === 'Images (UBS)'}
-        <div>image</div>
+        <Image />
     {:else if typeText === 'Videos (Video Bible Dictionary)'}
-        <div>video</div>
+        <Video />
     {:else}
         <div>text</div>
     {/if}
