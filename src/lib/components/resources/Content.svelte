@@ -9,12 +9,16 @@
 
 <Accordion title="Content" closable={false} fullHeight={true}>
     {#if typeText === 'Translation Guide (SRV)'}
+        <TranslationGuide stepNavigation={true} />
+    {:else if typeText === 'Bible Dictionary (Tyndale)'}
+        <TranslationGuide />
+    {:else if typeText === 'Study Notes (Tyndale)'}
         <TranslationGuide />
     {:else if typeText === 'Images (UBS)'}
         <Image />
     {:else if typeText === 'Videos (Video Bible Dictionary)'}
         <Video />
     {:else}
-        <div>text</div>
+        <div></div>
     {/if}
 </Accordion>

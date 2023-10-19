@@ -3,6 +3,8 @@
     import arrowCircleLeft from 'svelte-awesome/icons/arrowCircleLeft';
     import arrowCircleRight from 'svelte-awesome/icons/arrowCircleRight';
 
+    export let stepNavigation = false;
+
     import Tiptap from '$lib/Tiptap.svelte';
     import { filteredResourcesByLanguage } from '$lib/store/resources';
 
@@ -56,14 +58,16 @@
 </script>
 
 <div>
-    <div class="flex items-center justify-between px-4">
-        <button on:click={() => handleStep('backward')}>
-            <Icon data={arrowCircleLeft} scale={3} />
-        </button>
-        <h2 class="text-xl font-bold">{headings[currentStepNumber - 1]?.heading}</h2>
-        <button on:click={() => handleStep('forward')}>
-            <Icon data={arrowCircleRight} scale={3} />
-        </button>
-    </div>
+    {#if stepNavigation}
+        <div class="flex items-center justify-between px-4">
+            <button on:click={() => handleStep('backward')}>
+                <Icon data={arrowCircleLeft} scale={3} />
+            </button>
+            <h2 class="text-xl font-bold">{headings[currentStepNumber - 1]?.heading}</h2>
+            <button on:click={() => handleStep('forward')}>
+                <Icon data={arrowCircleRight} scale={3} />
+            </button>
+        </div>
+    {/if}
     <Tiptap htmlDefault={textResource?.content[currentStepNumber - 1]?.tiptap} />
 </div>
