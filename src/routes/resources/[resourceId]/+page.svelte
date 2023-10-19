@@ -8,7 +8,7 @@
     import Content from '$lib/components/resources/Content.svelte';
     import type { Resource } from '$lib/types/resources';
     import { convertToReadableSize } from '$lib/utils/conversions';
-    import { languageId } from '$lib/store/resources';
+    import { languageId, filteredResourcesByLanguage } from '$lib/store/resources';
 
     export let data;
 
@@ -24,17 +24,17 @@
             return currentIndex === firstIndex;
         });
 
-    $: filteredResourcesByLanguage = resource.resources.filter((resource) => resource.language.id === $languageId);
+    $: $filteredResourcesByLanguage = resource.resources.filter((resource) => resource.language.id === $languageId);
 
     $: resourceSize = convertToReadableSize(
-        filteredResourcesByLanguage.reduce((acc, resource) => acc + resource.contentSize, 0)
+        $filteredResourcesByLanguage.reduce((acc, resource) => acc + resource.contentSize, 0)
     );
 
-    $: resourceStatus = filteredResourcesByLanguage.every((resource) => resource.status === 'Completed')
+    $: resourceStatus = $filteredResourcesByLanguage.every((resource) => resource.status === 'Completed')
         ? 'Translated'
         : 'In Progress';
 
-    $: hasAudio = filteredResourcesByLanguage.some((resource) => resource.mediaType.toLowerCase() === 'audio');
+    $: hasAudio = $filteredResourcesByLanguage.some((resource) => resource.mediaType.toLowerCase() === 'audio');
 </script>
 
 <div class="p-8">
@@ -51,7 +51,7 @@
             <BibleReferences bibleRefernces={resource.passageReferences} />
         </div>
         <div class="flex w-8/12 flex-col">
-            <Content typeText={resource.type} currentLanguageResourses={filteredResourcesByLanguage} />
+            <Content typeText={resource.type} />
         </div>
     </div>
 </div>

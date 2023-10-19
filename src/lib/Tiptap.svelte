@@ -14,6 +14,8 @@
 
     export let htmlDefault: any;
 
+    $: editor?.commands?.setContent(htmlDefault);
+
     onMount(() => {
         editor = new Editor({
             element: element,
