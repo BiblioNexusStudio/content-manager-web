@@ -1,10 +1,59 @@
 ﻿<script lang="ts">
     import { onMount, onDestroy } from 'svelte';
-    import { Editor } from '@tiptap/core';
+    import { Editor, Mark } from '@tiptap/core';
     import StarterKit from '@tiptap/starter-kit';
     import Image from '@tiptap/extension-image';
     import Link from '@tiptap/extension-link';
     import { generateHTML } from '@tiptap/html';
+    import { Heading } from '@tiptap/extension-heading';
+    import Italic from '@tiptap/extension-italic';
+    import Paragraph from '@tiptap/extension-paragraph';
+    import Document from '@tiptap/extension-document';
+    import Text from '@tiptap/extension-text';
+    import ListItem from '@tiptap/extension-list-item';
+    import BulletList from '@tiptap/extension-bullet-list';
+    import OrderedList from '@tiptap/extension-ordered-list';
+    import Bold from '@tiptap/extension-bold';
+
+    const bibleReferenceMark = Mark.create({
+        name: 'bibleReference',
+        priority: 1001,
+        keepOnSplit: false,
+        addAttributes() {
+            return {
+                verses: {
+                    default: [
+                        {
+                            startVerse: null,
+                            endVerse: null,
+                        },
+                    ],
+                },
+            };
+        },
+        renderHTML({ HTMLAttributes }) {
+            return ['span', { style: { color: 'green' } }, 0];
+        },
+    });
+
+    const resourceReferenceMark = Mark.create({
+        name: 'resourceReference',
+        priority: 1001,
+        keepOnSplit: false,
+        addAttributes() {
+            return {
+                resourceId: {
+                    default: null,
+                },
+                resourceType: {
+                    default: null,
+                },
+            };
+        },
+        renderHTML({ HTMLAttributes }) {
+            return ['span', { style: { color: 'blue' } }, 0];
+        },
+    });
 
     export let jsonOutput: string | undefined;
     export let htmlOutput: string;
@@ -20,7 +69,21 @@
         editor = new Editor({
             element: element,
             editable: false,
-            extensions: [StarterKit, Image, Link],
+            extensions: [
+                Bold,
+                BulletList,
+                Document,
+                Heading,
+                Image,
+                Italic,
+                Link,
+                ListItem,
+                OrderedList,
+                Paragraph,
+                Text,
+                bibleReferenceMark,
+                resourceReferenceMark,
+            ],
             editorProps: {
                 attributes: {
                     class: 'prose dark:prose-invert prose-sm sm:prose-base lg:prose-lg xl:prose-2xl focus:outline-none text-black mx-4',
