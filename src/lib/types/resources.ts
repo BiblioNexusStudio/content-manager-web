@@ -76,3 +76,7 @@ export interface Resource {
     type: string;
     label: string;
 }
+
+export interface ResourceResponse {
+    resource: Resource;
+}
