@@ -10,9 +10,9 @@
     import { filteredResourcesByLanguage } from '$lib/store/resources';
 
     let currentStepNumber = 1;
-    const textResource = $filteredResourcesByLanguage.find((resource) => resource.mediaType.toLowerCase() === 'text');
-    const contentArray = textResource?.content as ContentItem[];
-    const currentResourceStepsLenght = contentArray.length || 0;
+    $: textResource = $filteredResourcesByLanguage.find((resource) => resource.mediaType.toLowerCase() === 'text');
+    $: contentArray = textResource?.content as ContentItem[];
+    $: currentResourceStepsLenght = contentArray.length || 0;
 
     const headings = [
         {

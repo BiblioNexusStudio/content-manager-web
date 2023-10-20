@@ -6,7 +6,7 @@
     import RelatedContent from '$lib/components/resources/RelatedContent.svelte';
     import BibleReferences from '$lib/components/resources/BibleReferences.svelte';
     import Content from '$lib/components/resources/Content.svelte';
-    import type { Resource, ResourceResponse } from '$lib/types/resources';
+    import { type Resource, type ResourceResponse, ResourceStatusEnum } from '$lib/types/resources';
     import { convertToReadableSize } from '$lib/utils/conversions';
     import { languageId, filteredResourcesByLanguage } from '$lib/store/resources';
 
@@ -31,7 +31,7 @@
     );
 
     $: resourceStatus = $filteredResourcesByLanguage.every(
-        (resource) => resource.status === 'Completed' || resource.status === 'None'
+        (resource) => resource.status === ResourceStatusEnum.completed || resource.status === ResourceStatusEnum.none
     )
         ? 'Translated'
         : 'In Progress';

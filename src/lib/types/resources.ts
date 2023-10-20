@@ -1,3 +1,22 @@
+export enum ResourceTypeEnum {
+    cbbterTranslationGuide = 'Translation Guide (SRV)',
+    tyndaleBibleDictionary = 'Bible Dictionary (Tyndale)',
+    tyndaleStudyNotes = 'Study Notes (Tyndale)',
+    ubsImages = 'Images (UBS)',
+    videoBibleDictionary = 'Videos (Video Bible Dictionary)',
+}
+
+export enum MediaTypeEnum {
+    audio = 'Audio',
+    video = 'Video',
+    image = 'Image',
+    text = 'Text',
+}
+
+export enum ResourceStatusEnum {
+    completed = 'Completed',
+    none = 'None',
+}
 export interface PassageReference {
     startVerseId: number;
     startBook: string;

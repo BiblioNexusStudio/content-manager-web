@@ -5,17 +5,17 @@
     import fileImageO from 'svelte-awesome/icons/fileImageO';
     import fileVideoO from 'svelte-awesome/icons/fileVideoO';
     import fileAudioO from 'svelte-awesome/icons/fileAudioO';
-    import type { AssociatedResource } from '$lib/types/resources';
+    import { type AssociatedResource, MediaTypeEnum } from '$lib/types/resources';
     import EmptyMessage from './EmptyMessage.svelte';
 
     export let relatedContent: AssociatedResource[];
     function getIcon(type: string | undefined) {
         switch (type) {
-            case 'Image':
+            case MediaTypeEnum.image:
                 return fileImageO;
-            case 'Video':
+            case MediaTypeEnum.video:
                 return fileVideoO;
-            case 'Audio':
+            case MediaTypeEnum.audio:
                 return fileAudioO;
             default:
                 return fileTextO;

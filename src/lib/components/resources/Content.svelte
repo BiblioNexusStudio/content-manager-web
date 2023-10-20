@@ -3,20 +3,21 @@
     import Image from './content-components/Image.svelte';
     import Video from './content-components/Video.svelte';
     import TiptapContent from './content-components/TiptapContent.svelte';
+    import { ResourceTypeEnum } from '$lib/types/resources';
 
     export let typeText: string;
 </script>
 
 <Accordion title="Content" closable={false} fullHeight={true}>
-    {#if typeText === 'Translation Guide (SRV)'}
+    {#if typeText === ResourceTypeEnum.cbbterTranslationGuide}
         <TiptapContent stepNavigation={true} />
-    {:else if typeText === 'Bible Dictionary (Tyndale)'}
+    {:else if typeText === ResourceTypeEnum.tyndaleBibleDictionary}
         <TiptapContent />
-    {:else if typeText === 'Study Notes (Tyndale)'}
+    {:else if typeText === ResourceTypeEnum.tyndaleStudyNotes}
         <TiptapContent />
-    {:else if typeText === 'Images (UBS)'}
+    {:else if typeText === ResourceTypeEnum.ubsImages}
         <Image />
-    {:else if typeText === 'Videos (Video Bible Dictionary)'}
+    {:else if typeText === ResourceTypeEnum.videoBibleDictionary}
         <Video />
     {/if}
 </Accordion>
