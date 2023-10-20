@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-    import Chart from 'chart.js/auto';
+    import Chart, { type ChartConfiguration } from 'chart.js/auto';
     import { onMount } from 'svelte';
     import type { ResourcesByLanguage, ResourcesByType, TotalsByMonth } from '../../routes/+page';
 
@@ -77,7 +77,7 @@
         }
     };
 
-    const chartData = {
+    const chartData: ChartConfiguration = {
         type: 'line',
         data: {
             labels: months,
@@ -115,8 +115,9 @@
     };
 
     onMount(async () => {
-        let canvasContext = document?.getElementById('totalResourcesAreaChart')?.getContext('2d');
-        if (canvasContext != undefined) {
+        let canvas = document?.getElementById('totalResourcesAreaChart') as HTMLCanvasElement | undefined;
+        let canvasContext = canvas?.getContext('2d');
+        if (canvasContext) {
             let gradient = canvasContext.createLinearGradient(0, 0, 0, 300);
             gradient.addColorStop(0, '#81755690');
             gradient.addColorStop(1, '#81755600');

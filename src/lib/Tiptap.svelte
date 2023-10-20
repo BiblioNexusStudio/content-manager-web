@@ -14,7 +14,7 @@
     import BulletList from '@tiptap/extension-bullet-list';
     import OrderedList from '@tiptap/extension-ordered-list';
     import Bold from '@tiptap/extension-bold';
-    import type { TipTap } from '$lib/types/resources';
+    import type { Tiptap } from '$lib/types/resources';
 
     const bibleReferenceMark = Mark.create({
         name: 'bibleReference',
@@ -56,15 +56,15 @@
         },
     });
 
-    // Intentionally adding comments blocks here.
-    // once this page is used for editing, we may want to reuse this code.
-    // export let jsonOutput: string | undefined;
-    // export let htmlOutput: string;
+    export let jsonOutput: string | undefined = undefined;
+    $: jsonOutput; // no-op usage so Svelte doesn't complain
+    export let htmlOutput: string | undefined = undefined;
+    $: htmlOutput; // no-op usage so Svelte doesn't complain
 
     let element: Element | undefined;
     let editor: Editor;
 
-    export let htmlDefault: TipTap;
+    export let htmlDefault: Tiptap;
 
     $: editor?.commands?.setContent(htmlDefault);
 
@@ -141,8 +141,8 @@
 
 {#if editor}
     <div class="m-4">
-        <!-- Intentionally adding comments blocks here.  
-             once this page is used for editing, we may want to reuse this code. 
+        <!-- Intentionally adding comments blocks here.
+             once this page is used for editing, we may want to reuse this code.
 
         <span class="join join-horizontal my-1">
             <button
