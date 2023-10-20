@@ -10,3 +10,4 @@ vite.config.ts.timestamp-*
 /dev-dist/
 /tmp/
 yarn-error.log
+.env.local

@@ -4,7 +4,7 @@
     import type { ResourcesByLanguage } from '../../routes/+page';
 
     export let resourcesByLanguage: ResourcesByLanguage[];
-    export let defaultSelection: string = 'default';
+    export let defaultSelection = 'default';
     export let languages: string[];
     export let selectedLanguage: string;
     export let selectedResource: string;
@@ -27,19 +27,22 @@
             resources = resources.filter((x) => x.language === language && x.resourceType === resource);
         }
 
-        let langMonthGroup = resources.reduce((group, resource) => {
-            const { language, monthAbbreviation } = resource;
-            group[`${language}-${monthAbbreviation}`] = group[`${language}-${monthAbbreviation}`] ?? [];
-            group[`${language}-${monthAbbreviation}`].push(resource);
+        let langMonthGroup = resources.reduce(
+            (group, resource) => {
+                const { language, monthAbbreviation } = resource;
+                group[`${language}-${monthAbbreviation}`] = group[`${language}-${monthAbbreviation}`] ?? [];
+                group[`${language}-${monthAbbreviation}`].push(resource);
 
-            return group;
-        }, {} as { [monthLanguage: string]: ResourcesByLanguage[] });
+                return group;
+            },
+            {} as { [monthLanguage: string]: ResourcesByLanguage[] }
+        );
 
         let translatedData = languages.map((x: string) => ({ label: x, data: [] as number[] }));
 
         for (let langMonth in langMonthGroup) {
             let group = langMonthGroup[langMonth];
-            let total: number = 0;
+            let total = 0;
             for (let i = 0; i < group.length; i++) {
                 total += group[i].resourceCount;
             }
@@ -118,4 +121,4 @@
     });
 </script>
 
-<canvas class="!w-full !h-full" id="translatedResourcesBarChart" />
+<canvas class="!h-full !w-full" id="translatedResourcesBarChart" />

@@ -1,7 +1,7 @@
 ﻿import type { PageLoad } from './$types';
 import config from '$lib/config';
 
-export const load: PageLoad = async ({ fetch, params }) => {
+export const load: PageLoad = async ({ fetch }) => {
     const res = await fetch(`${config.PUBLIC_AQUIFER_API_URL}/resources/summary`);
     const summary: ResourcesSummary = await res.json();
 

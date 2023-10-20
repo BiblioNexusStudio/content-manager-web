@@ -5,10 +5,10 @@
     let htmlOutput: string;
 </script>
 
-<div class="grid grid-cols-3 gap-4 mx-8 my-4 h-3/4">
-    <div class="bg-gray-200 border-4 rounded-md border-black h-full overflow-hidden">
+<div class="mx-8 my-4 grid h-3/4 grid-cols-3 gap-4">
+    <div class="h-full overflow-hidden rounded-md border-4 border-black bg-gray-200">
         <Tiptap bind:jsonOutput bind:htmlOutput />
     </div>
-    <div class="h-full overflow-scroll mockup-code"><pre><code>{jsonOutput}</code></pre></div>
-    <div class="h-full overflow-scroll mockup-code"><pre><code>{htmlOutput}</code></pre></div>
+    <div class="mockup-code h-full overflow-scroll"><pre><code>{jsonOutput}</code></pre></div>
+    <div class="mockup-code h-full overflow-scroll"><pre><code>{htmlOutput}</code></pre></div>
 </div>

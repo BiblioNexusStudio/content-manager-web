@@ -20,11 +20,11 @@
     let selectedResource: string = defaultSelection;
 </script>
 
-<div class="grid grid-cols-2 mx-4">
-    <div class="col-span-2 text-3xl mt-4">{$translate('page.dashboard.header.value')}</div>
-    <div class="col-span-2 text-lg font-bold mt-4">{$translate('page.dashboard.resourceSnapshot.header.value')}</div>
-    <div class="col-span-2 mt-4 mb-8">
-        <div class="stats shadow mr-8">
+<div class="mx-4 grid grid-cols-2">
+    <div class="col-span-2 mt-4 text-3xl">{$translate('page.dashboard.header.value')}</div>
+    <div class="col-span-2 mt-4 text-lg font-bold">{$translate('page.dashboard.resourceSnapshot.header.value')}</div>
+    <div class="col-span-2 mb-8 mt-4">
+        <div class="stats mr-8 shadow">
             <div class="stat">
                 <div class="stat-figure ml-4">
                     <FileIcon />
@@ -45,9 +45,9 @@
             </div>
         </div>
     </div>
-    <div class="col-span-2 mt-4 mb-6">
+    <div class="col-span-2 mb-6 mt-4">
         <span>
-            <select bind:value={selectedLanguage} class="select select-bordered w-1/6 max-w-xs mr-2">
+            <select bind:value={selectedLanguage} class="select select-bordered mr-2 w-1/6 max-w-xs">
                 <option value="default" selected>{$translate('page.dashboard.dropdowns.allLanguages.value')}</option>
                 {#each languages as language}
                     <option>{language}</option>
@@ -63,8 +63,8 @@
             </select>
         </span>
     </div>
-    <div class="text-lg font-bold mb-6">{$translate('page.dashboard.charts.totalResources.value')}</div>
-    <div class="text-lg font-bold mb-6">{$translate('page.dashboard.charts.translatedResources.value')}</div>
+    <div class="mb-6 text-lg font-bold">{$translate('page.dashboard.charts.totalResources.value')}</div>
+    <div class="mb-6 text-lg font-bold">{$translate('page.dashboard.charts.translatedResources.value')}</div>
     <div class="ml-5 mr-10">
         <TotalResourcesAreaChart
             bind:selectedLanguage
