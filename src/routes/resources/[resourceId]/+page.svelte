@@ -37,8 +37,6 @@
         : 'In Progress';
 
     $: hasAudio = $filteredResourcesByLanguage.some((resource) => resource.mediaType.toLowerCase() === 'audio');
-
-    $: console.log('carlos $filteredResourcesByLanguage', $filteredResourcesByLanguage);
 </script>
 
 <div class="p-8">
