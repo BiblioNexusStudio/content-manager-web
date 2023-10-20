@@ -1,10 +1,10 @@
 ﻿<script lang="ts">
     import { onMount, onDestroy } from 'svelte';
     import { Editor, Mark } from '@tiptap/core';
-    import StarterKit from '@tiptap/starter-kit';
+    // import StarterKit from '@tiptap/starter-kit';
     import Image from '@tiptap/extension-image';
     import Link from '@tiptap/extension-link';
-    import { generateHTML } from '@tiptap/html';
+    // import { generateHTML } from '@tiptap/html';
     import { Heading } from '@tiptap/extension-heading';
     import Italic from '@tiptap/extension-italic';
     import Paragraph from '@tiptap/extension-paragraph';
@@ -14,6 +14,7 @@
     import BulletList from '@tiptap/extension-bullet-list';
     import OrderedList from '@tiptap/extension-ordered-list';
     import Bold from '@tiptap/extension-bold';
+    import type { TipTap } from '$lib/types/resources';
 
     const bibleReferenceMark = Mark.create({
         name: 'bibleReference',
@@ -31,7 +32,7 @@
                 },
             };
         },
-        renderHTML({ HTMLAttributes }) {
+        renderHTML() {
             return ['span', { style: { color: 'green' } }, 0];
         },
     });
@@ -50,18 +51,20 @@
                 },
             };
         },
-        renderHTML({ HTMLAttributes }) {
+        renderHTML() {
             return ['span', { style: { color: 'blue' } }, 0];
         },
     });
 
-    export let jsonOutput: string | undefined;
-    export let htmlOutput: string;
+    // Intentionally adding comments blocks here.
+    // once this page is used for editing, we may want to reuse this code.
+    // export let jsonOutput: string | undefined;
+    // export let htmlOutput: string;
 
     let element: Element | undefined;
     let editor: Editor;
 
-    export let htmlDefault: any;
+    export let htmlDefault: TipTap;
 
     $: editor?.commands?.setContent(htmlDefault);
 
@@ -94,19 +97,19 @@
                 // force re-render so `editor.isActive` works as expected
                 editor = editor;
             },
-            onUpdate: ({ editor }) => {
-                jsonOutput = JSON.stringify(editor.getJSON(), null, 2);
-                console.log(jsonOutput);
-                htmlOutput = editor.getHTML();
-                console.log(htmlOutput);
-            },
-            onCreate: ({ editor }) => {
-                jsonOutput = JSON.stringify(editor.getJSON(), null, 2);
-                console.log(jsonOutput);
-                //htmlOutput = editor.getHTML();
-                htmlOutput = generateHTML(editor.getJSON(), [StarterKit, Image, Link]);
-                console.log(htmlOutput);
-            },
+            // onUpdate: ({ editor }) => {
+            //     jsonOutput = JSON.stringify(editor.getJSON(), null, 2);
+            //     console.log(jsonOutput);
+            //     htmlOutput = editor.getHTML();
+            //     console.log(htmlOutput);
+            // },
+            // onCreate: ({ editor }) => {
+            //     jsonOutput = JSON.stringify(editor.getJSON(), null, 2);
+            //     console.log(jsonOutput);
+            //     //htmlOutput = editor.getHTML();
+            //     htmlOutput = generateHTML(editor.getJSON(), [StarterKit, Image, Link]);
+            //     console.log(htmlOutput);
+            // },
         });
     });
 
@@ -116,21 +119,24 @@
         }
     });
 
-    const addImage = () => {
-        const url = window.prompt('URL');
+    // Intentionally adding comments blocks here.
+    // once this page is used for editing, we may want to reuse this code.
 
-        if (url) {
-            editor.chain().focus().setImage({ src: url }).run();
-        }
-    };
+    // const addImage = () => {
+    //     const url = window.prompt('URL');
 
-    const addLink = () => {
-        const url = window.prompt('URL');
+    //     if (url) {
+    //         editor.chain().focus().setImage({ src: url }).run();
+    //     }
+    // };
 
-        if (url) {
-            editor.chain().focus().toggleLink({ href: url }).run();
-        }
-    };
+    // const addLink = () => {
+    //     const url = window.prompt('URL');
+
+    //     if (url) {
+    //         editor.chain().focus().toggleLink({ href: url }).run();
+    //     }
+    // };
 </script>
 
 {#if editor}

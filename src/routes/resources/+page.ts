@@ -1,7 +1,7 @@
 ﻿import type { PageLoad } from './$types';
 import config from '$lib/config';
 
-export const load: PageLoad = async ({ fetch, params }) => {
+export const load: PageLoad = async () => {
     return { getLanguages, getResourceTypes, getResourceList, getResourceListCount };
 };
 

@@ -24,7 +24,6 @@
     let userEmail: string | undefined = ' '; // set to avoid flashing undefined
     let userFullName: string | undefined = ' ';
     let theme: string | null;
-    let userToken = '';
 
     onMount(async () => {
         if (typeof window !== 'undefined') {
@@ -52,7 +51,6 @@
         if (isAuthenticated) {
             // Can get claims information out of this.
             try {
-                userToken = await auth0Client.getTokenSilently();
                 let profile = await auth0Client.getUser();
                 userEmail = profile?.email;
                 userFullName = profile?.name;

@@ -30,11 +30,15 @@
         $filteredResourcesByLanguage.reduce((acc, resource) => acc + resource.contentSize, 0)
     );
 
-    $: resourceStatus = $filteredResourcesByLanguage.every((resource) => resource.status === 'Completed')
+    $: resourceStatus = $filteredResourcesByLanguage.every(
+        (resource) => resource.status === 'Completed' || resource.status === 'None'
+    )
         ? 'Translated'
         : 'In Progress';
 
     $: hasAudio = $filteredResourcesByLanguage.some((resource) => resource.mediaType.toLowerCase() === 'audio');
+
+    $: console.log('carlos $filteredResourcesByLanguage', $filteredResourcesByLanguage);
 </script>
 
 <div class="p-8">

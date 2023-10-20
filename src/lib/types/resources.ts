@@ -37,15 +37,18 @@ interface ListItem {
     content: Paragraph[];
 }
 
-interface Tiptap {
+export interface Tiptap {
     type: string;
     content: (Heading | Paragraph | BulletList)[];
 }
 
-interface ContentItem {
+export interface ContentItem {
     stepNumber: number;
     tiptap: Tiptap;
-    url?: string;
+    url: string;
+    thumbnailUrl: string;
+    duration: number;
+    displayName: string;
 }
 
 export interface Language {
@@ -59,7 +62,7 @@ export interface ResourceItem {
     status: string;
     contentSize: number;
     language: Language;
-    content: ContentItem[];
+    content: ContentItem | ContentItem[];
 }
 
 export interface AssociatedResource {
@@ -69,7 +72,6 @@ export interface AssociatedResource {
 }
 
 export interface Resource {
-    verseReferences: any[];
     passageReferences: PassageReference[];
     resources: ResourceItem[];
     associatedResources: AssociatedResource[];

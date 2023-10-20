@@ -2,6 +2,7 @@
     import { Icon } from 'svelte-awesome';
     import arrowCircleLeft from 'svelte-awesome/icons/arrowCircleLeft';
     import arrowCircleRight from 'svelte-awesome/icons/arrowCircleRight';
+    import type { ContentItem } from '$lib/types/resources';
 
     export let stepNavigation = false;
 
@@ -9,6 +10,9 @@
     import { filteredResourcesByLanguage } from '$lib/store/resources';
 
     let currentStepNumber = 1;
+    const textResource = $filteredResourcesByLanguage.find((resource) => resource.mediaType.toLowerCase() === 'text');
+    const contentArray = textResource?.content as ContentItem[];
+    const currentResourceStepsLenght = contentArray.length || 0;
 
     const headings = [
         {
@@ -36,9 +40,6 @@
             heading: 'Speaking the Word',
         },
     ];
-
-    $: textResource = $filteredResourcesByLanguage.find((resource) => resource.mediaType.toLowerCase() === 'text');
-    $: currentResourceStepsLenght = textResource?.content.length;
 
     function handleStep(direction: 'forward' | 'backward') {
         if (currentStepNumber === 1 && direction === 'backward') {
@@ -69,5 +70,5 @@
             </button>
         </div>
     {/if}
-    <Tiptap htmlDefault={textResource?.content[currentStepNumber - 1]?.tiptap} />
+    <Tiptap htmlDefault={contentArray[currentStepNumber - 1]?.tiptap} />
 </div>

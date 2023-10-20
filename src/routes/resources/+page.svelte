@@ -91,7 +91,7 @@
         }
     });
 
-    export const snapshot: Snapshot<{}> = {
+    export const snapshot: Snapshot = {
         capture: () => snapshotValues,
         restore: (value) => {
             if (value.resourceList.length === 0) return;
