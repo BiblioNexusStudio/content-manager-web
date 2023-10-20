@@ -8,8 +8,8 @@
     const thumbnailUrl = content?.thumbnailUrl;
 </script>
 
+<!-- svelte-ignore a11y-media-has-caption -->
 <video controls class="w-full" poster={thumbnailUrl}>
     <source src={url} type="video/mp4" />
     <track kind="captions" />
-    Your browser does not support the video tag.
 </video>

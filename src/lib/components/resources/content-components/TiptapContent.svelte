@@ -61,13 +61,19 @@
 <div>
     {#if stepNavigation}
         <div class="flex items-center justify-between px-4">
-            <button on:click={() => handleStep('backward')}>
-                <Icon data={arrowCircleLeft} scale={3} />
-            </button>
-            <h2 class="text-xl font-bold">{headings[currentStepNumber - 1]?.heading}</h2>
-            <button on:click={() => handleStep('forward')}>
-                <Icon data={arrowCircleRight} scale={3} />
-            </button>
+            {#if currentStepNumber !== 1}
+                <button on:click={() => handleStep('backward')}>
+                    <Icon data={arrowCircleLeft} scale={3} />
+                </button>
+            {/if}
+
+            <h2 class="mx-auto text-xl font-bold">{headings[currentStepNumber - 1]?.heading}</h2>
+
+            {#if currentStepNumber !== currentResourceStepsLenght}
+                <button on:click={() => handleStep('forward')}>
+                    <Icon data={arrowCircleRight} scale={3} />
+                </button>
+            {/if}
         </div>
     {/if}
     <Tiptap htmlDefault={contentArray[currentStepNumber - 1]?.tiptap} />

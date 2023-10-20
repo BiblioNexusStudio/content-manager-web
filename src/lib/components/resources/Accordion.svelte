@@ -16,7 +16,11 @@
     }
 </script>
 
-<div class="accordion mb-8 rounded-lg border-2 border-neutral-200 {fullHeight ? 'fullHeight overflow-y-hidden' : ''}">
+<div
+    class="accordion mb-8 rounded-lg border-2 border-neutral-200 {fullHeight
+        ? 'h-[calc(100vh-8.5rem)] overflow-y-hidden'
+        : ''}"
+>
     <div
         class="flex items-center justify-between p-4 {closable ? 'cursor-pointer' : ''} bg-neutral-200"
         on:click={toggleAccordion}
@@ -41,9 +45,3 @@
         </div>
     {/if}
 </div>
-
-<style>
-    .fullHeight {
-        height: calc(100vh - 8.5rem);
-    }
-</style>
