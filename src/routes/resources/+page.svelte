@@ -46,16 +46,28 @@
     const getNormalizedStatus = (status: string): { class: string; value: string } => {
         switch (status) {
             case 'NotStarted': {
-                return { class: 'badge-neutral', value: $translate('page.resources.table.statuses.notStarted.value') };
+                return {
+                    class: 'badge-neutral font-semibold',
+                    value: $translate('page.resources.table.statuses.notStarted.value'),
+                };
             }
             case 'InProgress': {
-                return { class: 'badge-warning', value: $translate('page.resources.table.statuses.inProgress.value') };
+                return {
+                    class: 'badge-primary bg-[#B9EBFE] text-primary font-semibold',
+                    value: $translate('page.resources.table.statuses.inProgress.value'),
+                };
             }
             case 'Completed': {
-                return { class: 'badge-success', value: $translate('page.resources.table.statuses.completed.value') };
+                return {
+                    class: 'badge-success bg-[#ABEFC6] text-success font-semibold',
+                    value: $translate('page.resources.table.statuses.completed.value'),
+                };
             }
             default: {
-                return { class: 'badge-info', value: $translate('page.resources.table.statuses.none.value') };
+                return {
+                    class: 'badge-info font-semibold',
+                    value: $translate('page.resources.table.statuses.none.value'),
+                };
             }
         }
     };
@@ -118,7 +130,7 @@
     <div class="grid grid-cols-2">
         <div class="mb-6 mt-4">
             <span>
-                <select bind:value={selectedLanguage} class="select select-bordered mr-2 w-2/6 max-w-xs">
+                <select bind:value={selectedLanguage} class="select select-bordered mr-2 w-2/6 max-w-xs bg-base-200">
                     <option value="0" selected>{$translate('page.resources.dropdowns.allLanguages.value')}</option>
                     {#each languages as language}
                         <option value={language.id}>{language.englishDisplay}</option>
@@ -126,7 +138,7 @@
                 </select>
             </span>
             <span>
-                <select bind:value={selectedResource} class="select select-bordered w-2/6 max-w-xs">
+                <select bind:value={selectedResource} class="select select-bordered w-2/6 max-w-xs bg-base-200">
                     <option value="0" selected>{$translate('page.resources.dropdowns.allResources.value')}</option>
                     {#each resourceTypes as resourceType}
                         <option value={resourceType.id}>{resourceType.displayName}</option>
@@ -180,8 +192,9 @@
                         <td>{resource.type}</td>
                         <td><div class="badge {normalizedStatus.class}">{normalizedStatus.value}</div></td>
                         <td class="w-4"
-                            ><button on:click={() => goto(`/resources/${resource.id}`)} class="btn btn-link btn-sm"
-                                ><PencilIcon /></button
+                            ><button
+                                on:click={() => goto(`/resources/${resource.id}`)}
+                                class="btn btn-link btn-sm text-neutral"><PencilIcon /></button
                             ></td
                         >
                     </tr>

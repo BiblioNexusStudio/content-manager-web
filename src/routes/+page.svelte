@@ -47,7 +47,7 @@
     </div>
     <div class="col-span-2 mb-6 mt-4">
         <span>
-            <select bind:value={selectedLanguage} class="select select-bordered mr-2 w-1/6 max-w-xs">
+            <select bind:value={selectedLanguage} class="select select-bordered mr-2 w-1/6 max-w-xs bg-base-200">
                 <option value="default" selected>{$translate('page.dashboard.dropdowns.allLanguages.value')}</option>
                 {#each languages as language}
                     <option>{language}</option>
@@ -55,7 +55,7 @@
             </select>
         </span>
         <span>
-            <select bind:value={selectedResource} class="select select-bordered w-1/6 max-w-xs">
+            <select bind:value={selectedResource} class="select select-bordered w-1/6 max-w-xs bg-base-200">
                 <option value="default" selected>{$translate('page.dashboard.dropdowns.allResources.value')}</option>
                 {#each resourceTypes as resource}
                     <option>{resource}</option>

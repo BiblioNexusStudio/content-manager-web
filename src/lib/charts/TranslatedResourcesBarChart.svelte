@@ -14,7 +14,7 @@
 
     $: updateTranslatedResourcesChart(selectedLanguage, selectedResource);
 
-    const colors = ['#776E5A', '#E2AF77', '#E6C89D', '#D7BE87', '#965D3B'];
+    const colors = ['#0174a3', '#00A3E0', '#BABABA', '#344054', '#1D2939'];
 
     const updateTranslatedResourcesChart = (language: string, resource: string) => {
         let resources = resourcesByLanguage;
