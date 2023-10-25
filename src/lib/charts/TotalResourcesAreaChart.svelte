@@ -95,8 +95,8 @@
             },
             elements: {
                 line: {
-                    backgroundColor: '#81755620',
-                    borderColor: '#817556',
+                    backgroundColor: '#00A3E020',
+                    borderColor: '#00A3E0',
                 },
             },
             scales: {
@@ -119,8 +119,8 @@
         let canvasContext = canvas?.getContext('2d');
         if (canvasContext) {
             let gradient = canvasContext.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(0, '#81755690');
-            gradient.addColorStop(1, '#81755600');
+            gradient.addColorStop(0, '#00A3E090');
+            gradient.addColorStop(1, '#00A3E000');
             chartData.data.datasets[0].backgroundColor = gradient;
         }
 

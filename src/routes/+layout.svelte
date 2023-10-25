@@ -1,6 +1,6 @@
 <script lang="ts">
     import '../app.css';
-    import AquiferLogo from '$lib/images/AquiferPrimaryColor.svg';
+    import AquiferLogo from '$lib/images/AquiferOnDark.svg';
     import LoginIcon from '$lib/icons/LoginIcon.svelte';
     import BarChartIcon from '$lib/icons/BarChartIcon.svelte';
     import SquareStackIcon from '$lib/icons/SquareStackIcon.svelte';
@@ -128,7 +128,7 @@
     <div class="drawer-side">
         <!-- Sidebar content here -->
         <label for="main-drawer" class="drawer-overlay" />
-        <div class="flex h-full w-48 flex-col bg-primary pb-1">
+        <div class="flex h-full w-48 flex-col bg-neutral pb-1">
             <div class="m-2 flex-grow-0"><img src={AquiferLogo} alt="Aquifer" /></div>
 
             {#each sidebarNavigation as navItem}
@@ -136,23 +136,23 @@
                     <div class="flex-grow-0">
                         <button
                             on:click={() => goto(navItem.goto)}
-                            class="btn btn-primary btn-block justify-start px-2 text-lg normal-case"
+                            class="btn btn-neutral btn-ghost btn-block justify-start px-2 text-lg normal-case text-neutral-100"
                             ><svelte:component this={navItem.icon} />{navItem.name}</button
                         >
                     </div>
                 {/if}
             {/each}
 
-            <div class="mx-2 flex flex-grow flex-col justify-end text-secondary">
+            <div class="mx-2 flex flex-grow flex-col justify-end text-neutral-100">
                 <div class="divider" />
                 <div class="grid grid-cols-4 content-center">
-                    <div class="col-span-3 text-sm font-bold">
+                    <div class="col-span-3 text-sm font-bold text-white">
                         {userFullName}
                     </div>
                     <div class="flex items-center justify-end">
                         <div class="tooltip tooltip-left" data-tip={$translate('sidebar.logout.value')}>
                             <button
-                                class="btn btn-link m-0 h-4 min-h-0 w-4 p-0 text-secondary"
+                                class="btn btn-link m-0 h-4 min-h-0 w-4 p-0 text-neutral-100"
                                 on:click={() => logout()}
                             >
                                 <LoginIcon />
@@ -160,8 +160,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="text-[10px]">{userEmail}</div>
-                <label class="swap swap-rotate mb-1 mt-2 h-4 w-4 place-self-center">
+                <div class="mb-2 text-[10px]">{userEmail}</div>
+                <label class="swap swap-rotate mb-1 mt-2 hidden h-4 w-4 place-self-center">
                     <input type="checkbox" checked={theme === 'biblioNexusLight'} on:change={toggleTheme} />
                     <SunIcon />
                     <MoonIcon />
