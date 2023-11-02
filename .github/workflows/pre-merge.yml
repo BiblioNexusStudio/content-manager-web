@@ -1,0 +1,50 @@
+name: Pre-merge
+
+on:
+    pull_request:
+        branches:
+            - '**'
+
+jobs:
+    lint_and_test:
+        name: Lint and test
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout source code
+              uses: actions/checkout@v3
+              with:
+                  ref: ${{ github.event.pull_request.head.sha }}
+            - name: Use Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 18.16.0
+                  cache: yarn
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
+            - name: Build
+              run: yarn build
+            - name: ESLint
+              run: yarn run lint:ci
+            - name: Test
+              run: yarn run test
+
+    # This will deploy to a "preview environment" in Azure Static Web Apps
+    # which means each PR will get its own environment. This means multiple PRs
+    # can be tested at the same time.
+    deploy_to_qa:
+        name: Deploy to qa
+        runs-on: ubuntu-latest
+        needs: lint_and_test
+        environment:
+            name: qa-preview
+            url: ${{ steps.deploy.outputs.deployed-url }}
+        steps:
+            - name: Checkout source code
+              uses: actions/checkout@v3
+              with:
+                  ref: ${{ github.event.pull_request.head.sha }}
+            - uses: ./.github/actions/build-and-deploy-to-env
+              id: deploy
+              with:
+                  environment: qa
+                  api-token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_QA }}

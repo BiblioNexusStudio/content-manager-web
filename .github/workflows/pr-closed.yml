@@ -1,0 +1,21 @@
+name: PR closed
+
+on:
+    pull_request:
+        types: [closed]
+        branches:
+            - '**'
+
+jobs:
+    delete_qa_deployment:
+        name: Delete qa preview deployment
+        runs-on: ubuntu-latest
+        environment:
+            name: qa-preview
+            url: ''
+        steps:
+            - name: Close pull request
+              uses: Azure/static-web-apps-deploy@v1
+              with:
+                  azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_QA }}
+                  action: close
