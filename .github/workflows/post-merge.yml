@@ -1,0 +1,92 @@
+name: Post-merge
+
+on:
+    push:
+        branches:
+            - master
+    workflow_dispatch:
+        inputs:
+            environment:
+                description: Environment
+                type: environment
+                required: true
+
+jobs:
+    deploy_to_dev:
+        if: github.ref == 'refs/heads/master' || github.event.inputs.environment == 'dev'
+        name: Deploy to dev
+        runs-on: ubuntu-latest
+        environment:
+            name: dev
+            url: ${{ steps.deploy.outputs.deployed-url }}
+        steps:
+            - name: Checkout source code
+              uses: actions/checkout@v3
+            - uses: ./.github/actions/build-and-deploy-to-env
+              id: deploy
+              with:
+                  environment: dev
+                  api-token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_DEV }}
+                  override-output-url: ${{ vars.URL_DEV }}
+
+    # Unlike the pre-merge QA deploy, this will deploy to the main QA environment.
+    # This means the master branch will always be on the main QA frontend URL.
+    deploy_to_qa:
+        if: github.ref == 'refs/heads/master' || github.event.inputs.environment == 'qa'
+        name: Deploy to qa
+        runs-on: ubuntu-latest
+        environment:
+            name: qa
+            url: ${{ steps.deploy.outputs.deployed-url }}
+        steps:
+            - name: Checkout source code
+              uses: actions/checkout@v3
+            - uses: ./.github/actions/build-and-deploy-to-env
+              id: deploy
+              with:
+                  environment: qa
+                  api-token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_QA }}
+                  override-output-url: ${{ vars.URL_QA }}
+
+    deploy_to_prod:
+        if: github.ref == 'refs/heads/master' || github.event.inputs.environment == 'prod'
+        name: Deploy to prod
+        runs-on: ubuntu-latest
+        environment:
+            name: prod
+            url: ${{ steps.deploy.outputs.deployed-url }}
+        steps:
+            - name: Checkout source code
+              uses: actions/checkout@v3
+            - uses: ./.github/actions/build-and-deploy-to-env
+              id: deploy
+              with:
+                  environment: prod
+                  api-token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD }}
+                  override-output-url: ${{ vars.URL_PROD }}
+
+    create_release:
+        name: Create release
+        runs-on: ubuntu-latest
+        needs: deploy_to_prod
+        steps:
+            - name: Checkout source code
+              uses: actions/checkout@v2
+
+            - name: Get the latest tag
+              uses: actions-ecosystem/action-get-latest-tag@v1
+              id: get-latest-tag
+
+            - name: Calculate the new tag
+              uses: actions-ecosystem/action-bump-semver@v1
+              id: bump-semver
+              with:
+                  current_version: ${{ steps.get-latest-tag.outputs.tag }}
+                  level: patch
+
+            - name: Create release
+              uses: softprops/action-gh-release@v1
+              with:
+                  tag_name: ${{ steps.bump-semver.outputs.new_version }}
+                  target_commitish: ${{ github.sha }}
+                  generate_release_notes: true

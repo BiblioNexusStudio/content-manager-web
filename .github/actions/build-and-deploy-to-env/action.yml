@@ -1,0 +1,57 @@
+name: Build and deploy to env
+description: Builds and deploys to a specific environment. Assumes the source code has already been checked out.
+
+inputs:
+    environment:
+        description: Environment to deploy to
+        required: true
+    api-token:
+        description: API token for deployment
+        required: true
+    override-output-url:
+        description: Overrides the output deployed-url
+        required: false
+
+outputs:
+    deployed-url:
+        description: The URL of the newly deployed app
+        value: ${{ steps.calculate-url.outputs.url }}
+
+runs:
+    using: composite
+    steps:
+        - name: Use Node.js
+          uses: actions/setup-node@v3
+          with:
+              node-version: 18.16.0
+              cache: yarn
+        - name: Install dependencies
+          run: yarn install --frozen-lockfile
+          shell: bash
+        - name: Setup config
+          run: yarn use-config ${{ inputs.environment }}
+          shell: bash
+        - name: Build
+          run: yarn run build
+          shell: bash
+        - name: Deploy to Azure WebApp
+          id: deploy-to-webapp
+          uses: azure/static-web-apps-deploy@v1
+          with:
+              azure_static_web_apps_api_token: ${{ inputs.api-token }}
+              skip_app_build: true
+              skip_api_build: true
+              action: upload
+              app_location: ./build/static
+              api_location: ./build/server
+              config_file_location: ./build
+              output_location: ''
+        - name: Calculate URL
+          id: calculate-url
+          run: |
+              if [[ -n "${{ inputs.override-output-url }}" ]]; then
+                  echo "url=${{ inputs.override-output-url }}" >> $GITHUB_OUTPUT
+              else
+                  echo "url=${{ steps.deploy-to-webapp.outputs.static_web_app_url }}" >> $GITHUB_OUTPUT
+              fi
+          shell: bash
