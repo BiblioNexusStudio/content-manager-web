@@ -15,6 +15,7 @@
     import OrderedList from '@tiptap/extension-ordered-list';
     import Bold from '@tiptap/extension-bold';
     import type { Tiptap } from '$lib/types/resources';
+    import { profile } from '$lib/stores/auth';
 
     const bibleReferenceMark = Mark.create({
         name: 'bibleReference',
@@ -56,22 +57,17 @@
         },
     });
 
-    export let jsonOutput: string | undefined = undefined;
-    $: jsonOutput; // no-op usage so Svelte doesn't complain
-    export let htmlOutput: string | undefined = undefined;
-    $: htmlOutput; // no-op usage so Svelte doesn't complain
-
     let element: Element | undefined;
     let editor: Editor;
 
-    export let htmlDefault: Tiptap;
+    export let content: Tiptap;
 
-    $: editor?.commands?.setContent(htmlDefault);
+    //$: editor?.commands?.setContent(content);
 
     onMount(() => {
         editor = new Editor({
             element: element,
-            editable: false,
+            editable: $profile?.bnRoles.indexOf('admin') > -1,
             extensions: [
                 Bold,
                 BulletList,
@@ -92,7 +88,7 @@
                     class: 'prose dark:prose-invert prose-sm sm:prose-base lg:prose-lg xl:prose-2xl focus:outline-none text-black mx-4',
                 },
             },
-            content: htmlDefault,
+            content: content,
             onTransaction: () => {
                 // force re-render so `editor.isActive` works as expected
                 editor = editor;
@@ -130,20 +126,17 @@
     //     }
     // };
 
-    // const addLink = () => {
-    //     const url = window.prompt('URL');
+    const addLink = () => {
+        const url = window.prompt('URL');
 
-    //     if (url) {
-    //         editor.chain().focus().toggleLink({ href: url }).run();
-    //     }
-    // };
+        if (url) {
+            editor.chain().focus().toggleLink({ href: url }).run();
+        }
+    };
 </script>
 
 {#if editor}
     <div class="m-4">
-        <!-- Intentionally adding comments blocks here.
-             once this page is used for editing, we may want to reuse this code.
-
         <span class="join join-horizontal my-1">
             <button
                 class="btn btn-outline join-item btn-xs"
@@ -197,9 +190,8 @@
                 Ordered
             </button>
         </span>
-        <button class="btn btn-accent btn-outline btn-xs my-1" on:click={addImage}> Image </button>
+        <!--        <button class="btn btn-accent btn-outline btn-xs my-1" on:click={addImage}> Image </button>-->
         <button class="btn btn-accent btn-outline btn-xs my-1" on:click={addLink}> Link </button>
-        -->
     </div>
 {/if}
 

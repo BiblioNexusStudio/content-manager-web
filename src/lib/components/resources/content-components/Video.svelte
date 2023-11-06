@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { filteredResourcesByLanguage } from '$lib/store/resources';
+    import { filteredResourcesByLanguage } from '$lib/stores/resources';
     import type { ContentItem } from '$lib/types/resources';
 
     const contentArray: ContentItem[] = $filteredResourcesByLanguage.map((resource) => resource.content as ContentItem);

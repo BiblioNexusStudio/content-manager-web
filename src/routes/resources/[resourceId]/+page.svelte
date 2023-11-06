@@ -8,7 +8,7 @@
     import Content from '$lib/components/resources/Content.svelte';
     import { type Resource, type ResourceResponse, ResourceStatusEnum } from '$lib/types/resources';
     import { convertToReadableSize } from '$lib/utils/conversions';
-    import { languageId, filteredResourcesByLanguage } from '$lib/store/resources';
+    import { languageId, filteredResourcesByLanguage } from '$lib/stores/resources';
 
     export let data: ResourceResponse;
 

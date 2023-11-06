@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Language } from '$lib/types/resources';
-    import { languageId } from '$lib/store/resources';
+    import { languageId } from '$lib/stores/resources';
 
     export let languageSet: Language[];
 </script>

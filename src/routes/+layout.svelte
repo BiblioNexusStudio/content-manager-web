@@ -9,74 +9,24 @@
     import SunIcon from '$lib/icons/SunIcon.svelte';
     import MoonIcon from '$lib/icons/MoonIcon.svelte';
     import PieChartIcon from '$lib/icons/PieChartIcon.svelte';
-    import { Auth0Client, createAuth0Client } from '@auth0/auth0-spa-js';
     import { page } from '$app/stores';
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
-    import config from '$lib/config';
     import { _ as translate } from 'svelte-i18n';
+    import { initAuth0, logout, profile, authenticated, setCurrentPageUrl } from '$lib/stores/auth';
 
-    let isAuthenticated: boolean;
-    let auth0Client: Auth0Client;
-    let auth0Domain = config.PUBLIC_AUTH0_DOMAIN;
-    let auth0ClientId = config.PUBLIC_AUTH0_CLIENT_ID;
-    let auth0Audience = config.PUBLIC_AUTH0_AUDIENCE;
-    let userEmail: string | undefined = ' '; // set to avoid flashing undefined
-    let userFullName: string | undefined = ' ';
+    $: userEmail = $profile?.email ?? ' '; // set to avoid flashing undefined
+    $: userFullName = $profile?.name ?? ' ';
     let theme: string | null;
+    $: setCurrentPageUrl($page.url);
 
     onMount(async () => {
         if (typeof window !== 'undefined') {
             theme = window.localStorage.getItem('dataTheme') ?? 'biblioNexusLight';
         }
 
-        auth0Client = await createAuth0Client({
-            domain: auth0Domain,
-            clientId: auth0ClientId,
-            useRefreshTokens: true,
-            cacheLocation: 'localstorage',
-            authorizationParams: {
-                audience: auth0Audience,
-            },
-        });
-
-        isAuthenticated = await auth0Client.isAuthenticated();
-
-        if (!isAuthenticated && $page.url.searchParams.has('code') && $page.url.searchParams.has('state')) {
-            await auth0Client.handleRedirectCallback();
-            await goto('/');
-            isAuthenticated = await auth0Client.isAuthenticated();
-        }
-
-        if (isAuthenticated) {
-            // Can get claims information out of this.
-            try {
-                let profile = await auth0Client.getUser();
-                userEmail = profile?.email;
-                userFullName = profile?.name;
-            } catch (e) {
-                await logout();
-            }
-        } else {
-            await login();
-        }
+        await initAuth0();
     });
-
-    const login = async () => {
-        await auth0Client.loginWithRedirect({
-            authorizationParams: {
-                redirect_uri: $page.url.href,
-            },
-        });
-    };
-
-    const logout = async () => {
-        await auth0Client.logout({
-            // logoutParams: {
-            //     returnTo: $page.url.href,
-            // },
-        });
-    };
 
     const toggleTheme = (event: Event) => {
         const input = event.target as HTMLInputElement;
@@ -113,60 +63,62 @@
 </script>
 
 <svelte:head>
-    <title>Content Manager</title>
+    <title>Aquifer Admin</title>
 </svelte:head>
 
-<div class="drawer lg:drawer-open">
-    <input id="main-drawer" type="checkbox" class="drawer-toggle" />
-    <div class="drawer-content">
-        <!-- Page content here -->
-        <label for="main-drawer" class="btn btn-link btn-active drawer-button btn-xs justify-start p-1 lg:hidden"
-            ><MenuIcon /></label
-        >
-        <slot />
-    </div>
-    <div class="drawer-side">
-        <!-- Sidebar content here -->
-        <label for="main-drawer" class="drawer-overlay" />
-        <div class="flex h-full w-48 flex-col bg-neutral pb-1">
-            <div class="m-2 flex-grow-0"><img src={AquiferLogo} alt="Aquifer" /></div>
+{#if $authenticated}
+    <div class="drawer lg:drawer-open">
+        <input id="main-drawer" type="checkbox" class="drawer-toggle" />
+        <div class="drawer-content">
+            <!-- Page content here -->
+            <label for="main-drawer" class="btn btn-link btn-active drawer-button btn-xs justify-start p-1 lg:hidden"
+                ><MenuIcon /></label
+            >
+            <slot />
+        </div>
+        <div class="drawer-side">
+            <!-- Sidebar content here -->
+            <label for="main-drawer" class="drawer-overlay" />
+            <div class="flex h-full w-48 flex-col bg-neutral pb-1">
+                <div class="m-2 flex-grow-0"><img src={AquiferLogo} alt="Aquifer" /></div>
 
-            {#each sidebarNavigation as navItem}
-                {#if !navItem.hidden}
-                    <div class="flex-grow-0">
-                        <button
-                            on:click={() => goto(navItem.goto)}
-                            class="btn btn-neutral btn-ghost btn-block justify-start px-2 text-lg normal-case text-neutral-100"
-                            ><svelte:component this={navItem.icon} />{navItem.name}</button
-                        >
-                    </div>
-                {/if}
-            {/each}
-
-            <div class="mx-2 flex flex-grow flex-col justify-end text-neutral-100">
-                <div class="divider" />
-                <div class="grid grid-cols-4 content-center">
-                    <div class="col-span-3 text-sm font-bold text-white">
-                        {userFullName}
-                    </div>
-                    <div class="flex items-center justify-end">
-                        <div class="tooltip tooltip-left" data-tip={$translate('sidebar.logout.value')}>
+                {#each sidebarNavigation as navItem}
+                    {#if !navItem.hidden}
+                        <div class="flex-grow-0">
                             <button
-                                class="btn btn-link m-0 h-4 min-h-0 w-4 p-0 text-neutral-100"
-                                on:click={() => logout()}
+                                on:click={() => goto(navItem.goto)}
+                                class="btn btn-neutral btn-ghost btn-block justify-start px-2 text-lg normal-case text-neutral-100"
+                                ><svelte:component this={navItem.icon} />{navItem.name}</button
                             >
-                                <LoginIcon />
-                            </button>
+                        </div>
+                    {/if}
+                {/each}
+
+                <div class="mx-2 flex flex-grow flex-col justify-end text-neutral-100">
+                    <div class="divider" />
+                    <div class="grid grid-cols-4 content-center">
+                        <div class="col-span-3 text-sm font-bold text-white">
+                            {userFullName}
+                        </div>
+                        <div class="flex items-center justify-end">
+                            <div class="tooltip tooltip-left" data-tip={$translate('sidebar.logout.value')}>
+                                <button
+                                    class="btn btn-link m-0 h-4 min-h-0 w-4 p-0 text-neutral-100"
+                                    on:click={() => logout()}
+                                >
+                                    <LoginIcon />
+                                </button>
+                            </div>
                         </div>
                     </div>
+                    <div class="mb-2 text-[10px]">{userEmail}</div>
+                    <label class="swap swap-rotate mb-1 mt-2 hidden h-4 w-4 place-self-center">
+                        <input type="checkbox" checked={theme === 'biblioNexusLight'} on:change={toggleTheme} />
+                        <SunIcon />
+                        <MoonIcon />
+                    </label>
                 </div>
-                <div class="mb-2 text-[10px]">{userEmail}</div>
-                <label class="swap swap-rotate mb-1 mt-2 hidden h-4 w-4 place-self-center">
-                    <input type="checkbox" checked={theme === 'biblioNexusLight'} on:change={toggleTheme} />
-                    <SunIcon />
-                    <MoonIcon />
-                </label>
             </div>
         </div>
     </div>
-</div>
+{/if}

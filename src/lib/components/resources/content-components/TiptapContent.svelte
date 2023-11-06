@@ -2,12 +2,11 @@
     import { Icon } from 'svelte-awesome';
     import arrowCircleLeft from 'svelte-awesome/icons/arrowCircleLeft';
     import arrowCircleRight from 'svelte-awesome/icons/arrowCircleRight';
+    import Tiptap from '$lib/Tiptap.svelte';
+    import { filteredResourcesByLanguage } from '$lib/stores/resources';
     import type { ContentItem } from '$lib/types/resources';
 
     export let stepNavigation = false;
-
-    import Tiptap from '$lib/Tiptap.svelte';
-    import { filteredResourcesByLanguage } from '$lib/store/resources';
 
     let currentStepNumber = 1;
     $: textResource = $filteredResourcesByLanguage.find((resource) => resource.mediaType.toLowerCase() === 'text');
@@ -51,9 +50,9 @@
         }
 
         if (direction === 'forward') {
-            currentStepNumber = currentStepNumber + 1;
+            currentStepNumber += 1;
         } else {
-            currentStepNumber = currentStepNumber - 1;
+            currentStepNumber -= 1;
         }
     }
 </script>
@@ -76,5 +75,5 @@
             {/if}
         </div>
     {/if}
-    <Tiptap htmlDefault={contentArray[currentStepNumber - 1]?.tiptap} />
+    <Tiptap content={contentArray[currentStepNumber - 1]?.tiptap} />
 </div>
