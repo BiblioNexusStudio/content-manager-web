@@ -1,5 +1,6 @@
-﻿import type { Handle } from '@sveltejs/kit';
+﻿import type { Handle, HandleFetch } from '@sveltejs/kit';
 import { locale } from 'svelte-i18n';
+import config from '$lib/config';
 
 const defaultLocale = 'en';
 
@@ -14,4 +15,12 @@ export const handle: Handle = async ({ event, resolve }) => {
     return resolve(event, {
         transformPageChunk: ({ html }) => html.replace('data-theme=""', `data-theme="${theme}"`),
     });
+};
+
+export const handleFetch: HandleFetch = async ({ request, fetch }) => {
+    const headers = new Headers(request.headers);
+    headers.set('api-key', config.PUBLIC_AQUIFER_API_KEY);
+    const newRequest = new Request(request, { headers });
+
+    return fetch(newRequest);
 };

@@ -1,17 +1,18 @@
 ﻿import type { PageLoad } from './$types';
 import config from '$lib/config';
+import { fetchWrapper } from '$lib/utils/http-service';
 
 export const load: PageLoad = async () => {
     return { getLanguages, getResourceTypes, getResourceList, getResourceListCount };
 };
 
 const getLanguages = async () => {
-    const languageRes = await fetch(`${config.PUBLIC_AQUIFER_API_URL}/languages`);
+    const languageRes = await fetchWrapper(`${config.PUBLIC_AQUIFER_API_URL}/languages`);
     return (await languageRes.json()) as Language[];
 };
 
 const getResourceTypes = async () => {
-    const resourceTypeRes = await fetch(`${config.PUBLIC_AQUIFER_API_URL}/resources/types`);
+    const resourceTypeRes = await fetchWrapper(`${config.PUBLIC_AQUIFER_API_URL}/resources/types`);
     return (await resourceTypeRes.json()) as ResourceType[];
 };
 
@@ -23,14 +24,14 @@ const getResourceList = async (
     query: string
 ) => {
     const skip = (currentPage - 1) * take;
-    const response = await fetch(
+    const response = await fetchWrapper(
         `${config.PUBLIC_AQUIFER_API_URL}/resources/list?skip=${skip}&take=${take}&languageId=${languageId}&resourceTypeId=${resourceTypeId}&query=${query}`
     );
     return (await response.json()) as ResourceListItem[];
 };
 
 const getResourceListCount = async (languageId: number, resourceTypeId: number, query: string) => {
-    const response = await fetch(
+    const response = await fetchWrapper(
         `${config.PUBLIC_AQUIFER_API_URL}/resources/list/count?languageId=${languageId}&resourceTypeId=${resourceTypeId}&query=${query}`
     );
     return +(await response.text());
