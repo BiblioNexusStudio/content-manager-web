@@ -1,6 +1,6 @@
-import { env } from '$env/dynamic/public';
+import config from '$lib/config';
 
-const API_KEY = env.PUBLIC_AQUIFER_API_KEY;
+const API_KEY = config.PUBLIC_AQUIFER_API_KEY;
 
 interface FetchOptions extends RequestInit {
     headers?: Record<string, string>;
