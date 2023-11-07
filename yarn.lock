@@ -950,6 +950,11 @@
   resolved "https://registry.npmjs.org/@tiptap/extension-text/-/extension-text-2.1.8.tgz"
   integrity sha512-ha7oTtUdcJdTVLr8CrxbNMucbAmOBCi83MLxdKZclVf1VpdIVpE3NTojfH2mnZCVMvtPhj4PILQp2hGO95SFig==
 
+"@tiptap/extension-underline@^2.1.12":
+  version "2.1.12"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-underline/-/extension-underline-2.1.12.tgz#abd59c4b6c8434dbadb4ff9bff23eefcc6bc095e"
+  integrity sha512-NwwdhFT8gDD0VUNLQx85yFBhP9a8qg8GPuxlGzAP/lPTV8Ubh3vSeQ5N9k2ZF/vHlEvnugzeVCbmYn7wf8vn1g==
+
 "@tiptap/html@^2.1.8":
   version "2.1.8"
   resolved "https://registry.npmjs.org/@tiptap/html/-/html-2.1.8.tgz"

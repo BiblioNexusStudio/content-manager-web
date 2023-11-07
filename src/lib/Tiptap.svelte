@@ -1,11 +1,11 @@
 ﻿<script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
+    import { onMount, onDestroy, tick } from 'svelte';
     import { Editor, Mark } from '@tiptap/core';
     // import StarterKit from '@tiptap/starter-kit';
     import Image from '@tiptap/extension-image';
     import Link from '@tiptap/extension-link';
     // import { generateHTML } from '@tiptap/html';
-    import { Heading } from '@tiptap/extension-heading';
+    import { type Level, Heading } from '@tiptap/extension-heading';
     import Italic from '@tiptap/extension-italic';
     import Paragraph from '@tiptap/extension-paragraph';
     import Document from '@tiptap/extension-document';
@@ -14,8 +14,21 @@
     import BulletList from '@tiptap/extension-bullet-list';
     import OrderedList from '@tiptap/extension-ordered-list';
     import Bold from '@tiptap/extension-bold';
-    import type { Tiptap } from '$lib/types/resources';
+    import { Underline } from '@tiptap/extension-underline';
+    import BoldIcon from '$lib/icons/BoldIcon.svelte';
+    import ItalicsIcon from '$lib/icons/ItalicsIcon.svelte';
+    import UnderlineIcon from '$lib/icons/UnderlineIcon.svelte';
+    import UnorderedListIcon from '$lib/icons/UnorderedListIcon.svelte';
+    import OrderedListIcon from '$lib/icons/OrderedListIcon.svelte';
+    import LinkIcon from '$lib/icons/LinkIcon.svelte';
+    import Heading1Icon from '$lib/icons/Heading1Icon.svelte';
+    import Heading2Icon from '$lib/icons/Heading2Icon.svelte';
+    import Heading3Icon from '$lib/icons/Heading3Icon.svelte';
     import { profile } from '$lib/stores/auth';
+    import type { ComponentType } from 'svelte';
+
+    $: enableEdit = $profile?.bnRoles.indexOf('admin') > -1;
+    $: console.log($profile);
 
     const bibleReferenceMark = Mark.create({
         name: 'bibleReference',
@@ -60,14 +73,20 @@
     let element: Element | undefined;
     let editor: Editor;
 
-    export let content: Tiptap;
+    export let content: string;
 
-    //$: editor?.commands?.setContent(content);
+    let setContent = (content: string) => {
+        editor?.commands?.setContent(content);
+    };
 
-    onMount(() => {
+    $: setContent(content);
+
+    onMount(async () => {
+        await tick();
+
         editor = new Editor({
             element: element,
-            editable: $profile?.bnRoles.indexOf('admin') > -1,
+            editable: enableEdit,
             extensions: [
                 Bold,
                 BulletList,
@@ -75,17 +94,20 @@
                 Heading,
                 Image,
                 Italic,
-                Link,
+                Link.configure({
+                    openOnClick: false,
+                }),
                 ListItem,
                 OrderedList,
                 Paragraph,
                 Text,
+                Underline,
                 bibleReferenceMark,
                 resourceReferenceMark,
             ],
             editorProps: {
                 attributes: {
-                    class: 'prose dark:prose-invert prose-sm sm:prose-base lg:prose-lg xl:prose-2xl focus:outline-none text-black mx-4',
+                    class: 'prose dark:prose-invert prose-sm sm:prose-base focus:outline-none text-black mx-4',
                 },
             },
             content: content,
@@ -127,75 +149,94 @@
     // };
 
     const addLink = () => {
-        const url = window.prompt('URL');
+        const previousUrl = editor.getAttributes('link').href;
+        const url: string | null = window.prompt('URL', previousUrl);
 
-        if (url) {
-            editor.chain().focus().toggleLink({ href: url }).run();
+        // cancelled
+        if (url === null) {
+            return;
         }
+
+        // empty
+        if (url === '') {
+            editor.chain().focus().extendMarkRange('link').unsetLink().run();
+            return;
+        }
+
+        // update link
+        editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
     };
+
+    const headerLevels: { level: Level; icon: ComponentType }[] = [
+        { level: 1, icon: Heading1Icon },
+        { level: 2, icon: Heading2Icon },
+        { level: 3, icon: Heading3Icon },
+    ];
+
+    const formattingOptions = [
+        {
+            name: 'bold',
+            onClick: () => editor.chain().focus().toggleBold().run(),
+            icon: BoldIcon,
+        },
+        {
+            name: 'italic',
+            onClick: () => editor.chain().focus().toggleItalic().run(),
+            icon: ItalicsIcon,
+        },
+        {
+            name: 'underline',
+            onClick: () => editor.chain().focus().toggleUnderline().run(),
+            icon: UnderlineIcon,
+        },
+        {
+            name: 'bulletList',
+            onClick: () => editor.chain().focus().toggleBulletList().run(),
+            icon: UnorderedListIcon,
+        },
+        {
+            name: 'orderedList',
+            onClick: () => editor.chain().focus().toggleOrderedList().run(),
+            icon: OrderedListIcon,
+        },
+    ];
 </script>
 
-{#if editor}
-    <div class="m-4">
-        <span class="join join-horizontal my-1">
+{#if editor && enableEdit}
+    <div class="mx-4 mb-2">
+        {#each formattingOptions as option}
             <button
-                class="btn btn-outline join-item btn-xs"
-                on:click={() => editor.chain().focus().toggleBold().run()}
-                class:btn-primary={editor.isActive('bold')}
+                class="btn btn-xs mx-1 px-0 {editor.isActive(option.name) ? 'btn-primary' : 'btn-link'}"
+                on:click={option.onClick}
             >
-                B
+                <svelte:component this={option.icon} />
             </button>
-            <button
-                class="btn btn-outline join-item btn-xs"
-                on:click={() => editor.chain().focus().toggleItalic().run()}
-                class:btn-primary={editor.isActive('italic')}
-            >
-                I
-            </button>
-        </span>
-        <button
-            class="btn btn-outline btn-xs my-1"
-            on:click={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-            class:btn-primary={editor.isActive('heading', { level: 1 })}
-        >
-            H1
-        </button>
-        <button
-            class="btn btn-outline btn-xs my-1"
-            on:click={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-            class:btn-primary={editor.isActive('heading', { level: 2 })}
-        >
-            H2
-        </button>
-        <button
-            class="btn btn-outline btn-xs my-1"
-            on:click={() => editor.chain().focus().setParagraph().run()}
-            class:btn-primary={editor.isActive('paragraph')}
-        >
-            P
-        </button>
-        <span class="join join-horizontal my-1">
-            <button
-                class="btn btn-outline join-item btn-xs"
-                on:click={() => editor.chain().focus().toggleBulletList().run()}
-                class:btn-primary={editor.isActive('bulletList')}
-            >
-                Bullet
-            </button>
-            <button
-                class="btn btn-outline join-item btn-xs"
-                on:click={() => editor.chain().focus().toggleOrderedList().run()}
-                class:btn-primary={editor.isActive('orderedList')}
-            >
-                Ordered
-            </button>
+        {/each}
+        <span class="join join-horizontal">
+            {#each headerLevels as header}
+                <button
+                    class="btn btn-primary btn-outline join-item btn-xs text-primary {editor.isActive('heading', {
+                        level: header.level,
+                    })
+                        ? 'btn-active'
+                        : ''}"
+                    on:click={() => editor.chain().focus().toggleHeading({ level: header.level }).run()}
+                >
+                    <svelte:component this={header.icon} />
+                </button>
+            {/each}
         </span>
         <!--        <button class="btn btn-accent btn-outline btn-xs my-1" on:click={addImage}> Image </button>-->
-        <button class="btn btn-accent btn-outline btn-xs my-1" on:click={addLink}> Link </button>
+        <button class="btn btn-xs mx-1 px-0 {editor.isActive('link') ? 'btn-primary' : 'btn-link'}" on:click={addLink}>
+            <LinkIcon />
+        </button>
     </div>
 {/if}
 
 <div class="h-5/6 overflow-scroll" bind:this={element} />
 
 <style>
+    :global(.prose :where(a):not(:where([class~='not-prose'] *))) {
+        color: hsl(var(--p) / var(--tw-text-opacity));
+    }
 </style>

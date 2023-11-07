@@ -63,7 +63,7 @@ export interface Tiptap {
 
 export interface ContentItem {
     stepNumber: number;
-    tiptap: Tiptap;
+    tiptap: string;
     url: string;
     thumbnailUrl: string;
     duration: number;

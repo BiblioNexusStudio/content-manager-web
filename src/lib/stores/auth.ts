@@ -16,6 +16,8 @@ export const setCurrentPageUrl = (url: URL) => {
 };
 
 export const initAuth0 = async () => {
+    console.log('running initAuth0');
+
     auth0Client = await createAuth0Client({
         domain: auth0Domain,
         clientId: auth0ClientId,
@@ -39,6 +41,7 @@ export const initAuth0 = async () => {
     if (isAuthenticated) {
         try {
             profile.set(await auth0Client.getUser());
+            console.log('set profile');
         } catch (e) {
             await logout();
         }
