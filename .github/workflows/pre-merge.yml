@@ -31,12 +31,12 @@ jobs:
     # This will deploy to a "preview environment" in Azure Static Web Apps
     # which means each PR will get its own environment. This means multiple PRs
     # can be tested at the same time.
-    deploy_to_qa:
-        name: Deploy to qa
+    deploy_to_dev_preview:
+        name: Deploy to dev preview
         runs-on: ubuntu-latest
         needs: lint_and_test
         environment:
-            name: qa-preview
+            name: dev-preview
             url: ${{ steps.deploy.outputs.deployed-url }}
         steps:
             - name: Checkout source code
@@ -46,5 +46,5 @@ jobs:
             - uses: ./.github/actions/build-and-deploy-to-env
               id: deploy
               with:
-                  environment: qa
-                  api-token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_QA }}
+                  environment: dev
+                  api-token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_DEV }}
