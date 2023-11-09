@@ -15,6 +15,8 @@ export enum MediaTypeEnum {
 
 export enum ResourceStatusEnum {
     completed = 'Completed',
+    notStarted = 'NotStarted',
+    inProgress = 'InProgress',
     none = 'None',
 }
 export interface PassageReference {

@@ -25,6 +25,7 @@
     import Heading2Icon from '$lib/icons/Heading2Icon.svelte';
     import Heading3Icon from '$lib/icons/Heading3Icon.svelte';
     import { profile } from '$lib/stores/auth';
+    import { setOriginalContent, updateContent } from '$lib/stores/tiptapContent';
     import type { ComponentType } from 'svelte';
 
     $: enableEdit = $profile?.bnRoles.indexOf('admin') > -1;
@@ -107,7 +108,7 @@
             ],
             editorProps: {
                 attributes: {
-                    class: 'prose dark:prose-invert prose-sm sm:prose-base focus:outline-none text-black mx-4',
+                    class: 'prose dark:prose-invert prose-sm sm:prose-base focus:outline-none text-black mx-4 max-w-none',
                 },
             },
             content: content,
@@ -115,19 +116,14 @@
                 // force re-render so `editor.isActive` works as expected
                 editor = editor;
             },
-            // onUpdate: ({ editor }) => {
-            //     jsonOutput = JSON.stringify(editor.getJSON(), null, 2);
-            //     console.log(jsonOutput);
-            //     htmlOutput = editor.getHTML();
-            //     console.log(htmlOutput);
-            // },
-            // onCreate: ({ editor }) => {
-            //     jsonOutput = JSON.stringify(editor.getJSON(), null, 2);
-            //     console.log(jsonOutput);
-            //     //htmlOutput = editor.getHTML();
-            //     htmlOutput = generateHTML(editor.getJSON(), [StarterKit, Image, Link]);
-            //     console.log(htmlOutput);
-            // },
+            onUpdate: ({ editor }) => {
+                //jsonOutput = JSON.stringify(editor.getJSON(), null, 2);
+                updateContent(editor.getJSON());
+            },
+            onCreate: ({ editor }) => {
+                setOriginalContent(editor.getJSON());
+                updateContent(editor.getJSON());
+            },
         });
     });
 
