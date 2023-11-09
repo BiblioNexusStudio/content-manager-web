@@ -9,4 +9,5 @@ export interface Configuration {
     PUBLIC_AUTH0_DOMAIN: string;
     PUBLIC_AUTH0_CLIENT_ID: string;
     PUBLIC_AUTH0_AUDIENCE: string;
+    PUBLIC_AQUIFER_API_KEY: string;
 }
