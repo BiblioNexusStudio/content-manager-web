@@ -8,7 +8,17 @@
     import { type Resource, type ResourceResponse, ResourceStatusEnum } from '$lib/types/resources';
     import { convertToReadableSize } from '$lib/utils/conversions';
     import { languageId, filteredResourcesByLanguage } from '$lib/stores/resources';
-    import { originalValues, updatedValues } from '$lib/stores/tiptapContent';
+    import { originalValues, updatedValues, reset } from '$lib/stores/tiptapContent';
+    import CheckCircleIcon from '$lib/icons/CheckCircleIcon.svelte';
+    import { beforeNavigate } from '$app/navigation';
+
+    beforeNavigate((x) => {
+        if (contentUpdated) {
+            let modal = document?.getElementById('onCloseModal') as HTMLDialogElement;
+            modal?.showModal();
+            x.cancel();
+        }
+    });
 
     export let data: ResourceResponse;
 
@@ -42,8 +52,14 @@
 
     $: hasAudio = $filteredResourcesByLanguage.some((resource) => resource.mediaType.toLowerCase() === 'audio');
 
-    const onCloseClick = () => {
-        window.history.back();
+    let isSaving = false;
+    const onSaveAndCloseClick = () => {
+        isSaving = true;
+        let modal = document?.getElementById('loadingModal') as HTMLDialogElement;
+        modal?.showModal();
+        setTimeout(() => {
+            isSaving = false;
+        }, 1500);
     };
 </script>
 
@@ -54,7 +70,7 @@
         <div class="flex">
             <LanguageDropdown languageSet={availableLanguages} />
             <button class="btn btn-primary mx-4" class:btn-disabled={!contentUpdated}>Save</button>
-            <button class="btn btn-primary btn-outline" on:click={onCloseClick}>Close</button>
+            <button class="btn btn-primary btn-outline" on:click={() => window.history.back()}>Close</button>
         </div>
     </div>
     <div class="flex">
@@ -69,3 +85,31 @@
         </div>
     </div>
 </div>
+<dialog id="onCloseModal" class="modal">
+    <div class="modal-box">
+        <h3 class="text-xl font-bold">Unsaved Changes</h3>
+        <p class="py-4 text-lg">There are unsaved changes. Do you want to save them?</p>
+        <div class="modal-action pt-4">
+            <form method="dialog">
+                <button class="btn btn-primary" on:click={onSaveAndCloseClick}>Save and Close</button>
+                <button
+                    class="btn btn-error"
+                    on:click={() => {
+                        reset();
+                        window.history.back();
+                    }}>Discard Changes</button
+                >
+                <button class="btn btn-primary btn-outline">Cancel</button>
+            </form>
+        </div>
+    </div>
+</dialog>
+<dialog id="loadingModal" class="modal">
+    {#if isSaving}
+        <span class="loading loading-ring w-24 text-success"></span>
+    {:else}
+        <span class="text-success">
+            <CheckCircleIcon />
+        </span>
+    {/if}
+</dialog>

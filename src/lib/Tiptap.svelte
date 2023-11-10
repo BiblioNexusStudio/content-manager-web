@@ -29,7 +29,6 @@
     import type { ComponentType } from 'svelte';
 
     $: enableEdit = $profile?.bnRoles.indexOf('admin') > -1;
-    $: console.log($profile);
 
     const bibleReferenceMark = Mark.create({
         name: 'bibleReference',

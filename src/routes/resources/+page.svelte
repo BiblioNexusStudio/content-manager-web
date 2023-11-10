@@ -22,7 +22,7 @@
     let resourceTypes: ResourceType[] = [];
 
     const onPageChange = async () => {
-        if (waitingForMount) return;
+        if (waitingForMount || loadedFromSnapshot) return;
 
         resourceList = await data.getResourceList(
             currentPage,
@@ -34,13 +34,17 @@
     };
 
     const onFilterChange = async () => {
-        if (waitingForMount) return;
+        if (waitingForMount || loadedFromSnapshot) return;
 
         currentPage = 1;
         [resourceList, recordCount] = await Promise.all([
             data.getResourceList(currentPage, +recordsPerPage, +selectedLanguage, +selectedResource, searchQuery),
             data.getResourceListCount(+selectedLanguage, +selectedResource, searchQuery),
         ]);
+    };
+
+    const unsetLoadedFromSnapshot = () => {
+        loadedFromSnapshot = false;
     };
 
     const getNormalizedStatus = (status: string): { class: string; value: string } => {
@@ -87,9 +91,10 @@
     $: totalPages = Math.ceil(recordCount / recordsPerPage) || 1;
     $: [currentPage, recordsPerPage] && onPageChange();
     $: [selectedLanguage, selectedResource, searchQuery] && onFilterChange();
+    $: loadedFromSnapshot && unsetLoadedFromSnapshot();
 
     onMount(async () => {
-        // Snapshot randomly runs before or after onMount, and this makes sure it's ran
+        // Snapshot randomly runs before or after onMount, and this makes sure it's ran before this
         await tick();
 
         waitingForMount = false;

@@ -1,4 +1,4 @@
-﻿import { type Writable, writable } from 'svelte/store';
+﻿import { type Writable, writable, get } from 'svelte/store';
 import type { JSONContent } from '@tiptap/core';
 
 export const originalValues: Writable<
@@ -54,4 +54,8 @@ export const setOriginalStatus = (status: string) => {
         label: x?.label,
         status: status,
     }));
+};
+
+export const reset = () => {
+    updatedValues.set(get(originalValues));
 };
