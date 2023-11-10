@@ -5,10 +5,16 @@ import { goto } from '$app/navigation';
 
 export const profile: Writable<User | undefined> = writable(undefined);
 export const authenticated: Writable<boolean> = writable(false);
+export const canEdit: Writable<boolean> = writable(false);
 const auth0Domain = config.PUBLIC_AUTH0_DOMAIN;
 const auth0ClientId = config.PUBLIC_AUTH0_CLIENT_ID;
 const auth0Audience = config.PUBLIC_AUTH0_AUDIENCE;
 let auth0Client: Auth0Client | undefined = undefined;
+const editorRoles = ['admin', 'editor'];
+
+profile.subscribe((user) => {
+    canEdit.set(editorRoles.some((role) => user?.bnRoles.includes(role)));
+});
 
 let currentUrl: URL;
 export const setCurrentPageUrl = (url: URL) => {

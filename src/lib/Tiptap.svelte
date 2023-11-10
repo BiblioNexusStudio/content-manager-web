@@ -24,11 +24,9 @@
     import Heading1Icon from '$lib/icons/Heading1Icon.svelte';
     import Heading2Icon from '$lib/icons/Heading2Icon.svelte';
     import Heading3Icon from '$lib/icons/Heading3Icon.svelte';
-    import { profile } from '$lib/stores/auth';
+    import { canEdit } from '$lib/stores/auth';
     import { setOriginalContent, updateContent } from '$lib/stores/tiptapContent';
     import type { ComponentType } from 'svelte';
-
-    $: enableEdit = $profile?.bnRoles.indexOf('admin') > -1;
 
     const bibleReferenceMark = Mark.create({
         name: 'bibleReference',
@@ -80,13 +78,14 @@
     };
 
     $: setContent(content);
+    $: editor?.setEditable($canEdit);
 
     onMount(async () => {
         await tick();
 
         editor = new Editor({
             element: element,
-            editable: enableEdit,
+            editable: $canEdit,
             extensions: [
                 Bold,
                 BulletList,
@@ -197,7 +196,7 @@
     ];
 </script>
 
-{#if editor && enableEdit}
+{#if editor && $canEdit}
     <div class="mx-4 mb-2">
         {#each formattingOptions as option}
             <button

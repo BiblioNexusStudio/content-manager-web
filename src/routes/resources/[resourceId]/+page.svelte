@@ -10,7 +10,8 @@
     import { languageId, filteredResourcesByLanguage } from '$lib/stores/resources';
     import { originalValues, updatedValues, reset } from '$lib/stores/tiptapContent';
     import CheckCircleIcon from '$lib/icons/CheckCircleIcon.svelte';
-    import { beforeNavigate } from '$app/navigation';
+    import { beforeNavigate, goto } from '$app/navigation';
+    import { canEdit } from '$lib/stores/auth';
 
     beforeNavigate((x) => {
         if (contentUpdated) {
@@ -61,6 +62,10 @@
             isSaving = false;
         }, 1500);
     };
+
+    const goBack = () => {
+        window.history.length > 1 ? window.history.back() : goto('/resources');
+    };
 </script>
 
 <div class="p-8">
@@ -69,8 +74,8 @@
 
         <div class="flex">
             <LanguageDropdown languageSet={availableLanguages} />
-            <button class="btn btn-primary mx-4" class:btn-disabled={!contentUpdated}>Save</button>
-            <button class="btn btn-primary btn-outline" on:click={() => window.history.back()}>Close</button>
+            {#if $canEdit}<button class="btn btn-primary ms-4" class:btn-disabled={!contentUpdated}>Save</button>{/if}
+            <button class="btn btn-primary btn-outline ms-4" on:click={goBack}>Close</button>
         </div>
     </div>
     <div class="flex">
@@ -96,7 +101,7 @@
                     class="btn btn-error"
                     on:click={() => {
                         reset();
-                        window.history.back();
+                        goBack();
                     }}>Discard Changes</button
                 >
                 <button class="btn btn-primary btn-outline">Cancel</button>
