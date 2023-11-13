@@ -3,15 +3,15 @@
     import { Icon } from 'svelte-awesome';
     import volumeUp from 'svelte-awesome/icons/volumeUp';
     import { ResourceStatusEnum } from '$lib/types/resources';
-    import { setOriginalStatus, updateStatus } from '$lib/stores/tiptapContent';
+    import { setOriginalValues, updateValues } from '$lib/stores/tiptapContent';
     import { canEdit } from '$lib/stores/auth';
 
     export let translationStatus: ResourceStatusEnum;
     export let sizeText: string;
     export let hasAudio: boolean;
 
-    setOriginalStatus(translationStatus);
-    $: updateStatus(translationStatus);
+    setOriginalValues({ status: translationStatus });
+    $: updateValues({ status: translationStatus });
 
     const translationStatusOptions = [
         { value: ResourceStatusEnum.notStarted, name: 'Pending' },

@@ -78,6 +78,7 @@ export interface Language {
 }
 
 export interface ResourceItem {
+    resourceContentId: number;
     displayName: string;
     mediaType: string;
     status: string;

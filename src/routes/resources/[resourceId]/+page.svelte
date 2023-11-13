@@ -8,10 +8,12 @@
     import { type Resource, type ResourceResponse, ResourceStatusEnum } from '$lib/types/resources';
     import { convertToReadableSize } from '$lib/utils/conversions';
     import { languageId, filteredResourcesByLanguage } from '$lib/stores/resources';
-    import { originalValues, updatedValues, reset } from '$lib/stores/tiptapContent';
+    import { originalValues, updatedValues, resetUpdated, updateOriginal } from '$lib/stores/tiptapContent';
     import CheckCircleIcon from '$lib/icons/CheckCircleIcon.svelte';
     import { beforeNavigate, goto } from '$app/navigation';
     import { canEdit } from '$lib/stores/auth';
+    import { fetchWrapper } from '$lib/utils/http-service';
+    import config from '$lib/config';
 
     beforeNavigate((x) => {
         if (contentUpdated) {
@@ -54,6 +56,44 @@
     $: hasAudio = $filteredResourcesByLanguage.some((resource) => resource.mediaType.toLowerCase() === 'audio');
 
     let isSaving = false;
+    const onSave = async (): Promise<boolean> => {
+        isSaving = true;
+        let modal = document?.getElementById('loadingModal') as HTMLDialogElement;
+        modal?.showModal();
+        const response = await fetchWrapper(
+            `${config.PUBLIC_AQUIFER_API_URL}/resources/summary/${$updatedValues.contentId}`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    status: $updatedValues.status,
+                    label: $updatedValues.label,
+                    content: [
+                        {
+                            stepNumber: null,
+                            tiptap: $updatedValues.content,
+                        },
+                    ],
+                }),
+            }
+        );
+        isSaving = false;
+        if (response.status === 204) {
+            updateOriginal();
+            setTimeout(() => {
+                modal?.close();
+            }, 250);
+
+            return true;
+        } else {
+            alert('failed');
+            modal?.close();
+            return false;
+        }
+    };
+
     const onSaveAndCloseClick = () => {
         isSaving = true;
         let modal = document?.getElementById('loadingModal') as HTMLDialogElement;
@@ -74,7 +114,9 @@
 
         <div class="flex">
             <LanguageDropdown languageSet={availableLanguages} />
-            {#if $canEdit}<button class="btn btn-primary ms-4" class:btn-disabled={!contentUpdated}>Save</button>{/if}
+            {#if $canEdit}<button class="btn btn-primary ms-4" class:btn-disabled={!contentUpdated} on:click={onSave}
+                    >Save</button
+                >{/if}
             <button class="btn btn-primary btn-outline ms-4" on:click={goBack}>Close</button>
         </div>
     </div>
@@ -100,7 +142,7 @@
                 <button
                     class="btn btn-error"
                     on:click={() => {
-                        reset();
+                        resetUpdated();
                         goBack();
                     }}>Discard Changes</button
                 >

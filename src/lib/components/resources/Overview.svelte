@@ -2,14 +2,14 @@
     import Accordion from './Accordion.svelte';
     import PencilSquareIcon from '$lib/icons/PencilSquareIcon.svelte';
     import XSquareIcon from '$lib/icons/XSquareIcon.svelte';
-    import { originalValues, updatedValues, updateLabel, setOriginalLabel } from '$lib/stores/tiptapContent';
+    import { originalValues, updatedValues, updateValues, setOriginalValues } from '$lib/stores/tiptapContent';
     import { canEdit } from '$lib/stores/auth';
 
     export let labelText: string;
     export let typeText: string;
 
-    setOriginalLabel(labelText);
-    $: updateLabel(labelText);
+    setOriginalValues({ label: labelText });
+    $: updateValues({ label: labelText });
     $: labelUpdated = $originalValues?.label !== $updatedValues?.label;
 </script>
 

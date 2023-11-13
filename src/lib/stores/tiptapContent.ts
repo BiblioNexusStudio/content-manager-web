@@ -1,61 +1,40 @@
 ﻿import { type Writable, writable, get } from 'svelte/store';
 import type { JSONContent } from '@tiptap/core';
 
-export const originalValues: Writable<
-    { content: JSONContent | undefined; status: string | undefined; label: string | undefined } | undefined
-> = writable(undefined);
-export const updatedValues: Writable<
-    { content: JSONContent | undefined; status: string | undefined; label: string | undefined } | undefined
-> = writable(undefined);
+export const originalValues: Writable<TiptapContentValues> = writable({
+    contentId: undefined,
+    content: undefined,
+    status: undefined,
+    label: undefined,
+});
 
-export const updateContent = (content: JSONContent) => {
-    updatedValues.update((x) => ({
-        content: content,
-        label: x?.label,
-        status: x?.status,
-    }));
+export const updatedValues: Writable<TiptapContentValues> = writable({
+    contentId: undefined,
+    content: undefined,
+    status: undefined,
+    label: undefined,
+});
+
+export const updateValues = (values: TiptapContentValues) => {
+    updatedValues.update((x) => ({ ...x, ...values }));
 };
 
-export const updateLabel = (label: string) => {
-    updatedValues.update((x) => ({
-        content: x?.content,
-        label: label,
-        status: x?.status,
-    }));
+export const setOriginalValues = (values: TiptapContentValues) => {
+    originalValues.update((x) => ({ ...x, ...values }));
+    updateValues(values);
 };
 
-export const updateStatus = (status: string) => {
-    updatedValues.update((x) => ({
-        content: x?.content,
-        label: x?.label,
-        status: status,
-    }));
-};
-
-export const setOriginalContent = (content: JSONContent) => {
-    originalValues.update((x) => ({
-        content: content,
-        label: x?.label,
-        status: x?.status,
-    }));
-};
-
-export const setOriginalLabel = (label: string) => {
-    originalValues.update((x) => ({
-        content: x?.content,
-        label: label,
-        status: x?.status,
-    }));
-};
-
-export const setOriginalStatus = (status: string) => {
-    originalValues.update((x) => ({
-        content: x?.content,
-        label: x?.label,
-        status: status,
-    }));
-};
-
-export const reset = () => {
+export const resetUpdated = () => {
     updatedValues.set(get(originalValues));
 };
+
+export const updateOriginal = () => {
+    originalValues.set(get(updatedValues));
+};
+
+interface TiptapContentValues {
+    contentId?: number | undefined;
+    content?: JSONContent | undefined;
+    label?: string | undefined;
+    status?: string | undefined;
+}

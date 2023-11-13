@@ -5,6 +5,7 @@
     import Tiptap from '$lib/Tiptap.svelte';
     import { filteredResourcesByLanguage } from '$lib/stores/resources';
     import type { ContentItem } from '$lib/types/resources';
+    import { setOriginalValues } from '$lib/stores/tiptapContent';
 
     export let stepNavigation = false;
 
@@ -12,6 +13,7 @@
     $: textResource = $filteredResourcesByLanguage.find((resource) => resource.mediaType.toLowerCase() === 'text');
     $: contentArray = textResource?.content as ContentItem[];
     $: currentResourceStepsLenght = contentArray.length || 0;
+    $: setOriginalValues({ contentId: textResource?.resourceContentId });
 
     const headings = [
         {

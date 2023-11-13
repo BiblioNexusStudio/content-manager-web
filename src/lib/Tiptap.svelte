@@ -25,7 +25,7 @@
     import Heading2Icon from '$lib/icons/Heading2Icon.svelte';
     import Heading3Icon from '$lib/icons/Heading3Icon.svelte';
     import { canEdit } from '$lib/stores/auth';
-    import { setOriginalContent, updateContent } from '$lib/stores/tiptapContent';
+    import { setOriginalValues, updateValues } from '$lib/stores/tiptapContent';
     import type { ComponentType } from 'svelte';
 
     const bibleReferenceMark = Mark.create({
@@ -45,7 +45,7 @@
             };
         },
         renderHTML() {
-            return ['span', { style: { color: 'green' } }, 0];
+            return ['span', { style: 'color: green' }, 0];
         },
     });
 
@@ -64,7 +64,7 @@
             };
         },
         renderHTML() {
-            return ['span', { style: { color: 'blue' } }, 0];
+            return ['span', { style: 'color: yellow' }, 0];
         },
     });
 
@@ -116,11 +116,10 @@
             },
             onUpdate: ({ editor }) => {
                 //jsonOutput = JSON.stringify(editor.getJSON(), null, 2);
-                updateContent(editor.getJSON());
+                updateValues({ content: editor.getJSON() });
             },
             onCreate: ({ editor }) => {
-                setOriginalContent(editor.getJSON());
-                updateContent(editor.getJSON());
+                setOriginalValues({ content: editor.getJSON() });
             },
         });
     });
