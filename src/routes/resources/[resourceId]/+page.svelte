@@ -14,6 +14,7 @@
     import { canEdit } from '$lib/stores/auth';
     import { fetchWrapper } from '$lib/utils/http-service';
     import config from '$lib/config';
+    import { token } from '$lib/stores/auth';
 
     beforeNavigate((x) => {
         if (contentUpdated) {
@@ -66,6 +67,7 @@
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    Authorization: `Bearer ${$token}`,
                 },
                 body: JSON.stringify({
                     status: $updatedValues.status,

@@ -4,6 +4,7 @@ import config from '$lib/config';
 import { goto } from '$app/navigation';
 
 export const profile: Writable<User | undefined> = writable(undefined);
+export const token: Writable<string | undefined> = writable(undefined);
 export const authenticated: Writable<boolean> = writable(false);
 export const canEdit: Writable<boolean> = writable(false);
 const auth0Domain = config.PUBLIC_AUTH0_DOMAIN;
@@ -47,7 +48,9 @@ export const initAuth0 = async () => {
     if (isAuthenticated) {
         try {
             profile.set(await auth0Client.getUser());
-            console.log('set profile');
+            const token2 = await auth0Client.getTokenSilently();
+            console.log(token2);
+            token.set(token2);
         } catch (e) {
             await logout();
         }
@@ -66,6 +69,7 @@ const login = async () => {
 
 export const logout = async () => {
     profile.set(undefined);
+    token.set(undefined);
     authenticated.set(false);
     await auth0Client?.logout({
         logoutParams: {
