@@ -12,10 +12,10 @@
     <div class="flex w-full justify-between">
         <div class="flex flex-col">
             <div class="mb-4">
-                <span class="mr-2 font-bold">Translation Status</span><span>{translationStatusText}</span>
+                <span class="me-2 font-bold">Translation Status</span><span>{translationStatusText}</span>
             </div>
             <div class="mb-4">
-                <span class="mr-2 font-bold">Size</span><span>{sizeText}</span>
+                <span class="me-2 font-bold">Size</span><span>{sizeText}</span>
             </div>
         </div>
         {#if hasAudio}
