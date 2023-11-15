@@ -107,7 +107,7 @@
 
 <div class="p-8">
     <div class="mb-8 flex items-center justify-between">
-        <h1 class="mr-8 text-2xl font-bold">{resource.type} - {resource.label}</h1>
+        <h1 class="me-8 text-2xl font-bold">{resource.type} - {resource.label}</h1>
 
         <div class="flex">
             <LanguageDropdown languageSet={availableLanguages} disable={contentUpdated} />
@@ -126,7 +126,7 @@
         </div>
     </div>
     <div class="flex">
-        <div class="mr-8 flex w-4/12 flex-col">
+        <div class="me-8 flex w-4/12 flex-col">
             <Overview labelText={resource.label} typeText={resource.type} />
             <Details translationStatus={resourceStatus} sizeText={resourceSize} {hasAudio} />
             <RelatedContent relatedContent={resource.associatedResources} />

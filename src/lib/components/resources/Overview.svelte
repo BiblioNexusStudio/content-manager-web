@@ -17,8 +17,8 @@
     <div class="flex flex-col">
         <div class="mb-4 flex items-center justify-between">
             <div class="flex grow items-center">
-                <div class="mr-3 font-bold">Label</div>
-                <div class="mr-4 grow">
+                <div class="me-3 font-bold">Label</div>
+                <div class="me-4 grow">
                     {#if $canEdit}
                         <input
                             type="text"
@@ -51,7 +51,7 @@
             {/if}
         </div>
         <div class="mb-4">
-            <span class="mr-4 font-bold">Type</span><span>{typeText}</span>
+            <span class="me-4 font-bold">Type</span><span>{typeText}</span>
         </div>
     </div>
 </Accordion>
