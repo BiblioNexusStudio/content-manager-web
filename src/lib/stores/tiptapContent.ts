@@ -6,7 +6,6 @@ export const originalValues: Writable<TiptapContentValues> = writable({
     content: undefined,
     status: undefined,
     label: undefined,
-    currentStepNumber: undefined,
 });
 
 export const updatedValues: Writable<TiptapContentValues> = writable({
@@ -24,15 +23,17 @@ export const updateValues = (values: TiptapContentValues) => {
 
 export const setOriginalValues = (values: TiptapContentValues) => {
     originalValues.update((x) => ({ ...x, ...values }));
-    updateValues(values);
+    const json = JSON.stringify(values);
+    const clone = JSON.parse(json);
+    updateValues(clone);
 };
 
 export const resetUpdated = () => {
-    updatedValues.set(get(originalValues));
+    updatedValues.set(JSON.parse(JSON.stringify(get(originalValues))));
 };
 
 export const updateOriginal = () => {
-    originalValues.set(get(updatedValues));
+    originalValues.set(JSON.parse(JSON.stringify(get(updatedValues))));
 };
 
 interface TiptapContentValues {

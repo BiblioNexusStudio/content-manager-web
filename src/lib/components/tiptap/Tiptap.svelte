@@ -1,10 +1,8 @@
 ﻿<script lang="ts">
     import { onMount, onDestroy, tick } from 'svelte';
     import { Editor } from '@tiptap/core';
-    // import StarterKit from '@tiptap/starter-kit';
     import Image from '@tiptap/extension-image';
     import Link from '@tiptap/extension-link';
-    // import { generateHTML } from '@tiptap/html';
     import { type Level, Heading } from '@tiptap/extension-heading';
     import Italic from '@tiptap/extension-italic';
     import Paragraph from '@tiptap/extension-paragraph';
@@ -25,7 +23,7 @@
     import Heading2Icon from '$lib/icons/Heading2Icon.svelte';
     import Heading3Icon from '$lib/icons/Heading3Icon.svelte';
     import { canEdit } from '$lib/stores/auth';
-    import { updatedValues, currentStepNumber } from '$lib/stores/tiptapContent';
+    import { updatedValues, currentStepNumber, originalValues } from '$lib/stores/tiptapContent';
     import * as customMarks from '$lib/components/tiptap/customMarks';
     import type { ComponentType } from 'svelte';
 
@@ -40,8 +38,6 @@
 
     $: setContent($currentStepNumber - 1);
     $: editor?.setEditable($canEdit);
-
-    console.log($updatedValues.content![$currentStepNumber - 1].tiptap);
 
     onMount(async () => {
         await tick();
@@ -78,13 +74,13 @@
                 editor = editor;
             },
             onUpdate: ({ editor }) => {
-                // updatedValues.update((x) => {
-                //     x.content![$currentStepNumber - 1].tiptap = editor.getJSON();
-                //     return x;
-                // });
                 $updatedValues.content![$currentStepNumber - 1].tiptap = editor.getJSON();
             },
-            //onCreate: () => {},
+            onCreate: ({ editor }) => {
+                // Need to set this here because the formatting of editor.getJSON has the possibility of being different
+                // from what's in the database.
+                $originalValues.content![$currentStepNumber - 1].tiptap = editor.getJSON();
+            },
         });
     });
 

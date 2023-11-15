@@ -4,18 +4,11 @@
     import arrowCircleRight from 'svelte-awesome/icons/arrowCircleRight';
     import Tiptap from '$lib/components/tiptap/Tiptap.svelte';
     import { filteredResourcesByLanguage } from '$lib/stores/resources';
-    //import type { ContentItem } from '$lib/types/resources';
     import { setOriginalValues, currentStepNumber, type TiptapContentItemValues } from '$lib/stores/tiptapContent';
-    //import type { JSONContent } from '@tiptap/core';
 
     export let stepNavigation = false;
 
     $: textResource = $filteredResourcesByLanguage.find((resource) => resource.mediaType.toLowerCase() === 'text');
-    //$: contentArray = textResource?.content as ContentItem[];
-    // $: tiptapContents = contentArray.map(({ stepNumber, tiptap }) => ({
-    //     stepNumber,
-    //     tiptap: tiptap as unknown as JSONContent,
-    // })) as TiptapContentItemValues[];
     $: tiptapContents = textResource?.content as unknown as TiptapContentItemValues[];
     $: currentResourceStepsLength = tiptapContents.length || 0;
     $: setOriginalValues({ contentId: textResource?.resourceContentId, content: tiptapContents });

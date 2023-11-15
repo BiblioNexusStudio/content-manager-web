@@ -36,6 +36,6 @@ export const resourceReferenceMark = Mark.create({
         };
     },
     renderHTML() {
-        return ['span', { style: 'color: yellow' }, 0];
+        return ['span', { style: 'color: blue' }, 0];
     },
 });
