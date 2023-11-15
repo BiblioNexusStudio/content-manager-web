@@ -31,7 +31,7 @@
                     <div class="flex items-center">
                         <Icon data={getIcon(resource.mediaTypes[0])} scale={3} />
                     </div>
-                    <div class="ml-4 flex flex-col">
+                    <div class="ms-4 flex flex-col">
                         <span class="font-bold">{resource.label}</span>
                         <span>{resource.type}</span>
                     </div>

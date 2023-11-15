@@ -130,7 +130,10 @@
     <div class="grid grid-cols-2">
         <div class="mb-6 mt-4">
             <span>
-                <select bind:value={selectedLanguage} class="select select-bordered mr-2 w-2/6 max-w-xs bg-base-200">
+                <select
+                    bind:value={selectedLanguage}
+                    class="select select-bordered me-2 w-2/6 max-w-xs bg-base-200 pe-14 ps-4"
+                >
                     <option value="0" selected>{$translate('page.resources.dropdowns.allLanguages.value')}</option>
                     {#each languages as language}
                         <option value={language.id}>{language.englishDisplay}</option>
@@ -138,7 +141,10 @@
                 </select>
             </span>
             <span>
-                <select bind:value={selectedResource} class="select select-bordered w-2/6 max-w-xs bg-base-200">
+                <select
+                    bind:value={selectedResource}
+                    class="select select-bordered w-2/6 max-w-xs bg-base-200 pe-14 ps-4"
+                >
                     <option value="0" selected>{$translate('page.resources.dropdowns.allResources.value')}</option>
                     {#each resourceTypes as resourceType}
                         <option value={resourceType.id}>{resourceType.displayName}</option>
@@ -148,7 +154,7 @@
         </div>
         <div class="mb-6 mt-4 grid">
             <div class="relative w-1/2 justify-self-end text-gray-600">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-2">
+                <span class="absolute inset-y-0 left-0 flex items-center ps-2">
                     <button type="submit" class="p-1" on:click={() => (searchQuery = searchInputValue)}>
                         <svg
                             fill="none"
@@ -167,7 +173,7 @@
                         if (e.key === 'Enter') searchQuery = searchInputValue;
                     }}
                     type="search"
-                    class="min-h-12 w-full rounded-md border-[1px] py-2 pl-10 text-sm text-gray-900 focus:outline-none"
+                    class="min-h-12 w-full rounded-md border-[1px] py-2 ps-10 text-sm text-gray-900 focus:outline-none"
                     placeholder={$translate('page.resources.searchBox.value')}
                 />
             </div>

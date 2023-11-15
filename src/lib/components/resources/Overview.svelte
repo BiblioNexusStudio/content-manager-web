@@ -8,10 +8,10 @@
 <Accordion title="Overview" closable={false}>
     <div class="flex flex-col">
         <div class="mb-4">
-            <span class="mr-4 font-bold">Label</span><span>{labelText}</span>
+            <span class="me-4 font-bold">Label</span><span>{labelText}</span>
         </div>
         <div class="mb-4">
-            <span class="mr-4 font-bold">Type</span><span>{typeText}</span>
+            <span class="me-4 font-bold">Type</span><span>{typeText}</span>
         </div>
     </div>
 </Accordion>

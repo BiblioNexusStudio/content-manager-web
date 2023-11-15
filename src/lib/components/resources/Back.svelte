@@ -4,6 +4,6 @@
     import arrowLeft from 'svelte-awesome/icons/arrowLeft';
 </script>
 
-<button class="mr-4 w-12 text-2xl" on:click={() => goto('/resources')}>
+<button class="me-4 w-12 text-2xl" on:click={() => goto('/resources')}>
     <Icon data={arrowLeft} scale={2} />
 </button>
