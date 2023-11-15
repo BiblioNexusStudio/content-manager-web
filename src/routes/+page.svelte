@@ -24,9 +24,9 @@
     <div class="col-span-2 mt-4 text-3xl">{$translate('page.dashboard.header.value')}</div>
     <div class="col-span-2 mt-4 text-lg font-bold">{$translate('page.dashboard.resourceSnapshot.header.value')}</div>
     <div class="col-span-2 mb-8 mt-4">
-        <div class="stats mr-8 shadow">
+        <div class="stats me-8 shadow">
             <div class="stat">
-                <div class="stat-figure ml-4">
+                <div class="stat-figure ms-4">
                     <FileIcon />
                 </div>
                 <div class="stat-title">{$translate('page.dashboard.resourceSnapshot.total.value')}</div>
@@ -36,7 +36,7 @@
         </div>
         <div class="stats shadow">
             <div class="stat">
-                <div class="stat-figure ml-4">
+                <div class="stat-figure ms-4">
                     <TranslateIcon />
                 </div>
                 <div class="stat-title">Total</div>
@@ -47,7 +47,7 @@
     </div>
     <div class="col-span-2 mb-6 mt-4">
         <span>
-            <select bind:value={selectedLanguage} class="select select-bordered mr-2 w-1/6 max-w-xs bg-base-200">
+            <select bind:value={selectedLanguage} class="select select-bordered me-2 w-1/6 max-w-xs bg-base-200">
                 <option value="default" selected>{$translate('page.dashboard.dropdowns.allLanguages.value')}</option>
                 {#each languages as language}
                     <option>{language}</option>
@@ -65,7 +65,7 @@
     </div>
     <div class="mb-6 text-lg font-bold">{$translate('page.dashboard.charts.totalResources.value')}</div>
     <div class="mb-6 text-lg font-bold">{$translate('page.dashboard.charts.translatedResources.value')}</div>
-    <div class="ml-5 mr-10">
+    <div class="me-10 ms-5">
         <TotalResourcesAreaChart
             bind:selectedLanguage
             bind:selectedResource
@@ -76,7 +76,7 @@
             resourcesByType={data.summary.resourcesByType}
         />
     </div>
-    <div class="ml-5 mr-10">
+    <div class="me-10 ms-5">
         <TranslatedResourcesBarChart
             bind:selectedLanguage
             bind:selectedResource
