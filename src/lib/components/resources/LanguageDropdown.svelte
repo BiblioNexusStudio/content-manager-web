@@ -3,9 +3,10 @@
     import { languageId } from '$lib/stores/resources';
 
     export let languageSet: Language[];
+    export let disable = true;
 </script>
 
-<select bind:value={$languageId} class="select select-info font-semibold">
+<select bind:value={$languageId} class="select select-info font-semibold" disabled={disable}>
     <option value="" disabled selected>Select a Language</option>
     {#each languageSet as { id, displayName }}
         <option value={id}>{displayName}</option>

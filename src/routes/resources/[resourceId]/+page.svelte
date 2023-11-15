@@ -9,7 +9,6 @@
     import { convertToReadableSize } from '$lib/utils/conversions';
     import { languageId, filteredResourcesByLanguage } from '$lib/stores/resources';
     import { originalValues, updatedValues, resetUpdated, updateOriginal } from '$lib/stores/tiptapContent';
-    import CheckCircleIcon from '$lib/icons/CheckCircleIcon.svelte';
     import { beforeNavigate, goto } from '$app/navigation';
     import { canEdit } from '$lib/stores/auth';
     import { fetchWrapper } from '$lib/utils/http-service';
@@ -57,10 +56,29 @@
     $: hasAudio = $filteredResourcesByLanguage.some((resource) => resource.mediaType.toLowerCase() === 'audio');
 
     let isSaving = false;
-    const onSave = async (): Promise<boolean> => {
+    const onSave = async () => {
         isSaving = true;
+        await putData();
+        isSaving = false;
+    };
+
+    const onSaveAndCloseClick = async () => {
         let modal = document?.getElementById('loadingModal') as HTMLDialogElement;
         modal?.showModal();
+        const response = await putData();
+
+        if (response.status === 204) {
+            goBack();
+        } else {
+            modal?.close();
+        }
+    };
+
+    const goBack = () => {
+        window.history.length > 1 ? window.history.back() : goto('/resources');
+    };
+
+    const putData = async () => {
         const response = await fetchWrapper(
             `${config.PUBLIC_AQUIFER_API_URL}/resources/summary/${$updatedValues.contentId}`,
             {
@@ -76,32 +94,14 @@
                 }),
             }
         );
-        isSaving = false;
+
         if (response.status === 204) {
             updateOriginal();
-            setTimeout(() => {
-                modal?.close();
-            }, 250);
-
-            return true;
         } else {
             alert('failed');
-            modal?.close();
-            return false;
         }
-    };
 
-    const onSaveAndCloseClick = () => {
-        isSaving = true;
-        let modal = document?.getElementById('loadingModal') as HTMLDialogElement;
-        modal?.showModal();
-        setTimeout(() => {
-            isSaving = false;
-        }, 1500);
-    };
-
-    const goBack = () => {
-        window.history.length > 1 ? window.history.back() : goto('/resources');
+        return response;
     };
 </script>
 
@@ -110,10 +110,18 @@
         <h1 class="mr-8 text-2xl font-bold">{resource.type} - {resource.label}</h1>
 
         <div class="flex">
-            <LanguageDropdown languageSet={availableLanguages} />
-            {#if $canEdit}<button class="btn btn-primary ms-4" class:btn-disabled={!contentUpdated} on:click={onSave}
-                    >Save</button
-                >{/if}
+            <LanguageDropdown languageSet={availableLanguages} disable={contentUpdated} />
+            {#if $canEdit}<button
+                    class="btn btn-primary ms-4 w-[72px]"
+                    class:btn-disabled={!contentUpdated || isSaving}
+                    on:click={onSave}
+                    >{#if isSaving}
+                        <span class="loading loading-spinner" />
+                    {:else}
+                        Save
+                    {/if}
+                </button>
+            {/if}
             <button class="btn btn-primary btn-outline ms-4" on:click={goBack}>Close</button>
         </div>
     </div>
@@ -149,11 +157,5 @@
     </div>
 </dialog>
 <dialog id="loadingModal" class="modal">
-    {#if isSaving}
-        <span class="loading loading-ring w-24 text-success"></span>
-    {:else}
-        <span class="text-success">
-            <CheckCircleIcon />
-        </span>
-    {/if}
+    <span class="loading loading-spinner w-24 text-primary"></span>
 </dialog>

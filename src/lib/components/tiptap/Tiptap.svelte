@@ -30,13 +30,13 @@
     let element: Element | undefined;
     let editor: Editor;
 
-    let setContent = (index: number) => {
+    let setContent = () => {
         // Doing $: editor?. causes a reset from onTransaction below, because editor changes.
         // Having the separate setContent function prevents it from firing constantly
-        editor?.commands?.setContent($updatedValues.content![index].tiptap ?? '');
+        editor?.commands?.setContent($updatedValues.content![$currentStepNumber - 1].tiptap ?? '');
     };
 
-    $: setContent($currentStepNumber - 1);
+    $: ($originalValues || $currentStepNumber) && setContent();
     $: editor?.setEditable($canEdit);
 
     onMount(async () => {
