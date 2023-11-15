@@ -48,9 +48,7 @@ export const initAuth0 = async () => {
     if (isAuthenticated) {
         try {
             profile.set(await auth0Client.getUser());
-            const token2 = await auth0Client.getTokenSilently();
-            console.log(token2);
-            token.set(token2);
+            token.set(await auth0Client.getTokenSilently());
         } catch (e) {
             await logout();
         }

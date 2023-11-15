@@ -28,6 +28,12 @@
 
     $: contentUpdated = JSON.stringify($originalValues) !== JSON.stringify($updatedValues);
 
+    setInterval(() => {
+        // console.log(JSON.stringify($originalValues));
+        // console.log(JSON.stringify($updatedValues));
+        console.log(JSON.stringify($originalValues) !== JSON.stringify($updatedValues));
+    }, 10000);
+
     const resource: Resource = data.resource;
 
     const availableLanguages = resource.resources

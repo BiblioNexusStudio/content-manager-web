@@ -6,6 +6,7 @@ export const originalValues: Writable<TiptapContentValues> = writable({
     content: undefined,
     status: undefined,
     label: undefined,
+    currentStepNumber: undefined,
 });
 
 export const updatedValues: Writable<TiptapContentValues> = writable({
@@ -14,6 +15,8 @@ export const updatedValues: Writable<TiptapContentValues> = writable({
     status: undefined,
     label: undefined,
 });
+
+export const currentStepNumber: Writable<number> = writable(1);
 
 export const updateValues = (values: TiptapContentValues) => {
     updatedValues.update((x) => ({ ...x, ...values }));
@@ -34,7 +37,12 @@ export const updateOriginal = () => {
 
 interface TiptapContentValues {
     contentId?: number | undefined;
-    content?: JSONContent | undefined;
+    content?: TiptapContentItemValues[] | undefined;
     label?: string | undefined;
     status?: string | undefined;
+}
+
+export interface TiptapContentItemValues {
+    tiptap?: JSONContent | undefined;
+    stepNumber?: number | undefined;
 }

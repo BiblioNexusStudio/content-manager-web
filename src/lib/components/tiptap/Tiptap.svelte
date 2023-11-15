@@ -1,6 +1,6 @@
 ﻿<script lang="ts">
     import { onMount, onDestroy, tick } from 'svelte';
-    import { Editor, Mark } from '@tiptap/core';
+    import { Editor } from '@tiptap/core';
     // import StarterKit from '@tiptap/starter-kit';
     import Image from '@tiptap/extension-image';
     import Link from '@tiptap/extension-link';
@@ -25,60 +25,23 @@
     import Heading2Icon from '$lib/icons/Heading2Icon.svelte';
     import Heading3Icon from '$lib/icons/Heading3Icon.svelte';
     import { canEdit } from '$lib/stores/auth';
-    import { setOriginalValues, updateValues } from '$lib/stores/tiptapContent';
+    import { updatedValues, currentStepNumber } from '$lib/stores/tiptapContent';
+    import * as customMarks from '$lib/components/tiptap/customMarks';
     import type { ComponentType } from 'svelte';
-
-    const bibleReferenceMark = Mark.create({
-        name: 'bibleReference',
-        priority: 1001,
-        keepOnSplit: false,
-        addAttributes() {
-            return {
-                verses: {
-                    default: [
-                        {
-                            startVerse: null,
-                            endVerse: null,
-                        },
-                    ],
-                },
-            };
-        },
-        renderHTML() {
-            return ['span', { style: 'color: green' }, 0];
-        },
-    });
-
-    const resourceReferenceMark = Mark.create({
-        name: 'resourceReference',
-        priority: 1001,
-        keepOnSplit: false,
-        addAttributes() {
-            return {
-                resourceId: {
-                    default: null,
-                },
-                resourceType: {
-                    default: null,
-                },
-            };
-        },
-        renderHTML() {
-            return ['span', { style: 'color: yellow' }, 0];
-        },
-    });
 
     let element: Element | undefined;
     let editor: Editor;
 
-    export let content: string;
-
-    let setContent = (content: string) => {
-        editor?.commands?.setContent(content);
+    let setContent = (index: number) => {
+        // Doing $: editor?. causes a reset from onTransaction below, because editor changes.
+        // Having the separate setContent function prevents it from firing constantly
+        editor?.commands?.setContent($updatedValues.content![index].tiptap ?? '');
     };
 
-    $: setContent(content);
+    $: setContent($currentStepNumber - 1);
     $: editor?.setEditable($canEdit);
+
+    console.log($updatedValues.content![$currentStepNumber - 1].tiptap);
 
     onMount(async () => {
         await tick();
@@ -101,26 +64,27 @@
                 Paragraph,
                 Text,
                 Underline,
-                bibleReferenceMark,
-                resourceReferenceMark,
+                customMarks.bibleReferenceMark,
+                customMarks.resourceReferenceMark,
             ],
             editorProps: {
                 attributes: {
                     class: 'prose dark:prose-invert prose-sm sm:prose-base focus:outline-none text-black mx-4 max-w-none',
                 },
             },
-            content: content,
+            content: $updatedValues.content![$currentStepNumber - 1].tiptap,
             onTransaction: () => {
                 // force re-render so `editor.isActive` works as expected
                 editor = editor;
             },
             onUpdate: ({ editor }) => {
-                //jsonOutput = JSON.stringify(editor.getJSON(), null, 2);
-                updateValues({ content: editor.getJSON() });
+                // updatedValues.update((x) => {
+                //     x.content![$currentStepNumber - 1].tiptap = editor.getJSON();
+                //     return x;
+                // });
+                $updatedValues.content![$currentStepNumber - 1].tiptap = editor.getJSON();
             },
-            onCreate: ({ editor }) => {
-                setOriginalValues({ content: editor.getJSON() });
-            },
+            //onCreate: () => {},
         });
     });
 
