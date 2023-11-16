@@ -13,7 +13,7 @@
     import { canEdit } from '$lib/stores/auth';
     import { fetchWrapper } from '$lib/utils/http-service';
     import config from '$lib/config';
-    import { token } from '$lib/stores/auth';
+    import { auth0Client } from '$lib/stores/auth';
 
     beforeNavigate((x) => {
         if (contentUpdated) {
@@ -79,13 +79,14 @@
     };
 
     const putData = async () => {
+        const token = await $auth0Client?.getTokenSilently();
         const response = await fetchWrapper(
             `${config.PUBLIC_AQUIFER_API_URL}/resources/summary/${$updatedValues.contentId}`,
             {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${$token}`,
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
                     status: $updatedValues.status,
