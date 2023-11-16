@@ -1,6 +1,7 @@
 ﻿<script lang="ts">
     import { onMount, onDestroy, tick } from 'svelte';
     import { Editor } from '@tiptap/core';
+    import History from '@tiptap/extension-history';
     import Image from '@tiptap/extension-image';
     import Link from '@tiptap/extension-link';
     import { type Level, Heading } from '@tiptap/extension-heading';
@@ -62,6 +63,7 @@
                 Underline,
                 customMarks.bibleReferenceMark,
                 customMarks.resourceReferenceMark,
+                History,
             ],
             editorProps: {
                 attributes: {
@@ -156,37 +158,40 @@
 </script>
 
 {#if editor && $canEdit}
-    <div class="mx-4 mb-2">
-        {#each formattingOptions as option}
-            <button
-                class="btn btn-xs mx-1 px-0 {editor.isActive(option.name) ? 'btn-primary' : 'btn-link'}"
-                on:click={option.onClick}
-            >
-                <svelte:component this={option.icon} />
-            </button>
-        {/each}
-        <span class="join join-horizontal">
+    <div class="absolute z-50 bg-white">
+        <div class="mx-4 mt-2">
+            {#each formattingOptions as option}
+                <button
+                    class="btn btn-xs mx-1 px-0 {editor.isActive(option.name) ? 'btn-primary' : 'btn-link'}"
+                    on:click={option.onClick}
+                >
+                    <svelte:component this={option.icon} />
+                </button>
+            {/each}
             {#each headerLevels as header}
                 <button
-                    class="btn btn-primary btn-outline join-item btn-xs text-primary {editor.isActive('heading', {
+                    class="btn btn-xs mx-0.5 px-1 {editor.isActive('heading', {
                         level: header.level,
                     })
-                        ? 'btn-active'
-                        : ''}"
+                        ? 'btn-primary'
+                        : 'btn-link'}"
                     on:click={() => editor.chain().focus().toggleHeading({ level: header.level }).run()}
                 >
                     <svelte:component this={header.icon} />
                 </button>
             {/each}
-        </span>
-        <!--        <button class="btn btn-accent btn-outline btn-xs my-1" on:click={addImage}> Image </button>-->
-        <button class="btn btn-xs mx-1 px-0 {editor.isActive('link') ? 'btn-primary' : 'btn-link'}" on:click={addLink}>
-            <LinkIcon />
-        </button>
+            <!--        <button class="btn btn-accent btn-outline btn-xs my-1" on:click={addImage}> Image </button>-->
+            <button
+                class="btn btn-xs mx-1 px-0 {editor.isActive('link') ? 'btn-primary' : 'btn-link'}"
+                on:click={addLink}
+            >
+                <LinkIcon />
+            </button>
+        </div>
     </div>
 {/if}
 
-<div class="h-5/6 overflow-scroll" bind:this={element} />
+<div class="h-5/6 pt-12" bind:this={element} />
 
 <style>
     :global(.prose :where(a):not(:where([class~='not-prose'] *))) {

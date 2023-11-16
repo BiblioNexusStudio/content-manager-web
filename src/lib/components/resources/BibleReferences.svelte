@@ -3,7 +3,7 @@
     import type { PassageReference } from '$lib/types/resources';
     import EmptyMessage from './EmptyMessage.svelte';
 
-    export let bibleRefernces: PassageReference[];
+    export let bibleReferences: PassageReference[];
 
     function generateVerseFromReference(reference: PassageReference): string {
         return `${reference.startBook} ${reference.startChapter}:${reference.startVerse} - ${reference.endBook} ${reference.endChapter}:${reference.endVerse}`;
@@ -12,10 +12,10 @@
 
 <Accordion title="Bible References" closable={true}>
     <div class="flex w-full flex-col">
-        {#if bibleRefernces.length > 0}
-            {#each bibleRefernces as bibleRefernce}
+        {#if bibleReferences.length > 0}
+            {#each bibleReferences as bibleReference}
                 <div class="mb-4 flex w-full justify-between">
-                    <p class="font-bold">{generateVerseFromReference(bibleRefernce)}</p>
+                    <p class="font-bold">{generateVerseFromReference(bibleReference)}</p>
                 </div>
             {/each}
         {:else}

@@ -20,11 +20,11 @@
         let resources = resourcesByLanguage;
 
         if (language === defaultSelection && resource !== defaultSelection) {
-            resources = resources.filter((x) => x.resourceType === resource);
+            resources = resources.filter((x) => x.parentResourceName === resource);
         } else if (language !== defaultSelection && resource === defaultSelection) {
             resources = resources.filter((x) => x.language === language);
         } else if (language !== defaultSelection && resource !== defaultSelection) {
-            resources = resources.filter((x) => x.language === language && x.resourceType === resource);
+            resources = resources.filter((x) => x.language === language && x.parentResourceName === resource);
         }
 
         let langMonthGroup = resources.reduce(

@@ -108,7 +108,7 @@
 
 <div class="p-8">
     <div class="mb-8 flex items-center justify-between">
-        <h1 class="me-8 text-2xl font-bold">{resource.type} - {resource.label}</h1>
+        <h1 class="me-8 text-2xl font-bold">{resource.parentResourceName} - {$originalValues.label}</h1>
 
         <div class="flex">
             <LanguageDropdown languageSet={availableLanguages} disable={contentUpdated} />
@@ -128,13 +128,13 @@
     </div>
     <div class="flex">
         <div class="me-8 flex w-4/12 flex-col">
-            <Overview labelText={resource.label} typeText={resource.type} />
+            <Overview labelText={resource.label} typeText={resource.parentResourceName} />
             <Details translationStatus={resourceStatus} sizeText={resourceSize} {hasAudio} />
             <RelatedContent relatedContent={resource.associatedResources} />
-            <BibleReferences bibleRefernces={resource.passageReferences} />
+            <BibleReferences bibleReferences={resource.passageReferences} />
         </div>
         <div class="flex w-8/12 flex-col">
-            <Content typeText={resource.type} />
+            <Content typeText={resource.parentResourceName} />
         </div>
     </div>
 </div>

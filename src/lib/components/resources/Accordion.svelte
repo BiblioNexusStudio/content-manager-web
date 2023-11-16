@@ -1,47 +1,14 @@
 <script>
-    import { Icon } from 'svelte-awesome';
-    import chevronUp from 'svelte-awesome/icons/chevronUp';
-    import chevronDown from 'svelte-awesome/icons/chevronDown';
-
     export let title = '';
     export let closable = false;
     export let fullHeight = false;
-
-    let isOpen = true;
-
-    function toggleAccordion() {
-        if (closable) {
-            isOpen = !isOpen;
-        }
-    }
+    console.log(closable);
 </script>
 
-<div
-    class="accordion mb-8 rounded-lg border-2 border-neutral-200 {fullHeight
-        ? 'h-[calc(100vh-8.5rem)] overflow-y-hidden'
-        : ''}"
->
-    <div
-        class="flex items-center justify-between p-4 {closable ? 'cursor-pointer' : ''} bg-neutral-200"
-        on:click={toggleAccordion}
-        on:keydown={toggleAccordion}
-        tabindex="0"
-        role="button"
-    >
-        <h3 class="font-bold">{title}</h3>
-        {#if closable}
-            <span>
-                {#if isOpen}
-                    <Icon data={chevronUp} />
-                {:else}
-                    <Icon data={chevronDown} />
-                {/if}
-            </span>
-        {/if}
+<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+<details tabindex="0" class="collapse collapse-arrow mb-8 border border-base-300 bg-base-200" open>
+    <summary class="collapse-title !rounded-b-none text-xl font-medium">{title}</summary>
+    <div class="collapse-content overflow-y-scroll {fullHeight ? 'h-full' : 'max-h-40'} bg-white pt-2">
+        <slot />
     </div>
-    {#if isOpen}
-        <div class="{fullHeight ? 'h-full' : 'max-h-40'} overflow-y-scroll p-4">
-            <slot />
-        </div>
-    {/if}
-</div>
+</details>

@@ -10,7 +10,6 @@ export const canEdit: Writable<boolean> = writable(false);
 const auth0Domain = config.PUBLIC_AUTH0_DOMAIN;
 const auth0ClientId = config.PUBLIC_AUTH0_CLIENT_ID;
 const auth0Audience = config.PUBLIC_AUTH0_AUDIENCE;
-//let auth0Client: Auth0Client | undefined = undefined;
 const editorRoles = ['admin', 'editor'];
 
 profile.subscribe((user) => {

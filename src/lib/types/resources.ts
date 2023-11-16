@@ -89,7 +89,7 @@ export interface ResourceItem {
 
 export interface AssociatedResource {
     mediaTypes: string[];
-    type: string;
+    parentResourceName: string;
     label: string;
 }
 
@@ -97,7 +97,7 @@ export interface Resource {
     passageReferences: PassageReference[];
     resources: ResourceItem[];
     associatedResources: AssociatedResource[];
-    type: string;
+    parentResourceName: string;
     label: string;
 }
 

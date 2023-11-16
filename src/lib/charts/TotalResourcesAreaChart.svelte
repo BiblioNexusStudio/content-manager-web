@@ -1,11 +1,11 @@
 ﻿<script lang="ts">
     import Chart, { type ChartConfiguration } from 'chart.js/auto';
     import { onMount } from 'svelte';
-    import type { ResourcesByLanguage, ResourcesByType, TotalsByMonth } from '../../routes/+page';
+    import type { ResourcesByLanguage, ResourcesByParentResource, TotalsByMonth } from '../../routes/+page';
 
     export let totalsByMonth: TotalsByMonth[];
     export let resourcesByLanguage: ResourcesByLanguage[];
-    export let resourcesByType: ResourcesByType[];
+    export let resourcesByType: ResourcesByParentResource[];
     export let defaultSelection = 'default';
     export let selectedLanguage: string;
     export let selectedResource: string;
@@ -18,7 +18,7 @@
     const updateTotalResourcesChart = (language: string, resource: string) => {
         if (language === defaultSelection && resource !== defaultSelection) {
             let totals = resourcesByType.reduce((resources: TotalsByMonth[], r) => {
-                if (r.resourceType === resource) {
+                if (r.parentResourceName === resource) {
                     resources.push({
                         date: r.date,
                         monthAbbreviation: r.monthAbbreviation,
@@ -34,7 +34,7 @@
                 resource === defaultSelection
                     ? resourcesByLanguage.filter((resource) => resource.language === language)
                     : resourcesByLanguage.filter(
-                          (item) => item.language === language && item.resourceType === resource
+                          (item) => item.language === language && item.parentResourceName === resource
                       );
 
             let monthGroup = languageResources.reduce(

@@ -33,7 +33,7 @@
                     </div>
                     <div class="ms-4 flex flex-col">
                         <span class="font-bold">{resource.label}</span>
-                        <span>{resource.type}</span>
+                        <span>{resource.parentResourceName}</span>
                     </div>
                 </div>
             {/each}
