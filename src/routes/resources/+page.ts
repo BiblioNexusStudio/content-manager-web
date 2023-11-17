@@ -52,6 +52,6 @@ export interface Language {
 export interface ResourceListItem {
     id: number;
     name: string;
-    type: string;
+    parentResourceName: string;
     status: string;
 }

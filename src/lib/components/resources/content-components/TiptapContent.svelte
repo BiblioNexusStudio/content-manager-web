@@ -59,21 +59,23 @@
 
 <div>
     {#if stepNavigation}
-        <div class="flex items-center justify-between px-4">
-            {#if $currentStepNumber !== 1}
-                <button on:click={() => handleStep('backward')}>
-                    <Icon data={arrowCircleLeft} scale={3} />
-                </button>
-            {/if}
+        <div class="absolute z-50 w-full bg-white pe-16 ps-4">
+            <div class="mt-2 flex items-center justify-between">
+                {#if $currentStepNumber !== 1}
+                    <button on:click={() => handleStep('backward')}>
+                        <Icon data={arrowCircleLeft} scale={2} />
+                    </button>
+                {/if}
 
-            <h2 class="mx-auto text-xl font-bold">{headings[$currentStepNumber - 1]?.heading}</h2>
+                <h2 class="mx-auto text-xl font-bold">{headings[$currentStepNumber - 1]?.heading}</h2>
 
-            {#if $currentStepNumber !== currentResourceStepsLength}
-                <button on:click={() => handleStep('forward')}>
-                    <Icon data={arrowCircleRight} scale={3} />
-                </button>
-            {/if}
+                {#if $currentStepNumber !== currentResourceStepsLength}
+                    <button on:click={() => handleStep('forward')}>
+                        <Icon data={arrowCircleRight} scale={2} />
+                    </button>
+                {/if}
+            </div>
         </div>
     {/if}
-    <Tiptap />
+    <Tiptap hasSteps={stepNavigation} />
 </div>

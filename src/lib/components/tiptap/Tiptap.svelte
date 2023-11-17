@@ -28,6 +28,8 @@
     import * as customMarks from '$lib/components/tiptap/customMarks';
     import type { ComponentType } from 'svelte';
 
+    export let hasSteps = false;
+
     let element: Element | undefined;
     let editor: Editor;
 
@@ -155,11 +157,23 @@
             icon: OrderedListIcon,
         },
     ];
+
+    const getContentTopPadding = () => {
+        if ($canEdit && hasSteps) {
+            return 'pt-28';
+        } else if ($canEdit && !hasSteps) {
+            return 'pt-12';
+        } else if (!$canEdit && hasSteps) {
+            return 'pt-14';
+        } else if (!$canEdit && !hasSteps) {
+            return 'pt-2';
+        }
+    };
 </script>
 
 {#if editor && $canEdit}
-    <div class="absolute z-50 w-full bg-white">
-        <div class="mx-4 mt-2">
+    <div class="absolute z-20 w-full bg-white">
+        <div class="mx-4 {hasSteps ? 'pt-14' : 'mt-2'}">
             {#each formattingOptions as option}
                 <button
                     class="btn btn-xs mx-1 px-0 {editor.isActive(option.name) ? 'btn-primary' : 'btn-link'}"
@@ -191,7 +205,7 @@
     </div>
 {/if}
 
-<div class="pt-12" bind:this={element} />
+<div class=" {getContentTopPadding()}" bind:this={element} />
 
 <style>
     :global(.prose :where(a):not(:where([class~='not-prose'] *))) {

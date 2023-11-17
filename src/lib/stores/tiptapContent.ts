@@ -15,7 +15,7 @@ export const updatedValues: Writable<TiptapContentValues> = writable({
     label: undefined,
 });
 
-export const currentStepNumber: Writable<number> = writable(1);
+export const currentStepNumber: Writable<number> = writable(1, (set) => set(1));
 
 export const updateValues = (values: TiptapContentValues) => {
     updatedValues.update((x) => ({ ...x, ...values }));

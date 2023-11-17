@@ -200,7 +200,7 @@
                     {@const normalizedStatus = getNormalizedStatus(resource.status)}
                     <tr class="hover">
                         <td>{resource.name}</td>
-                        <td>{resource.type}</td>
+                        <td>{resource.parentResourceName}</td>
                         <td><div class="badge {normalizedStatus.class}">{normalizedStatus.value}</div></td>
                         <td class="w-4"
                             ><button
