@@ -81,7 +81,7 @@
     const putData = async () => {
         const token = await $auth0Client?.getTokenSilently();
         const response = await fetchWrapper(
-            `${config.PUBLIC_AQUIFER_API_URL}/resources/summary/${$updatedValues.contentId}`,
+            `${config.PUBLIC_AQUIFER_API_URL}/resources/summary/${$updatedValues.contentId}00`,
             {
                 method: 'PUT',
                 headers: {
@@ -99,7 +99,8 @@
         if (response.status === 204) {
             updateOriginal();
         } else {
-            alert('failed');
+            let modal = document?.getElementById('errorModal') as HTMLDialogElement;
+            modal?.showModal();
         }
 
         return response;
@@ -159,4 +160,13 @@
 </dialog>
 <dialog id="loadingModal" class="modal">
     <span class="loading loading-spinner w-24 text-primary"></span>
+</dialog>
+<dialog id="errorModal" class="modal">
+    <div class="modal-box bg-error">
+        <form method="dialog">
+            <button class="btn btn-circle btn-ghost btn-sm absolute right-2 top-2">✕</button>
+        </form>
+        <h3 class="text-xl font-bold">Error</h3>
+        <p class="py-4 text-lg font-medium">An error occurred while saving. Please try again.</p>
+    </div>
 </dialog>
