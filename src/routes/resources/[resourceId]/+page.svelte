@@ -81,7 +81,7 @@
     const putData = async () => {
         const token = await $auth0Client?.getTokenSilently();
         const response = await fetchWrapper(
-            `${config.PUBLIC_AQUIFER_API_URL}/resources/summary/${$updatedValues.contentId}00`,
+            `${config.PUBLIC_AQUIFER_API_URL}/resources/summary/${$updatedValues.contentId}`,
             {
                 method: 'PUT',
                 headers: {
