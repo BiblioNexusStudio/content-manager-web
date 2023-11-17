@@ -13,7 +13,7 @@
     $: labelUpdated = $originalValues?.label !== $updatedValues?.label;
 </script>
 
-<Accordion title="Overview" closable={false}>
+<Accordion title="Overview" closable={true}>
     <div class="flex flex-col">
         <div class="mb-4 flex items-center justify-between">
             <div class="flex grow items-center">
