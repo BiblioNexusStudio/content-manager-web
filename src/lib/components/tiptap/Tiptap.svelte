@@ -158,7 +158,7 @@
 </script>
 
 {#if editor && $canEdit}
-    <div class="absolute z-50 bg-white">
+    <div class="absolute z-50 w-full bg-white">
         <div class="mx-4 mt-2">
             {#each formattingOptions as option}
                 <button
@@ -191,7 +191,7 @@
     </div>
 {/if}
 
-<div class="h-5/6 pt-12" bind:this={element} />
+<div class="pt-12" bind:this={element} />
 
 <style>
     :global(.prose :where(a):not(:where([class~='not-prose'] *))) {
