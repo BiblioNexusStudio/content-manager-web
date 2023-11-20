@@ -12,7 +12,7 @@ const getLanguages = async () => {
 };
 
 const getResourceTypes = async () => {
-    const resourceTypeRes = await fetchWrapper(`${config.PUBLIC_AQUIFER_API_URL}/resources/types`);
+    const resourceTypeRes = await fetchWrapper(`${config.PUBLIC_AQUIFER_API_URL}/resources/parent-resources`);
     return (await resourceTypeRes.json()) as ResourceType[];
 };
 
@@ -20,19 +20,19 @@ const getResourceList = async (
     currentPage: number,
     take: number,
     languageId: number,
-    resourceTypeId: number,
+    parentResourceId: number,
     query: string
 ) => {
     const skip = (currentPage - 1) * take;
     const response = await fetchWrapper(
-        `${config.PUBLIC_AQUIFER_API_URL}/resources/list?skip=${skip}&take=${take}&languageId=${languageId}&resourceTypeId=${resourceTypeId}&query=${query}`
+        `${config.PUBLIC_AQUIFER_API_URL}/resources/list?skip=${skip}&take=${take}&languageId=${languageId}&parentResourceId=${parentResourceId}&query=${query}`
     );
     return (await response.json()) as ResourceListItem[];
 };
 
-const getResourceListCount = async (languageId: number, resourceTypeId: number, query: string) => {
+const getResourceListCount = async (languageId: number, parentResourceId: number, query: string) => {
     const response = await fetchWrapper(
-        `${config.PUBLIC_AQUIFER_API_URL}/resources/list/count?languageId=${languageId}&resourceTypeId=${resourceTypeId}&query=${query}`
+        `${config.PUBLIC_AQUIFER_API_URL}/resources/list/count?languageId=${languageId}&parentResourceId=${parentResourceId}&query=${query}`
     );
     return +(await response.text());
 };
@@ -52,6 +52,6 @@ export interface Language {
 export interface ResourceListItem {
     id: number;
     name: string;
-    type: string;
+    parentResourceName: string;
     status: string;
 }

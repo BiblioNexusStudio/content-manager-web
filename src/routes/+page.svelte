@@ -9,7 +9,7 @@
     export let data: PageData;
 
     let languages = data.summary.languages.sort();
-    let resourceTypes = data.summary.resourceTypes.sort();
+    let resourceTypes = data.summary.parentResourceNames.sort();
     let totalResources = data.summary.allResourcesCount;
     let totalResourcesMultiLanguage = data.summary.multiLanguageResourcesCount;
 
@@ -73,7 +73,7 @@
             {months}
             resourcesByLanguage={data.summary.resourcesByLanguage}
             totalsByMonth={data.summary.totalsByMonth}
-            resourcesByType={data.summary.resourcesByType}
+            resourcesByType={data.summary.resourcesByParentResource}
         />
     </div>
     <div class="me-10 ms-5">

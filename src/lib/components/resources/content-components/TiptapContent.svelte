@@ -2,17 +2,16 @@
     import { Icon } from 'svelte-awesome';
     import arrowCircleLeft from 'svelte-awesome/icons/arrowCircleLeft';
     import arrowCircleRight from 'svelte-awesome/icons/arrowCircleRight';
-    import type { ContentItem } from '$lib/types/resources';
+    import Tiptap from '$lib/components/tiptap/Tiptap.svelte';
+    import { filteredResourcesByLanguage } from '$lib/stores/resources';
+    import { setOriginalValues, currentStepNumber, type TiptapContentItemValues } from '$lib/stores/tiptapContent';
 
     export let stepNavigation = false;
 
-    import Tiptap from '$lib/Tiptap.svelte';
-    import { filteredResourcesByLanguage } from '$lib/store/resources';
-
-    let currentStepNumber = 1;
     $: textResource = $filteredResourcesByLanguage.find((resource) => resource.mediaType.toLowerCase() === 'text');
-    $: contentArray = textResource?.content as ContentItem[];
-    $: currentResourceStepsLenght = contentArray.length || 0;
+    $: tiptapContents = textResource?.content as unknown as TiptapContentItemValues[];
+    $: currentResourceStepsLength = tiptapContents.length || 0;
+    $: setOriginalValues({ contentId: textResource?.resourceContentId, content: tiptapContents });
 
     const headings = [
         {
@@ -42,39 +41,41 @@
     ];
 
     function handleStep(direction: 'forward' | 'backward') {
-        if (currentStepNumber === 1 && direction === 'backward') {
+        if ($currentStepNumber === 1 && direction === 'backward') {
             return;
         }
 
-        if (currentStepNumber === currentResourceStepsLenght && direction === 'forward') {
+        if ($currentStepNumber === currentResourceStepsLength && direction === 'forward') {
             return;
         }
 
         if (direction === 'forward') {
-            currentStepNumber = currentStepNumber + 1;
+            $currentStepNumber += 1;
         } else {
-            currentStepNumber = currentStepNumber - 1;
+            $currentStepNumber -= 1;
         }
     }
 </script>
 
 <div>
     {#if stepNavigation}
-        <div class="flex items-center justify-between px-4">
-            {#if currentStepNumber !== 1}
-                <button on:click={() => handleStep('backward')}>
-                    <Icon data={arrowCircleLeft} scale={3} />
-                </button>
-            {/if}
+        <div class="absolute z-50 w-full bg-white pe-16 ps-4">
+            <div class="mt-2 flex items-center justify-between">
+                {#if $currentStepNumber !== 1}
+                    <button on:click={() => handleStep('backward')}>
+                        <Icon data={arrowCircleLeft} scale={2} />
+                    </button>
+                {/if}
 
-            <h2 class="mx-auto text-xl font-bold">{headings[currentStepNumber - 1]?.heading}</h2>
+                <h2 class="mx-auto text-xl font-bold">{headings[$currentStepNumber - 1]?.heading}</h2>
 
-            {#if currentStepNumber !== currentResourceStepsLenght}
-                <button on:click={() => handleStep('forward')}>
-                    <Icon data={arrowCircleRight} scale={3} />
-                </button>
-            {/if}
+                {#if $currentStepNumber !== currentResourceStepsLength}
+                    <button on:click={() => handleStep('forward')}>
+                        <Icon data={arrowCircleRight} scale={2} />
+                    </button>
+                {/if}
+            </div>
         </div>
     {/if}
-    <Tiptap htmlDefault={contentArray[currentStepNumber - 1]?.tiptap} />
+    <Tiptap hasSteps={stepNavigation} />
 </div>

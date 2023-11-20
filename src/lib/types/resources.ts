@@ -15,6 +15,8 @@ export enum MediaTypeEnum {
 
 export enum ResourceStatusEnum {
     completed = 'Completed',
+    notStarted = 'NotStarted',
+    inProgress = 'InProgress',
     none = 'None',
 }
 export interface PassageReference {
@@ -63,7 +65,7 @@ export interface Tiptap {
 
 export interface ContentItem {
     stepNumber: number;
-    tiptap: Tiptap;
+    tiptap: string;
     url: string;
     thumbnailUrl: string;
     duration: number;
@@ -76,6 +78,7 @@ export interface Language {
 }
 
 export interface ResourceItem {
+    resourceContentId: number;
     displayName: string;
     mediaType: string;
     status: string;
@@ -86,7 +89,7 @@ export interface ResourceItem {
 
 export interface AssociatedResource {
     mediaTypes: string[];
-    type: string;
+    parentResourceName: string;
     label: string;
 }
 
@@ -94,7 +97,7 @@ export interface Resource {
     passageReferences: PassageReference[];
     resources: ResourceItem[];
     associatedResources: AssociatedResource[];
-    type: string;
+    parentResourceName: string;
     label: string;
 }
 

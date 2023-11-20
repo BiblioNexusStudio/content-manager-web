@@ -1,18 +1,19 @@
 ﻿import type { PageLoad } from './$types';
 import config from '$lib/config';
+import { fetchWrapper } from '$lib/utils/http-service';
 
-export const load: PageLoad = async ({ fetch }) => {
-    const res = await fetch(`${config.PUBLIC_AQUIFER_API_URL}/resources/summary`);
+export const load: PageLoad = async () => {
+    const res = await fetchWrapper(`${config.PUBLIC_AQUIFER_API_URL}/resources/summary`);
     const summary: ResourcesSummary = await res.json();
 
     return { summary };
 };
 
-export interface ResourcesByType extends TotalsByMonth {
-    resourceType: string;
+export interface ResourcesByParentResource extends TotalsByMonth {
+    parentResourceName: string;
 }
 
-export interface ResourcesByLanguage extends ResourcesByType {
+export interface ResourcesByLanguage extends ResourcesByParentResource {
     language: string;
 }
 
@@ -23,11 +24,11 @@ export interface TotalsByMonth {
 }
 
 export interface ResourcesSummary {
-    resourcesByType: ResourcesByType[];
+    resourcesByParentResource: ResourcesByParentResource[];
     resourcesByLanguage: ResourcesByLanguage[];
     totalsByMonth: TotalsByMonth[];
     allResourcesCount: number;
     multiLanguageResourcesCount: number;
     languages: string[];
-    resourceTypes: string[];
+    parentResourceNames: string[];
 }
