@@ -17,13 +17,15 @@
 
     beforeNavigate((x) => {
         if (contentUpdated) {
-            let modal = document?.getElementById('onCloseModal') as HTMLDialogElement;
-            modal?.showModal();
+            onCloseModal.showModal();
             x.cancel();
         }
     });
 
     export let data: ResourceResponse;
+    let onCloseModal: HTMLDialogElement;
+    let loadingModal: HTMLDialogElement;
+    let errorModal: HTMLDialogElement;
 
     $: contentUpdated = JSON.stringify($originalValues) !== JSON.stringify($updatedValues);
 
@@ -63,14 +65,13 @@
     };
 
     const onSaveAndCloseClick = async () => {
-        let modal = document?.getElementById('loadingModal') as HTMLDialogElement;
-        modal?.showModal();
+        loadingModal.showModal();
         const response = await putData();
 
         if (response.status === 204) {
             goBack();
         } else {
-            modal?.close();
+            loadingModal.close();
         }
     };
 
@@ -99,8 +100,7 @@
         if (response.status === 204) {
             updateOriginal();
         } else {
-            let modal = document?.getElementById('errorModal') as HTMLDialogElement;
-            modal?.showModal();
+            errorModal.showModal();
         }
 
         return response;
@@ -139,7 +139,7 @@
         </div>
     </div>
 </div>
-<dialog id="onCloseModal" class="modal">
+<dialog bind:this={onCloseModal} class="modal">
     <div class="modal-box">
         <h3 class="text-xl font-bold">Unsaved Changes</h3>
         <p class="py-4 text-lg">There are unsaved changes. Do you want to save them?</p>
@@ -158,10 +158,10 @@
         </div>
     </div>
 </dialog>
-<dialog id="loadingModal" class="modal">
+<dialog bind:this={loadingModal} class="modal">
     <span class="loading loading-spinner w-24 text-primary"></span>
 </dialog>
-<dialog id="errorModal" class="modal">
+<dialog bind:this={errorModal} class="modal">
     <div class="modal-box bg-error">
         <form method="dialog">
             <button class="btn btn-circle btn-ghost btn-sm absolute right-2 top-2">✕</button>

@@ -8,6 +8,7 @@
     export let labelText: string;
     export let typeText: string;
 
+    let labelInput: HTMLInputElement;
     setOriginalValues({ label: labelText });
     $: updateValues({ label: labelText });
     $: labelUpdated = $originalValues?.label !== $updatedValues?.label;
@@ -22,7 +23,7 @@
                     {#if $canEdit}
                         <input
                             type="text"
-                            id="labelInput"
+                            bind:this={labelInput}
                             bind:value={labelText}
                             class="input input-ghost h-6 w-full pl-0"
                         />
@@ -36,7 +37,7 @@
                     class="h-6 w-6 p-0"
                     on:click={() => {
                         if (labelUpdated) labelText = $originalValues?.label || '';
-                        else document?.getElementById('labelInput')?.focus();
+                        else labelInput.focus();
                     }}
                     ><label class="swap swap-rotate">
                         <input checked={!labelUpdated} type="checkbox" disabled={!labelUpdated} />
