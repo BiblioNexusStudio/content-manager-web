@@ -206,9 +206,3 @@
 {/if}
 
 <div class=" {getContentTopPadding()}" bind:this={element} />
-
-<style>
-    :global(.prose :where(a):not(:where([class~='not-prose'] *))) {
-        color: hsl(var(--p) / var(--tw-text-opacity));
-    }
-</style>
