@@ -11,6 +11,9 @@ on:
                 type: environment
                 required: true
 
+permissions:
+    contents: write
+
 jobs:
     deploy_to_dev:
         if: github.ref == 'refs/heads/master' || github.event.inputs.environment == 'dev'

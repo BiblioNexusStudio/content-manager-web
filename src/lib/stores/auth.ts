@@ -2,6 +2,7 @@
 import { Auth0Client, createAuth0Client, User } from '@auth0/auth0-spa-js';
 import config from '$lib/config';
 import { goto } from '$app/navigation';
+import { log } from '$lib/logger';
 
 export const auth0Client: Writable<Auth0Client | undefined> = writable(undefined);
 export const profile: Writable<User | undefined> = writable(undefined);
@@ -48,7 +49,8 @@ export const initAuth0 = async () => {
         try {
             profile.set(await client.getUser());
             authenticated.set(isAuthenticated);
-        } catch (e) {
+        } catch (error) {
+            log.exception(error as Error);
             await logout();
         }
     } else {
