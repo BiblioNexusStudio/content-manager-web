@@ -1,8 +1,9 @@
 ﻿import type { PageLoad } from './$types';
 import config from '$lib/config';
+import { fetchWrapper } from '$lib/utils/http-service';
 
-export const load: PageLoad = async ({ fetch }) => {
-    const res = await fetch(`${config.PUBLIC_AQUIFER_API_URL}/resources/summary`);
+export const load: PageLoad = async () => {
+    const res = await fetchWrapper(`${config.PUBLIC_AQUIFER_API_URL}/resources/summary`);
     const summary: ResourcesSummary = await res.json();
 
     return { summary };
