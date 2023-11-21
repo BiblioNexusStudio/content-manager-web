@@ -22,6 +22,8 @@
     let theme: string | null;
     $: browser && setCurrentPageUrl($page.url);
 
+    $: log.pageView($page.route.id ?? '');
+
     onMount(async () => {
         if (typeof window !== 'undefined') {
             theme = window.localStorage.getItem('dataTheme') ?? 'biblioNexusLight';
