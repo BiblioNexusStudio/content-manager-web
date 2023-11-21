@@ -2,6 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-.prose :where(a):not(:where([class~='not-prose'] *)) {
-    color: hsl(var(--p) / var(--tw-text-opacity));
+:root .prose {
+    --tw-prose-links: var(--tw-prose-links-override);
 }

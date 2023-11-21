@@ -51,6 +51,7 @@ export default {
                     'success-content': '#ECFDF3',
                     'success-text': '#067647',
                     'success-text-active': '#085D3A',
+                    '--tw-prose-links-override': '#00A3E0',
                 },
             },
             {

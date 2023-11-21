@@ -15,11 +15,14 @@
     import { goto } from '$app/navigation';
     import { _ as translate } from 'svelte-i18n';
     import { initAuth0, logout, profile, authenticated, setCurrentPageUrl } from '$lib/stores/auth';
+    import { log } from '$lib/logger';
 
     $: userEmail = $profile?.email ?? ' '; // set to avoid flashing undefined
     $: userFullName = $profile?.name ?? ' ';
     let theme: string | null;
     $: browser && setCurrentPageUrl($page.url);
+
+    $: log.pageView($page.route.id ?? '');
 
     onMount(async () => {
         if (typeof window !== 'undefined') {
@@ -61,11 +64,26 @@
             hidden: true,
         },
     ];
+
+    function onError(event: Event) {
+        if ('error' in event) {
+            const error = event.error as Error;
+            log.exception(error);
+        }
+    }
+
+    function onRejection(event: PromiseRejectionEvent) {
+        const error = event.reason as Error;
+        event.preventDefault();
+        log.exception(error);
+    }
 </script>
 
 <svelte:head>
     <title>Aquifer Admin</title>
 </svelte:head>
+
+<svelte:window on:error={onError} on:unhandledrejection={onRejection} />
 
 {#if $authenticated}
     <div class="drawer lg:drawer-open">
