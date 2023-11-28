@@ -15,7 +15,7 @@ export async function fetchWrapper(url: string, options: FetchOptions = {}): Pro
     }
 
     if (!browser) {
-        options.headers['Origin'] = 'aquifer-admin';
+        options.headers['Origin'] = 'http://aquifer-admin';
     }
 
     options.method = options.method || 'GET';
