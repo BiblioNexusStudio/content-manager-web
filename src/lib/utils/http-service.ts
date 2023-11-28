@@ -1,4 +1,5 @@
 import config from '$lib/config';
+import { browser } from '$app/environment';
 
 const API_KEY = config.PUBLIC_AQUIFER_API_KEY;
 
@@ -11,6 +12,10 @@ export async function fetchWrapper(url: string, options: FetchOptions = {}): Pro
 
     if (!options.headers['api-key']) {
         options.headers['api-key'] = API_KEY;
+    }
+
+    if (!browser) {
+        options.headers['Origin'] = 'aquifer-admin';
     }
 
     options.method = options.method || 'GET';
