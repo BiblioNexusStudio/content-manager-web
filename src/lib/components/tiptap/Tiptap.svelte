@@ -1,19 +1,15 @@
 ﻿<script lang="ts">
     import { onMount, onDestroy, tick } from 'svelte';
     import { Editor } from '@tiptap/core';
-    import History from '@tiptap/extension-history';
     import Image from '@tiptap/extension-image';
     import Link from '@tiptap/extension-link';
-    import { type Level, Heading } from '@tiptap/extension-heading';
-    import Italic from '@tiptap/extension-italic';
-    import Paragraph from '@tiptap/extension-paragraph';
-    import Document from '@tiptap/extension-document';
-    import Text from '@tiptap/extension-text';
-    import ListItem from '@tiptap/extension-list-item';
-    import BulletList from '@tiptap/extension-bullet-list';
-    import OrderedList from '@tiptap/extension-ordered-list';
-    import Bold from '@tiptap/extension-bold';
-    import { Underline } from '@tiptap/extension-underline';
+    import Highlight from '@tiptap/extension-highlight';
+    import Subscript from '@tiptap/extension-subscript';
+    import Superscript from '@tiptap/extension-superscript';
+    import TextStyle from '@tiptap/extension-text-style';
+    import StarterKit from '@tiptap/starter-kit';
+    import type { Level } from '@tiptap/extension-heading';
+    import Underline from '@tiptap/extension-underline';
     import BoldIcon from '$lib/icons/BoldIcon.svelte';
     import ItalicsIcon from '$lib/icons/ItalicsIcon.svelte';
     import UnderlineIcon from '$lib/icons/UnderlineIcon.svelte';
@@ -49,23 +45,18 @@
             element: element,
             editable: $canEdit,
             extensions: [
-                Bold,
-                BulletList,
-                Document,
-                Heading,
+                StarterKit,
                 Image,
-                Italic,
                 Link.configure({
                     openOnClick: false,
                 }),
-                ListItem,
-                OrderedList,
-                Paragraph,
-                Text,
                 Underline,
+                Highlight,
+                Subscript,
+                Superscript,
+                TextStyle,
                 customMarks.bibleReferenceMark,
                 customMarks.resourceReferenceMark,
-                History,
             ],
             editorProps: {
                 attributes: {
