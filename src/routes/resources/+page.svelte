@@ -1,7 +1,6 @@
 ﻿<script lang="ts">
     import type { PageData, Snapshot } from './$types';
     import { _ as translate } from 'svelte-i18n';
-    import PencilIcon from '$lib/icons/PencilIcon.svelte';
     import type { Language, ResourceListItem, ResourceType } from './+page';
     import { goto } from '$app/navigation';
     import { onMount, tick } from 'svelte';
@@ -191,23 +190,19 @@
                 <tr class="bg-gray-100">
                     <th class="w-[40%]">{$translate('page.resources.table.nameHeader.value')}</th>
                     <th class="w-[40%]">{$translate('page.resources.table.typeHeader.value')}</th>
-                    <th class="w-[18%]">{$translate('page.resources.table.statusHeader.value')}</th>
-                    <th class="grid w-[2%] justify-items-end" />
+                    <th class="w-[20%]">{$translate('page.resources.table.statusHeader.value')}</th>
                 </tr>
             </thead>
             <tbody>
                 {#each resourceList as resource}
                     {@const normalizedStatus = getNormalizedStatus(resource.status)}
-                    <tr class="hover">
+                    <tr
+                        class="hover cursor-pointer hover:cursor-pointer"
+                        on:click={() => goto(`/resources/${resource.id}`)}
+                    >
                         <td>{resource.name}</td>
                         <td>{resource.parentResourceName}</td>
                         <td><div class="badge {normalizedStatus.class}">{normalizedStatus.value}</div></td>
-                        <td class="w-4"
-                            ><button
-                                on:click={() => goto(`/resources/${resource.id}`)}
-                                class="btn btn-link btn-sm text-neutral"><PencilIcon /></button
-                            ></td
-                        >
                     </tr>
                 {/each}
             </tbody>
