@@ -1,16 +1,28 @@
 ﻿<script lang="ts">
     import type { PageData } from './$types';
     import { _ as translate } from 'svelte-i18n';
-    import { onSelectChangeSearchParam, updateSearchParam, urlWithUpdatedSearchParam } from '$lib/utils/search-params';
-    import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
+    import { updateSearchParam, urlWithUpdatedSearchParam } from '$lib/utils/search-params';
+    import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
+    import { get } from 'svelte/store';
+    import { unwrapStreamedData, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
 
     export let data: PageData;
 
-    let searchInputValue = data.searchQuery.value;
+    let searchInputValue = get(data.searchQuery);
+
+    let selectedLanguageId = data.selectedLanguageId;
+    let selectedResourceId = data.selectedResourceId;
+    let recordsPerPage = data.recordsPerPage;
+
+    $: resourceList = unwrapStreamedData(data.streamedResourceList);
 
     let resourceListCount = 0;
-    $: (async () => (resourceListCount = await data.streamed.resourceListCount))();
+    $: unwrapStreamedDataWithCallback(data.streamedResourceListCount, setResourceCount);
+
+    function setResourceCount(count: number) {
+        resourceListCount = count;
+    }
 
     function getNormalizedStatus(status: string): { class: string; value: string } {
         switch (status) {
@@ -41,7 +53,7 @@
         }
     }
 
-    $: totalPages = Math.ceil(resourceListCount / data.recordsPerPage.value) || 1;
+    $: totalPages = Math.ceil(resourceListCount / get(data.recordsPerPage)) || 1;
 </script>
 
 <div class="mx-4 flex h-[95vh] flex-col pt-0 lg:h-screen lg:pt-4">
@@ -50,8 +62,7 @@
         <div class="mb-6 mt-4">
             <span>
                 <select
-                    value={data.selectedLanguageId.value}
-                    on:change={onSelectChangeSearchParam(data.selectedLanguageId)}
+                    bind:value={$selectedLanguageId}
                     class="select select-bordered me-2 w-2/6 max-w-xs bg-base-200 pe-14 ps-4"
                 >
                     <option value={0} selected>{$translate('page.resources.dropdowns.allLanguages.value')}</option>
@@ -62,8 +73,7 @@
             </span>
             <span>
                 <select
-                    value={data.selectedResourceId.value}
-                    on:change={onSelectChangeSearchParam(data.selectedResourceId)}
+                    bind:value={$selectedResourceId}
                     class="select select-bordered w-2/6 max-w-xs bg-base-200 pe-14 ps-4"
                 >
                     <option value={0} selected>{$translate('page.resources.dropdowns.allResources.value')}</option>
@@ -106,7 +116,7 @@
     </div>
 
     <div class="flex-1 overflow-auto rounded-md rounded-b-none border-[1px]">
-        {#await data.streamed.resourceList}
+        {#await resourceList}
             <CenteredSpinner />
         {:then resourceList}
             <table class="table table-pin-rows">
@@ -139,24 +149,20 @@
     <div class="mb-2 grid grid-cols-3 rounded-md rounded-t-none border-[1px] border-t-0 p-2">
         <a
             class="btn btn-outline self-center justify-self-start"
-            class:btn-disabled={data.currentPage.value === 1}
-            href={urlWithUpdatedSearchParam(data.currentPage, data.currentPage.value - 1)}
+            class:btn-disabled={get(data.currentPage) === 1}
+            href={urlWithUpdatedSearchParam(data.currentPage, get(data.currentPage) - 1)}
             >{$translate('page.resources.table.navigation.previous.value')}</a
         >
         <div class="grid place-self-center">
             <div class="mb-2">
                 {$translate('page.resources.table.navigation.pageNumber.value', {
                     values: {
-                        currentPage: data.currentPage.value,
+                        currentPage: get(data.currentPage),
                         totalPages,
                     },
                 })}
             </div>
-            <select
-                value={data.recordsPerPage.value}
-                on:change={onSelectChangeSearchParam(data.recordsPerPage)}
-                class="select select-bordered select-ghost select-xs"
-            >
+            <select bind:value={$recordsPerPage} class="select select-bordered select-ghost select-xs">
                 {#each [10, 50, 100] as count, i}
                     <option value={count} selected={i === 0}>
                         {`${count} ${$translate('page.resources.table.navigation.perPage.value')}`}
@@ -166,8 +172,8 @@
         </div>
         <a
             class="btn btn-outline self-center justify-self-end"
-            class:btn-disabled={data.currentPage.value === totalPages}
-            href={urlWithUpdatedSearchParam(data.currentPage, data.currentPage.value + 1)}
+            class:btn-disabled={get(data.currentPage) === totalPages}
+            href={urlWithUpdatedSearchParam(data.currentPage, get(data.currentPage) + 1)}
             >{$translate('page.resources.table.navigation.next.value')}</a
         >
     </div>

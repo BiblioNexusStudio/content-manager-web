@@ -1,19 +1,20 @@
 <script lang="ts">
+    import type { PageData } from './$types';
     import LanguageDropdown from '$lib/components/resources/LanguageDropdown.svelte';
     import Overview from '$lib/components/resources/Overview.svelte';
     import Details from '$lib/components/resources/Details.svelte';
     import RelatedContent from '$lib/components/resources/RelatedContent.svelte';
     import BibleReferences from '$lib/components/resources/BibleReferences.svelte';
     import Content from '$lib/components/resources/Content.svelte';
-    import { type Resource, type ResourceResponse, ResourceStatusEnum } from '$lib/types/resources';
+    import { type Resource, ResourceStatusEnum } from '$lib/types/resources';
     import { convertToReadableSize } from '$lib/utils/conversions';
     import { languageId, filteredResourcesByLanguage } from '$lib/stores/resources';
     import { originalValues, updatedValues, resetUpdated, updateOriginal } from '$lib/stores/tiptapContent';
     import { beforeNavigate, goto } from '$app/navigation';
     import { canEdit } from '$lib/stores/auth';
-    import { fetchWrapper } from '$lib/utils/http-service';
-    import config from '$lib/config';
+    import { fetchFromApi, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import { auth0Client } from '$lib/stores/auth';
+    import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
 
     beforeNavigate((x) => {
         if (contentUpdated) {
@@ -22,26 +23,29 @@
         }
     });
 
-    export let data: ResourceResponse;
     let onCloseModal: HTMLDialogElement;
     let loadingModal: HTMLDialogElement;
     let errorModal: HTMLDialogElement;
 
+    export let data: PageData;
+
+    let resourcePromise = unwrapStreamedDataWithCallback(data.streamedResource, (resource) => {
+        $filteredResourcesByLanguage = resource.resources.filter((resource) => resource.language.id === $languageId);
+    });
+
     $: contentUpdated = JSON.stringify($originalValues) !== JSON.stringify($updatedValues);
 
-    const resource: Resource = data.resource;
+    function availableLanguages(resource: Resource) {
+        return resource.resources
+            .map((resource) => resource.language)
+            .filter((currentObject, currentIndex, array) => {
+                let firstIndex = array.findIndex((otherObject) => {
+                    return otherObject.id === currentObject.id && otherObject.displayName === currentObject.displayName;
+                });
 
-    const availableLanguages = resource.resources
-        .map((resource) => resource.language)
-        .filter((currentObject, currentIndex, array) => {
-            let firstIndex = array.findIndex((otherObject) => {
-                return otherObject.id === currentObject.id && otherObject.displayName === currentObject.displayName;
+                return currentIndex === firstIndex;
             });
-
-            return currentIndex === firstIndex;
-        });
-
-    $: $filteredResourcesByLanguage = resource.resources.filter((resource) => resource.language.id === $languageId);
+    }
 
     $: resourceSize = convertToReadableSize(
         $filteredResourcesByLanguage.reduce((acc, resource) => acc + resource.contentSize, 0)
@@ -81,21 +85,18 @@
 
     const putData = async () => {
         const token = await $auth0Client?.getTokenSilently();
-        const response = await fetchWrapper(
-            `${config.PUBLIC_AQUIFER_API_URL}/resources/summary/${$updatedValues.contentId}`,
-            {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    status: $updatedValues.status,
-                    label: $updatedValues.label,
-                    content: $updatedValues.content,
-                }),
-            }
-        );
+        const response = await fetchFromApi(`/resources/summary/${$updatedValues.contentId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                status: $updatedValues.status,
+                label: $updatedValues.label,
+                content: $updatedValues.content,
+            }),
+        });
 
         if (response.status === 204) {
             updateOriginal();
@@ -107,38 +108,45 @@
     };
 </script>
 
-<div class="p-8">
-    <div class="mb-8 flex items-center justify-between">
-        <h1 class="me-8 text-2xl font-bold">{resource.parentResourceName} - {$originalValues.label}</h1>
+{#await resourcePromise}
+    <CenteredSpinner />
+{:then resource}
+    <div class="p-8">
+        <div class="mb-8 flex items-center justify-between">
+            <h1 class="me-8 text-2xl font-bold">{resource.parentResourceName} - {$originalValues.label}</h1>
 
+            <div class="flex">
+                <LanguageDropdown languageSet={availableLanguages(resource)} disable={contentUpdated} />
+                {#if $canEdit}<button
+                        class="btn btn-primary ms-4 w-[72px]"
+                        class:btn-disabled={!contentUpdated || isSaving}
+                        on:click={onSave}
+                        >{#if isSaving}
+                            <span class="loading loading-spinner" />
+                        {:else}
+                            Save
+                        {/if}
+                    </button>
+                {/if}
+                <button class="btn btn-primary btn-outline ms-4" on:click={goBack}>Close</button>
+            </div>
+        </div>
         <div class="flex">
-            <LanguageDropdown languageSet={availableLanguages} disable={contentUpdated} />
-            {#if $canEdit}<button
-                    class="btn btn-primary ms-4 w-[72px]"
-                    class:btn-disabled={!contentUpdated || isSaving}
-                    on:click={onSave}
-                    >{#if isSaving}
-                        <span class="loading loading-spinner" />
-                    {:else}
-                        Save
-                    {/if}
-                </button>
-            {/if}
-            <button class="btn btn-primary btn-outline ms-4" on:click={goBack}>Close</button>
+            <div class="me-8 flex w-4/12 flex-col">
+                <Overview labelText={resource.label} typeText={resource.parentResourceName} />
+                <Details translationStatus={resourceStatus} sizeText={resourceSize} {hasAudio} />
+                <RelatedContent relatedContent={resource.associatedResources} />
+                <BibleReferences bibleReferences={resource.passageReferences} />
+            </div>
+            <div class="flex w-8/12 flex-col">
+                <Content typeText={resource.parentResourceName} />
+            </div>
         </div>
     </div>
-    <div class="flex">
-        <div class="me-8 flex w-4/12 flex-col">
-            <Overview labelText={resource.label} typeText={resource.parentResourceName} />
-            <Details translationStatus={resourceStatus} sizeText={resourceSize} {hasAudio} />
-            <RelatedContent relatedContent={resource.associatedResources} />
-            <BibleReferences bibleReferences={resource.passageReferences} />
-        </div>
-        <div class="flex w-8/12 flex-col">
-            <Content typeText={resource.parentResourceName} />
-        </div>
-    </div>
-</div>
+{:catch}
+    <div class="p-8">Resource not found</div>
+{/await}
+
 <dialog bind:this={onCloseModal} class="modal">
     <div class="modal-box">
         <h3 class="text-xl font-bold">Unsaved Changes</h3>

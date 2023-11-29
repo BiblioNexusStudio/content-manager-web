@@ -1,12 +1,11 @@
-﻿import type { LayoutLoad } from './$types';
+import type { LayoutLoad } from './$types';
 import { waitLocale } from 'svelte-i18n';
 import { initI18n } from '$lib/i18n';
-import { fetchWrapper } from '$lib/utils/http-service';
-import config from '$lib/config';
+import { fetchJsonFromApi } from '$lib/utils/http-service';
 import type { Language, ResourceType } from '$lib/types/base';
 
-export const load: LayoutLoad = async () => {
-    const [languages, resourceTypes] = await Promise.all([getLanguages(), getResourceTypes(), initI18n()]);
+export const load: LayoutLoad = async ({ fetch }) => {
+    const [languages, resourceTypes] = await Promise.all([getLanguages(fetch), getResourceTypes(fetch), initI18n()]);
 
     await waitLocale();
 
@@ -16,12 +15,10 @@ export const load: LayoutLoad = async () => {
     };
 };
 
-async function getLanguages() {
-    const languageRes = await fetchWrapper(`${config.PUBLIC_AQUIFER_API_URL}/languages`);
-    return (await languageRes.json()) as Language[];
+async function getLanguages(fetch: typeof window.fetch) {
+    return (await fetchJsonFromApi('/languages', {}, fetch)) as Language[];
 }
 
-async function getResourceTypes() {
-    const resourceTypeRes = await fetchWrapper(`${config.PUBLIC_AQUIFER_API_URL}/resources/parent-resources`);
-    return (await resourceTypeRes.json()) as ResourceType[];
+async function getResourceTypes(fetch: typeof window.fetch) {
+    return (await fetchJsonFromApi('/resources/parent-resources', {}, fetch)) as ResourceType[];
 }

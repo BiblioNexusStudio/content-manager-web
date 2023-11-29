@@ -1,14 +1,14 @@
-﻿import type { PageLoad } from './$types';
-import config from '$lib/config';
-import { fetchWrapperWithFetch } from '$lib/utils/http-service';
-import { initSearchParam } from '$lib/utils/search-params';
+import type { PageLoad } from './$types';
+import { fetchJsonStreamingFromApi } from '$lib/utils/http-service';
+import { createSearchParamStore } from '$lib/utils/search-params';
+import { get } from 'svelte/store';
 
 export const load: PageLoad = async ({ url, fetch }) => {
-    const currentPage = initSearchParam(url, 'page', 1);
-    const recordsPerPage = initSearchParam(url, 'perPage', 10);
-    const selectedLanguageId = initSearchParam(url, 'languageId', 0);
-    const selectedResourceId = initSearchParam(url, 'resourceId', 0);
-    const searchQuery = initSearchParam(url, 'query', '');
+    const currentPage = createSearchParamStore(url, 'page', 1);
+    const recordsPerPage = createSearchParamStore(url, 'perPage', 10);
+    const selectedLanguageId = createSearchParamStore(url, 'languageId', 0);
+    const selectedResourceId = createSearchParamStore(url, 'resourceId', 0);
+    const searchQuery = createSearchParamStore(url, 'query', '');
 
     return {
         currentPage,
@@ -16,26 +16,24 @@ export const load: PageLoad = async ({ url, fetch }) => {
         selectedLanguageId,
         selectedResourceId,
         searchQuery,
-        streamed: {
-            resourceList: getResourceList(
-                fetch,
-                currentPage.value,
-                recordsPerPage.value,
-                selectedLanguageId.value,
-                selectedResourceId.value,
-                searchQuery.value
-            ),
-            resourceListCount: getResourceListCount(
-                fetch,
-                selectedLanguageId.value,
-                selectedResourceId.value,
-                searchQuery.value
-            ),
-        },
+        streamedResourceList: getResourceList(
+            fetch,
+            get(currentPage),
+            get(recordsPerPage),
+            get(selectedLanguageId),
+            get(selectedResourceId),
+            get(searchQuery)
+        ),
+        streamedResourceListCount: getResourceListCount(
+            fetch,
+            get(selectedLanguageId),
+            get(selectedResourceId),
+            get(searchQuery)
+        ),
     };
 };
 
-async function getResourceList(
+function getResourceList(
     fetch: typeof window.fetch,
     currentPage: number,
     take: number,
@@ -44,24 +42,19 @@ async function getResourceList(
     query: string
 ) {
     const skip = (currentPage - 1) * take;
-    const response = await fetchWrapperWithFetch(
-        fetch,
-        `${config.PUBLIC_AQUIFER_API_URL}/resources/list?skip=${skip}&take=${take}&languageId=${languageId}&parentResourceId=${parentResourceId}&query=${query}`
+    return fetchJsonStreamingFromApi<ResourceListItem[]>(
+        `/resources/list?skip=${skip}&take=${take}&languageId=${languageId}&parentResourceId=${parentResourceId}&query=${query}`,
+        {},
+        fetch
     );
-    return (await response.json()) as ResourceListItem[];
 }
 
-async function getResourceListCount(
-    fetch: typeof window.fetch,
-    languageId: number,
-    parentResourceId: number,
-    query: string
-) {
-    const response = await fetchWrapperWithFetch(
-        fetch,
-        `${config.PUBLIC_AQUIFER_API_URL}/resources/list/count?languageId=${languageId}&parentResourceId=${parentResourceId}&query=${query}`
+function getResourceListCount(fetch: typeof window.fetch, languageId: number, parentResourceId: number, query: string) {
+    return fetchJsonStreamingFromApi<number>(
+        `/resources/list/count?languageId=${languageId}&parentResourceId=${parentResourceId}&query=${query}`,
+        {},
+        fetch
     );
-    return +(await response.text());
 }
 
 export interface ResourceListItem {
