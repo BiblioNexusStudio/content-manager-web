@@ -100,7 +100,3 @@ export interface Resource {
     parentResourceName: string;
     label: string;
 }
-
-export interface ResourceResponse {
-    resource: Resource;
-}

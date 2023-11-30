@@ -1,6 +1,7 @@
-﻿import type { Handle, HandleFetch } from '@sveltejs/kit';
+﻿import type { Handle, HandleFetch, HandleServerError } from '@sveltejs/kit';
 import { locale } from 'svelte-i18n';
 import config from '$lib/config';
+import { log } from '$lib/logger';
 
 const defaultLocale = 'en';
 
@@ -24,3 +25,13 @@ export const handleFetch: HandleFetch = async ({ request, fetch }) => {
 
     return fetch(newRequest);
 };
+
+export const handleError = (async ({ error }: { error: Error }) => {
+    log.exception(error);
+
+    return {
+        message: 'Unexpected error',
+    };
+    // eslint-disable-next-line
+    // @ts-ignore
+}) satisfies HandleServerError;

@@ -12,7 +12,6 @@
     import { page } from '$app/stores';
     import { browser } from '$app/environment';
     import { onMount } from 'svelte';
-    import { goto } from '$app/navigation';
     import { _ as translate } from 'svelte-i18n';
     import { initAuth0, logout, profile, authenticated, setCurrentPageUrl } from '$lib/stores/auth';
     import { log } from '$lib/logger';
@@ -45,22 +44,22 @@
         {
             name: $translate('sidebar.dashboard.value'),
             icon: BarChartIcon,
-            goto: '/',
+            href: '/',
         },
         {
             name: $translate('sidebar.resources.value'),
             icon: SquareStackIcon,
-            goto: '/resources',
+            href: '/resources',
         },
         {
             name: $translate('sidebar.reporting.value'),
             icon: PieChartIcon,
-            goto: '/reporting',
+            href: '/reporting',
         },
         {
             name: $translate('sidebar.users.value'),
             icon: UsersIcon,
-            goto: '/users',
+            href: '/users',
             hidden: true,
         },
     ];
@@ -104,10 +103,10 @@
                 {#each sidebarNavigation as navItem}
                     {#if !navItem.hidden}
                         <div class="flex-grow-0">
-                            <button
-                                on:click={() => goto(navItem.goto)}
+                            <a
+                                href={navItem.href}
                                 class="btn btn-neutral btn-ghost btn-block justify-start px-2 text-lg normal-case text-neutral-100"
-                                ><svelte:component this={navItem.icon} />{navItem.name}</button
+                                ><svelte:component this={navItem.icon} />{navItem.name}</a
                             >
                         </div>
                     {/if}

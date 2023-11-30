@@ -23,8 +23,6 @@ export const setCurrentPageUrl = (url: URL) => {
 };
 
 export const initAuth0 = async () => {
-    console.log('running initAuth0');
-
     const client = await createAuth0Client({
         domain: auth0Domain,
         clientId: auth0ClientId,

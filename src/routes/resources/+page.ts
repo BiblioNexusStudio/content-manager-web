@@ -1,52 +1,60 @@
-﻿import type { PageLoad } from './$types';
-import config from '$lib/config';
-import { fetchWrapper } from '$lib/utils/http-service';
+import type { PageLoad } from './$types';
+import { fetchJsonStreamingFromApi } from '$lib/utils/http-service';
+import { createSearchParamStore } from '$lib/utils/search-params';
+import { get } from 'svelte/store';
 
-export const load: PageLoad = async () => {
-    return { getLanguages, getResourceTypes, getResourceList, getResourceListCount };
+export const load: PageLoad = async ({ url, fetch }) => {
+    const currentPage = createSearchParamStore(url, 'page', 1);
+    const recordsPerPage = createSearchParamStore(url, 'perPage', 10);
+    const selectedLanguageId = createSearchParamStore(url, 'languageId', 0);
+    const selectedResourceId = createSearchParamStore(url, 'resourceId', 0);
+    const searchQuery = createSearchParamStore(url, 'query', '');
+
+    return {
+        currentPage,
+        recordsPerPage,
+        selectedLanguageId,
+        selectedResourceId,
+        searchQuery,
+        streamedResourceList: getResourceList(
+            fetch,
+            get(currentPage),
+            get(recordsPerPage),
+            get(selectedLanguageId),
+            get(selectedResourceId),
+            get(searchQuery)
+        ),
+        streamedResourceListCount: getResourceListCount(
+            fetch,
+            get(selectedLanguageId),
+            get(selectedResourceId),
+            get(searchQuery)
+        ),
+    };
 };
 
-const getLanguages = async () => {
-    const languageRes = await fetchWrapper(`${config.PUBLIC_AQUIFER_API_URL}/languages`);
-    return (await languageRes.json()) as Language[];
-};
-
-const getResourceTypes = async () => {
-    const resourceTypeRes = await fetchWrapper(`${config.PUBLIC_AQUIFER_API_URL}/resources/parent-resources`);
-    return (await resourceTypeRes.json()) as ResourceType[];
-};
-
-const getResourceList = async (
+function getResourceList(
+    fetch: typeof window.fetch,
     currentPage: number,
     take: number,
     languageId: number,
     parentResourceId: number,
     query: string
-) => {
+) {
     const skip = (currentPage - 1) * take;
-    const response = await fetchWrapper(
-        `${config.PUBLIC_AQUIFER_API_URL}/resources/list?skip=${skip}&take=${take}&languageId=${languageId}&parentResourceId=${parentResourceId}&query=${query}`
+    return fetchJsonStreamingFromApi<ResourceListItem[]>(
+        `/resources/list?skip=${skip}&take=${take}&languageId=${languageId}&parentResourceId=${parentResourceId}&query=${query}`,
+        {},
+        fetch
     );
-    return (await response.json()) as ResourceListItem[];
-};
-
-const getResourceListCount = async (languageId: number, parentResourceId: number, query: string) => {
-    const response = await fetchWrapper(
-        `${config.PUBLIC_AQUIFER_API_URL}/resources/list/count?languageId=${languageId}&parentResourceId=${parentResourceId}&query=${query}`
-    );
-    return +(await response.text());
-};
-
-export interface ResourceType {
-    id: number;
-    displayName: string;
-    complexityLevel: string;
 }
 
-export interface Language {
-    id: number;
-    iso6393Code: string;
-    englishDisplay: string;
+function getResourceListCount(fetch: typeof window.fetch, languageId: number, parentResourceId: number, query: string) {
+    return fetchJsonStreamingFromApi<number>(
+        `/resources/list/count?languageId=${languageId}&parentResourceId=${parentResourceId}&query=${query}`,
+        {},
+        fetch
+    );
 }
 
 export interface ResourceListItem {
