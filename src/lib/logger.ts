@@ -24,6 +24,7 @@ export const log = {
         if (error && error.name === 'TypeError' && error.message === 'Failed to fetch') {
             console.error(error);
         } else if (error) {
+            console.error(error);
             appInsights.trackException({ exception: error }, additionalProperties);
         }
     },
