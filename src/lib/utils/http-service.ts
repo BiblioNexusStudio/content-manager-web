@@ -1,5 +1,4 @@
 import config from '$lib/config';
-import { browser } from '$app/environment';
 import { error } from '@sveltejs/kit';
 
 const API_KEY = config.PUBLIC_AQUIFER_API_KEY;
@@ -123,12 +122,6 @@ export async function fetchFromApi(
     if (!options.headers['api-key']) {
         options.headers['api-key'] = API_KEY;
     }
-
-    if (!browser) {
-        options.headers['Origin'] = 'http://aquifer-admin';
-    }
-
-    options.method = options.method || 'GET';
 
     const url = BASE_URL + '/' + (path.startsWith('/') ? path.slice(1) : path);
 
