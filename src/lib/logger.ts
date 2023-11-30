@@ -1,5 +1,6 @@
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 import config from '$lib/config';
+import { browser } from '$app/environment';
 
 const appInsights = new ApplicationInsights({
     config: {
@@ -29,9 +30,10 @@ export const log = {
         }
     },
     pageView: (routeId: string) => {
-        appInsights.trackPageView({
-            name: routeId,
-            properties: additionalProperties,
-        });
+        browser &&
+            appInsights.trackPageView({
+                name: routeId,
+                properties: additionalProperties,
+            });
     },
 };
