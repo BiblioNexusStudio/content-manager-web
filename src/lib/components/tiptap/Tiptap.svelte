@@ -97,22 +97,33 @@
     // };
 
     const addLink = () => {
-        const previousUrl = editor.getAttributes('link').href;
-        const url: string | null = window.prompt('URL', previousUrl);
+        let previousUrl = editor.getAttributes('link').href;
+        let url: string | null;
 
-        // cancelled
-        if (url === null) {
-            return;
-        }
+        do {
+            url = window.prompt('URL (must begin with http:// or https://)', previousUrl);
 
-        // empty
-        if (url === '') {
-            editor.chain().focus().extendMarkRange('link').unsetLink().run();
-            return;
-        }
+            // cancelled
+            if (url === null) {
+                return;
+            }
 
-        // update link
-        editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+            // empty
+            if (url === '') {
+                editor.chain().focus().extendMarkRange('link').unsetLink().run();
+                return;
+            }
+
+            // re-prompt if URL does not start with http:// or https://
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                alert('Invalid URL. URL must begin with http:// or https://');
+            } else {
+                // update link
+                editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+                return;
+            }
+            // eslint-disable-next-line
+        } while (true);
     };
 
     const headerLevels: { level: Level; icon: ComponentType }[] = [

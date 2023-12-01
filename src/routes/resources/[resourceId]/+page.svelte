@@ -29,7 +29,7 @@
 
     export let data: PageData;
 
-    let resourcePromise = unwrapStreamedDataWithCallback(data.streamedResource, (resource) => {
+    $: resourcePromise = unwrapStreamedDataWithCallback(data.streamedResource, (resource) => {
         $filteredResourcesByLanguage = resource.resources.filter((resource) => resource.language.id === $languageId);
     });
 
