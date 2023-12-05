@@ -1,12 +1,16 @@
 <script lang="ts">
+    import { Icon } from 'svelte-awesome';
     import Accordion from './Accordion.svelte';
     import PencilSquareIcon from '$lib/icons/PencilSquareIcon.svelte';
     import XSquareIcon from '$lib/icons/XSquareIcon.svelte';
     import { originalValues, updatedValues, updateValues, setOriginalValues } from '$lib/stores/tiptapContent';
     import { canEdit } from '$lib/stores/auth';
+    import checkCircleO from 'svelte-awesome/icons/checkCircleO';
+    import ban from 'svelte-awesome/icons/ban';
 
     export let displayNameText: string;
     export let typeText: string;
+    export let isPublished: boolean;
 
     let displayNameInput: HTMLInputElement;
     setOriginalValues({ displayName: displayNameText });
@@ -18,14 +22,14 @@
     <div class="flex flex-col">
         <div class="mb-4 flex items-center justify-between">
             <div class="flex grow items-center">
-                <div class="me-3 font-bold">Label</div>
+                <div class="me-3 font-bold">Title</div>
                 <div class="me-4 grow">
                     {#if $canEdit}
                         <input
                             type="text"
                             bind:this={displayNameInput}
                             bind:value={displayNameText}
-                            class="input input-ghost h-6 w-full pl-0"
+                            class="input input-ghost h-6 w-full pl-0 text-right"
                         />
                     {:else}
                         {displayNameText}
@@ -51,8 +55,16 @@
                 >
             {/if}
         </div>
-        <div class="mb-4">
+        <div class="mb-4 flex justify-between">
             <span class="me-4 font-bold">Type</span><span>{typeText}</span>
+        </div>
+        <div class="mb-4 flex justify-between">
+            <span class="me-4 font-bold">Published</span>
+            {#if isPublished}
+                <Icon data={checkCircleO} style="height: 28px; width: auto; color: #00a5e0" />
+            {:else}
+                <Icon data={ban} style="height: 28px; width: auto; color: #abaeb1" />
+            {/if}
         </div>
     </div>
 </Accordion>

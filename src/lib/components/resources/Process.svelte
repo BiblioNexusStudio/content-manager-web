@@ -4,12 +4,12 @@
     import volumeUp from 'svelte-awesome/icons/volumeUp';
     import { ResourceStatusEnum } from '$lib/types/resources';
     import { setOriginalValues, updateValues } from '$lib/stores/tiptapContent';
-    import { convertToReadableSize } from '$lib/utils/conversions';
     import { canEdit } from '$lib/stores/auth';
+    import type { ResourceContentAssignedUser } from '$lib/types/resources';
 
     export let translationStatus: ResourceStatusEnum;
-    export let size: number;
     export let hasAudio: boolean;
+    export let assignedUser: ResourceContentAssignedUser | null;
 
     setOriginalValues({ status: translationStatus });
     $: updateValues({ status: translationStatus });
@@ -27,11 +27,11 @@
     ] as { value: ResourceStatusEnum; name: string }[];
 </script>
 
-<Accordion title="Details" closable={true}>
+<Accordion title="Process" closable={true}>
     <div class="flex w-full justify-between">
         <div class="flex w-full flex-col">
             <div class="mb-4 flex w-full items-center {$canEdit ? 'justify-between' : ''}">
-                <div class="me-2 font-bold">Translation Status</div>
+                <div class="me-2 font-bold">Status</div>
                 {#if $canEdit}
                     <select bind:value={translationStatus} class="select select-ghost select-sm me-2 max-w-xs">
                         {#each translationStatusOptions as status}
@@ -42,8 +42,11 @@
                     {translationStatusOptions.find((x) => x.value === translationStatus)?.name}
                 {/if}
             </div>
-            <div class="mb-4">
-                <span class="me-2 font-bold">Size</span><span>{convertToReadableSize(size)}</span>
+            <div class="mb-4 flex justify-between">
+                <span class="me-2 font-bold">Assigned</span>
+                {#if assignedUser}
+                    <span>{assignedUser.name}</span>
+                {/if}
             </div>
         </div>
         {#if hasAudio}
