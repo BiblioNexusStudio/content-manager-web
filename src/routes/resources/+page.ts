@@ -2,6 +2,7 @@ import type { PageLoad } from './$types';
 import { fetchJsonStreamingFromApi } from '$lib/utils/http-service';
 import { createSearchParamStore } from '$lib/utils/search-params';
 import { get } from 'svelte/store';
+import type { ResourceContentStatusEnum } from '$lib/types/base';
 
 export const load: PageLoad = async ({ url, fetch }) => {
     const currentPage = createSearchParamStore(url, 'page', 1);
@@ -66,6 +67,6 @@ export interface ResourceListItem {
     id: number;
     englishLabel: string;
     parentResourceName: string;
-    status: string;
+    status: ResourceContentStatusEnum;
     contentIdsWithLanguageIds: ResourceListItemContentIdWithLanguageId[];
 }
