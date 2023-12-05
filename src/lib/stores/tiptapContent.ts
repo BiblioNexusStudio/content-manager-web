@@ -5,14 +5,14 @@ export const originalValues: Writable<TiptapContentValues> = writable({
     contentId: undefined,
     content: undefined,
     status: undefined,
-    label: undefined,
+    displayName: undefined,
 });
 
 export const updatedValues: Writable<TiptapContentValues> = writable({
     contentId: undefined,
     content: undefined,
     status: undefined,
-    label: undefined,
+    displayName: undefined,
 });
 
 export const currentStepNumber: Writable<number> = writable(1, (set) => set(1));
@@ -39,7 +39,7 @@ export const updateOriginal = () => {
 interface TiptapContentValues {
     contentId?: number | undefined;
     content?: TiptapContentItemValues[] | undefined;
-    label?: string | undefined;
+    displayName?: string | undefined;
     status?: string | undefined;
 }
 

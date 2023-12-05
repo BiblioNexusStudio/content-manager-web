@@ -57,9 +57,15 @@ function getResourceListCount(fetch: typeof window.fetch, languageId: number, pa
     );
 }
 
+export interface ResourceListItemContentIdWithLanguageId {
+    contentId: number;
+    languageId: number;
+}
+
 export interface ResourceListItem {
     id: number;
-    name: string;
+    englishLabel: string;
     parentResourceName: string;
     status: string;
+    contentIdsWithLanguageIds: ResourceListItemContentIdWithLanguageId[];
 }

@@ -6,13 +6,11 @@
     import RelatedContent from '$lib/components/resources/RelatedContent.svelte';
     import BibleReferences from '$lib/components/resources/BibleReferences.svelte';
     import Content from '$lib/components/resources/Content.svelte';
-    import { type Resource, ResourceStatusEnum } from '$lib/types/resources';
-    import { convertToReadableSize } from '$lib/utils/conversions';
-    import { languageId, filteredResourcesByLanguage } from '$lib/stores/resources';
+    import type { ResourceContent } from '$lib/types/resources';
     import { originalValues, updatedValues, resetUpdated, updateOriginal } from '$lib/stores/tiptapContent';
     import { beforeNavigate, goto } from '$app/navigation';
     import { canEdit } from '$lib/stores/auth';
-    import { fetchFromApi, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
+    import { fetchFromApi, unwrapStreamedData } from '$lib/utils/http-service';
     import { auth0Client } from '$lib/stores/auth';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
 
@@ -29,37 +27,18 @@
 
     export let data: PageData;
 
-    $: resourcePromise = unwrapStreamedDataWithCallback(data.streamedResource, (resource) => {
-        $filteredResourcesByLanguage = resource.resources.filter((resource) => resource.language.id === $languageId);
-    });
+    $: resourceContentPromise = unwrapStreamedData(data.streamedResourceContent);
 
     $: contentUpdated = JSON.stringify($originalValues) !== JSON.stringify($updatedValues);
 
-    function availableLanguages(resource: Resource) {
-        return resource.resources
-            .map((resource) => resource.language)
-            .filter((currentObject, currentIndex, array) => {
-                let firstIndex = array.findIndex((otherObject) => {
-                    return otherObject.id === currentObject.id && otherObject.displayName === currentObject.displayName;
-                });
-
-                return currentIndex === firstIndex;
-            });
+    function availableLanguages(resourceContent: ResourceContent) {
+        return resourceContent.otherLanguageContentIds
+            .map((rc) => ({
+                label: data.languages.find((language) => rc.languageId === language.id)?.englishDisplay,
+                contentId: rc.contentId,
+            }))
+            .filter(Boolean);
     }
-
-    $: resourceSize = convertToReadableSize(
-        $filteredResourcesByLanguage.reduce((acc, resource) => acc + resource.contentSize, 0)
-    );
-
-    $: resourceStatus = $filteredResourcesByLanguage.every(
-        (resource) => resource.status === ResourceStatusEnum.completed || resource.status === ResourceStatusEnum.none
-    )
-        ? ResourceStatusEnum.completed
-        : $filteredResourcesByLanguage.some((resource) => resource.status === ResourceStatusEnum.inProgress)
-        ? ResourceStatusEnum.inProgress
-        : ResourceStatusEnum.notStarted;
-
-    $: hasAudio = $filteredResourcesByLanguage.some((resource) => resource.mediaType.toLowerCase() === 'audio');
 
     let isSaving = false;
     const onSave = async () => {
@@ -85,7 +64,7 @@
 
     const putData = async () => {
         const token = await $auth0Client?.getTokenSilently();
-        const response = await fetchFromApi(`/resources/summary/${$updatedValues.contentId}`, {
+        const response = await fetchFromApi(`/resources/content/summary/${$updatedValues.contentId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -93,7 +72,7 @@
             },
             body: JSON.stringify({
                 status: $updatedValues.status,
-                label: $updatedValues.label,
+                displayName: $updatedValues.displayName,
                 content: $updatedValues.content,
             }),
         });
@@ -108,15 +87,18 @@
     };
 </script>
 
-{#await resourcePromise}
+{#await resourceContentPromise}
     <CenteredSpinner />
-{:then resource}
+{:then resourceContent}
     <div class="p-8">
         <div class="mb-8 flex items-center justify-between">
-            <h1 class="me-8 text-2xl font-bold">{resource.parentResourceName} - {$originalValues.label}</h1>
+            <h1 class="me-8 text-2xl font-bold">
+                {resourceContent.parentResourceName} -
+                {$originalValues.displayName}
+            </h1>
 
             <div class="flex">
-                <LanguageDropdown languageSet={availableLanguages(resource)} disable={contentUpdated} />
+                <LanguageDropdown languageSet={availableLanguages(resourceContent)} disable={contentUpdated} />
                 {#if $canEdit}<button
                         class="btn btn-primary ms-4 w-[72px]"
                         class:btn-disabled={!contentUpdated || isSaving}
@@ -133,13 +115,17 @@
         </div>
         <div class="flex">
             <div class="me-8 flex w-4/12 flex-col">
-                <Overview labelText={resource.label} typeText={resource.parentResourceName} />
-                <Details translationStatus={resourceStatus} sizeText={resourceSize} {hasAudio} />
-                <RelatedContent relatedContent={resource.associatedResources} />
-                <BibleReferences bibleReferences={resource.passageReferences} />
+                <Overview displayNameText={resourceContent.displayName} typeText={resourceContent.parentResourceName} />
+                <Details
+                    translationStatus={resourceContent.status}
+                    size={resourceContent.contentSize}
+                    hasAudio={resourceContent.hasAudio}
+                />
+                <RelatedContent relatedContent={resourceContent.associatedResources} />
+                <BibleReferences bibleReferences={resourceContent.passageReferences} />
             </div>
             <div class="flex w-8/12 flex-col">
-                <Content typeText={resource.parentResourceName} />
+                <Content {resourceContent} typeText={resourceContent.parentResourceName} />
             </div>
         </div>
     </div>

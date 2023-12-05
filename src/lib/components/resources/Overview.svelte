@@ -5,13 +5,13 @@
     import { originalValues, updatedValues, updateValues, setOriginalValues } from '$lib/stores/tiptapContent';
     import { canEdit } from '$lib/stores/auth';
 
-    export let labelText: string;
+    export let displayNameText: string;
     export let typeText: string;
 
-    let labelInput: HTMLInputElement;
-    setOriginalValues({ label: labelText });
-    $: updateValues({ label: labelText });
-    $: labelUpdated = $originalValues?.label !== $updatedValues?.label;
+    let displayNameInput: HTMLInputElement;
+    setOriginalValues({ displayName: displayNameText });
+    $: updateValues({ displayName: displayNameText });
+    $: displayNameUpdated = $originalValues?.displayName !== $updatedValues?.displayName;
 </script>
 
 <Accordion title="Overview" closable={true}>
@@ -23,12 +23,12 @@
                     {#if $canEdit}
                         <input
                             type="text"
-                            bind:this={labelInput}
-                            bind:value={labelText}
+                            bind:this={displayNameInput}
+                            bind:value={displayNameText}
                             class="input input-ghost h-6 w-full pl-0"
                         />
                     {:else}
-                        {labelText}
+                        {displayNameText}
                     {/if}
                 </div>
             </div>
@@ -36,11 +36,11 @@
                 <button
                     class="h-6 w-6 p-0"
                     on:click={() => {
-                        if (labelUpdated) labelText = $originalValues?.label || '';
-                        else labelInput.focus();
+                        if (displayNameUpdated) displayNameText = $originalValues?.displayName || '';
+                        else displayNameInput.focus();
                     }}
                     ><label class="swap swap-rotate">
-                        <input checked={!labelUpdated} type="checkbox" disabled={!labelUpdated} />
+                        <input checked={!displayNameUpdated} type="checkbox" disabled={!displayNameUpdated} />
                         <div class="swap-on text-primary">
                             <PencilSquareIcon />
                         </div>
