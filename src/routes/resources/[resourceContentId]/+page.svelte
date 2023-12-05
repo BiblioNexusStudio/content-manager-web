@@ -2,7 +2,7 @@
     import type { PageData } from './$types';
     import LanguageDropdown from '$lib/components/resources/LanguageDropdown.svelte';
     import Overview from '$lib/components/resources/Overview.svelte';
-    import Details from '$lib/components/resources/Details.svelte';
+    import Process from '$lib/components/resources/Process.svelte';
     import RelatedContent from '$lib/components/resources/RelatedContent.svelte';
     import BibleReferences from '$lib/components/resources/BibleReferences.svelte';
     import Content from '$lib/components/resources/Content.svelte';
@@ -115,11 +115,15 @@
         </div>
         <div class="flex">
             <div class="me-8 flex w-4/12 flex-col">
-                <Overview displayNameText={resourceContent.displayName} typeText={resourceContent.parentResourceName} />
-                <Details
+                <Overview
+                    displayNameText={resourceContent.displayName}
+                    typeText={resourceContent.parentResourceName}
+                    isPublished={resourceContent.isPublished}
+                />
+                <Process
                     translationStatus={resourceContent.status}
-                    size={resourceContent.contentSize}
                     hasAudio={resourceContent.hasAudio}
+                    assignedUser={resourceContent.assignedUser}
                 />
                 <RelatedContent relatedContent={resourceContent.associatedResources} />
                 <BibleReferences bibleReferences={resourceContent.passageReferences} />
