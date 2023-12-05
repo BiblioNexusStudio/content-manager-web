@@ -14,10 +14,16 @@ export enum MediaTypeEnum {
 }
 
 export enum ResourceStatusEnum {
-    completed = 'Completed',
-    notStarted = 'NotStarted',
-    inProgress = 'InProgress',
-    none = 'None',
+    AquiferizeNotStarted = 'Aquiferize - Not Started',
+    AquiferizeInProgress = 'Aquiferize - In Progress',
+    Complete = 'Complete',
+    AquiferizeInReview = 'Aquiferize - In Review',
+    TranslateNotStarted = 'Translate - Not Started',
+    TranslateDrafting = 'Translate - Drafting',
+    TranslateEditing = 'Translate - Editing',
+    TranslateReviewing = 'Translate - Reviewing',
+    OnHold = 'On Hold',
+    None = 'None',
 }
 export interface PassageReference {
     startVerseId: number;
@@ -99,4 +105,5 @@ export interface Resource {
     associatedResources: AssociatedResource[];
     parentResourceName: string;
     label: string;
+    isPublished: boolean;
 }

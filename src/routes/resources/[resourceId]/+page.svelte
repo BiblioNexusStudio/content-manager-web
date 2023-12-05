@@ -2,12 +2,11 @@
     import type { PageData } from './$types';
     import LanguageDropdown from '$lib/components/resources/LanguageDropdown.svelte';
     import Overview from '$lib/components/resources/Overview.svelte';
-    import Details from '$lib/components/resources/Details.svelte';
+    import Process from '$lib/components/resources/Process.svelte';
     import RelatedContent from '$lib/components/resources/RelatedContent.svelte';
     import BibleReferences from '$lib/components/resources/BibleReferences.svelte';
     import Content from '$lib/components/resources/Content.svelte';
     import { type Resource, ResourceStatusEnum } from '$lib/types/resources';
-    import { convertToReadableSize } from '$lib/utils/conversions';
     import { languageId, filteredResourcesByLanguage } from '$lib/stores/resources';
     import { originalValues, updatedValues, resetUpdated, updateOriginal } from '$lib/stores/tiptapContent';
     import { beforeNavigate, goto } from '$app/navigation';
@@ -47,17 +46,13 @@
             });
     }
 
-    $: resourceSize = convertToReadableSize(
-        $filteredResourcesByLanguage.reduce((acc, resource) => acc + resource.contentSize, 0)
-    );
-
     $: resourceStatus = $filteredResourcesByLanguage.every(
-        (resource) => resource.status === ResourceStatusEnum.completed || resource.status === ResourceStatusEnum.none
+        (resource) => resource.status === ResourceStatusEnum.Complete || resource.status === ResourceStatusEnum.None
     )
-        ? ResourceStatusEnum.completed
-        : $filteredResourcesByLanguage.some((resource) => resource.status === ResourceStatusEnum.inProgress)
-        ? ResourceStatusEnum.inProgress
-        : ResourceStatusEnum.notStarted;
+        ? ResourceStatusEnum.Complete
+        : $filteredResourcesByLanguage.some((resource) => resource.status === ResourceStatusEnum.AquiferizeInProgress)
+        ? ResourceStatusEnum.AquiferizeInProgress
+        : ResourceStatusEnum.TranslateNotStarted;
 
     $: hasAudio = $filteredResourcesByLanguage.some((resource) => resource.mediaType.toLowerCase() === 'audio');
 
@@ -133,8 +128,12 @@
         </div>
         <div class="flex">
             <div class="me-8 flex w-4/12 flex-col">
-                <Overview labelText={resource.label} typeText={resource.parentResourceName} />
-                <Details translationStatus={resourceStatus} sizeText={resourceSize} {hasAudio} />
+                <Overview
+                    labelText={resource.label}
+                    typeText={resource.parentResourceName}
+                    isPublished={resource.isPublished}
+                />
+                <Process translationStatus={resourceStatus} {hasAudio} />
                 <RelatedContent relatedContent={resource.associatedResources} />
                 <BibleReferences bibleReferences={resource.passageReferences} />
             </div>

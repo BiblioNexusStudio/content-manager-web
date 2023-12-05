@@ -1,12 +1,16 @@
 <script lang="ts">
+    import { Icon } from 'svelte-awesome';
     import Accordion from './Accordion.svelte';
     import PencilSquareIcon from '$lib/icons/PencilSquareIcon.svelte';
     import XSquareIcon from '$lib/icons/XSquareIcon.svelte';
+    import checkCircleO from 'svelte-awesome/icons/checkCircleO';
+    import ban from 'svelte-awesome/icons/ban';
     import { originalValues, updatedValues, updateValues, setOriginalValues } from '$lib/stores/tiptapContent';
     import { canEdit } from '$lib/stores/auth';
 
     export let labelText: string;
     export let typeText: string;
+    export let isPublished: boolean;
 
     let labelInput: HTMLInputElement;
     setOriginalValues({ label: labelText });
@@ -53,6 +57,16 @@
         </div>
         <div class="mb-4">
             <span class="me-4 font-bold">Type</span><span>{typeText}</span>
+        </div>
+        <div class="mb-4 flex items-center justify-between">
+            <span class="me-4 font-bold">Published</span>
+            <span>
+                {#if isPublished}
+                    <Icon data={checkCircleO} style="height: 26px; width: auto; color: #01a4e0" />
+                {:else}
+                    <Icon data={ban} style="height: 26px; width: auto; color: #bababa" />
+                {/if}
+            </span>
         </div>
     </div>
 </Accordion>

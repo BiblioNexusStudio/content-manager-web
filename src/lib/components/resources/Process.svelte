@@ -7,24 +7,30 @@
     import { canEdit } from '$lib/stores/auth';
 
     export let translationStatus: ResourceStatusEnum;
-    export let sizeText: string;
     export let hasAudio: boolean;
 
     setOriginalValues({ status: translationStatus });
     $: updateValues({ status: translationStatus });
 
     const translationStatusOptions = [
-        { value: ResourceStatusEnum.notStarted, name: 'Pending' },
-        { value: ResourceStatusEnum.inProgress, name: 'In Progress' },
-        { value: ResourceStatusEnum.completed, name: 'Translated' },
+        { value: ResourceStatusEnum.AquiferizeNotStarted, name: 'Aquiferize - Not Started' },
+        { value: ResourceStatusEnum.AquiferizeInProgress, name: 'Aquiferize - In Progress' },
+        { value: ResourceStatusEnum.Complete, name: 'Complete' },
+        { value: ResourceStatusEnum.AquiferizeInReview, name: 'Aquiferize - In Review' },
+        { value: ResourceStatusEnum.TranslateNotStarted, name: 'Translate - Not Started' },
+        { value: ResourceStatusEnum.TranslateDrafting, name: 'Translate - Drafting' },
+        { value: ResourceStatusEnum.TranslateEditing, name: 'Translate - Editing' },
+        { value: ResourceStatusEnum.TranslateReviewing, name: 'Translate - Reviewing' },
+        { value: ResourceStatusEnum.OnHold, name: 'On Hold' },
+        { value: ResourceStatusEnum.None, name: 'None' },
     ] as { value: ResourceStatusEnum; name: string }[];
 </script>
 
-<Accordion title="Details" closable={true}>
+<Accordion title="Process" closable={true}>
     <div class="flex w-full justify-between">
         <div class="flex w-full flex-col">
             <div class="mb-4 flex w-full items-center {$canEdit ? 'justify-between' : ''}">
-                <div class="me-2 font-bold">Translation Status</div>
+                <div class="me-2 font-bold">Status</div>
                 {#if $canEdit}
                     <select bind:value={translationStatus} class="select select-ghost select-sm me-2 max-w-xs">
                         {#each translationStatusOptions as status}
@@ -35,12 +41,13 @@
                     {translationStatusOptions.find((x) => x.value === translationStatus)?.name}
                 {/if}
             </div>
-            <div class="mb-4">
-                <span class="me-2 font-bold">Size</span><span>{sizeText}</span>
+            <div class="mb-4 flex w-full items-center justify-between">
+                <div class="me-2 font-bold">Assigned</div>
+                <div class="me-2">Place Holder</div>
             </div>
         </div>
         {#if hasAudio}
-            <div class="flex flex-col">
+            <div class="mx-4 flex flex-col">
                 <div class="mb-4">
                     <Icon data={volumeUp} scale={2} />
                 </div>
