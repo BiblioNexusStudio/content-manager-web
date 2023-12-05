@@ -3,15 +3,15 @@
     import arrowCircleLeft from 'svelte-awesome/icons/arrowCircleLeft';
     import arrowCircleRight from 'svelte-awesome/icons/arrowCircleRight';
     import Tiptap from '$lib/components/tiptap/Tiptap.svelte';
-    import { filteredResourcesByLanguage } from '$lib/stores/resources';
     import { setOriginalValues, currentStepNumber, type TiptapContentItemValues } from '$lib/stores/tiptapContent';
+    import type { ResourceContent } from '$lib/types/resources';
 
     export let stepNavigation = false;
+    export let resourceContent: ResourceContent;
 
-    $: textResource = $filteredResourcesByLanguage.find((resource) => resource.mediaType.toLowerCase() === 'text');
-    $: tiptapContents = textResource?.content as unknown as TiptapContentItemValues[];
-    $: currentResourceStepsLength = tiptapContents.length || 0;
-    $: setOriginalValues({ contentId: textResource?.resourceContentId, content: tiptapContents });
+    $: content = resourceContent.content as unknown as TiptapContentItemValues[];
+    $: currentResourceStepsLength = content.length || 0;
+    $: setOriginalValues({ contentId: resourceContent.resourceContentId, content });
 
     const headings = [
         {

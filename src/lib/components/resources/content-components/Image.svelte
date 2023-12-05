@@ -1,11 +1,9 @@
 <script lang="ts">
-    import { filteredResourcesByLanguage } from '$lib/stores/resources';
     import type { ContentItem } from '$lib/types/resources';
 
-    const contentArray: ContentItem[] = $filteredResourcesByLanguage.map((resource) => resource.content as ContentItem);
-    const content = contentArray[0];
-    const url = content?.url;
-    const altText = content?.displayName;
+    export let content: ContentItem | ContentItem[];
+    $: url = (content as ContentItem).url;
+    $: altText = (content as ContentItem).displayName;
 </script>
 
 <img class="w-full" src={url} alt={altText} />

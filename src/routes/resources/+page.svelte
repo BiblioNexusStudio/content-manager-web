@@ -6,6 +6,7 @@
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { get } from 'svelte/store';
     import { unwrapStreamedData, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
+    import type { ResourceListItemContentIdWithLanguageId } from './+page';
 
     export let data: PageData;
 
@@ -51,6 +52,24 @@
                 };
             }
         }
+    }
+
+    function calculateContentId(contentIdsWithLanguageIds: ResourceListItemContentIdWithLanguageId[]) {
+        if ($selectedLanguageId) {
+            const contentId = contentIdsWithLanguageIds.find(
+                ({ languageId }) => languageId === $selectedLanguageId
+            )?.contentId;
+            if (contentId) {
+                return contentId;
+            }
+        }
+
+        const englishContentId = contentIdsWithLanguageIds.find(({ languageId }) => languageId === 1)?.contentId;
+        if (englishContentId) {
+            return englishContentId;
+        }
+
+        return contentIdsWithLanguageIds[0]!.contentId;
     }
 
     $: totalPages = Math.ceil(resourceListCount / get(data.recordsPerPage)) || 1;
@@ -130,14 +149,15 @@
                 <tbody>
                     {#each resourceList as resource}
                         {@const normalizedStatus = getNormalizedStatus(resource.status)}
+                        {@const contentId = calculateContentId(resource.contentIdsWithLanguageIds)}
                         <tr class="hover">
-                            <LinkedTableCell href={`/resources/${resource.id}`}>
-                                {resource.name}
+                            <LinkedTableCell href={`/resources/${contentId}`}>
+                                {resource.englishLabel}
                             </LinkedTableCell>
-                            <LinkedTableCell href={`/resources/${resource.id}`}>
+                            <LinkedTableCell href={`/resources/${contentId}`}>
                                 {resource.parentResourceName}
                             </LinkedTableCell>
-                            <LinkedTableCell href={`/resources/${resource.id}`}>
+                            <LinkedTableCell href={`/resources/${contentId}`}>
                                 <div class="badge {normalizedStatus.class}">{normalizedStatus.value}</div>
                             </LinkedTableCell>
                         </tr>

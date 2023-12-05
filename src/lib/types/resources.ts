@@ -14,11 +14,18 @@ export enum MediaTypeEnum {
 }
 
 export enum ResourceStatusEnum {
-    completed = 'Completed',
-    notStarted = 'NotStarted',
-    inProgress = 'InProgress',
-    none = 'None',
+    AquiferizeNotStarted = 'AquiferizeNotStarted',
+    AquiferizeInProgress = 'AquiferizeInProgress',
+    Complete = 'Complete',
+    AquiferizeInReview = 'AquiferizeInReview',
+    TranslateNotStarted = 'TranslateNotStarted',
+    TranslateDrafting = 'TranslateDrafting',
+    TranslateEditing = 'TranslateEditing',
+    TranslateReviewing = 'TranslateReviewing',
+    OnHold = 'OnHold',
+    None = 'None',
 }
+
 export interface PassageReference {
     startVerseId: number;
     startBook: string;
@@ -77,26 +84,35 @@ export interface Language {
     displayName: string;
 }
 
-export interface ResourceItem {
-    resourceContentId: number;
-    displayName: string;
-    mediaType: string;
-    status: string;
-    contentSize: number;
-    language: Language;
-    content: ContentItem | ContentItem[];
-}
-
 export interface AssociatedResource {
     mediaTypes: string[];
     parentResourceName: string;
     label: string;
 }
 
-export interface Resource {
+export interface ResourceContentAssignedUser {
+    id: number;
+    name: string;
+}
+
+export interface ContentIdWithLanguageId {
+    contentId: number;
+    languageId: number;
+}
+
+export interface ResourceContent {
     passageReferences: PassageReference[];
-    resources: ResourceItem[];
     associatedResources: AssociatedResource[];
     parentResourceName: string;
-    label: string;
+    resourceContentId: number;
+    displayName: string;
+    mediaType: string;
+    status: ResourceStatusEnum;
+    contentSize: number;
+    language: Language;
+    content: ContentItem | ContentItem[];
+    hasAudio: boolean;
+    isPublished: boolean;
+    assignedUser: ResourceContentAssignedUser | null;
+    otherLanguageContentIds: ContentIdWithLanguageId[];
 }
