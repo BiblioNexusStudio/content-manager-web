@@ -1,35 +1,33 @@
 import type { PageLoad } from './$types';
 import { fetchJsonStreamingFromApi } from '$lib/utils/http-service';
-import { createSearchParamStore } from '$lib/utils/search-params';
-import { get } from 'svelte/store';
 import type { ResourceContentStatusEnum } from '$lib/types/base';
+import { ssp, searchParametersForLoad } from '$lib/utils/sveltekit-search-params';
+
+export const _searchParamsConfig = {
+    page: ssp.number(1),
+    perPage: ssp.number(10),
+    languageId: ssp.number(0),
+    resourceId: ssp.number(0),
+    query: ssp.string(''),
+};
 
 export const load: PageLoad = async ({ url, fetch }) => {
-    const currentPage = createSearchParamStore(url, 'page', 1);
-    const recordsPerPage = createSearchParamStore(url, 'perPage', 10);
-    const selectedLanguageId = createSearchParamStore(url, 'languageId', 0);
-    const selectedResourceId = createSearchParamStore(url, 'resourceId', 0);
-    const searchQuery = createSearchParamStore(url, 'query', '');
+    const searchParams = searchParametersForLoad(url, _searchParamsConfig);
 
     return {
-        currentPage,
-        recordsPerPage,
-        selectedLanguageId,
-        selectedResourceId,
-        searchQuery,
         streamedResourceList: getResourceList(
             fetch,
-            get(currentPage),
-            get(recordsPerPage),
-            get(selectedLanguageId),
-            get(selectedResourceId),
-            get(searchQuery)
+            searchParams.page,
+            searchParams.perPage,
+            searchParams.languageId,
+            searchParams.resourceId,
+            searchParams.query
         ),
         streamedResourceListCount: getResourceListCount(
             fetch,
-            get(selectedLanguageId),
-            get(selectedResourceId),
-            get(searchQuery)
+            searchParams.languageId,
+            searchParams.resourceId,
+            searchParams.query
         ),
     };
 };
