@@ -2,29 +2,19 @@
     import Accordion from './Accordion.svelte';
     import { Icon } from 'svelte-awesome';
     import volumeUp from 'svelte-awesome/icons/volumeUp';
-    import { ResourceStatusEnum } from '$lib/types/resources';
     import { setOriginalValues, updateValues } from '$lib/stores/tiptapContent';
     import { canEdit } from '$lib/stores/auth';
+    import { _ as translate } from 'svelte-i18n';
+    import type { ResourceContentStatus, ResourceContentStatusEnum } from '$lib/types/base';
     import type { ResourceContentAssignedUser } from '$lib/types/resources';
 
-    export let translationStatus: ResourceStatusEnum;
+    export let translationStatus: ResourceContentStatusEnum;
     export let hasAudio: boolean;
     export let assignedUser: ResourceContentAssignedUser | null;
+    export let resourceContentStatuses: ResourceContentStatus[];
 
     setOriginalValues({ status: translationStatus });
     $: updateValues({ status: translationStatus });
-
-    const translationStatusOptions = [
-        { value: ResourceStatusEnum.AquiferizeNotStarted, name: 'Aquiferize - Not Started' },
-        { value: ResourceStatusEnum.AquiferizeInProgress, name: 'Aquiferize - In Progress' },
-        { value: ResourceStatusEnum.Complete, name: 'Complete' },
-        { value: ResourceStatusEnum.AquiferizeInReview, name: 'Aquiferize - In Review' },
-        { value: ResourceStatusEnum.TranslateNotStarted, name: 'Translate - Not Started' },
-        { value: ResourceStatusEnum.TranslateDrafting, name: 'Translate - Drafting' },
-        { value: ResourceStatusEnum.TranslateEditing, name: 'Translate - Editing' },
-        { value: ResourceStatusEnum.TranslateReviewing, name: 'Translate - Reviewing' },
-        { value: ResourceStatusEnum.OnHold, name: 'On Hold' },
-    ] as { value: ResourceStatusEnum; name: string }[];
 </script>
 
 <Accordion title="Process" closable={true}>
@@ -34,12 +24,13 @@
                 <div class="me-2 font-bold">Status</div>
                 {#if $canEdit}
                     <select bind:value={translationStatus} class="select select-ghost select-sm me-2 max-w-xs">
-                        {#each translationStatusOptions as status}
-                            <option value={status.value}>{status.name}</option>
+                        {#each resourceContentStatuses as { status, displayName }}
+                            <option value={status}>{displayName}</option>
                         {/each}
                     </select>
                 {:else}
-                    {translationStatusOptions.find((x) => x.value === translationStatus)?.name}
+                    {resourceContentStatuses.find((x) => x.status === translationStatus)?.displayName ??
+                        $translate('page.resources.table.statuses.none.value')}
                 {/if}
             </div>
             <div class="mb-4 flex justify-between">

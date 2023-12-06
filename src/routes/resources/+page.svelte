@@ -7,6 +7,7 @@
     import { get } from 'svelte/store';
     import { unwrapStreamedData, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import type { ResourceListItemContentIdWithLanguageId } from './+page';
+    import { ResourceContentStatusValues, type ResourceContentStatusEnum } from '$lib/types/base';
 
     export let data: PageData;
 
@@ -25,33 +26,29 @@
         resourceListCount = count;
     }
 
-    function getNormalizedStatus(status: string): { class: string; value: string } {
+    function getStatusClass(status: ResourceContentStatusEnum) {
         switch (status) {
-            case 'NotStarted': {
-                return {
-                    class: 'badge-neutral font-semibold',
-                    value: $translate('page.resources.table.statuses.notStarted.value'),
-                };
-            }
-            case 'InProgress': {
-                return {
-                    class: 'badge-primary bg-[#B9EBFE] text-primary font-semibold',
-                    value: $translate('page.resources.table.statuses.inProgress.value'),
-                };
-            }
-            case 'Completed': {
-                return {
-                    class: 'badge-success bg-[#ABEFC6] text-success font-semibold',
-                    value: $translate('page.resources.table.statuses.completed.value'),
-                };
-            }
-            default: {
-                return {
-                    class: 'badge-info font-semibold',
-                    value: $translate('page.resources.table.statuses.none.value'),
-                };
-            }
+            case ResourceContentStatusValues.TranslateNotStarted:
+            case ResourceContentStatusValues.AquiferizeNotStarted:
+                return 'badge-neutral font-semibold';
+            case ResourceContentStatusValues.TranslateEditing:
+            case ResourceContentStatusValues.TranslateDrafting:
+            case ResourceContentStatusValues.TranslateReviewing:
+            case ResourceContentStatusValues.AquiferizeInReview:
+            case ResourceContentStatusValues.AquiferizeInProgress:
+                return 'badge-primary bg-[#B9EBFE] text-primary font-semibold';
+            case ResourceContentStatusValues.Complete:
+                return 'badge-success bg-[#ABEFC6] text-success font-semibold';
+            default:
+                return 'badge-info font-semibold';
         }
+    }
+
+    function getStatusName(inputStatus: ResourceContentStatusEnum) {
+        return (
+            data.resourceContentStatuses.find(({ status }) => status === inputStatus)?.displayName ??
+            $translate('page.resources.table.statuses.none.value')
+        );
     }
 
     function calculateContentId(contentIdsWithLanguageIds: ResourceListItemContentIdWithLanguageId[]) {
@@ -148,7 +145,6 @@
                 </thead>
                 <tbody>
                     {#each resourceList as resource}
-                        {@const normalizedStatus = getNormalizedStatus(resource.status)}
                         {@const contentId = calculateContentId(resource.contentIdsWithLanguageIds)}
                         <tr class="hover">
                             <LinkedTableCell href={`/resources/${contentId}`}>
@@ -158,7 +154,12 @@
                                 {resource.parentResourceName}
                             </LinkedTableCell>
                             <LinkedTableCell href={`/resources/${contentId}`}>
-                                <div class="badge {normalizedStatus.class}">{normalizedStatus.value}</div>
+                                <div
+                                    class="badge
+                                    {getStatusClass(resource.status)}"
+                                >
+                                    {getStatusName(resource.status)}
+                                </div>
                             </LinkedTableCell>
                         </tr>
                     {/each}
