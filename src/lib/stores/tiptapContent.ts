@@ -1,5 +1,6 @@
 ﻿import { type Writable, writable, get } from 'svelte/store';
 import type { JSONContent } from '@tiptap/core';
+import type { ResourceContentStatusEnum } from '$lib/types/base';
 
 export const originalValues: Writable<TiptapContentValues> = writable({
     contentId: undefined,
@@ -40,7 +41,7 @@ interface TiptapContentValues {
     contentId?: number | undefined;
     content?: TiptapContentItemValues[] | undefined;
     displayName?: string | undefined;
-    status?: string | undefined;
+    status?: ResourceContentStatusEnum | undefined;
 }
 
 export interface TiptapContentItemValues {

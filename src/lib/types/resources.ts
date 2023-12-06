@@ -1,3 +1,5 @@
+import type { ResourceContentStatusEnum } from './base';
+
 export enum ResourceTypeEnum {
     cbbterTranslationGuide = 'Translation Guide (SRV)',
     tyndaleBibleDictionary = 'Bible Dictionary (Tyndale)',
@@ -11,19 +13,6 @@ export enum MediaTypeEnum {
     video = 'Video',
     image = 'Image',
     text = 'Text',
-}
-
-export enum ResourceStatusEnum {
-    AquiferizeNotStarted = 'AquiferizeNotStarted',
-    AquiferizeInProgress = 'AquiferizeInProgress',
-    Complete = 'Complete',
-    AquiferizeInReview = 'AquiferizeInReview',
-    TranslateNotStarted = 'TranslateNotStarted',
-    TranslateDrafting = 'TranslateDrafting',
-    TranslateEditing = 'TranslateEditing',
-    TranslateReviewing = 'TranslateReviewing',
-    OnHold = 'OnHold',
-    None = 'None',
 }
 
 export interface PassageReference {
@@ -107,7 +96,7 @@ export interface ResourceContent {
     resourceContentId: number;
     displayName: string;
     mediaType: string;
-    status: ResourceStatusEnum;
+    status: ResourceContentStatusEnum;
     contentSize: number;
     language: Language;
     content: ContentItem | ContentItem[];

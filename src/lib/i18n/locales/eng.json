@@ -73,18 +73,6 @@
                     "_context": "The table header for the resource status column"
                 },
                 "statuses": {
-                    "notStarted": {
-                        "value": "Pending",
-                        "_context": "Label for the Not Started resource status"
-                    },
-                    "inProgress": {
-                        "value": "In Progress",
-                        "_context": "Label for the In Progress resource status"
-                    },
-                    "completed": {
-                        "value": "Aquiferized",
-                        "_context": "Label for the Completed resource status"
-                    },
                     "none": {
                         "value": "Not Applicable",
                         "_context": "Label for the None resource status"

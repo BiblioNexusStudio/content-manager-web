@@ -124,6 +124,7 @@
                     translationStatus={resourceContent.status}
                     hasAudio={resourceContent.hasAudio}
                     assignedUser={resourceContent.assignedUser}
+                    resourceContentStatuses={data.resourceContentStatuses}
                 />
                 <RelatedContent relatedContent={resourceContent.associatedResources} />
                 <BibleReferences bibleReferences={resourceContent.passageReferences} />
