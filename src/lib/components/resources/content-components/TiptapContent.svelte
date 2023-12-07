@@ -59,7 +59,7 @@
 
 <div>
     {#if stepNavigation}
-        <div class="absolute z-50 w-full bg-white pe-16 ps-4">
+        <div class="absolute z-50 w-[calc(100%-2rem)] bg-white pe-12 ps-4">
             <div class="mt-2 flex items-center justify-between">
                 {#if $currentStepNumber !== 1}
                     <button on:click={() => handleStep('backward')}>

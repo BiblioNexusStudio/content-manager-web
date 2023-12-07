@@ -114,8 +114,8 @@
                 <button class="btn btn-primary btn-outline ms-4" on:click={goBack}>Close</button>
             </div>
         </div>
-        <div class="flex">
-            <div class="me-8 flex w-4/12 flex-col">
+        <div class="flex h-[85vh]">
+            <div class="me-8 flex max-h-full w-4/12 flex-col">
                 <Overview
                     displayNameText={resourceContent.displayName}
                     typeText={resourceContent.parentResourceName}
@@ -130,7 +130,7 @@
                 <RelatedContent relatedContent={resourceContent.associatedResources} />
                 <BibleReferences bibleReferences={resourceContent.passageReferences} />
             </div>
-            <div class="flex w-8/12 flex-col">
+            <div class="flex max-h-full w-8/12 flex-col">
                 <Content {resourceContent} typeText={resourceContent.parentResourceName} />
             </div>
         </div>
