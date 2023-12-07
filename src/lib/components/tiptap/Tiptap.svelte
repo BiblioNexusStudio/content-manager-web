@@ -164,7 +164,7 @@
         if ($canEdit && hasSteps) {
             return 'pt-28';
         } else if ($canEdit && !hasSteps) {
-            return 'pt-12';
+            return 'pt-16';
         } else if (!$canEdit && hasSteps) {
             return 'pt-14';
         } else if (!$canEdit && !hasSteps) {
@@ -174,8 +174,12 @@
 </script>
 
 {#if editor && $canEdit}
-    <div class="absolute z-20 w-full bg-white">
-        <div class="mx-4 {hasSteps ? 'pt-14' : 'mt-2'}">
+    <div
+        class="absolute inset-x-0 {hasSteps
+            ? 'top-[100px]'
+            : 'top-[60px]'} z-20 flex h-16 w-[calc(100%-10px)] items-center rounded-md bg-white"
+    >
+        <div class="mx-6 mt-2">
             {#each formattingOptions as option}
                 <button
                     class="btn btn-xs mx-1 px-0 {editor.isActive(option.name) ? 'btn-primary' : 'btn-link'}"

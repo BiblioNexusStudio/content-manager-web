@@ -1,5 +1,4 @@
 <script lang="ts">
-    import Accordion from './Accordion.svelte';
     import { Icon } from 'svelte-awesome';
     import fileTextO from 'svelte-awesome/icons/fileTextO';
     import fileImageO from 'svelte-awesome/icons/fileImageO';
@@ -23,22 +22,25 @@
     }
 </script>
 
-<Accordion title="Related Content" closable={true}>
-    <div class="flex flex-col">
-        {#if relatedContent.length > 0}
-            {#each relatedContent as resource}
-                <div class="mb-6 flex">
-                    <div class="flex items-center">
-                        <Icon data={getIcon(resource.mediaTypes[0])} scale={3} />
+<div class="mb-4 flex h-[calc(27%-8px)] grow flex-col rounded-lg border border-base-300 bg-base-200">
+    <div class="p-4 text-xl font-medium">Related Content</div>
+    <div class="h-full overflow-y-scroll rounded-lg bg-white p-4">
+        <div class="flex flex-col">
+            {#if relatedContent.length > 0}
+                {#each relatedContent as resource}
+                    <div class="mb-4 flex">
+                        <div class="flex items-center">
+                            <Icon data={getIcon(resource.mediaTypes[0])} scale={3} />
+                        </div>
+                        <div class="ms-4 flex flex-col">
+                            <span class="font-bold">{resource.label}</span>
+                            <span>{resource.parentResourceName}</span>
+                        </div>
                     </div>
-                    <div class="ms-4 flex flex-col">
-                        <span class="font-bold">{resource.label}</span>
-                        <span>{resource.parentResourceName}</span>
-                    </div>
-                </div>
-            {/each}
-        {:else}
-            <EmptyMessage message="No related content" />
-        {/if}
+                {/each}
+            {:else}
+                <EmptyMessage message="No related content" />
+            {/if}
+        </div>
     </div>
-</Accordion>
+</div>

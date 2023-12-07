@@ -1,5 +1,4 @@
 <script lang="ts">
-    import Accordion from './Accordion.svelte';
     import Image from './content-components/Image.svelte';
     import Video from './content-components/Video.svelte';
     import TiptapContent from './content-components/TiptapContent.svelte';
@@ -9,16 +8,19 @@
     export let resourceContent: ResourceContent;
 </script>
 
-<Accordion title="Content" closable={false} fullHeight={true}>
-    {#if typeText === ResourceTypeEnum.cbbterTranslationGuide}
-        <TiptapContent {resourceContent} stepNavigation={true} />
-    {:else if typeText === ResourceTypeEnum.tyndaleBibleDictionary}
-        <TiptapContent {resourceContent} />
-    {:else if typeText === ResourceTypeEnum.tyndaleStudyNotes}
-        <TiptapContent {resourceContent} />
-    {:else if typeText === ResourceTypeEnum.ubsImages}
-        <Image content={resourceContent.content} />
-    {:else if typeText === ResourceTypeEnum.videoBibleDictionary}
-        <Video content={resourceContent.content} />
-    {/if}
-</Accordion>
+<div class="relative flex h-full grow flex-col rounded-lg border border-base-300 bg-base-200">
+    <div class="p-4 text-xl font-medium">Content</div>
+    <div class="h-full overflow-y-scroll rounded-lg bg-white px-4 pb-4">
+        {#if typeText === ResourceTypeEnum.cbbterTranslationGuide}
+            <TiptapContent {resourceContent} stepNavigation={true} />
+        {:else if typeText === ResourceTypeEnum.tyndaleBibleDictionary}
+            <TiptapContent {resourceContent} />
+        {:else if typeText === ResourceTypeEnum.tyndaleStudyNotes}
+            <TiptapContent {resourceContent} />
+        {:else if typeText === ResourceTypeEnum.ubsImages}
+            <Image content={resourceContent.content} />
+        {:else if typeText === ResourceTypeEnum.videoBibleDictionary}
+            <Video content={resourceContent.content} />
+        {/if}
+    </div>
+</div>
