@@ -45,6 +45,7 @@ export const initAuth0 = async () => {
 
     if (isAuthenticated) {
         try {
+            await client.getTokenSilently(); // ensure refresh token is valid (throws error if not)
             profile.set(await client.getUser());
             authenticated.set(isAuthenticated);
         } catch (error) {
