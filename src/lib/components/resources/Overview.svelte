@@ -17,7 +17,7 @@
     $: displayNameUpdated = $originalValues?.displayName !== $updatedValues?.displayName;
 </script>
 
-<div class="mb-4 flex h-[calc(26%-16px)] grow flex-col rounded-lg border border-base-300 bg-base-200">
+<div class="mb-4 flex max-h-[calc(26%-16px)] grow flex-col rounded-lg border border-base-300 bg-base-200">
     <div class="p-4 text-xl font-medium">Overview</div>
     <div class="h-full overflow-y-scroll rounded-lg bg-white px-4 py-4">
         <div class="flex flex-col">

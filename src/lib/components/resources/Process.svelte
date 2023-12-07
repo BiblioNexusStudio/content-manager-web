@@ -16,7 +16,7 @@
     $: updateValues({ status: translationStatus });
 </script>
 
-<div class="mb-4 flex h-[calc(20%-16px)] grow flex-col rounded-lg border border-base-300 bg-base-200">
+<div class="mb-4 flex max-h-[calc(20%-16px)] grow flex-col rounded-lg border border-base-300 bg-base-200">
     <div class="p-4 text-xl font-medium">Process</div>
     <div class="h-full overflow-y-scroll rounded-lg bg-white px-4 py-2">
         <div class="flex w-full justify-between">
