@@ -43,17 +43,19 @@
     let isSaving = false;
     const onSave = async () => {
         isSaving = true;
-        await putData();
-        isSaving = false;
+        try {
+            await putData();
+        } finally {
+            isSaving = false;
+        }
     };
 
     const onSaveAndCloseClick = async () => {
         loadingModal.showModal();
-        const response = await putData();
-
-        if (response.status === 204) {
+        try {
+            await putData();
             goBack();
-        } else {
+        } catch {
             loadingModal.close();
         }
     };
@@ -63,27 +65,26 @@
     };
 
     const putData = async () => {
-        const token = await $auth0Client?.getTokenSilently();
-        const response = await fetchFromApi(`/resources/content/summary/${$updatedValues.contentId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-                status: $updatedValues.status,
-                displayName: $updatedValues.displayName,
-                content: $updatedValues.content,
-            }),
-        });
+        try {
+            const token = await $auth0Client?.getTokenSilently();
+            await fetchFromApi(`/resources/content/summary/${$updatedValues.contentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    status: $updatedValues.status,
+                    displayName: $updatedValues.displayName,
+                    content: $updatedValues.content,
+                }),
+            });
 
-        if (response.status === 204) {
             updateOriginal();
-        } else {
+        } catch (error) {
             errorModal.showModal();
+            throw error;
         }
-
-        return response;
     };
 </script>
 

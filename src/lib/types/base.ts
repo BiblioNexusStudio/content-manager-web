@@ -1,5 +1,3 @@
-import type { ValuesOf } from '@tiptap/core';
-
 export interface ResourceType {
     id: number;
     displayName: string;
@@ -11,20 +9,18 @@ export interface ResourceContentStatus {
     displayName: string;
 }
 
-export const ResourceContentStatusValues = {
-    None: 'None',
-    AquiferizeNotStarted: 'AquiferizeNotStarted',
-    AquiferizeInProgress: 'AquiferizeInProgress',
-    Complete: 'Complete',
-    AquiferizeInReview: 'AquiferizeInReview',
-    TranslateNotStarted: 'TranslateNotStarted',
-    TranslateDrafting: 'TranslateDrafting',
-    TranslateEditing: 'TranslateEditing',
-    TranslateReviewing: 'TranslateReviewing',
-    OnHold: 'OnHold',
-} as const;
-
-export type ResourceContentStatusEnum = ValuesOf<typeof ResourceContentStatusValues>;
+export enum ResourceContentStatusEnum {
+    None = 'None',
+    AquiferizeNotStarted = 'AquiferizeNotStarted',
+    AquiferizeInProgress = 'AquiferizeInProgress',
+    Complete = 'Complete',
+    AquiferizeInReview = 'AquiferizeInReview',
+    TranslateNotStarted = 'TranslateNotStarted',
+    TranslateDrafting = 'TranslateDrafting',
+    TranslateEditing = 'TranslateEditing',
+    TranslateReviewing = 'TranslateReviewing',
+    OnHold = 'OnHold',
+}
 
 export interface Language {
     id: number;

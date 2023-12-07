@@ -102,9 +102,6 @@ export async function fetchJsonFromApi(
     injectedFetch: typeof window.fetch | undefined = undefined
 ): Promise<unknown> {
     const response = await fetchFromApi(path, options, injectedFetch);
-    if (response.status >= 400) {
-        throw error(response.status, `HTTP response: ${response.status}`);
-    }
     try {
         return await response.json();
     } catch {
@@ -125,5 +122,9 @@ export async function fetchFromApi(
 
     const url = BASE_URL + '/' + (path.startsWith('/') ? path.slice(1) : path);
 
-    return (injectedFetch || fetch)(url, options);
+    const response = await (injectedFetch || fetch)(url, options);
+    if (response.status >= 400) {
+        throw error(response.status, `HTTP response: ${response.status}`);
+    }
+    return response;
 }
