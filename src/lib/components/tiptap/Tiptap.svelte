@@ -176,8 +176,8 @@
 {#if editor && $canEdit}
     <div
         class="absolute inset-x-0 {hasSteps
-            ? 'top-[100px]'
-            : 'top-[60px]'} z-20 flex h-16 w-[calc(100%-10px)] items-center rounded-md bg-white"
+            ? 'top-[84px]'
+            : 'top-[44px]'} z-20 flex h-16 w-[calc(100%-10px)] items-center rounded-md bg-white"
     >
         <div class="mx-6 mt-2">
             {#each formattingOptions as option}

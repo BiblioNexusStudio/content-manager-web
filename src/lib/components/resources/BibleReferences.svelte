@@ -9,8 +9,8 @@
     }
 </script>
 
-<div class="flex min-h-[calc(27%-8px)] grow flex-col rounded-lg border border-base-300 bg-base-200">
-    <div class="p-4 text-xl font-medium">Bible References</div>
+<div class="flex min-h-[calc(26.5%-8px)] grow flex-col rounded-lg border border-base-300 bg-base-200">
+    <div class="px-4 py-2 text-xl font-medium">Bible References</div>
     <div class="h-full overflow-y-scroll rounded-lg bg-white p-4">
         <div class="flex w-full flex-col">
             {#if bibleReferences.length > 0}

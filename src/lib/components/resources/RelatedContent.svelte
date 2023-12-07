@@ -22,8 +22,8 @@
     }
 </script>
 
-<div class="mb-4 flex min-h-[calc(27%-8px)] grow flex-col rounded-lg border border-base-300 bg-base-200">
-    <div class="p-4 text-xl font-medium">Related Content</div>
+<div class="mb-4 flex min-h-[calc(26.5%-8px)] grow flex-col rounded-lg border border-base-300 bg-base-200">
+    <div class="px-4 py-2 text-xl font-medium">Related Content</div>
     <div class="h-full overflow-y-scroll rounded-lg bg-white p-4">
         <div class="flex flex-col">
             {#if relatedContent.length > 0}
