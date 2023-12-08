@@ -6,4 +6,4 @@
     $: altText = (content as ContentItem).displayName;
 </script>
 
-<img class="w-full" src={url} alt={altText} />
+<img class="mx-auto h-full w-auto" src={url} alt={altText} />
