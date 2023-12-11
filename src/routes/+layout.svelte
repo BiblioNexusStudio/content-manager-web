@@ -55,6 +55,7 @@
             name: $translate('sidebar.reporting.value'),
             icon: PieChartIcon,
             href: '/reporting',
+            hidden: true,
         },
         {
             name: $translate('sidebar.users.value'),
