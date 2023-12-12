@@ -1,5 +1,9 @@
+import { browser } from '$app/environment';
 import config from '$lib/config';
+import { auth0Client } from '$lib/stores/auth';
+import type { ExtendType } from '$lib/types/base';
 import { error } from '@sveltejs/kit';
+import { get } from 'svelte/store';
 
 const API_KEY = config.PUBLIC_AQUIFER_API_KEY;
 const BASE_URL = config.PUBLIC_AQUIFER_API_URL;
@@ -8,6 +12,8 @@ const BASE_URL = config.PUBLIC_AQUIFER_API_URL;
 // https://github.com/sveltejs/kit/issues/9785
 export type StreamedError = { _isError: true; code: number; message: string };
 export type StreamedData<T> = { streamed: Promise<StreamedError | T> };
+
+type CustomFetchOptions = ExtendType<FetchOptions, 'body', object | undefined>;
 
 interface FetchOptions extends RequestInit {
     headers?: Record<string, string>;
@@ -51,6 +57,58 @@ export async function unwrapStreamedDataWithCallback<T>(
     });
 }
 
+let originalFetch: typeof window.fetch | undefined;
+
+// Patch `window.fetch` to add auth token in header for requests to the Aquifer API. This ensures SvelteKit's SSR-loaded data
+// is reusable on the client without an extra fetch. This is due to the difference in the presence of the auth token in server-side
+// and client-side fetches, affecting the hash calculation used by SvelteKit to determine data reusability.
+//
+// Server-side `fetch` lacks the auth header initially (injected later by `handleFetch`), while client-side fetch includes it.
+// This results in differing hashes for otherwise identical requests, leading the client to re-fetch data.
+//
+// Example:
+// - SSR:    `fetch('/users', { headers: {} })` (no auth header initially)
+// - Client: `fetch('/users', { headers: { Authorization: ... } })` (auth header present)
+//
+// SvelteKit compares the URL and fetch options hash to reuse server-loaded data. Different hashes trigger a client-side re-fetch.
+// A future client-side `handleFetch` hook in SvelteKit could replace this patch.
+//
+// References:
+// - [Sentry Issue](https://github.com/getsentry/sentry-javascript/issues/8174#issuecomment-1557042801)
+// - [SvelteKit PR](https://github.com/sveltejs/kit/pull/10009)
+export function initFetchPatch() {
+    if (!browser) {
+        throw new Error('This should only be called client-side');
+    }
+
+    if (!originalFetch) {
+        originalFetch = window.fetch;
+        window.fetch = async (input: RequestInfo | URL, init?: RequestInit | undefined): Promise<Response> => {
+            // Determine URL from input
+            let url: string;
+            if (typeof input === 'string') {
+                url = input;
+            } else if (input instanceof URL) {
+                url = input.toString();
+            } else {
+                // Assuming input is a Request object
+                url = input.url;
+            }
+
+            if (url.startsWith(config.PUBLIC_AQUIFER_API_URL)) {
+                // Merge or create init object
+                init = init || {};
+                init.headers = {
+                    ...(init.headers || {}),
+                    ...(await authTokenHeader()),
+                };
+            }
+
+            return originalFetch!(input, init);
+        };
+    }
+}
+
 // Fetch JSON from the API that's wrapped in an object with a `streamed` key.
 //
 // This takes advantage of SvelteKit's streaming functionality to allow a page
@@ -60,12 +118,12 @@ export async function unwrapStreamedDataWithCallback<T>(
 // format that then gets read by `unwrapStreamedData` and turned back into an error for the client to handle.
 export function fetchJsonStreamingFromApi<T>(
     path: string,
-    options: FetchOptions = {},
+    options: CustomFetchOptions = {},
     injectedFetch: typeof window.fetch | undefined = undefined
 ): StreamedData<T> {
     return {
         streamed: new Promise((resolve) => {
-            fetchFromApi(path, options, injectedFetch)
+            fetchFromApiWithAuth(path, options, injectedFetch)
                 .catch((error: Error) => {
                     resolve({
                         _isError: true,
@@ -96,12 +154,43 @@ export function fetchJsonStreamingFromApi<T>(
     };
 }
 
-export async function fetchJsonFromApi(
+// Base fetch function for the Aquifer API. Handles auth, body stringifying, content type, prefixing the API path with
+// the base URL, and detecting errors.
+export async function fetchFromApiWithAuth(
     path: string,
-    options: FetchOptions = {},
+    options: CustomFetchOptions,
     injectedFetch: typeof window.fetch | undefined = undefined
-): Promise<unknown> {
-    const response = await fetchFromApi(path, options, injectedFetch);
+) {
+    const fetchOptions: FetchOptions = options as FetchOptions;
+
+    fetchOptions.headers = {
+        'Content-Type': 'application/json',
+        ...options.headers,
+    };
+
+    if (!fetchOptions.headers['api-key']) {
+        fetchOptions.headers['api-key'] = API_KEY;
+    }
+
+    if (options.body) {
+        fetchOptions.body = JSON.stringify(options.body);
+    }
+
+    const url = BASE_URL + '/' + (path.startsWith('/') ? path.slice(1) : path);
+
+    const response = await (injectedFetch || fetch)(url, fetchOptions);
+    if (response.status >= 400) {
+        throw error(response.status, `HTTP response: ${response.status}`);
+    }
+    return response;
+}
+
+export async function fetchJsonFromApiWithAuth(
+    path: string,
+    options: CustomFetchOptions,
+    injectedFetch: typeof window.fetch | undefined = undefined
+) {
+    const response = await fetchFromApiWithAuth(path, options, injectedFetch);
     try {
         return await response.json();
     } catch {
@@ -109,22 +198,10 @@ export async function fetchJsonFromApi(
     }
 }
 
-export async function fetchFromApi(
-    path: string,
-    options: FetchOptions,
-    injectedFetch: typeof window.fetch | undefined = undefined
-) {
-    options.headers = options.headers || {};
-
-    if (!options.headers['api-key']) {
-        options.headers['api-key'] = API_KEY;
+async function authTokenHeader(): Promise<object> {
+    const token = await get(auth0Client)?.getTokenSilently();
+    if (token) {
+        return { Authorization: `Bearer ${token}` };
     }
-
-    const url = BASE_URL + '/' + (path.startsWith('/') ? path.slice(1) : path);
-
-    const response = await (injectedFetch || fetch)(url, options);
-    if (response.status >= 400) {
-        throw error(response.status, `HTTP response: ${response.status}`);
-    }
-    return response;
+    return {};
 }

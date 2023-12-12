@@ -47,18 +47,18 @@
     function getStatusClass(status: ResourceContentStatusEnum) {
         switch (status) {
             case ResourceContentStatusEnum.TranslateNotStarted:
-            case ResourceContentStatusEnum.AquiferizeNotStarted:
-                return 'badge-neutral font-semibold';
+            case ResourceContentStatusEnum.New:
+                return 'badge-neutral';
             case ResourceContentStatusEnum.TranslateEditing:
             case ResourceContentStatusEnum.TranslateDrafting:
             case ResourceContentStatusEnum.TranslateReviewing:
             case ResourceContentStatusEnum.AquiferizeInReview:
             case ResourceContentStatusEnum.AquiferizeInProgress:
-                return 'badge-primary bg-[#B9EBFE] text-primary font-semibold';
+                return 'badge-primary bg-[#B9EBFE] text-primary';
             case ResourceContentStatusEnum.Complete:
-                return 'badge-success bg-[#ABEFC6] text-success font-semibold';
+                return 'badge-success bg-[#ABEFC6] text-success';
             default:
-                return 'badge-info font-semibold';
+                return 'badge-info';
         }
     }
 
@@ -169,7 +169,7 @@
                             </LinkedTableCell>
                             <LinkedTableCell href={`/resources/${contentId}`}>
                                 <div
-                                    class="badge
+                                    class="badge font-semibold
                                     {getStatusClass(resource.status)}"
                                 >
                                     {getStatusName(resource.status)}
