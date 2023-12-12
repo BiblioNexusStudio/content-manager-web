@@ -24,6 +24,7 @@ export interface PassageReference {
     endBook: string;
     endChapter: number;
     endVerse: number;
+    label: string;
 }
 
 interface TextContent {
