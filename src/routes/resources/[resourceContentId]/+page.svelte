@@ -10,8 +10,7 @@
     import { originalValues, updatedValues, resetUpdated, updateOriginal } from '$lib/stores/tiptapContent';
     import { beforeNavigate, goto } from '$app/navigation';
     import { canEdit } from '$lib/stores/auth';
-    import { fetchFromApi, unwrapStreamedData } from '$lib/utils/http-service';
-    import { auth0Client } from '$lib/stores/auth';
+    import { fetchFromApiWithAuth, unwrapStreamedData } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
 
     beforeNavigate((x) => {
@@ -66,18 +65,13 @@
 
     const putData = async () => {
         try {
-            const token = await $auth0Client?.getTokenSilently();
-            await fetchFromApi(`/resources/content/summary/${$updatedValues.contentId}`, {
+            await fetchFromApiWithAuth(`/resources/content/summary/${$updatedValues.contentId}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
+                body: {
                     status: $updatedValues.status,
                     displayName: $updatedValues.displayName,
                     content: $updatedValues.content,
-                }),
+                },
             });
 
             updateOriginal();

@@ -1,3 +1,5 @@
+export type ExtendType<T, K extends keyof T, V> = Omit<T, K> & { [P in K]?: V };
+
 export interface ResourceType {
     id: number;
     displayName: string;
@@ -11,9 +13,10 @@ export interface ResourceContentStatus {
 
 export enum ResourceContentStatusEnum {
     None = 'None',
-    AquiferizeNotStarted = 'AquiferizeNotStarted',
+    New = 'New',
     AquiferizeInProgress = 'AquiferizeInProgress',
     Complete = 'Complete',
+    AquiferizePendingReview = 'AquiferizePendingReview',
     AquiferizeInReview = 'AquiferizeInReview',
     TranslateNotStarted = 'TranslateNotStarted',
     TranslateDrafting = 'TranslateDrafting',
@@ -26,4 +29,9 @@ export interface Language {
     id: number;
     iso6393Code: string;
     englishDisplay: string;
+}
+
+export interface User {
+    id: number;
+    name: string;
 }
