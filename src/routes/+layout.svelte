@@ -1,4 +1,5 @@
 <script lang="ts">
+    import '$lib/utils/fetch-patch';
     import '../app.css';
     import AquiferLogo from '$lib/images/AquiferOnDark.svg';
     import LoginIcon from '$lib/icons/LoginIcon.svelte';
