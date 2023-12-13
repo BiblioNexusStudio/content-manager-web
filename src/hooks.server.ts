@@ -18,12 +18,16 @@ export const handle: Handle = async ({ event, resolve }) => {
     });
 };
 
-export const handleFetch: HandleFetch = async ({ request, fetch }) => {
-    const headers = new Headers(request.headers);
-    headers.set('api-key', config.PUBLIC_AQUIFER_API_KEY);
-    const newRequest = new Request(request, { headers });
+export const handleFetch: HandleFetch = async ({ event, request, fetch }) => {
+    // only add auth info to Aquifer requests (prevents leaking credentials if we ever fetch from other APIs)
+    if (request.url.startsWith(config.PUBLIC_AQUIFER_API_URL)) {
+        const authToken = event.cookies.get('AuthToken');
+        if (authToken) {
+            request.headers.set('Authorization', `Bearer ${authToken}`);
+        }
+    }
 
-    return fetch(newRequest);
+    return fetch(request);
 };
 
 export const handleError = (async ({ error }: { error: Error }) => {

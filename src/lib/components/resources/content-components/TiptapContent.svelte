@@ -8,6 +8,7 @@
 
     export let stepNavigation = false;
     export let resourceContent: ResourceContent;
+    export let canEdit: boolean;
 
     $: content = resourceContent.content as unknown as TiptapContentItemValues[];
     $: currentResourceStepsLength = content.length || 0;
@@ -77,5 +78,5 @@
             </div>
         </div>
     {/if}
-    <Tiptap hasSteps={stepNavigation} />
+    <Tiptap {canEdit} hasSteps={stepNavigation} />
 </div>

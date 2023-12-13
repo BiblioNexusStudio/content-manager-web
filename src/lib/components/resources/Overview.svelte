@@ -3,13 +3,13 @@
     import PencilSquareIcon from '$lib/icons/PencilSquareIcon.svelte';
     import XSquareIcon from '$lib/icons/XSquareIcon.svelte';
     import { originalValues, updatedValues, updateValues, setOriginalValues } from '$lib/stores/tiptapContent';
-    import { canEdit } from '$lib/stores/auth';
     import checkCircleO from 'svelte-awesome/icons/checkCircleO';
     import ban from 'svelte-awesome/icons/ban';
 
     export let displayNameText: string;
     export let typeText: string;
     export let isPublished: boolean;
+    export let canEdit: boolean;
 
     let displayNameInput: HTMLInputElement;
     setOriginalValues({ displayName: displayNameText });
@@ -25,7 +25,7 @@
                 <div class="flex grow items-center">
                     <div class="me-3 font-bold">Title</div>
                     <div class="me-4 grow">
-                        {#if $canEdit}
+                        {#if canEdit}
                             <input
                                 type="text"
                                 bind:this={displayNameInput}
@@ -37,7 +37,7 @@
                         {/if}
                     </div>
                 </div>
-                {#if $canEdit}
+                {#if canEdit}
                     <button
                         class="h-6 w-6 p-0"
                         on:click={() => {

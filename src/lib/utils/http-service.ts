@@ -1,5 +1,9 @@
+import { browser } from '$app/environment';
 import config from '$lib/config';
+import { auth0Client } from '$lib/stores/auth';
+import type { ExtendType } from '$lib/types/base';
 import { error } from '@sveltejs/kit';
+import { get } from 'svelte/store';
 
 const API_KEY = config.PUBLIC_AQUIFER_API_KEY;
 const BASE_URL = config.PUBLIC_AQUIFER_API_URL;
@@ -8,6 +12,8 @@ const BASE_URL = config.PUBLIC_AQUIFER_API_URL;
 // https://github.com/sveltejs/kit/issues/9785
 export type StreamedError = { _isError: true; code: number; message: string };
 export type StreamedData<T> = { streamed: Promise<StreamedError | T> };
+
+type CustomFetchOptions = ExtendType<FetchOptions, 'body', object | undefined>;
 
 interface FetchOptions extends RequestInit {
     headers?: Record<string, string>;
@@ -60,12 +66,12 @@ export async function unwrapStreamedDataWithCallback<T>(
 // format that then gets read by `unwrapStreamedData` and turned back into an error for the client to handle.
 export function fetchJsonStreamingFromApi<T>(
     path: string,
-    options: FetchOptions = {},
+    options: CustomFetchOptions = {},
     injectedFetch: typeof window.fetch | undefined = undefined
 ): StreamedData<T> {
     return {
         streamed: new Promise((resolve) => {
-            fetchFromApi(path, options, injectedFetch)
+            fetchFromApiWithAuth(path, options, injectedFetch)
                 .catch((error: Error) => {
                     resolve({
                         _isError: true,
@@ -96,12 +102,46 @@ export function fetchJsonStreamingFromApi<T>(
     };
 }
 
-export async function fetchJsonFromApi(
+// Base fetch function for the Aquifer API. Handles auth, body stringifying, content type, prefixing the API path with
+// the base URL, and detecting errors.
+export async function fetchFromApiWithAuth(
     path: string,
-    options: FetchOptions = {},
+    options: CustomFetchOptions,
     injectedFetch: typeof window.fetch | undefined = undefined
-): Promise<unknown> {
-    const response = await fetchFromApi(path, options, injectedFetch);
+) {
+    const fetchOptions: FetchOptions = options as FetchOptions;
+
+    fetchOptions.headers = {
+        'Content-Type': 'application/json',
+        ...options.headers,
+    };
+
+    if (!fetchOptions.headers['api-key']) {
+        fetchOptions.headers['api-key'] = API_KEY;
+    }
+
+    if (options.body) {
+        fetchOptions.body = JSON.stringify(options.body);
+    }
+
+    const url = BASE_URL + '/' + (path.startsWith('/') ? path.slice(1) : path);
+
+    // Wait for fetch to be patched if it's a browser (prevents race conditions)
+    browser && (await waitForValidValue(async () => window._fetchIsPatched, 50));
+
+    const response = await (injectedFetch || fetch)(url, fetchOptions);
+    if (response.status >= 400) {
+        throw error(response.status, `HTTP response: ${response.status}`);
+    }
+    return response;
+}
+
+export async function fetchJsonFromApiWithAuth(
+    path: string,
+    options: CustomFetchOptions,
+    injectedFetch: typeof window.fetch | undefined = undefined
+) {
+    const response = await fetchFromApiWithAuth(path, options, injectedFetch);
     try {
         return await response.json();
     } catch {
@@ -109,22 +149,23 @@ export async function fetchJsonFromApi(
     }
 }
 
-export async function fetchFromApi(
-    path: string,
-    options: FetchOptions,
-    injectedFetch: typeof window.fetch | undefined = undefined
-) {
-    options.headers = options.headers || {};
-
-    if (!options.headers['api-key']) {
-        options.headers['api-key'] = API_KEY;
+export async function authTokenHeader(): Promise<object> {
+    // Wait for the auth client to be initialized and a valid token (prevents race conditions)
+    const token = await waitForValidValue(async () => await get(auth0Client)?.getTokenSilently(), 50);
+    if (token) {
+        return { Authorization: `Bearer ${token}` };
     }
+    return {};
+}
 
-    const url = BASE_URL + '/' + (path.startsWith('/') ? path.slice(1) : path);
-
-    const response = await (injectedFetch || fetch)(url, options);
-    if (response.status >= 400) {
-        throw error(response.status, `HTTP response: ${response.status}`);
+// Wait for a truthy (not null, not undefined, not false) value to be returned by `fn` or returns the most recent
+// value if the timeout is reached.
+async function waitForValidValue<T>(fn: () => Promise<T | undefined>, maxTimeout: number): Promise<T | undefined> {
+    const startTime = Date.now();
+    let value: T | undefined = await fn();
+    while (!value && Date.now() - startTime < maxTimeout) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        value = await fn();
     }
-    return response;
+    return value;
 }

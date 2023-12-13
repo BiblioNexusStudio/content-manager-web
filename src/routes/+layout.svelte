@@ -1,4 +1,5 @@
 <script lang="ts">
+    import '$lib/utils/fetch-patch';
     import '../app.css';
     import AquiferLogo from '$lib/images/AquiferOnDark.svg';
     import LoginIcon from '$lib/icons/LoginIcon.svelte';
@@ -10,25 +11,35 @@
     import MoonIcon from '$lib/icons/MoonIcon.svelte';
     import PieChartIcon from '$lib/icons/PieChartIcon.svelte';
     import { page } from '$app/stores';
-    import { browser } from '$app/environment';
     import { onMount } from 'svelte';
     import { _ as translate } from 'svelte-i18n';
-    import { initAuth0, logout, profile, authenticated, setCurrentPageUrl } from '$lib/stores/auth';
+    import { logout, profile, auth0Client, syncAuthTokenToCookies } from '$lib/stores/auth';
     import { log } from '$lib/logger';
+    import type { LayoutData } from './$types';
 
     $: userEmail = $profile?.email ?? ' '; // set to avoid flashing undefined
     $: userFullName = $profile?.name ?? ' ';
     let theme: string | null;
-    $: browser && setCurrentPageUrl($page.url);
+
+    export let data: LayoutData;
 
     $: log.pageView($page.route.id ?? '');
 
-    onMount(async () => {
+    onMount(() => {
         if (typeof window !== 'undefined') {
             theme = window.localStorage.getItem('dataTheme') ?? 'biblioNexusLight';
         }
 
-        await initAuth0();
+        // every minute, fetch a new auth token to store as a cookie for SSR
+        const syncCookiesInterval = setInterval(() => {
+            try {
+                syncAuthTokenToCookies($auth0Client);
+            } catch (error) {
+                // ignore errors here, don't want to interrupt the user
+            }
+        }, 60 * 1000);
+
+        return () => clearInterval(syncCookiesInterval);
     });
 
     const toggleTheme = (event: Event) => {
@@ -85,7 +96,7 @@
 
 <svelte:window on:error={onError} on:unhandledrejection={onRejection} />
 
-{#if $authenticated}
+{#if data.loaded}
     <div class="drawer lg:drawer-open">
         <input id="main-drawer" type="checkbox" class="drawer-toggle" />
         <div class="drawer-content">
@@ -123,7 +134,7 @@
                             <div class="tooltip tooltip-left" data-tip={$translate('sidebar.logout.value')}>
                                 <button
                                     class="btn btn-link m-0 h-4 min-h-0 w-4 p-0 text-neutral-100"
-                                    on:click={() => logout()}
+                                    on:click={() => logout($page.url)}
                                 >
                                     <LoginIcon />
                                 </button>
