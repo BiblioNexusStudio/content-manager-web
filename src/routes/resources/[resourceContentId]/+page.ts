@@ -5,7 +5,7 @@ import type { ResourceContent } from '$lib/types/resources';
 export const load: PageLoad = async ({ params, fetch }) => {
     return {
         streamedResourceContent: fetchJsonStreamingFromApi<ResourceContent>(
-            `/resources/content/summary/${params.resourceContentId}`,
+            `/admin/resources/content/summary/${params.resourceContentId}`,
             {},
             fetch
         ),

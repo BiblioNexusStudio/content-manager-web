@@ -65,7 +65,7 @@
 
     const putData = async () => {
         try {
-            await fetchFromApiWithAuth(`/resources/content/summary/${$updatedValues.contentId}`, {
+            await fetchFromApiWithAuth(`/admin/resources/content/summary/${$updatedValues.contentId}`, {
                 method: 'PUT',
                 body: {
                     status: $updatedValues.status,
