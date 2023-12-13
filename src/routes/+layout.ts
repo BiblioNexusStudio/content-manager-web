@@ -6,32 +6,22 @@ import type { Language, ResourceContentStatus, ResourceType, User } from '$lib/t
 import { browser } from '$app/environment';
 import { initAuth0 } from '$lib/stores/auth';
 
-export const load: LayoutLoad = async ({ fetch, url }) => {
-    let languages: Language[] | null = null;
-    let resourceTypes: ResourceType[] | null = null;
-    let resourceContentStatuses: ResourceContentStatus[] | null = null;
-    let users: User[] | null = null;
-    let currentUser: User | null = null;
+export const load: LayoutLoad = async ({ fetch, url, data }) => {
+    let isAuthenticated: boolean;
 
+    // If it's client side, check the client auth state, otherwise check if there's an auth cookie
     if (browser) {
-        await initAuth0(url);
+        isAuthenticated = await initAuth0(url);
+    } else {
+        isAuthenticated = data.hasAuthCookie;
     }
 
-    [languages, resourceTypes, resourceContentStatuses, users, currentUser] = (
-        await Promise.allSettled([
-            getLanguages(fetch),
-            getResourceTypes(fetch),
-            getResourceContentStatuses(fetch),
-            getUsers(fetch),
-            getCurrentUser(fetch),
-        ])
-    ).map((result) => (result.status === 'fulfilled' ? result.value : null)) as [
-        Language[] | null,
-        ResourceType[] | null,
-        ResourceContentStatus[] | null,
-        User[] | null,
-        User | null,
-    ];
+    const [languages, resourceTypes, resourceContentStatuses, currentUser] = await Promise.all([
+        getLanguages(fetch, isAuthenticated),
+        getResourceTypes(fetch, isAuthenticated),
+        getResourceContentStatuses(fetch, isAuthenticated),
+        getCurrentUser(fetch, isAuthenticated),
+    ]);
 
     await initI18n();
     await waitLocale();
@@ -40,32 +30,40 @@ export const load: LayoutLoad = async ({ fetch, url }) => {
     //            due to an auth error. However, we have code that conditionally renders the UI based on
     //            the `loaded` boolean so we can be sure that when rendering any pages these are non-null.
     return {
+        isAuthenticated,
         loaded:
             languages !== null && resourceTypes !== null && resourceContentStatuses !== null && currentUser !== null,
         languages: languages as Language[],
         resourceTypes: resourceTypes as ResourceType[],
         resourceContentStatuses: resourceContentStatuses as ResourceContentStatus[],
-        users: users as User[],
         currentUser: currentUser as User,
     };
 };
 
-async function getLanguages(fetch: typeof window.fetch) {
-    return (await fetchJsonFromApiWithAuth('/languages', {}, fetch)) as Language[];
+async function getLanguages(fetch: typeof window.fetch, isAuthenticated: boolean) {
+    if (isAuthenticated) {
+        return await fetchJsonFromApiWithAuth<Language[]>('/languages', {}, fetch);
+    }
+    return null;
 }
 
-async function getUsers(fetch: typeof window.fetch) {
-    return (await fetchJsonFromApiWithAuth('/admin/users', {}, fetch)) as User[];
+async function getCurrentUser(fetch: typeof window.fetch, isAuthenticated: boolean) {
+    if (isAuthenticated) {
+        return await fetchJsonFromApiWithAuth<User>('/admin/users/self', {}, fetch);
+    }
+    return null;
 }
 
-async function getCurrentUser(fetch: typeof window.fetch) {
-    return (await fetchJsonFromApiWithAuth('/admin/users/self', {}, fetch)) as User;
+async function getResourceTypes(fetch: typeof window.fetch, isAuthenticated: boolean) {
+    if (isAuthenticated) {
+        return await fetchJsonFromApiWithAuth<ResourceType[]>('/resources/parent-resources', {}, fetch);
+    }
+    return null;
 }
 
-async function getResourceTypes(fetch: typeof window.fetch) {
-    return (await fetchJsonFromApiWithAuth('/resources/parent-resources', {}, fetch)) as ResourceType[];
-}
-
-async function getResourceContentStatuses(fetch: typeof window.fetch) {
-    return (await fetchJsonFromApiWithAuth('/admin/resources/content/statuses', {}, fetch)) as ResourceContentStatus[];
+async function getResourceContentStatuses(fetch: typeof window.fetch, isAuthenticated: boolean) {
+    if (isAuthenticated) {
+        return await fetchJsonFromApiWithAuth<ResourceContentStatus[]>('/admin/resources/content/statuses', {}, fetch);
+    }
+    return null;
 }

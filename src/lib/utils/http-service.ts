@@ -30,7 +30,7 @@ interface FetchOptions extends RequestInit {
 //   {:catch}
 //     <-- error -->
 //   {/await}
-export async function unwrapStreamedData<T>(data: StreamedData<T>): Promise<T> {
+export async function unwrapStreamedData<T = never>(data: StreamedData<T>): Promise<T> {
     return unwrapStreamedDataWithCallback(data);
 }
 
@@ -43,7 +43,7 @@ export async function unwrapStreamedData<T>(data: StreamedData<T>): Promise<T> {
 //      count = listData.length
 //   }
 //   $: list = unwrapStreamedDataWithCallback(data.streamedList, computeCountFromData)
-export async function unwrapStreamedDataWithCallback<T>(
+export async function unwrapStreamedDataWithCallback<T = never>(
     data: StreamedData<T>,
     callback: ((result: T) => void) | undefined = undefined
 ): Promise<T> {
@@ -64,7 +64,7 @@ export async function unwrapStreamedDataWithCallback<T>(
 //
 // Due to a limitation in SvelteKit, this serializes errors into a specific JSON
 // format that then gets read by `unwrapStreamedData` and turned back into an error for the client to handle.
-export function fetchJsonStreamingFromApi<T>(
+export function fetchJsonStreamingFromApi<T = never>(
     path: string,
     options: CustomFetchOptions = {},
     injectedFetch: typeof window.fetch | undefined = undefined
@@ -136,16 +136,30 @@ export async function fetchFromApiWithAuth(
     return response;
 }
 
-export async function fetchJsonFromApiWithAuth(
+export async function fetchJsonFromApiWithAuth<T = never>(
     path: string,
     options: CustomFetchOptions,
     injectedFetch: typeof window.fetch | undefined = undefined
-) {
-    const response = await fetchFromApiWithAuth(path, options, injectedFetch);
+): Promise<T | null> {
     try {
-        return await response.json();
-    } catch {
-        throw error(400, 'Error parsing JSON');
+        const response = await fetchFromApiWithAuth(path, options, injectedFetch);
+        try {
+            return await response.json();
+        } catch {
+            throw error(400, 'Error parsing JSON');
+        }
+    } catch (error) {
+        // If we're on the client then throw the error because it truly is an error. However if we're on the server,
+        // then we want to swallow auth errors. These errors are common and unavoidable due to the nature of our auth
+        // implementation. Any user coming to the site after inactivity won't have a cookie and the SSR will not be
+        // able to authenticate properly. But then the client (which will have the token) will refetch the data and
+        // things will work.
+        if (!browser && (error as { status: number }).status && (error as { status: number }).status === 401) {
+            console.log('Missing auth token during SSR fetch. Client will re-fetch and handle any errors.', error);
+            return null;
+        } else {
+            throw error;
+        }
     }
 }
 

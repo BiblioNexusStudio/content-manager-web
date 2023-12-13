@@ -19,6 +19,8 @@ const auth0Domain = config.PUBLIC_AUTH0_DOMAIN;
 const auth0ClientId = config.PUBLIC_AUTH0_CLIENT_ID;
 const auth0Audience = config.PUBLIC_AUTH0_AUDIENCE;
 
+export const AUTH_COOKIE_NAME = 'AuthToken';
+
 export enum Role {
     Publisher = 'publisher',
     Admin = 'admin',
@@ -62,6 +64,7 @@ export async function initAuth0(url: URL) {
         authenticated.set(false);
         await login(url);
     }
+    return isAuthenticated;
 }
 
 export async function syncAuthTokenToCookies(client: Auth0Client | undefined) {
@@ -69,7 +72,7 @@ export async function syncAuthTokenToCookies(client: Auth0Client | undefined) {
         const authToken = await client.getTokenSilently();
 
         // set an AuthToken cookie so that SSR requests receive a cookie that can be used against the API
-        setCookie('AuthToken', authToken, {
+        setCookie(AUTH_COOKIE_NAME, authToken, {
             path: '/',
             sameSite: 'strict',
             expires: getJwtExpiration(authToken),
