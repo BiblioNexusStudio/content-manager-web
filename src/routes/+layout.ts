@@ -1,7 +1,7 @@
 import type { LayoutLoad } from './$types';
 import { waitLocale } from 'svelte-i18n';
 import { initI18n } from '$lib/i18n';
-import { fetchJsonFromApiWithAuth, initFetchPatch } from '$lib/utils/http-service';
+import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
 import type { Language, ResourceContentStatus, ResourceType, User } from '$lib/types/base';
 import { browser } from '$app/environment';
 import { initAuth0 } from '$lib/stores/auth';
@@ -10,24 +10,26 @@ export const load: LayoutLoad = async ({ fetch, url }) => {
     let languages: Language[] | null = null;
     let resourceTypes: ResourceType[] | null = null;
     let resourceContentStatuses: ResourceContentStatus[] | null = null;
+    let users: User[] | null = null;
     let currentUser: User | null = null;
 
     if (browser) {
         await initAuth0(url);
-        initFetchPatch();
     }
 
-    [languages, resourceTypes, resourceContentStatuses, currentUser] = (
+    [languages, resourceTypes, resourceContentStatuses, users, currentUser] = (
         await Promise.allSettled([
             getLanguages(fetch),
             getResourceTypes(fetch),
             getResourceContentStatuses(fetch),
+            getUsers(fetch),
             getCurrentUser(fetch),
         ])
     ).map((result) => (result.status === 'fulfilled' ? result.value : null)) as [
         Language[] | null,
         ResourceType[] | null,
         ResourceContentStatus[] | null,
+        User[] | null,
         User | null,
     ];
 
@@ -43,12 +45,17 @@ export const load: LayoutLoad = async ({ fetch, url }) => {
         languages: languages as Language[],
         resourceTypes: resourceTypes as ResourceType[],
         resourceContentStatuses: resourceContentStatuses as ResourceContentStatus[],
+        users: users as User[],
         currentUser: currentUser as User,
     };
 };
 
 async function getLanguages(fetch: typeof window.fetch) {
     return (await fetchJsonFromApiWithAuth('/languages', {}, fetch)) as Language[];
+}
+
+async function getUsers(fetch: typeof window.fetch) {
+    return (await fetchJsonFromApiWithAuth('/admin/users', {}, fetch)) as User[];
 }
 
 async function getCurrentUser(fetch: typeof window.fetch) {

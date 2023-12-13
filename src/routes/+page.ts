@@ -1,8 +1,8 @@
 import type { PageLoad } from './$types';
-import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
+import { fetchJsonStreamingFromApi, type StreamedData } from '$lib/utils/http-service';
 
 export const load: PageLoad = async ({ fetch }) => {
-    const summary = (await fetchJsonFromApiWithAuth('/admin/resources/summary', {}, fetch)) as ResourcesSummary;
+    const summary = fetchJsonStreamingFromApi('/admin/resources/summary', {}, fetch) as StreamedData<ResourcesSummary>;
 
     return { summary };
 };
