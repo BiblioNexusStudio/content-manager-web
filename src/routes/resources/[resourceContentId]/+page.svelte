@@ -13,6 +13,7 @@
     import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum } from '$lib/types/base';
+    import BackArrowIcon from '$lib/icons/BackArrowIcon.svelte';
 
     beforeNavigate((x) => {
         if (contentUpdated) {
@@ -126,10 +127,13 @@
 {:then resourceContent}
     <div class="p-8">
         <div class="mb-8 flex items-center justify-between">
-            <h1 class="me-8 text-2xl font-bold">
-                {resourceContent.parentResourceName} -
-                {$originalValues.displayName}
-            </h1>
+            <div class="flex">
+                <button class="me-6 text-2xl font-bold" on:click={goBack}><BackArrowIcon /></button>
+                <h1 class="text-2xl font-bold">
+                    {resourceContent.parentResourceName} -
+                    {$originalValues.displayName}
+                </h1>
+            </div>
 
             <div class="flex">
                 <LanguageDropdown languageSet={availableLanguages(resourceContent)} disable={contentUpdated} />
@@ -157,7 +161,6 @@
                         {/if}
                     </button>
                 {/if}
-                <button class="btn btn-primary btn-outline ms-4" on:click={goBack}>Close</button>
             </div>
         </div>
         <div class="flex h-[85vh]">
