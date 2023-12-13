@@ -19,12 +19,12 @@
     import Heading1Icon from '$lib/icons/Heading1Icon.svelte';
     import Heading2Icon from '$lib/icons/Heading2Icon.svelte';
     import Heading3Icon from '$lib/icons/Heading3Icon.svelte';
-    import { canEdit } from '$lib/stores/auth';
     import { updatedValues, currentStepNumber, originalValues } from '$lib/stores/tiptapContent';
     import * as customMarks from '$lib/components/tiptap/customMarks';
     import type { ComponentType } from 'svelte';
 
     export let hasSteps = false;
+    export let canEdit: boolean;
 
     let element: Element | undefined;
     let editor: Editor;
@@ -36,14 +36,14 @@
     };
 
     $: ($originalValues || $currentStepNumber) && setContent();
-    $: editor?.setEditable($canEdit);
+    $: editor?.setEditable(canEdit);
 
     onMount(async () => {
         await tick();
 
         editor = new Editor({
             element: element,
-            editable: $canEdit,
+            editable: canEdit,
             extensions: [
                 StarterKit,
                 Image,
@@ -161,19 +161,19 @@
     ];
 
     const getContentTopPadding = () => {
-        if ($canEdit && hasSteps) {
+        if (canEdit && hasSteps) {
             return 'pt-28';
-        } else if ($canEdit && !hasSteps) {
+        } else if (canEdit && !hasSteps) {
             return 'pt-16';
-        } else if (!$canEdit && hasSteps) {
+        } else if (!canEdit && hasSteps) {
             return 'pt-14';
-        } else if (!$canEdit && !hasSteps) {
+        } else if (!canEdit && !hasSteps) {
             return 'pt-2';
         }
     };
 </script>
 
-{#if editor && $canEdit}
+{#if editor && canEdit}
     <div
         class="absolute inset-x-0 {hasSteps
             ? 'top-[84px]'

@@ -9,9 +9,10 @@
     import type { ResourceContent } from '$lib/types/resources';
     import { originalValues, updatedValues, resetUpdated, updateOriginal } from '$lib/stores/tiptapContent';
     import { beforeNavigate, goto } from '$app/navigation';
-    import { canEdit } from '$lib/stores/auth';
-    import { fetchFromApiWithAuth, unwrapStreamedData } from '$lib/utils/http-service';
+    import { Role, authz } from '$lib/stores/auth';
+    import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
+    import { ResourceContentStatusEnum } from '$lib/types/base';
 
     beforeNavigate((x) => {
         if (contentUpdated) {
@@ -23,10 +24,14 @@
     let onCloseModal: HTMLDialogElement;
     let loadingModal: HTMLDialogElement;
     let errorModal: HTMLDialogElement;
+    let aquiferizeModal: HTMLDialogElement;
+    let aquiferizeSelectedUserId: string | null = null;
+    let canMakeContentEdits = false;
+    let canAquiferize = false;
 
     export let data: PageData;
 
-    $: resourceContentPromise = unwrapStreamedData(data.streamedResourceContent);
+    $: resourceContentPromise = unwrapStreamedDataWithCallback(data.streamedResourceContent, handleFetchedResource);
 
     $: contentUpdated = JSON.stringify($originalValues) !== JSON.stringify($updatedValues);
 
@@ -39,17 +44,51 @@
             .filter(Boolean);
     }
 
-    let isSaving = false;
-    const onSave = async () => {
-        isSaving = true;
+    function handleFetchedResource(resourceContent: ResourceContent) {
+        canMakeContentEdits =
+            ($authz.hasRole(Role.Publisher) || $authz.hasRole(Role.Admin) || $authz.hasRole(Role.Editor)) &&
+            resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress &&
+            resourceContent.assignedUser?.id === data.currentUser.id;
+
+        canAquiferize =
+            ($authz.hasRole(Role.Publisher) || $authz.hasRole(Role.Admin)) &&
+            (resourceContent.status === ResourceContentStatusEnum.New ||
+                resourceContent.status === ResourceContentStatusEnum.Complete);
+    }
+
+    let isTransacting = false;
+
+    function openAquiferizeModal() {
+        aquiferizeSelectedUserId = null;
+        aquiferizeModal.showModal();
+    }
+
+    async function aquiferize() {
+        isTransacting = true;
+        try {
+            await fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/aquiferize`, {
+                method: 'POST',
+                body: { assignedUserId: aquiferizeSelectedUserId ? parseInt(aquiferizeSelectedUserId) : null },
+            });
+            window.location.reload(); // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
+        } catch (error) {
+            errorModal.showModal();
+            throw error;
+        } finally {
+            isTransacting = false;
+        }
+    }
+
+    async function onSave() {
+        isTransacting = true;
         try {
             await putData();
         } finally {
-            isSaving = false;
+            isTransacting = false;
         }
-    };
+    }
 
-    const onSaveAndCloseClick = async () => {
+    async function onSaveAndCloseClick() {
         loadingModal.showModal();
         try {
             await putData();
@@ -57,18 +96,18 @@
         } catch {
             loadingModal.close();
         }
-    };
+    }
 
-    const goBack = () => {
+    function goBack() {
         window.history.length > 1 ? window.history.back() : goto('/resources');
-    };
+    }
 
-    const putData = async () => {
+    async function putData() {
         try {
             await fetchFromApiWithAuth(`/admin/resources/content/summary/${$updatedValues.contentId}`, {
                 method: 'PUT',
                 body: {
-                    status: $updatedValues.status,
+                    status: $updatedValues.status, // TODO: remove this once it gets removed from the API (don't want it manually editable)
                     displayName: $updatedValues.displayName,
                     content: $updatedValues.content,
                 },
@@ -79,7 +118,7 @@
             errorModal.showModal();
             throw error;
         }
-    };
+    }
 </script>
 
 {#await resourceContentPromise}
@@ -94,11 +133,24 @@
 
             <div class="flex">
                 <LanguageDropdown languageSet={availableLanguages(resourceContent)} disable={contentUpdated} />
-                {#if $canEdit}<button
+                {#if canAquiferize}
+                    <button
+                        class="btn btn-primary ms-4"
+                        class:btn-disabled={isTransacting}
+                        on:click={openAquiferizeModal}
+                        >{#if isTransacting}
+                            <span class="loading loading-spinner" />
+                        {:else}
+                            Aquiferize
+                        {/if}
+                    </button>
+                {/if}
+                {#if canMakeContentEdits}
+                    <button
                         class="btn btn-primary ms-4 w-[72px]"
-                        class:btn-disabled={!contentUpdated || isSaving}
+                        class:btn-disabled={!contentUpdated || isTransacting}
                         on:click={onSave}
-                        >{#if isSaving}
+                        >{#if isTransacting}
                             <span class="loading loading-spinner" />
                         {:else}
                             Save
@@ -111,6 +163,7 @@
         <div class="flex h-[85vh]">
             <div class="me-8 flex max-h-full w-4/12 flex-col">
                 <Overview
+                    canEdit={canMakeContentEdits}
                     displayNameText={resourceContent.displayName}
                     typeText={resourceContent.parentResourceName}
                     isPublished={resourceContent.isPublished}
@@ -125,7 +178,11 @@
                 <BibleReferences bibleReferences={resourceContent.passageReferences} />
             </div>
             <div class="flex max-h-full w-8/12 flex-col">
-                <Content {resourceContent} typeText={resourceContent.parentResourceName} />
+                <Content
+                    canEdit={canMakeContentEdits}
+                    {resourceContent}
+                    typeText={resourceContent.parentResourceName}
+                />
             </div>
         </div>
     </div>
@@ -152,9 +209,32 @@
         </div>
     </div>
 </dialog>
+
+<dialog bind:this={aquiferizeModal} class="modal">
+    <div class="modal-box">
+        <h3 class="w-full pb-4 text-center text-xl font-bold">Choose an Editor</h3>
+        <div class="flex flex-col">
+            <select bind:value={aquiferizeSelectedUserId} class="select select-bordered">
+                <option value={null} selected>Select User</option>
+                {#each data.users as user}
+                    <option value={user.id}>{user.name}</option>
+                {/each}
+            </select>
+            <div class="flex w-full flex-row space-x-2 pt-4">
+                <div class="flex-grow" />
+                <button class="btn btn-primary" on:click={aquiferize} disabled={aquiferizeSelectedUserId === null}
+                    >Assign</button
+                >
+                <button class="btn btn-primary btn-outline" on:click={() => aquiferizeModal.close()}>Cancel</button>
+            </div>
+        </div>
+    </div>
+</dialog>
+
 <dialog bind:this={loadingModal} class="modal">
     <span class="loading loading-spinner w-24 text-primary"></span>
 </dialog>
+
 <dialog bind:this={errorModal} class="modal">
     <div class="modal-box bg-error">
         <form method="dialog">

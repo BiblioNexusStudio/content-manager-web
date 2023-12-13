@@ -3,7 +3,6 @@ import { Auth0Client, createAuth0Client, User } from '@auth0/auth0-spa-js';
 import config from '$lib/config';
 import { log } from '$lib/logger';
 import { dev } from '$app/environment';
-import { goto } from '$app/navigation';
 
 export const auth0Client: Writable<Auth0Client | undefined> = writable(undefined);
 export const profile: Writable<User | undefined> = writable(undefined);
@@ -44,7 +43,7 @@ export async function initAuth0(url: URL) {
 
     if (!isAuthenticated && url.searchParams.has('code') && url.searchParams.has('state')) {
         await client.handleRedirectCallback();
-        goto('/');
+        window.location.href = '/';
         isAuthenticated = await client.isAuthenticated();
     }
 
