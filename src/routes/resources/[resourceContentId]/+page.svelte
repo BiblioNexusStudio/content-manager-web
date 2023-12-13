@@ -128,7 +128,11 @@
                     resourceContentStatuses={data.resourceContentStatuses}
                 />
                 <RelatedContent relatedContent={resourceContent.associatedResources} />
-                <BibleReferences bibleReferences={resourceContent.passageReferences} />
+                <BibleReferences
+                    bibleReferences={resourceContent.passageReferences.sort(
+                        (br1, br2) => br1.startVerseId - br2.startVerseId
+                    )}
+                />
             </div>
             <div class="flex max-h-full w-8/12 flex-col">
                 <Content {resourceContent} typeText={resourceContent.parentResourceName} />
