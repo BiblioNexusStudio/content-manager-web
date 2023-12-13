@@ -42,7 +42,7 @@ function getResourceList(
 ) {
     const skip = (currentPage - 1) * take;
     return fetchJsonStreamingFromApi<ResourceListItem[]>(
-        `/resources/list?skip=${skip}&take=${take}&languageId=${languageId}&parentResourceId=${parentResourceId}&query=${query}`,
+        `/admin/resources/list?skip=${skip}&take=${take}&languageId=${languageId}&parentResourceId=${parentResourceId}&query=${query}`,
         {},
         fetch
     );
@@ -50,7 +50,7 @@ function getResourceList(
 
 function getResourceListCount(fetch: typeof window.fetch, languageId: number, parentResourceId: number, query: string) {
     return fetchJsonStreamingFromApi<number>(
-        `/resources/list/count?languageId=${languageId}&parentResourceId=${parentResourceId}&query=${query}`,
+        `/admin/resources/list/count?languageId=${languageId}&parentResourceId=${parentResourceId}&query=${query}`,
         {},
         fetch
     );

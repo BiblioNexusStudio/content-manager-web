@@ -2,7 +2,7 @@ import type { PageLoad } from './$types';
 import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
 
 export const load: PageLoad = async ({ fetch }) => {
-    const summary = (await fetchJsonFromApiWithAuth('/resources/summary', {}, fetch)) as ResourcesSummary;
+    const summary = (await fetchJsonFromApiWithAuth('/admin/resources/summary', {}, fetch)) as ResourcesSummary;
 
     return { summary };
 };

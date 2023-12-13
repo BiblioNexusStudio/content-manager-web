@@ -52,7 +52,7 @@ async function getLanguages(fetch: typeof window.fetch) {
 }
 
 async function getCurrentUser(fetch: typeof window.fetch) {
-    return (await fetchJsonFromApiWithAuth('/users/self', {}, fetch)) as User;
+    return (await fetchJsonFromApiWithAuth('/admin/users/self', {}, fetch)) as User;
 }
 
 async function getResourceTypes(fetch: typeof window.fetch) {
@@ -60,5 +60,5 @@ async function getResourceTypes(fetch: typeof window.fetch) {
 }
 
 async function getResourceContentStatuses(fetch: typeof window.fetch) {
-    return (await fetchJsonFromApiWithAuth('/resources/content/statuses', {}, fetch)) as ResourceContentStatus[];
+    return (await fetchJsonFromApiWithAuth('/admin/resources/content/statuses', {}, fetch)) as ResourceContentStatus[];
 }
