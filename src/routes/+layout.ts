@@ -2,7 +2,14 @@ import type { LayoutLoad } from './$types';
 import { waitLocale } from 'svelte-i18n';
 import { initI18n } from '$lib/i18n';
 import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
-import type { Language, ResourceContentStatus, ResourceType, User } from '$lib/types/base';
+import {
+    Permission,
+    type CurrentUser,
+    type Language,
+    type ResourceContentStatus,
+    type ResourceType,
+    type User,
+} from '$lib/types/base';
 import { browser } from '$app/environment';
 import { initAuth0 } from '$lib/stores/auth';
 
@@ -23,6 +30,12 @@ export const load: LayoutLoad = async ({ fetch, url, data }) => {
         getCurrentUser(fetch, isAuthenticated),
     ]);
 
+    let users: User[] | null = null;
+
+    if (currentUser?.permissions.includes(Permission.ReadValues)) {
+        users = await fetchJsonFromApiWithAuth<User[]>('/admin/users', {}, fetch);
+    }
+
     await initI18n();
     await waitLocale();
 
@@ -37,6 +50,7 @@ export const load: LayoutLoad = async ({ fetch, url, data }) => {
         resourceTypes: resourceTypes as ResourceType[],
         resourceContentStatuses: resourceContentStatuses as ResourceContentStatus[],
         currentUser: currentUser as User,
+        users,
     };
 };
 
@@ -49,7 +63,7 @@ async function getLanguages(fetch: typeof window.fetch, isAuthenticated: boolean
 
 async function getCurrentUser(fetch: typeof window.fetch, isAuthenticated: boolean) {
     if (isAuthenticated) {
-        return await fetchJsonFromApiWithAuth<User>('/admin/users/self', {}, fetch);
+        return await fetchJsonFromApiWithAuth<CurrentUser>('/admin/users/self', {}, fetch);
     }
     return null;
 }

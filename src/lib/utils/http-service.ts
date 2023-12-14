@@ -15,6 +15,10 @@ export type StreamedData<T> = { streamed: Promise<StreamedError | T> };
 
 type CustomFetchOptions = ExtendType<FetchOptions, 'body', object | undefined>;
 
+interface HttpError {
+    status?: number;
+}
+
 interface FetchOptions extends RequestInit {
     headers?: Record<string, string>;
 }
@@ -154,7 +158,7 @@ export async function fetchJsonFromApiWithAuth<T = never>(
         // implementation. Any user coming to the site after inactivity won't have a cookie and the SSR will not be
         // able to authenticate properly. But then the client (which will have the token) will refetch the data and
         // things will work.
-        if (!browser && (error as { status: number }).status && (error as { status: number }).status === 401) {
+        if (!browser && (error as HttpError).status === 401) {
             console.log('Missing auth token during SSR fetch. Client will re-fetch and handle any errors.', error);
             return null;
         } else {
