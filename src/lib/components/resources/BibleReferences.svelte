@@ -5,7 +5,17 @@
     export let bibleReferences: PassageReference[];
 
     function generateVerseFromReference(reference: PassageReference): string {
-        return `${reference.startBook} ${reference.startChapter}:${reference.startVerse} - ${reference.endBook} ${reference.endChapter}:${reference.endVerse}`;
+        let label = '';
+        if (reference.startBook === reference.endBook) {
+            if (reference.startChapter === reference.endChapter) {
+                label = `${reference.startBook} ${reference.startChapter}:${reference.startVerse}-${reference.endVerse}`;
+            } else {
+                label = `${reference.startBook} ${reference.startChapter}:${reference.startVerse}-${reference.endChapter}:${reference.endVerse}`;
+            }
+        } else {
+            label = `${reference.startBook} ${reference.startChapter}:${reference.startVerse} - ${reference.endBook} ${reference.endChapter}:${reference.endVerse}`;
+        }
+        return label;
     }
 </script>
 
