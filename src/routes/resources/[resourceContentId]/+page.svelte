@@ -13,6 +13,7 @@
     import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum } from '$lib/types/base';
+    import { getSortedReferences } from '$lib/utils/reference';
 
     beforeNavigate((x) => {
         if (contentUpdated) {
@@ -217,11 +218,7 @@
                     resourceContentStatuses={data.resourceContentStatuses}
                 />
                 <RelatedContent relatedContent={resourceContent.associatedResources} />
-                <BibleReferences
-                    bibleReferences={resourceContent.passageReferences.sort(
-                        (br1, br2) => br1.startVerseId - br2.startVerseId
-                    )}
-                />
+                <BibleReferences bibleReferences={getSortedReferences(resourceContent)} />
             </div>
             <div class="flex max-h-full w-8/12 flex-col">
                 <Content

@@ -26,6 +26,13 @@ export interface PassageReference {
     endVerse: number;
 }
 
+export interface VerseReference {
+    verseId: number;
+    book: string;
+    chapter: number;
+    verse: number;
+}
+
 interface TextContent {
     type: string;
     text: string;
@@ -91,6 +98,7 @@ export interface ContentIdWithLanguageId {
 
 export interface ResourceContent {
     passageReferences: PassageReference[];
+    verseReferences: VerseReference[];
     associatedResources: AssociatedResource[];
     parentResourceName: string;
     resourceContentId: number;
