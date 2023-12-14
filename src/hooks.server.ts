@@ -2,6 +2,7 @@
 import { locale } from 'svelte-i18n';
 import config from '$lib/config';
 import { log } from '$lib/logger';
+import { AUTH_COOKIE_NAME } from '$lib/stores/auth';
 
 const defaultLocale = 'en';
 
@@ -21,7 +22,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 export const handleFetch: HandleFetch = async ({ event, request, fetch }) => {
     // only add auth info to Aquifer requests (prevents leaking credentials if we ever fetch from other APIs)
     if (request.url.startsWith(config.PUBLIC_AQUIFER_API_URL)) {
-        const authToken = event.cookies.get('AuthToken');
+        const authToken = event.cookies.get(AUTH_COOKIE_NAME);
         if (authToken) {
             request.headers.set('Authorization', `Bearer ${authToken}`);
         }

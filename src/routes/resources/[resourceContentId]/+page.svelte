@@ -25,9 +25,12 @@
     let loadingModal: HTMLDialogElement;
     let errorModal: HTMLDialogElement;
     let aquiferizeModal: HTMLDialogElement;
+    let publishModal: HTMLDialogElement;
     let aquiferizeSelectedUserId: string | null = null;
     let canMakeContentEdits = false;
     let canAquiferize = false;
+    let canPublish = false;
+    let createDraft = false;
 
     export let data: PageData;
 
@@ -54,6 +57,11 @@
             ($authz.hasRole(Role.Publisher) || $authz.hasRole(Role.Admin)) &&
             (resourceContent.status === ResourceContentStatusEnum.New ||
                 resourceContent.status === ResourceContentStatusEnum.Complete);
+
+        canPublish =
+            ($authz.hasRole(Role.Publisher) || $authz.hasRole(Role.Admin)) &&
+            resourceContent.status === ResourceContentStatusEnum.New &&
+            !resourceContent.isPublished;
     }
 
     let isTransacting = false;
@@ -63,12 +71,37 @@
         aquiferizeModal.showModal();
     }
 
+    function openPublishModal() {
+        aquiferizeSelectedUserId = null;
+        createDraft = false;
+        publishModal.showModal();
+    }
+
     async function aquiferize() {
         isTransacting = true;
         try {
             await fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/aquiferize`, {
                 method: 'POST',
                 body: { assignedUserId: aquiferizeSelectedUserId ? parseInt(aquiferizeSelectedUserId) : null },
+            });
+            window.location.reload(); // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
+        } catch (error) {
+            errorModal.showModal();
+            throw error;
+        } finally {
+            isTransacting = false;
+        }
+    }
+
+    async function publish() {
+        isTransacting = true;
+        try {
+            await fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/publish`, {
+                method: 'POST',
+                body: {
+                    createDraft: createDraft,
+                    assignedUserId: aquiferizeSelectedUserId ? parseInt(aquiferizeSelectedUserId) : null,
+                },
             });
             window.location.reload(); // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
         } catch (error) {
@@ -133,6 +166,15 @@
 
             <div class="flex">
                 <LanguageDropdown languageSet={availableLanguages(resourceContent)} disable={contentUpdated} />
+                {#if canPublish}
+                    <button class="btn btn-primary ms-4" class:btn-disabled={isTransacting} on:click={openPublishModal}
+                        >{#if isTransacting}
+                            <span class="loading loading-spinner" />
+                        {:else}
+                            Publish
+                        {/if}
+                    </button>
+                {/if}
                 {#if canAquiferize}
                     <button
                         class="btn btn-primary ms-4"
@@ -218,18 +260,56 @@
     <div class="modal-box">
         <h3 class="w-full pb-4 text-center text-xl font-bold">Choose an Editor</h3>
         <div class="flex flex-col">
-            <select bind:value={aquiferizeSelectedUserId} class="select select-bordered">
-                <option value={null} selected>Select User</option>
-                {#each data.users as user}
-                    <option value={user.id}>{user.name}</option>
-                {/each}
-            </select>
+            {#if data.users}
+                <select bind:value={aquiferizeSelectedUserId} class="select select-bordered">
+                    <option value={null} selected>Select User</option>
+                    {#each data.users as user}
+                        <option value={user.id}>{user.name}</option>
+                    {/each}
+                </select>
+            {/if}
             <div class="flex w-full flex-row space-x-2 pt-4">
                 <div class="flex-grow" />
                 <button class="btn btn-primary" on:click={aquiferize} disabled={aquiferizeSelectedUserId === null}
                     >Assign</button
                 >
                 <button class="btn btn-primary btn-outline" on:click={() => aquiferizeModal.close()}>Cancel</button>
+            </div>
+        </div>
+    </div>
+</dialog>
+
+<dialog bind:this={publishModal} class="modal">
+    <div class="modal-box">
+        <h3 class="w-full pb-4 text-center text-xl font-bold">Choose Publish Option</h3>
+        <div class="flex flex-col">
+            <div class="form-control">
+                <label class="label cursor-pointer justify-start space-x-2">
+                    <input type="checkbox" bind:checked={createDraft} class="checkbox" />
+                    <span class="label-text">Aquiferization Needed</span>
+                </label>
+            </div>
+            <label class="form-control">
+                <div class="label">
+                    <span class="label-text">Aquiferization Assignment (optional)</span>
+                </div>
+                {#if data.users}
+                    <select
+                        disabled={!createDraft}
+                        bind:value={aquiferizeSelectedUserId}
+                        class="select select-bordered"
+                    >
+                        <option value={null} selected>Unassigned</option>
+                        {#each data.users as user}
+                            <option value={user.id}>{user.name}</option>
+                        {/each}
+                    </select>
+                {/if}
+            </label>
+            <div class="flex w-full flex-row space-x-2 pt-4">
+                <div class="flex-grow" />
+                <button class="btn btn-primary" on:click={publish}>Publish</button>
+                <button class="btn btn-primary btn-outline" on:click={() => publishModal.close()}>Cancel</button>
             </div>
         </div>
     </div>

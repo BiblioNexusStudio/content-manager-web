@@ -16,6 +16,7 @@
     import { logout, profile, auth0Client, syncAuthTokenToCookies } from '$lib/stores/auth';
     import { log } from '$lib/logger';
     import type { LayoutData } from './$types';
+    import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
 
     $: userEmail = $profile?.email ?? ' '; // set to avoid flashing undefined
     $: userFullName = $profile?.name ?? ' ';
@@ -96,7 +97,12 @@
 
 <svelte:window on:error={onError} on:unhandledrejection={onRejection} />
 
-{#if data.loaded}
+{#if !data.isAuthenticated}
+    <!-- If not authenticated, show a spinner, since either: -->
+    <!--     1) this is SSR and the user is authenticated locally, in which case the client will recover -->
+    <!--     2) the user is legitimately not authenticated, in which case they'll be redirected to Auth0 -->
+    <CenteredSpinner />
+{:else if data.loaded}
     <div class="drawer lg:drawer-open">
         <input id="main-drawer" type="checkbox" class="drawer-toggle" />
         <div class="drawer-content">
