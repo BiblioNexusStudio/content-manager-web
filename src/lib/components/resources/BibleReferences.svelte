@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { PassageReference, VerseReference } from '$lib/types/resources';
-    import { instanceOfPassageReference } from '$lib/utils/reference-check';
+    import { instanceOfPassageReference } from '$lib/utils/reference';
     import EmptyMessage from './EmptyMessage.svelte';
 
     export let bibleReferences: (PassageReference | VerseReference)[];
