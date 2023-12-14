@@ -13,6 +13,7 @@
     import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum } from '$lib/types/base';
+    import { instanceOfPassageReference } from '$lib/utils/reference-check';
 
     beforeNavigate((x) => {
         if (contentUpdated) {
@@ -124,6 +125,21 @@
 {#await resourceContentPromise}
     <CenteredSpinner />
 {:then resourceContent}
+    {@const allRefs = [...resourceContent.passageReferences, ...resourceContent.verseReferences].sort((refA, refB) => {
+        if (instanceOfPassageReference(refA)) {
+            if (instanceOfPassageReference(refB)) {
+                return refA.startVerseId - refB.startVerseId;
+            } else {
+                return refA.startVerseId - refB.verseId;
+            }
+        } else {
+            if (instanceOfPassageReference(refB)) {
+                return refA.verseId - refB.startVerseId;
+            } else {
+                return refA.verseId - refB.verseId;
+            }
+        }
+    })}
     <div class="p-8">
         <div class="mb-8 flex items-center justify-between">
             <h1 class="me-8 text-2xl font-bold">
@@ -175,11 +191,7 @@
                     resourceContentStatuses={data.resourceContentStatuses}
                 />
                 <RelatedContent relatedContent={resourceContent.associatedResources} />
-                <BibleReferences
-                    bibleReferences={resourceContent.passageReferences.sort(
-                        (br1, br2) => br1.startVerseId - br2.startVerseId
-                    )}
-                />
+                <BibleReferences bibleReferences={allRefs} />
             </div>
             <div class="flex max-h-full w-8/12 flex-col">
                 <Content

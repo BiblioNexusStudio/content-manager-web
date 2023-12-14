@@ -1,20 +1,26 @@
 <script lang="ts">
-    import type { PassageReference } from '$lib/types/resources';
+    import type { PassageReference, VerseReference } from '$lib/types/resources';
+    import { instanceOfPassageReference } from '$lib/utils/reference-check';
     import EmptyMessage from './EmptyMessage.svelte';
 
-    export let bibleReferences: PassageReference[];
+    export let bibleReferences: (PassageReference | VerseReference)[];
 
-    function generateVerseFromReference(reference: PassageReference): string {
+    function generateVerseFromReference(reference: PassageReference | VerseReference): string {
         let label = '';
-        if (reference.startBook === reference.endBook) {
-            if (reference.startChapter === reference.endChapter) {
-                label = `${reference.startBook} ${reference.startChapter}:${reference.startVerse}-${reference.endVerse}`;
+        if (instanceOfPassageReference(reference)) {
+            if (reference.startBook === reference.endBook) {
+                if (reference.startChapter === reference.endChapter) {
+                    label = `${reference.startBook} ${reference.startChapter}:${reference.startVerse}-${reference.endVerse}`;
+                } else {
+                    label = `${reference.startBook} ${reference.startChapter}:${reference.startVerse}-${reference.endChapter}:${reference.endVerse}`;
+                }
             } else {
-                label = `${reference.startBook} ${reference.startChapter}:${reference.startVerse}-${reference.endChapter}:${reference.endVerse}`;
+                label = `${reference.startBook} ${reference.startChapter}:${reference.startVerse} - ${reference.endBook} ${reference.endChapter}:${reference.endVerse}`;
             }
         } else {
-            label = `${reference.startBook} ${reference.startChapter}:${reference.startVerse} - ${reference.endBook} ${reference.endChapter}:${reference.endVerse}`;
+            label = `${reference.book} ${reference.chapter}:${reference.verse}`;
         }
+
         return label;
     }
 </script>
