@@ -45,6 +45,6 @@ export enum Permission {
     WriteValues = 'write:values',
 }
 
-export interface CurrentUser extends User {
+export interface CurrentUserApi extends User {
     permissions: Permission[];
 }

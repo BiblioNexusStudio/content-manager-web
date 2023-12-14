@@ -9,11 +9,11 @@
     import type { ResourceContent } from '$lib/types/resources';
     import { originalValues, updatedValues, resetUpdated, updateOriginal } from '$lib/stores/tiptapContent';
     import { beforeNavigate, goto } from '$app/navigation';
-    import { Role, authz } from '$lib/stores/auth';
     import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
-    import { ResourceContentStatusEnum } from '$lib/types/base';
+    import { Permission, ResourceContentStatusEnum } from '$lib/types/base';
     import { getSortedReferences } from '$lib/utils/reference';
+    import UserSelector from './UserSelector.svelte';
 
     beforeNavigate((x) => {
         if (contentUpdated) {
@@ -26,10 +26,12 @@
     let loadingModal: HTMLDialogElement;
     let errorModal: HTMLDialogElement;
     let aquiferizeModal: HTMLDialogElement;
+    let assignUserModal: HTMLDialogElement;
     let publishModal: HTMLDialogElement;
-    let aquiferizeSelectedUserId: string | null = null;
+    let assignToUserId: string | null = null;
     let canMakeContentEdits = false;
     let canAquiferize = false;
+    let canAssign = false;
     let canPublish = false;
     let createDraft = false;
 
@@ -49,18 +51,25 @@
     }
 
     function handleFetchedResource(resourceContent: ResourceContent) {
+        const currentUserIsAssigned = resourceContent.assignedUser?.id === data.currentUser.id;
+
         canMakeContentEdits =
-            ($authz.hasRole(Role.Publisher) || $authz.hasRole(Role.Admin) || $authz.hasRole(Role.Editor)) &&
+            data.currentUser.can(Permission.WriteValues) &&
             resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress &&
-            resourceContent.assignedUser?.id === data.currentUser.id;
+            currentUserIsAssigned;
 
         canAquiferize =
-            ($authz.hasRole(Role.Publisher) || $authz.hasRole(Role.Admin)) &&
+            data.currentUser.can(Permission.AquiferizeContent) &&
             (resourceContent.status === ResourceContentStatusEnum.New ||
                 resourceContent.status === ResourceContentStatusEnum.Complete);
 
+        canAssign =
+            (data.currentUser.can(Permission.AssignOverride) ||
+                (data.currentUser.can(Permission.AssignContent) && currentUserIsAssigned)) &&
+            resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress;
+
         canPublish =
-            ($authz.hasRole(Role.Publisher) || $authz.hasRole(Role.Admin)) &&
+            data.currentUser.can(Permission.PublishContent) &&
             resourceContent.status === ResourceContentStatusEnum.New &&
             !resourceContent.isPublished;
     }
@@ -68,14 +77,19 @@
     let isTransacting = false;
 
     function openAquiferizeModal() {
-        aquiferizeSelectedUserId = null;
+        assignToUserId = null;
         aquiferizeModal.showModal();
     }
 
     function openPublishModal() {
-        aquiferizeSelectedUserId = null;
+        assignToUserId = null;
         createDraft = false;
         publishModal.showModal();
+    }
+
+    function openAssignUserModal() {
+        assignToUserId = null;
+        assignUserModal.showModal();
     }
 
     async function aquiferize() {
@@ -83,7 +97,7 @@
         try {
             await fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/aquiferize`, {
                 method: 'POST',
-                body: { assignedUserId: aquiferizeSelectedUserId ? parseInt(aquiferizeSelectedUserId) : null },
+                body: { assignedUserId: assignToUserId ? parseInt(assignToUserId) : null },
             });
             window.location.reload(); // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
         } catch (error) {
@@ -101,7 +115,25 @@
                 method: 'POST',
                 body: {
                     createDraft: createDraft,
-                    assignedUserId: aquiferizeSelectedUserId ? parseInt(aquiferizeSelectedUserId) : null,
+                    assignedUserId: assignToUserId ? parseInt(assignToUserId) : null,
+                },
+            });
+            window.location.reload(); // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
+        } catch (error) {
+            errorModal.showModal();
+            throw error;
+        } finally {
+            isTransacting = false;
+        }
+    }
+
+    async function assignUser() {
+        isTransacting = true;
+        try {
+            await fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/assign-editor`, {
+                method: 'POST',
+                body: {
+                    assignedUserId: assignToUserId ? parseInt(assignToUserId) : null,
                 },
             });
             window.location.reload(); // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
@@ -176,6 +208,18 @@
                         {/if}
                     </button>
                 {/if}
+                {#if canAssign}
+                    <button
+                        class="btn btn-primary ms-4"
+                        class:btn-disabled={isTransacting}
+                        on:click={openAssignUserModal}
+                        >{#if isTransacting}
+                            <span class="loading loading-spinner" />
+                        {:else}
+                            Assign User
+                        {/if}
+                    </button>
+                {/if}
                 {#if canAquiferize}
                     <button
                         class="btn btn-primary ms-4"
@@ -229,99 +273,108 @@
             </div>
         </div>
     </div>
+
+    <dialog bind:this={onCloseModal} class="modal">
+        <div class="modal-box">
+            <h3 class="text-xl font-bold">Unsaved Changes</h3>
+            <p class="py-4 text-lg">There are unsaved changes. Do you want to save them?</p>
+            <div class="modal-action pt-4">
+                <form method="dialog">
+                    <button class="btn btn-primary" on:click={onSaveAndCloseClick}>Save and Close</button>
+                    <button
+                        class="btn btn-error"
+                        on:click={() => {
+                            resetUpdated();
+                            goBack();
+                        }}>Discard Changes</button
+                    >
+                    <button class="btn btn-primary btn-outline">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog bind:this={aquiferizeModal} class="modal">
+        <div class="modal-box">
+            <h3 class="w-full pb-4 text-center text-xl font-bold">Choose an Editor</h3>
+            <div class="flex flex-col">
+                <UserSelector users={data.users} defaultLabel="Select User" bind:selectedUserId={assignToUserId} />
+                <div class="flex w-full flex-row space-x-2 pt-4">
+                    <div class="flex-grow" />
+                    <button class="btn btn-primary" on:click={aquiferize} disabled={assignToUserId === null}
+                        >Assign</button
+                    >
+                    <button class="btn btn-primary btn-outline" on:click={() => aquiferizeModal.close()}>Cancel</button>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog bind:this={assignUserModal} class="modal">
+        <div class="modal-box">
+            <h3 class="w-full pb-4 text-center text-xl font-bold">Choose an Editor</h3>
+            <div class="flex flex-col">
+                <UserSelector
+                    users={data.users}
+                    defaultLabel="Select User"
+                    bind:selectedUserId={assignToUserId}
+                    hideUser={resourceContent.assignedUser}
+                />
+                <div class="flex w-full flex-row space-x-2 pt-4">
+                    <div class="flex-grow" />
+                    <button class="btn btn-primary" on:click={assignUser} disabled={assignToUserId === null}
+                        >Assign</button
+                    >
+                    <button class="btn btn-primary btn-outline" on:click={() => assignUserModal.close()}>Cancel</button>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog bind:this={publishModal} class="modal">
+        <div class="modal-box">
+            <h3 class="w-full pb-4 text-center text-xl font-bold">Choose Publish Option</h3>
+            <div class="flex flex-col">
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start space-x-2">
+                        <input type="checkbox" bind:checked={createDraft} class="checkbox" />
+                        <span class="label-text">Aquiferization Needed</span>
+                    </label>
+                </div>
+                <!-- svelte-ignore a11y-label-has-associated-control -->
+                <label class="form-control">
+                    <div class="label">
+                        <span class="label-text">Aquiferization Assignment (optional)</span>
+                    </div>
+                    <UserSelector
+                        users={data.users}
+                        defaultLabel="Unassigned"
+                        disabled={!createDraft}
+                        bind:selectedUserId={assignToUserId}
+                    />
+                </label>
+                <div class="flex w-full flex-row space-x-2 pt-4">
+                    <div class="flex-grow" />
+                    <button class="btn btn-primary" on:click={publish}>Publish</button>
+                    <button class="btn btn-primary btn-outline" on:click={() => publishModal.close()}>Cancel</button>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog bind:this={loadingModal} class="modal">
+        <span class="loading loading-spinner w-24 text-primary"></span>
+    </dialog>
+
+    <dialog bind:this={errorModal} class="modal">
+        <div class="modal-box bg-error">
+            <form method="dialog">
+                <button class="btn btn-circle btn-ghost btn-sm absolute right-2 top-2">✕</button>
+            </form>
+            <h3 class="text-xl font-bold">Error</h3>
+            <p class="py-4 text-lg font-medium">An error occurred while saving. Please try again.</p>
+        </div>
+    </dialog>
 {:catch}
     <div class="p-8">Resource not found</div>
 {/await}
-
-<dialog bind:this={onCloseModal} class="modal">
-    <div class="modal-box">
-        <h3 class="text-xl font-bold">Unsaved Changes</h3>
-        <p class="py-4 text-lg">There are unsaved changes. Do you want to save them?</p>
-        <div class="modal-action pt-4">
-            <form method="dialog">
-                <button class="btn btn-primary" on:click={onSaveAndCloseClick}>Save and Close</button>
-                <button
-                    class="btn btn-error"
-                    on:click={() => {
-                        resetUpdated();
-                        goBack();
-                    }}>Discard Changes</button
-                >
-                <button class="btn btn-primary btn-outline">Cancel</button>
-            </form>
-        </div>
-    </div>
-</dialog>
-
-<dialog bind:this={aquiferizeModal} class="modal">
-    <div class="modal-box">
-        <h3 class="w-full pb-4 text-center text-xl font-bold">Choose an Editor</h3>
-        <div class="flex flex-col">
-            {#if data.users}
-                <select bind:value={aquiferizeSelectedUserId} class="select select-bordered">
-                    <option value={null} selected>Select User</option>
-                    {#each data.users as user}
-                        <option value={user.id}>{user.name}</option>
-                    {/each}
-                </select>
-            {/if}
-            <div class="flex w-full flex-row space-x-2 pt-4">
-                <div class="flex-grow" />
-                <button class="btn btn-primary" on:click={aquiferize} disabled={aquiferizeSelectedUserId === null}
-                    >Assign</button
-                >
-                <button class="btn btn-primary btn-outline" on:click={() => aquiferizeModal.close()}>Cancel</button>
-            </div>
-        </div>
-    </div>
-</dialog>
-
-<dialog bind:this={publishModal} class="modal">
-    <div class="modal-box">
-        <h3 class="w-full pb-4 text-center text-xl font-bold">Choose Publish Option</h3>
-        <div class="flex flex-col">
-            <div class="form-control">
-                <label class="label cursor-pointer justify-start space-x-2">
-                    <input type="checkbox" bind:checked={createDraft} class="checkbox" />
-                    <span class="label-text">Aquiferization Needed</span>
-                </label>
-            </div>
-            <label class="form-control">
-                <div class="label">
-                    <span class="label-text">Aquiferization Assignment (optional)</span>
-                </div>
-                {#if data.users}
-                    <select
-                        disabled={!createDraft}
-                        bind:value={aquiferizeSelectedUserId}
-                        class="select select-bordered"
-                    >
-                        <option value={null} selected>Unassigned</option>
-                        {#each data.users as user}
-                            <option value={user.id}>{user.name}</option>
-                        {/each}
-                    </select>
-                {/if}
-            </label>
-            <div class="flex w-full flex-row space-x-2 pt-4">
-                <div class="flex-grow" />
-                <button class="btn btn-primary" on:click={publish}>Publish</button>
-                <button class="btn btn-primary btn-outline" on:click={() => publishModal.close()}>Cancel</button>
-            </div>
-        </div>
-    </div>
-</dialog>
-
-<dialog bind:this={loadingModal} class="modal">
-    <span class="loading loading-spinner w-24 text-primary"></span>
-</dialog>
-
-<dialog bind:this={errorModal} class="modal">
-    <div class="modal-box bg-error">
-        <form method="dialog">
-            <button class="btn btn-circle btn-ghost btn-sm absolute right-2 top-2">✕</button>
-        </form>
-        <h3 class="text-xl font-bold">Error</h3>
-        <p class="py-4 text-lg font-medium">An error occurred while saving. Please try again.</p>
-    </div>
-</dialog>

@@ -4,14 +4,14 @@ import { initI18n } from '$lib/i18n';
 import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
 import {
     Permission,
-    type CurrentUser,
     type Language,
     type ResourceContentStatus,
     type ResourceType,
     type User,
+    type CurrentUserApi,
 } from '$lib/types/base';
 import { browser } from '$app/environment';
-import { initAuth0 } from '$lib/stores/auth';
+import { initAuth0, initPermissionChecking, type CurrentUser } from '$lib/stores/auth';
 
 export const load: LayoutLoad = async ({ fetch, url, data }) => {
     let isAuthenticated: boolean;
@@ -49,7 +49,7 @@ export const load: LayoutLoad = async ({ fetch, url, data }) => {
         languages: languages as Language[],
         resourceTypes: resourceTypes as ResourceType[],
         resourceContentStatuses: resourceContentStatuses as ResourceContentStatus[],
-        currentUser: currentUser as User,
+        currentUser: initPermissionChecking(currentUser) as CurrentUser,
         users,
     };
 };
@@ -63,7 +63,7 @@ async function getLanguages(fetch: typeof window.fetch, isAuthenticated: boolean
 
 async function getCurrentUser(fetch: typeof window.fetch, isAuthenticated: boolean) {
     if (isAuthenticated) {
-        return await fetchJsonFromApiWithAuth<CurrentUser>('/admin/users/self', {}, fetch);
+        return await fetchJsonFromApiWithAuth<CurrentUserApi>('/admin/users/self', {}, fetch);
     }
     return null;
 }
