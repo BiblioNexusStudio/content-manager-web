@@ -6,13 +6,13 @@
     import { setOriginalValues, currentStepNumber, type TiptapContentItemValues } from '$lib/stores/tiptapContent';
     import type { ResourceContent } from '$lib/types/resources';
 
-    export let stepNavigation = false;
     export let resourceContent: ResourceContent;
     export let canEdit: boolean;
 
     $: content = resourceContent.content as unknown as TiptapContentItemValues[];
     $: currentResourceStepsLength = content.length || 0;
     $: setOriginalValues({ contentId: resourceContent.resourceContentId, content });
+    $: stepNavigation = currentResourceStepsLength > 1;
 
     const headings = [
         {
