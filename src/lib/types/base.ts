@@ -1,3 +1,5 @@
+import type { Permission } from '$lib/stores/auth';
+
 export type ExtendType<T, K extends keyof T, V> = Omit<T, K> & { [P in K]?: V };
 
 export interface ResourceType {
@@ -34,15 +36,6 @@ export interface Language {
 export interface User {
     id: number;
     name: string;
-}
-
-export enum Permission {
-    AquiferizeContent = 'aquiferize:content',
-    PublishContent = 'publish:content',
-    AssignContent = 'assign:content',
-    AssignOverride = 'assign:override',
-    ReadUsers = 'read:users',
-    EditContent = 'edit:content',
 }
 
 export interface CurrentUserApi extends User {

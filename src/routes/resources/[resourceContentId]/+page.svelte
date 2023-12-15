@@ -11,9 +11,10 @@
     import { beforeNavigate, goto } from '$app/navigation';
     import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
-    import { Permission, ResourceContentStatusEnum } from '$lib/types/base';
+    import { ResourceContentStatusEnum } from '$lib/types/base';
     import { getSortedReferences } from '$lib/utils/reference';
     import UserSelector from './UserSelector.svelte';
+    import { Permission } from '$lib/stores/auth';
 
     beforeNavigate((x) => {
         if (contentUpdated) {
@@ -28,12 +29,15 @@
     let aquiferizeModal: HTMLDialogElement;
     let assignUserModal: HTMLDialogElement;
     let publishModal: HTMLDialogElement;
+    let confirmSendReviewModal: HTMLDialogElement;
+
     let assignToUserId: string | null = null;
     let canMakeContentEdits = false;
     let canAquiferize = false;
     let canAssign = false;
     let canPublish = false;
     let canUnpublish = false;
+    let canSendReview = false;
     let createDraft = false;
 
     export let data: PageData;
@@ -69,6 +73,11 @@
                 (data.currentUser.can(Permission.AssignContent) && currentUserIsAssigned)) &&
             resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress;
 
+        canSendReview =
+            (data.currentUser.can(Permission.SendReviewOverride) ||
+                (data.currentUser.can(Permission.SendReviewContent) && currentUserIsAssigned)) &&
+            resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress;
+
         canPublish =
             data.currentUser.can(Permission.PublishContent) &&
             resourceContent.status === ResourceContentStatusEnum.New &&
@@ -95,13 +104,10 @@
         assignUserModal.showModal();
     }
 
-    async function aquiferize() {
+    async function takeActionAndRefresh(action: () => Promise<unknown>) {
         isTransacting = true;
         try {
-            await fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/aquiferize`, {
-                method: 'POST',
-                body: { assignedUserId: assignToUserId ? parseInt(assignToUserId) : null },
-            });
+            await action();
             window.location.reload(); // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
         } catch (error) {
             errorModal.showModal();
@@ -112,55 +118,51 @@
     }
 
     async function unpublish() {
-        isTransacting = true;
-        try {
-            await fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/unpublish`, {
+        takeActionAndRefresh(() =>
+            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/unpublish`, {
                 method: 'POST',
-            });
-            window.location.reload(); // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
-        } catch (error) {
-            errorModal.showModal();
-            throw error;
-        } finally {
-            isTransacting = false;
-        }
+            })
+        );
+    }
+
+    async function sendReview() {
+        takeActionAndRefresh(() =>
+            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/send-review`, {
+                method: 'POST',
+            })
+        );
+    }
+
+    async function aquiferize() {
+        takeActionAndRefresh(() =>
+            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/aquiferize`, {
+                method: 'POST',
+                body: { assignedUserId: assignToUserId ? parseInt(assignToUserId) : null },
+            })
+        );
     }
 
     async function publish() {
-        isTransacting = true;
-        try {
-            await fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/publish`, {
+        takeActionAndRefresh(() =>
+            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/publish`, {
                 method: 'POST',
                 body: {
                     createDraft: createDraft,
                     assignedUserId: assignToUserId ? parseInt(assignToUserId) : null,
                 },
-            });
-            window.location.reload(); // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
-        } catch (error) {
-            errorModal.showModal();
-            throw error;
-        } finally {
-            isTransacting = false;
-        }
+            })
+        );
     }
 
     async function assignUser() {
-        isTransacting = true;
-        try {
-            await fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/assign-editor`, {
+        takeActionAndRefresh(() =>
+            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/assign-editor`, {
                 method: 'POST',
                 body: {
                     assignedUserId: assignToUserId ? parseInt(assignToUserId) : null,
                 },
-            });
-            window.location.reload(); // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
-        } catch (error) {
-            errorModal.showModal();
-            throw error;
-        } finally {
-            isTransacting = false;
-        }
+            })
+        );
     }
 
     async function onSave() {
@@ -244,6 +246,18 @@
                             <span class="loading loading-spinner" />
                         {:else}
                             Assign User
+                        {/if}
+                    </button>
+                {/if}
+                {#if canSendReview}
+                    <button
+                        class="btn btn-primary ms-4"
+                        class:btn-disabled={isTransacting}
+                        on:click={() => confirmSendReviewModal.showModal()}
+                        >{#if isTransacting}
+                            <span class="loading loading-spinner" />
+                        {:else}
+                            Send to Review
                         {/if}
                     </button>
                 {/if}
@@ -385,6 +399,19 @@
                     <button class="btn btn-primary" on:click={publish}>Publish</button>
                     <button class="btn btn-primary btn-outline" on:click={() => publishModal.close()}>Cancel</button>
                 </div>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog bind:this={confirmSendReviewModal} class="modal">
+        <div class="modal-box">
+            <h3 class="text-xl font-bold">Confirm Send to Review</h3>
+            <p class="py-4 text-lg">Have you completed your editing? Your assignment will be removed.</p>
+            <div class="modal-action pt-4">
+                <form method="dialog">
+                    <button class="btn btn-primary" on:click={sendReview}>Send to Review</button>
+                    <button class="btn btn-primary btn-outline">Cancel</button>
+                </form>
             </div>
         </div>
     </dialog>

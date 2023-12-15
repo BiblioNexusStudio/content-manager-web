@@ -3,7 +3,7 @@ import { Auth0Client, createAuth0Client, User as Auth0User } from '@auth0/auth0-
 import config from '$lib/config';
 import { log } from '$lib/logger';
 import { dev } from '$app/environment';
-import type { CurrentUserApi, Permission, User } from '$lib/types/base';
+import type { CurrentUserApi, User } from '$lib/types/base';
 
 export const auth0Client: Writable<Auth0Client | undefined> = writable(undefined);
 export const profile: Writable<Auth0User | undefined> = writable(undefined);
@@ -12,6 +12,17 @@ const auth0ClientId = config.PUBLIC_AUTH0_CLIENT_ID;
 const auth0Audience = config.PUBLIC_AUTH0_AUDIENCE;
 
 export const AUTH_COOKIE_NAME = 'AuthToken';
+
+export enum Permission {
+    AquiferizeContent = 'aquiferize:content',
+    PublishContent = 'publish:content',
+    AssignContent = 'assign:content',
+    AssignOverride = 'assign:override',
+    SendReviewContent = 'send-review:content',
+    SendReviewOverride = 'send-review:override',
+    ReadUsers = 'read:users',
+    EditContent = 'edit:content',
+}
 
 export interface CurrentUser extends User {
     can: (permission: Permission) => boolean;
