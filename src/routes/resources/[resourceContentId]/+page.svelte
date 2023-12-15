@@ -33,6 +33,7 @@
     let canAquiferize = false;
     let canAssign = false;
     let canPublish = false;
+    let canUnpublish = false;
     let createDraft = false;
 
     export let data: PageData;
@@ -72,6 +73,8 @@
             data.currentUser.can(Permission.PublishContent) &&
             resourceContent.status === ResourceContentStatusEnum.New &&
             !resourceContent.isPublished;
+
+        canUnpublish = data.currentUser.can(Permission.PublishContent) && resourceContent.isPublished;
     }
 
     let isTransacting = false;
@@ -98,6 +101,21 @@
             await fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/aquiferize`, {
                 method: 'POST',
                 body: { assignedUserId: assignToUserId ? parseInt(assignToUserId) : null },
+            });
+            window.location.reload(); // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
+        } catch (error) {
+            errorModal.showModal();
+            throw error;
+        } finally {
+            isTransacting = false;
+        }
+    }
+
+    async function unpublish() {
+        isTransacting = true;
+        try {
+            await fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/unpublish`, {
+                method: 'POST',
             });
             window.location.reload(); // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
         } catch (error) {
@@ -205,6 +223,15 @@
                             <span class="loading loading-spinner" />
                         {:else}
                             Publish
+                        {/if}
+                    </button>
+                {/if}
+                {#if canUnpublish}
+                    <button class="btn btn-primary ms-4" class:btn-disabled={isTransacting} on:click={unpublish}
+                        >{#if isTransacting}
+                            <span class="loading loading-spinner" />
+                        {:else}
+                            Unpublish
                         {/if}
                     </button>
                 {/if}
