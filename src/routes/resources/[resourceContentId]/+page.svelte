@@ -306,11 +306,7 @@
                 <BibleReferences bibleReferences={getSortedReferences(resourceContent)} />
             </div>
             <div class="flex max-h-full w-8/12 flex-col">
-                <Content
-                    canEdit={canMakeContentEdits}
-                    {resourceContent}
-                    typeText={resourceContent.parentResourceName}
-                />
+                <Content canEdit={canMakeContentEdits} {resourceContent} mediaType={resourceContent.mediaType} />
             </div>
         </div>
     </div>
