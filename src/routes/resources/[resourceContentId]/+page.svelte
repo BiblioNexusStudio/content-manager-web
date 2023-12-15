@@ -35,9 +35,11 @@
     let canMakeContentEdits = false;
     let canAquiferize = false;
     let canAssign = false;
+    let canSendBack = false;
     let canPublish = false;
     let canUnpublish = false;
     let canSendReview = false;
+    let canStartReview = false;
     let createDraft = false;
 
     export let data: PageData;
@@ -60,7 +62,8 @@
 
         canMakeContentEdits =
             data.currentUser.can(Permission.EditContent) &&
-            resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress &&
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview) &&
             currentUserIsAssigned;
 
         canAquiferize =
@@ -73,15 +76,24 @@
                 (data.currentUser.can(Permission.AssignContent) && currentUserIsAssigned)) &&
             resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress;
 
+        canSendBack =
+            (data.currentUser.can(Permission.AssignOverride) ||
+                (data.currentUser.can(Permission.AssignContent) && currentUserIsAssigned)) &&
+            resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview;
+
         canSendReview =
             (data.currentUser.can(Permission.SendReviewOverride) ||
                 (data.currentUser.can(Permission.SendReviewContent) && currentUserIsAssigned)) &&
             resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress;
 
+        canStartReview =
+            data.currentUser.can(Permission.ReviewContent) &&
+            resourceContent.status === ResourceContentStatusEnum.AquiferizeReviewPending;
+
         canPublish =
             data.currentUser.can(Permission.PublishContent) &&
-            resourceContent.status === ResourceContentStatusEnum.New &&
-            !resourceContent.isPublished;
+            ((resourceContent.status === ResourceContentStatusEnum.New && !resourceContent.isPublished) ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview);
 
         canUnpublish = data.currentUser.can(Permission.PublishContent) && resourceContent.isPublished;
     }
@@ -93,10 +105,14 @@
         aquiferizeModal.showModal();
     }
 
-    function openPublishModal() {
+    function publishOrOpenModal(status: ResourceContentStatusEnum) {
         assignToUserId = null;
         createDraft = false;
-        publishModal.showModal();
+        if (status === ResourceContentStatusEnum.New) {
+            publishModal.showModal();
+        } else {
+            publish();
+        }
     }
 
     function openAssignUserModal() {
@@ -128,6 +144,14 @@
     async function sendReview() {
         takeActionAndRefresh(() =>
             fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/send-review`, {
+                method: 'POST',
+            })
+        );
+    }
+
+    async function startReview() {
+        takeActionAndRefresh(() =>
+            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/review`, {
                 method: 'POST',
             })
         );
@@ -219,8 +243,27 @@
 
             <div class="flex">
                 <LanguageDropdown languageSet={availableLanguages(resourceContent)} disable={contentUpdated} />
+                {#if canAssign || canSendBack}
+                    <button
+                        class="btn btn-primary ms-4"
+                        class:btn-disabled={isTransacting}
+                        on:click={openAssignUserModal}
+                        >{#if isTransacting}
+                            <span class="loading loading-spinner" />
+                        {:else}
+                            {#if canAssign}
+                                Assign User
+                            {:else if canSendBack}
+                                Send Back
+                            {/if}
+                        {/if}
+                    </button>
+                {/if}
                 {#if canPublish}
-                    <button class="btn btn-primary ms-4" class:btn-disabled={isTransacting} on:click={openPublishModal}
+                    <button
+                        class="btn btn-primary ms-4"
+                        class:btn-disabled={isTransacting}
+                        on:click={() => publishOrOpenModal(resourceContent.status)}
                         >{#if isTransacting}
                             <span class="loading loading-spinner" />
                         {:else}
@@ -237,18 +280,6 @@
                         {/if}
                     </button>
                 {/if}
-                {#if canAssign}
-                    <button
-                        class="btn btn-primary ms-4"
-                        class:btn-disabled={isTransacting}
-                        on:click={openAssignUserModal}
-                        >{#if isTransacting}
-                            <span class="loading loading-spinner" />
-                        {:else}
-                            Assign User
-                        {/if}
-                    </button>
-                {/if}
                 {#if canSendReview}
                     <button
                         class="btn btn-primary ms-4"
@@ -258,6 +289,15 @@
                             <span class="loading loading-spinner" />
                         {:else}
                             Send to Review
+                        {/if}
+                    </button>
+                {/if}
+                {#if canStartReview}
+                    <button class="btn btn-primary ms-4" class:btn-disabled={isTransacting} on:click={startReview}
+                        >{#if isTransacting}
+                            <span class="loading loading-spinner" />
+                        {:else}
+                            Review
                         {/if}
                     </button>
                 {/if}
