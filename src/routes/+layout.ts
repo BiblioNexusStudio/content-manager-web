@@ -2,16 +2,9 @@ import type { LayoutLoad } from './$types';
 import { waitLocale } from 'svelte-i18n';
 import { initI18n } from '$lib/i18n';
 import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
-import {
-    Permission,
-    type Language,
-    type ResourceContentStatus,
-    type ResourceType,
-    type User,
-    type CurrentUserApi,
-} from '$lib/types/base';
+import type { Language, ResourceContentStatus, ResourceType, User, CurrentUserApi } from '$lib/types/base';
 import { browser } from '$app/environment';
-import { initAuth0, initPermissionChecking, type CurrentUser } from '$lib/stores/auth';
+import { initAuth0, initPermissionChecking, type CurrentUser, Permission } from '$lib/stores/auth';
 
 export const load: LayoutLoad = async ({ fetch, url, data }) => {
     let isAuthenticated: boolean;
