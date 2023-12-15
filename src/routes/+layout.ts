@@ -32,7 +32,7 @@ export const load: LayoutLoad = async ({ fetch, url, data }) => {
 
     let users: User[] | null = null;
 
-    if (currentUser?.permissions.includes(Permission.ReadValues)) {
+    if (currentUser?.permissions.includes(Permission.ReadUsers)) {
         users = await fetchJsonFromApiWithAuth<User[]>('/admin/users', {}, fetch);
     }
 

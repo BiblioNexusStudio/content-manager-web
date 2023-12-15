@@ -54,7 +54,7 @@
         const currentUserIsAssigned = resourceContent.assignedUser?.id === data.currentUser.id;
 
         canMakeContentEdits =
-            data.currentUser.can(Permission.WriteValues) &&
+            data.currentUser.can(Permission.EditContent) &&
             resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress &&
             currentUserIsAssigned;
 
