@@ -41,10 +41,10 @@ export enum Permission {
     PublishContent = 'publish:content',
     AssignContent = 'assign:content',
     AssignOverride = 'assign:override',
-    ReadValues = 'read:values',
-    WriteValues = 'write:values',
+    ReadUsers = 'read:users',
+    EditContent = 'edit:content',
 }
 
-export interface CurrentUser extends User {
+export interface CurrentUserApi extends User {
     permissions: Permission[];
 }

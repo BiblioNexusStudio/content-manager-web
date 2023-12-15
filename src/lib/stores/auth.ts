@@ -1,31 +1,30 @@
-﻿import { type Writable, writable, derived, get } from 'svelte/store';
-import { Auth0Client, createAuth0Client, User } from '@auth0/auth0-spa-js';
+﻿import { type Writable, writable, get } from 'svelte/store';
+import { Auth0Client, createAuth0Client, User as Auth0User } from '@auth0/auth0-spa-js';
 import config from '$lib/config';
 import { log } from '$lib/logger';
 import { dev } from '$app/environment';
+import type { CurrentUserApi, Permission, User } from '$lib/types/base';
 
 export const auth0Client: Writable<Auth0Client | undefined> = writable(undefined);
-export const profile: Writable<User | undefined> = writable(undefined);
-export const authenticated: Writable<boolean> = writable(false);
-export const authz = derived([profile], ([user]) => {
-    return {
-        hasRole: (role: Role) => user?.bnRoles?.includes(role) === true,
-    };
-});
-export const canEdit = derived([profile], ([user]) => {
-    return (user?.bnRoles?.includes('admin') || user?.bnRoles?.includes('editor')) === true;
-});
+export const profile: Writable<Auth0User | undefined> = writable(undefined);
 const auth0Domain = config.PUBLIC_AUTH0_DOMAIN;
 const auth0ClientId = config.PUBLIC_AUTH0_CLIENT_ID;
 const auth0Audience = config.PUBLIC_AUTH0_AUDIENCE;
 
 export const AUTH_COOKIE_NAME = 'AuthToken';
 
-export enum Role {
-    Publisher = 'publisher',
-    Admin = 'admin',
-    Editor = 'editor',
-    Manager = 'manager',
+export interface CurrentUser extends User {
+    can: (permission: Permission) => boolean;
+}
+
+export function initPermissionChecking(user: CurrentUserApi | null): CurrentUser | null {
+    if (user) {
+        return {
+            ...user,
+            can: (permission: Permission) => user.permissions.includes(permission),
+        };
+    }
+    return null;
 }
 
 export async function initAuth0(url: URL) {
@@ -55,13 +54,11 @@ export async function initAuth0(url: URL) {
             await syncAuthTokenToCookies(client);
 
             profile.set(await client.getUser());
-            authenticated.set(isAuthenticated);
         } catch (error) {
             log.exception(error as Error);
             await logout(url);
         }
     } else {
-        authenticated.set(false);
         await login(url);
     }
     return isAuthenticated;
@@ -91,7 +88,6 @@ async function login(url: URL) {
 
 export async function logout(url: URL) {
     profile.set(undefined);
-    authenticated.set(false);
     await get(auth0Client)?.logout({
         logoutParams: {
             returnTo: url.origin,
