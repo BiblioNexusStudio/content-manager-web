@@ -53,6 +53,7 @@
             case ResourceContentStatusEnum.TranslateDrafting:
             case ResourceContentStatusEnum.TranslateReviewing:
             case ResourceContentStatusEnum.AquiferizeInReview:
+            case ResourceContentStatusEnum.AquiferizeReviewPending:
             case ResourceContentStatusEnum.AquiferizeInProgress:
                 return 'badge-primary bg-[#B9EBFE] text-primary';
             case ResourceContentStatusEnum.Complete:
