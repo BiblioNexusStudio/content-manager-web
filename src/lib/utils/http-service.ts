@@ -131,7 +131,7 @@ export async function fetchFromApiWithAuth(
     const url = BASE_URL + '/' + (path.startsWith('/') ? path.slice(1) : path);
 
     // Wait for fetch to be patched if it's a browser (prevents race conditions)
-    browser && (await waitForValidValue(async () => window._fetchIsPatched, 50));
+    browser && (await waitForValidValue(async () => window._fetchIsPatched, false, 50));
 
     const response = await (injectedFetch || fetch)(url, fetchOptions);
     if (response.status >= 400) {
@@ -169,7 +169,7 @@ export async function fetchJsonFromApiWithAuth<T = never>(
 
 export async function authTokenHeader(): Promise<object> {
     // Wait for the auth client to be initialized and a valid token (prevents race conditions)
-    const token = await waitForValidValue(async () => await get(auth0Client)?.getTokenSilently(), 50);
+    const token = await waitForValidValue(async () => await get(auth0Client)?.getTokenSilently(), true, 50);
     if (token) {
         return { Authorization: `Bearer ${token}` };
     }
@@ -178,14 +178,20 @@ export async function authTokenHeader(): Promise<object> {
 
 // Wait for a truthy (not null, not undefined, not false) value to be returned by `fn` or returns the most recent
 // value if the timeout is reached.
-async function waitForValidValue<T>(fn: () => Promise<T | undefined>, maxTimeout: number): Promise<T | undefined> {
+async function waitForValidValue<T>(
+    fn: () => Promise<T | undefined>,
+    ignoreErrors: boolean,
+    maxTimeout: number
+): Promise<T | undefined> {
     const startTime = Date.now();
     let value: T | undefined = undefined;
     while (!value && Date.now() - startTime < maxTimeout) {
         try {
             value = await fn();
-        } catch {
-            // we don't care about errors here since we'll just return `undefined` after a few iterations
+        } catch (error) {
+            if (!ignoreErrors) {
+                throw error;
+            }
         }
         await new Promise((resolve) => setTimeout(resolve, 10));
     }
