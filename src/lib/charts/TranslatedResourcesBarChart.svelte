@@ -1,6 +1,6 @@
 ﻿<script lang="ts">
     import Chart, { type ChartConfiguration, type ChartDataset } from 'chart.js/auto';
-    import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import type { ResourcesByLanguage } from '../../routes/+page';
 
     export let resourcesByLanguage: ResourcesByLanguage[];
@@ -121,6 +121,10 @@
         }
 
         chart = new Chart('translatedResourcesBarChart', chartData);
+    });
+
+    onDestroy(() => {
+        chart?.destroy();
     });
 </script>
 
