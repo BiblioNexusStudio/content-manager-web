@@ -180,10 +180,14 @@ export async function authTokenHeader(): Promise<object> {
 // value if the timeout is reached.
 async function waitForValidValue<T>(fn: () => Promise<T | undefined>, maxTimeout: number): Promise<T | undefined> {
     const startTime = Date.now();
-    let value: T | undefined = await fn();
+    let value: T | undefined = undefined;
     while (!value && Date.now() - startTime < maxTimeout) {
+        try {
+            value = await fn();
+        } catch {
+            // we don't care about errors here since we'll just return `undefined` after a few iterations
+        }
         await new Promise((resolve) => setTimeout(resolve, 10));
-        value = await fn();
     }
     return value;
 }
