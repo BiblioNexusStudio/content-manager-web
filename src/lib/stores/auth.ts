@@ -71,7 +71,7 @@ export async function initAuth0(url: URL) {
             await logout(url);
         }
     } else {
-        await login(url);
+        login(url);
     }
     return isAuthenticated;
 }
@@ -93,7 +93,7 @@ export async function syncAuthTokenToCookies(client: Auth0Client | undefined) {
 async function login(url: URL) {
     await get(auth0Client)?.loginWithRedirect({
         authorizationParams: {
-            redirect_uri: url.href,
+            redirect_uri: url.origin,
         },
     });
 }
