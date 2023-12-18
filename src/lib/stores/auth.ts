@@ -71,7 +71,7 @@ export async function initAuth0(url: URL) {
             await logout(url);
         }
     } else {
-        login(url);
+        await login(url);
     }
     return isAuthenticated;
 }
