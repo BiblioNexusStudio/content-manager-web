@@ -34,9 +34,15 @@ export const handleFetch: HandleFetch = async ({ event, request, fetch }) => {
 export const handleError = (async ({ error }: { error: Error }) => {
     log.exception(error);
 
-    return {
-        message: 'Unexpected error',
-    };
+    if (config.PUBLIC_ENV === 'qa' || config.PUBLIC_ENV === 'dev' || config.PUBLIC_ENV === 'local') {
+        return {
+            message: error.message,
+        };
+    } else {
+        return {
+            message: 'Unexpected error',
+        };
+    }
     // eslint-disable-next-line
     // @ts-ignore
 }) satisfies HandleServerError;

@@ -10,7 +10,7 @@ const BASE_URL = config.PUBLIC_AQUIFER_API_URL;
 
 // In order to handle errors while streaming we need to have this custom wrapper, since SvelteKit streaming doesn't handle errors.
 // https://github.com/sveltejs/kit/issues/9785
-export type StreamedError = { _isError: true; code: number; message: string };
+export type StreamedError = { _isError: true; code?: number; message: string };
 export type StreamedData<T> = { streamed: Promise<StreamedError | T> };
 
 type CustomFetchOptions = ExtendType<FetchOptions, 'body', object | undefined>;
@@ -53,8 +53,10 @@ export async function unwrapStreamedDataWithCallback<T = never>(
 ): Promise<T> {
     return data.streamed.then((result) => {
         const maybeError = result as StreamedError;
-        if (maybeError._isError) {
+        if (maybeError._isError && maybeError.code) {
             throw error(maybeError.code, { message: maybeError.message });
+        } else if (maybeError._isError) {
+            throw new Error(maybeError.message);
         }
         callback && callback(result as T);
         return result as T;
@@ -77,22 +79,16 @@ export function fetchJsonStreamingFromApi<T = never>(
         streamed: new Promise((resolve) => {
             fetchFromApiWithAuth(path, options, injectedFetch)
                 .catch((error: Error) => {
+                    const maybeCode = (error as HttpError).status;
                     resolve({
                         _isError: true,
-                        code: 500,
-                        message: error.message,
+                        code: maybeCode,
+                        message: errorMessage(error.message, maybeCode, pathPrefixedWithSlash(path)),
                     } as StreamedError);
-                    return false;
+                    return null;
                 })
                 .then((response) => {
-                    if (response && typeof response === 'object') {
-                        if (response.status >= 400) {
-                            resolve({
-                                _isError: true,
-                                code: response.status,
-                                message: `HTTP response: ${response.status}`,
-                            } as StreamedError);
-                        }
+                    if (response) {
                         return response.json();
                     }
                 })
@@ -128,14 +124,22 @@ export async function fetchFromApiWithAuth(
         fetchOptions.body = JSON.stringify(options.body);
     }
 
-    const url = BASE_URL + '/' + (path.startsWith('/') ? path.slice(1) : path);
+    const pathWithSlash = pathPrefixedWithSlash(path);
+    const url = BASE_URL + pathWithSlash;
 
     // Wait for fetch to be patched if it's a browser (prevents race conditions)
     browser && (await waitForValidValue(async () => window._fetchIsPatched, false, 50));
 
-    const response = await (injectedFetch || fetch)(url, fetchOptions);
+    let response: Response | null;
+
+    try {
+        response = await (injectedFetch || fetch)(url, fetchOptions);
+    } catch (error) {
+        throw new Error(errorMessage((error as Error).message, null, pathWithSlash));
+    }
+
     if (response.status >= 400) {
-        throw error(response.status, `HTTP response: ${response.status}`);
+        throw error(response.status, errorMessage(null, response.status, pathWithSlash));
     }
     return response;
 }
@@ -196,4 +200,20 @@ async function waitForValidValue<T>(
         await new Promise((resolve) => setTimeout(resolve, 10));
     }
     return value;
+}
+
+function errorMessage(message: string | null, code: number | undefined | null, path: string) {
+    let output = 'HTTP error.';
+    if (code) {
+        output += ` Code: '${code}'`;
+    }
+    if (message) {
+        output += ` Message: '${message}'`;
+    }
+    output += ` Path: '${path}'`;
+    return output;
+}
+
+function pathPrefixedWithSlash(path: string) {
+    return '/' + (path.startsWith('/') ? path.slice(1) : path);
 }
