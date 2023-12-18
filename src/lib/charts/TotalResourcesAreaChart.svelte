@@ -1,6 +1,6 @@
 ﻿<script lang="ts">
     import Chart, { type ChartConfiguration } from 'chart.js/auto';
-    import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import type { ResourcesByLanguage, ResourcesByParentResource, TotalsByMonth } from '../../routes/+page';
 
     export let totalsByMonth: TotalsByMonth[];
@@ -125,6 +125,10 @@
         }
 
         chart = new Chart('totalResourcesAreaChart', chartData);
+    });
+
+    onDestroy(() => {
+        chart?.destroy();
     });
 </script>
 
