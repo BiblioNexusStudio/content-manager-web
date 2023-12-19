@@ -33,11 +33,7 @@
 
         // every minute, fetch a new auth token to store as a cookie for SSR
         const syncCookiesInterval = setInterval(() => {
-            try {
-                syncAuthTokenToCookies($auth0Client);
-            } catch (error) {
-                // ignore errors here, don't want to interrupt the user
-            }
+            syncAuthTokenToCookies(auth0Client, $page.url, false);
         }, 60 * 1000);
 
         return () => clearInterval(syncCookiesInterval);
