@@ -19,7 +19,6 @@ export enum Permission {
     AssignContent = 'assign:content',
     AssignOverride = 'assign:override',
     SendReviewContent = 'send-review:content',
-    SendReviewOverride = 'send-review:override',
     ReviewContent = 'review:content',
     ReadUsers = 'read:users',
     EditContent = 'edit:content',
