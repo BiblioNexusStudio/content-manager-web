@@ -82,8 +82,8 @@
             resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview;
 
         canSendReview =
-            (data.currentUser.can(Permission.SendReviewOverride) ||
-                (data.currentUser.can(Permission.SendReviewContent) && currentUserIsAssigned)) &&
+            data.currentUser.can(Permission.SendReviewContent) &&
+            currentUserIsAssigned &&
             resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress;
 
         canStartReview =
