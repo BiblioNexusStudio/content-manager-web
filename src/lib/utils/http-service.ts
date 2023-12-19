@@ -3,7 +3,6 @@ import config from '$lib/config';
 import { auth0Client } from '$lib/stores/auth';
 import type { ExtendType } from '$lib/types/base';
 import { error } from '@sveltejs/kit';
-import { get } from 'svelte/store';
 
 const API_KEY = config.PUBLIC_AQUIFER_API_KEY;
 const BASE_URL = config.PUBLIC_AQUIFER_API_URL;
@@ -173,7 +172,7 @@ export async function fetchJsonFromApiWithAuth<T = never>(
 
 export async function authTokenHeader(): Promise<object> {
     // Wait for the auth client to be initialized and a valid token (prevents race conditions)
-    const token = await waitForValidValue(async () => await get(auth0Client)?.getTokenSilently(), true, 50);
+    const token = await waitForValidValue(async () => await auth0Client?.getTokenSilently(), true, 50);
     if (token) {
         return { Authorization: `Bearer ${token}` };
     }
