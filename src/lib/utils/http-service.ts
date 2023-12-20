@@ -82,7 +82,9 @@ export function fetchJsonStreamingFromApi<T = never>(
                     resolve({
                         _isError: true,
                         code: maybeCode,
-                        message: errorMessage(error.message, maybeCode, pathPrefixedWithSlash(path)),
+                        message: error.message.includes('HTTP error.')
+                            ? error.message
+                            : errorMessage(error.message, maybeCode, pathPrefixedWithSlash(path)),
                     } as StreamedError);
                     return null;
                 })
@@ -138,7 +140,13 @@ export async function fetchFromApiWithAuth(
     }
 
     if (response.status >= 400) {
-        throw error(response.status, errorMessage(null, response.status, pathWithSlash));
+        let message: string | null = null;
+        try {
+            message = await response.text();
+        } catch {
+            // error getting response text, that's fine though, don't want to override the actual HTTP error
+        }
+        throw error(response.status, errorMessage(message, response.status, pathWithSlash));
     }
     return response;
 }
