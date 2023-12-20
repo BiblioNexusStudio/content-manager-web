@@ -1,6 +1,8 @@
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 import config from '$lib/config';
 import { browser } from '$app/environment';
+import { profile } from './stores/auth';
+import { get } from 'svelte/store';
 
 const appInsights = new ApplicationInsights({
     config: {
@@ -22,11 +24,11 @@ const additionalProperties = {
 export const log = {
     exception: (error: Error | undefined) => {
         // Distinguish between network errors (which can't be avoided) and other errors we may want to look into
-        if (error && error.name === 'TypeError' && error.message === 'Failed to fetch') {
+        if (error && error.message.includes('Failed to fetch')) {
             console.error(error);
         } else if (error) {
             console.error(error);
-            appInsights.trackException({ exception: error }, additionalProperties);
+            appInsights.trackException({ exception: error }, { ...additionalProperties, userName: get(profile)?.name });
         }
     },
     pageView: (routeId: string) => {
