@@ -24,7 +24,11 @@ const additionalProperties = {
 export const log = {
     exception: (error: Error | undefined) => {
         // Distinguish between network errors (which can't be avoided) and other errors we may want to look into
-        if (error && (error.message.includes('Failed to fetch') || error.message.includes('Load failed'))) {
+        if (
+            error &&
+            error.message &&
+            (error.message.includes('Failed to fetch') || error.message.includes('Load failed'))
+        ) {
             console.error(error);
         } else if (error) {
             console.error(error);

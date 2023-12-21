@@ -82,7 +82,7 @@ export function fetchJsonStreamingFromApi<T = never>(
                     resolve({
                         _isError: true,
                         code: maybeCode,
-                        message: error.message.includes('HTTP error.')
+                        message: error.message?.includes('HTTP error.')
                             ? error.message
                             : errorMessage(error.message, maybeCode, pathPrefixedWithSlash(path)),
                     } as StreamedError);
