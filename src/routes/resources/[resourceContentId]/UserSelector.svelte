@@ -6,12 +6,14 @@
     export let disabled = false;
     export let defaultLabel: string;
     export let hideUser: User | null = null;
+
+    $: sortedUsers = users?.sort((a, b) => a.name.localeCompare(b.name));
 </script>
 
-{#if users}
+{#if sortedUsers}
     <select {disabled} bind:value={selectedUserId} class="select select-bordered">
         <option value={null} selected>{defaultLabel}</option>
-        {#each users as user}
+        {#each sortedUsers as user}
             {#if user.id !== hideUser?.id}
                 <option value={user.id}>{user.name}</option>
             {/if}
