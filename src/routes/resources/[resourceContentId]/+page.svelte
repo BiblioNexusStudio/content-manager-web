@@ -122,6 +122,9 @@
 
     async function takeActionAndRefresh(action: () => Promise<unknown>) {
         isTransacting = true;
+        if (contentUpdated) {
+            await putData();
+        }
         try {
             await action();
             window.location.reload(); // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
