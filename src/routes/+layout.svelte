@@ -32,9 +32,7 @@
         }
 
         // every minute, fetch a new auth token to store as a cookie for SSR
-        const syncCookiesInterval = setInterval(() => {
-            syncAuthTokenToCookies(auth0Client, $page.url, false);
-        }, 60 * 1000);
+        const syncCookiesInterval = setInterval(syncCookies, 60 * 1000);
 
         return () => clearInterval(syncCookiesInterval);
     });
@@ -84,6 +82,10 @@
         const error = event.reason as Error;
         event.preventDefault();
         log.exception(error);
+    }
+
+    function syncCookies() {
+        syncAuthTokenToCookies(auth0Client, $page.url, false);
     }
 </script>
 
