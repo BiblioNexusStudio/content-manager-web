@@ -77,15 +77,19 @@ export async function initAuth0(url: URL) {
 export async function syncAuthTokenToCookies(client: Auth0Client | undefined, url: URL, logoutOnError: boolean) {
     if (client) {
         try {
-            const authToken = await client.getTokenSilently();
+            if (await client.isAuthenticated()) {
+                const authToken = await client.getTokenSilently();
 
-            // set an AuthToken cookie so that SSR requests receive a cookie that can be used against the API
-            setCookie(AUTH_COOKIE_NAME, authToken, {
-                path: '/',
-                sameSite: 'strict',
-                expires: getJwtExpiration(authToken),
-                secure: !dev,
-            });
+                // set an AuthToken cookie so that SSR requests receive a cookie that can be used against the API
+                setCookie(AUTH_COOKIE_NAME, authToken, {
+                    path: '/',
+                    sameSite: 'strict',
+                    expires: getJwtExpiration(authToken),
+                    secure: !dev,
+                });
+            } else {
+                await logout(url);
+            }
         } catch {
             if (logoutOnError) {
                 await logout(url);
