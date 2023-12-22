@@ -1,7 +1,7 @@
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 import config from '$lib/config';
 import { browser } from '$app/environment';
-import { profile } from './stores/auth';
+import { isAuthenticatedStore, profile } from './stores/auth';
 import { get } from 'svelte/store';
 
 const appInsights = new ApplicationInsights({
@@ -32,7 +32,15 @@ export const log = {
             console.error(error);
         } else if (error) {
             console.error(error);
-            appInsights.trackException({ exception: error }, { ...additionalProperties, userName: get(profile)?.name });
+            appInsights.trackException(
+                { exception: error },
+                {
+                    ...additionalProperties,
+                    userName: get(profile)?.name ?? 'undefined',
+                    isAuthenticated: get(isAuthenticatedStore) ?? 'undefined',
+                    commitSha: config.PUBLIC_COMMIT_SHA,
+                }
+            );
         }
     },
     pageView: (routeId: string) => {
