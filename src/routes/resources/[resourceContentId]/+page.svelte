@@ -77,8 +77,8 @@
             resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress;
 
         canSendBack =
-            (data.currentUser.can(Permission.AssignOverride) ||
-                (data.currentUser.can(Permission.AssignContent) && currentUserIsAssigned)) &&
+            data.currentUser.can(Permission.AssignContent) &&
+            currentUserIsAssigned &&
             resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview;
 
         canSendReview =
