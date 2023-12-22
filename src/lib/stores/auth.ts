@@ -7,6 +7,7 @@ import type { CurrentUserApi, User } from '$lib/types/base';
 
 export let auth0Client: Auth0Client | undefined = undefined;
 export const profile: Writable<Auth0User | undefined> = writable(undefined);
+export const isAuthenticatedStore: Writable<boolean | undefined> = writable(undefined);
 const auth0Domain = config.PUBLIC_AUTH0_DOMAIN;
 const auth0ClientId = config.PUBLIC_AUTH0_CLIENT_ID;
 const auth0Audience = config.PUBLIC_AUTH0_AUDIENCE;
@@ -52,11 +53,13 @@ export async function initAuth0(url: URL) {
     auth0Client = client;
 
     let isAuthenticated = await client.isAuthenticated();
+    isAuthenticatedStore.set(isAuthenticated);
 
     if (!isAuthenticated && url.searchParams.has('code') && url.searchParams.has('state')) {
         await client.handleRedirectCallback();
         window.location.href = '/';
         isAuthenticated = await client.isAuthenticated();
+        isAuthenticatedStore.set(isAuthenticated);
     }
 
     if (isAuthenticated) {
@@ -78,6 +81,7 @@ export async function syncAuthTokenToCookies(client: Auth0Client | undefined, ur
     if (client) {
         try {
             if (await client.isAuthenticated()) {
+                isAuthenticatedStore.set(true);
                 const authToken = await client.getTokenSilently();
 
                 // set an AuthToken cookie so that SSR requests receive a cookie that can be used against the API
@@ -88,6 +92,7 @@ export async function syncAuthTokenToCookies(client: Auth0Client | undefined, ur
                     secure: !dev,
                 });
             } else {
+                isAuthenticatedStore.set(false);
                 await logout(url);
             }
         } catch {
