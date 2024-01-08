@@ -69,7 +69,7 @@
         publishedVersion = resourceContent.contentVersions.find((x) => x.isPublished);
         hasPublished = publishedVersion !== undefined;
 
-        selectedVersion = draftVersion || publishedVersion!;
+        selectedVersion = draftVersion || publishedVersion! || resourceContent.contentVersions[0];
 
         const currentUserIsAssigned = selectedVersion.assignedUser?.id === data.currentUser.id;
 
