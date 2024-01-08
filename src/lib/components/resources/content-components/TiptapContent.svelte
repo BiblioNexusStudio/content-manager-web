@@ -4,14 +4,15 @@
     import arrowCircleRight from 'svelte-awesome/icons/arrowCircleRight';
     import Tiptap from '$lib/components/tiptap/Tiptap.svelte';
     import { setOriginalValues, currentStepNumber, type TiptapContentItemValues } from '$lib/stores/tiptapContent';
-    import type { ResourceContent } from '$lib/types/resources';
+    import type { ResourceContentVersion } from '$lib/types/resources';
 
-    export let resourceContent: ResourceContent;
+    export let resourceContentVersion: ResourceContentVersion;
     export let canEdit: boolean;
+    export let contentId: number;
 
-    $: content = resourceContent.content as unknown as TiptapContentItemValues[];
+    $: content = resourceContentVersion.content as unknown as TiptapContentItemValues[];
     $: currentResourceStepsLength = content.length || 0;
-    $: setOriginalValues({ contentId: resourceContent.resourceContentId, content });
+    $: setOriginalValues({ contentId, content });
     $: stepNavigation = currentResourceStepsLength > 1;
 
     const headings = [

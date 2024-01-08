@@ -6,7 +6,7 @@
     import RelatedContent from '$lib/components/resources/RelatedContent.svelte';
     import BibleReferences from '$lib/components/resources/BibleReferences.svelte';
     import Content from '$lib/components/resources/Content.svelte';
-    import type { ResourceContent } from '$lib/types/resources';
+    import type { ResourceContent, ResourceContentVersion, ContentItem } from '$lib/types/resources';
     import { originalValues, updatedValues, resetUpdated, updateOriginal } from '$lib/stores/tiptapContent';
     import { beforeNavigate, goto } from '$app/navigation';
     import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
@@ -41,6 +41,11 @@
     let canSendReview = false;
     let canStartReview = false;
     let createDraft = false;
+    let draftVersion: ResourceContentVersion | undefined = undefined;
+    let publishedVersion: ResourceContentVersion | undefined = undefined;
+    let hasPublished = false;
+    let hasDraft = false;
+    let selectedVersion: ResourceContentVersion;
 
     export let data: PageData;
 
@@ -58,7 +63,15 @@
     }
 
     function handleFetchedResource(resourceContent: ResourceContent) {
-        const currentUserIsAssigned = resourceContent.assignedUser?.id === data.currentUser.id;
+        draftVersion = resourceContent.contentVersions.find((x) => x.isDraft);
+        hasDraft = draftVersion !== undefined;
+
+        publishedVersion = resourceContent.contentVersions.find((x) => x.isPublished);
+        hasPublished = publishedVersion !== undefined;
+
+        selectedVersion = draftVersion || publishedVersion || resourceContent.contentVersions[0];
+
+        const currentUserIsAssigned = selectedVersion.assignedUser?.id === data.currentUser.id;
 
         canMakeContentEdits =
             data.currentUser.can(Permission.EditContent) &&
@@ -92,10 +105,10 @@
 
         canPublish =
             data.currentUser.can(Permission.PublishContent) &&
-            ((resourceContent.status === ResourceContentStatusEnum.New && !resourceContent.isPublished) ||
+            ((resourceContent.status === ResourceContentStatusEnum.New && !hasPublished) ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview);
 
-        canUnpublish = data.currentUser.can(Permission.PublishContent) && resourceContent.isPublished;
+        canUnpublish = data.currentUser.can(Permission.PublishContent) && hasPublished;
     }
 
     let isTransacting = false;
@@ -232,6 +245,14 @@
             throw error;
         }
     }
+
+    function setSelectedVersion(version: ResourceContentVersion | undefined) {
+        if (selectedVersion.isDraft) {
+            draftVersion!.displayName = $updatedValues.displayName ?? '';
+            draftVersion!.content = $updatedValues.content as unknown as ContentItem[];
+        }
+        selectedVersion = version!;
+    }
 </script>
 
 {#await resourceContentPromise}
@@ -246,6 +267,19 @@
 
             <div class="flex">
                 <LanguageDropdown languageSet={availableLanguages(resourceContent)} disable={contentUpdated} />
+                {#if hasDraft && hasPublished}
+                    <div class="join ms-4">
+                        <button
+                            class="btn {selectedVersion.isDraft ? 'btn-primary' : ''} join-item"
+                            on:click={() => setSelectedVersion(draftVersion)}>Draft</button
+                        >
+                        <button
+                            class="btn {selectedVersion.isPublished ? 'btn-primary' : ''} join-item"
+                            class:btn-disabled={contentUpdated && !selectedVersion.isPublished}
+                            on:click={() => setSelectedVersion(publishedVersion)}>Published</button
+                        >
+                    </div>
+                {/if}
                 {#if canAssign || canSendBack}
                     <button
                         class="btn btn-primary ms-4"
@@ -319,7 +353,7 @@
                 {#if canMakeContentEdits}
                     <button
                         class="btn btn-primary ms-4 w-[72px]"
-                        class:btn-disabled={!contentUpdated || isTransacting}
+                        class:btn-disabled={!contentUpdated || isTransacting || selectedVersion.isPublished}
                         on:click={onSave}
                         >{#if isTransacting}
                             <span class="loading loading-spinner" />
@@ -335,20 +369,25 @@
             <div class="me-8 flex max-h-full w-4/12 flex-col">
                 <Overview
                     canEdit={canMakeContentEdits}
-                    displayNameText={resourceContent.displayName}
+                    displayNameText={selectedVersion.displayName}
                     typeText={resourceContent.parentResourceName}
-                    isPublished={resourceContent.isPublished}
+                    isPublished={hasPublished}
                 />
                 <Process
                     translationStatus={resourceContent.status}
-                    assignedUser={resourceContent.assignedUser}
+                    assignedUser={draftVersion?.assignedUser ?? null}
                     resourceContentStatuses={data.resourceContentStatuses}
                 />
                 <RelatedContent relatedContent={resourceContent.associatedResources} />
                 <BibleReferences bibleReferences={getSortedReferences(resourceContent)} />
             </div>
             <div class="flex max-h-full w-8/12 flex-col">
-                <Content canEdit={canMakeContentEdits} {resourceContent} mediaType={resourceContent.mediaType} />
+                <Content
+                    canEdit={canMakeContentEdits && selectedVersion.isDraft}
+                    resourceContentVersion={selectedVersion}
+                    contentId={resourceContent.resourceContentId}
+                    mediaType={resourceContent.mediaType}
+                />
             </div>
         </div>
     </div>
@@ -397,7 +436,7 @@
                     users={data.users}
                     defaultLabel="Select User"
                     bind:selectedUserId={assignToUserId}
-                    hideUser={resourceContent.assignedUser}
+                    hideUser={selectedVersion.assignedUser}
                 />
                 <div class="flex w-full flex-row space-x-2 pt-4">
                     <div class="flex-grow" />

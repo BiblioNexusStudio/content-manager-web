@@ -102,14 +102,19 @@ export interface ResourceContent {
     associatedResources: AssociatedResource[];
     parentResourceName: string;
     resourceContentId: number;
-    displayName: string;
     mediaType: string;
     status: ResourceContentStatusEnum;
-    contentSize: number;
     language: Language;
-    content: ContentItem | ContentItem[];
     hasAudio: boolean;
-    isPublished: boolean;
-    assignedUser: ResourceContentAssignedUser | null;
     otherLanguageContentIds: ContentIdWithLanguageId[];
+    contentVersions: ResourceContentVersion[];
+}
+
+export interface ResourceContentVersion {
+    displayName: string;
+    contentSize: number;
+    assignedUser: ResourceContentAssignedUser | null;
+    content: ContentItem | ContentItem[];
+    isPublished: boolean;
+    isDraft: boolean;
 }
