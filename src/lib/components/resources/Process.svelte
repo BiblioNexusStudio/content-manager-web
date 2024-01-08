@@ -1,12 +1,9 @@
 <script lang="ts">
-    import { Icon } from 'svelte-awesome';
-    import volumeUp from 'svelte-awesome/icons/volumeUp';
     import { _ as translate } from 'svelte-i18n';
     import type { ResourceContentStatus, ResourceContentStatusEnum } from '$lib/types/base';
     import type { ResourceContentAssignedUser } from '$lib/types/resources';
 
     export let translationStatus: ResourceContentStatusEnum;
-    export let hasAudio: boolean;
     export let assignedUser: ResourceContentAssignedUser | null;
     export let resourceContentStatuses: ResourceContentStatus[];
 </script>
@@ -28,14 +25,6 @@
                     {/if}
                 </div>
             </div>
-            {#if hasAudio}
-                <div class="flex flex-col">
-                    <div class="mb-2">
-                        <Icon data={volumeUp} scale={2} />
-                    </div>
-                    <div>Yes</div>
-                </div>
-            {/if}
         </div>
     </div>
 </div>
