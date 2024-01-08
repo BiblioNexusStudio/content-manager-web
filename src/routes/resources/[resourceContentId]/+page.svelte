@@ -341,7 +341,6 @@
                 />
                 <Process
                     translationStatus={resourceContent.status}
-                    hasAudio={resourceContent.hasAudio}
                     assignedUser={resourceContent.assignedUser}
                     resourceContentStatuses={data.resourceContentStatuses}
                 />
