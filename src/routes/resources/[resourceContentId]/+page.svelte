@@ -15,6 +15,8 @@
     import { getSortedReferences } from '$lib/utils/reference';
     import UserSelector from './UserSelector.svelte';
     import { Permission } from '$lib/stores/auth';
+    import spinner from 'svelte-awesome/icons/spinner';
+    import { Icon } from 'svelte-awesome';
 
     beforeNavigate((x) => {
         if (contentUpdated) {
@@ -259,110 +261,125 @@
     <CenteredSpinner />
 {:then resourceContent}
     <div class="p-8">
-        <div class="mb-8 flex items-center justify-between">
-            <h1 class="me-8 text-2xl font-bold">
+        <div class="mb-4 flex w-full items-center">
+            <h1 class="mb-4 me-8 w-4/12 text-2xl font-bold">
                 {resourceContent.parentResourceName} -
                 {$originalValues.displayName}
             </h1>
 
-            <div class="flex">
-                <LanguageDropdown languageSet={availableLanguages(resourceContent)} disable={contentUpdated} />
-                {#if hasDraft && hasPublished}
-                    <div class="join ms-4">
-                        <button
-                            class="btn {selectedVersion.isDraft ? 'btn-primary' : ''} join-item"
-                            on:click={() => setSelectedVersion(draftVersion)}>Draft</button
-                        >
-                        <button
-                            class="btn {selectedVersion.isPublished ? 'btn-primary' : ''} join-item"
-                            class:btn-disabled={contentUpdated && !selectedVersion.isPublished}
-                            on:click={() => setSelectedVersion(publishedVersion)}>Published</button
-                        >
+            <div class="flex w-8/12">
+                <div class="flex w-full justify-between">
+                    <div class="mb-4 flex items-center">
+                        {#if isTransacting}
+                            <Icon data={spinner} pulse class="text-[#0175a2]" />
+                        {/if}
                     </div>
-                {/if}
-                {#if canAssign || canSendBack}
-                    <button
-                        class="btn btn-primary ms-4"
-                        class:btn-disabled={isTransacting}
-                        on:click={openAssignUserModal}
-                        >{#if isTransacting}
-                            <span class="loading loading-spinner" />
-                        {:else}
-                            {#if canAssign}
-                                Assign User
-                            {:else if canSendBack}
-                                Send Back
-                            {/if}
+                    <div class="flex flex-wrap justify-end">
+                        <LanguageDropdown languageSet={availableLanguages(resourceContent)} disable={contentUpdated} />
+                        {#if hasDraft && hasPublished}
+                            <div class="join mb-4 ms-4">
+                                <button
+                                    class="btn {selectedVersion.isDraft ? 'btn-primary' : ''} join-item"
+                                    on:click={() => setSelectedVersion(draftVersion)}>Draft</button
+                                >
+                                <button
+                                    class="btn {selectedVersion.isPublished ? 'btn-primary' : ''} join-item"
+                                    class:btn-disabled={contentUpdated && !selectedVersion.isPublished}
+                                    on:click={() => setSelectedVersion(publishedVersion)}>Published</button
+                                >
+                            </div>
                         {/if}
-                    </button>
-                {/if}
-                {#if canPublish}
-                    <button
-                        class="btn btn-primary ms-4"
-                        class:btn-disabled={isTransacting}
-                        on:click={() => publishOrOpenModal(resourceContent.status)}
-                        >{#if isTransacting}
-                            <span class="loading loading-spinner" />
-                        {:else}
-                            Publish
+                        {#if canAssign || canSendBack}
+                            <button
+                                class="btn btn-primary mb-4 ms-4"
+                                class:btn-disabled={isTransacting}
+                                on:click={openAssignUserModal}
+                                >{#if isTransacting}
+                                    <span class="loading loading-spinner" />
+                                {:else}
+                                    {#if canAssign}
+                                        Assign User
+                                    {:else if canSendBack}
+                                        Send Back
+                                    {/if}
+                                {/if}
+                            </button>
                         {/if}
-                    </button>
-                {/if}
-                {#if canUnpublish}
-                    <button class="btn btn-primary ms-4" class:btn-disabled={isTransacting} on:click={unpublish}
-                        >{#if isTransacting}
-                            <span class="loading loading-spinner" />
-                        {:else}
-                            Unpublish
+                        {#if canPublish}
+                            <button
+                                class="btn btn-primary mb-4 ms-4"
+                                class:btn-disabled={isTransacting}
+                                on:click={() => publishOrOpenModal(resourceContent.status)}
+                                >{#if isTransacting}
+                                    <span class="loading loading-spinner" />
+                                {:else}
+                                    Publish
+                                {/if}
+                            </button>
                         {/if}
-                    </button>
-                {/if}
-                {#if canSendReview}
-                    <button
-                        class="btn btn-primary ms-4"
-                        class:btn-disabled={isTransacting}
-                        on:click={() => confirmSendReviewModal.showModal()}
-                        >{#if isTransacting}
-                            <span class="loading loading-spinner" />
-                        {:else}
-                            Send to Review
+                        {#if canUnpublish}
+                            <button
+                                class="btn btn-primary mb-4 ms-4"
+                                class:btn-disabled={isTransacting}
+                                on:click={unpublish}
+                                >{#if isTransacting}
+                                    <span class="loading loading-spinner" />
+                                {:else}
+                                    Unpublish
+                                {/if}
+                            </button>
                         {/if}
-                    </button>
-                {/if}
-                {#if canStartReview}
-                    <button class="btn btn-primary ms-4" class:btn-disabled={isTransacting} on:click={startReview}
-                        >{#if isTransacting}
-                            <span class="loading loading-spinner" />
-                        {:else}
-                            Review
+                        {#if canSendReview}
+                            <button
+                                class="btn btn-primary mb-4 ms-4"
+                                class:btn-disabled={isTransacting}
+                                on:click={() => confirmSendReviewModal.showModal()}
+                                >{#if isTransacting}
+                                    <span class="loading loading-spinner" />
+                                {:else}
+                                    Send to Review
+                                {/if}
+                            </button>
                         {/if}
-                    </button>
-                {/if}
-                {#if canAquiferize}
-                    <button
-                        class="btn btn-primary ms-4"
-                        class:btn-disabled={isTransacting}
-                        on:click={openAquiferizeModal}
-                        >{#if isTransacting}
-                            <span class="loading loading-spinner" />
-                        {:else}
-                            Aquiferize
+                        {#if canStartReview}
+                            <button
+                                class="btn btn-primary mb-4 ms-4"
+                                class:btn-disabled={isTransacting}
+                                on:click={startReview}
+                                >{#if isTransacting}
+                                    <span class="loading loading-spinner" />
+                                {:else}
+                                    Review
+                                {/if}
+                            </button>
                         {/if}
-                    </button>
-                {/if}
-                {#if canMakeContentEdits}
-                    <button
-                        class="btn btn-primary ms-4 w-[72px]"
-                        class:btn-disabled={!contentUpdated || isTransacting || selectedVersion.isPublished}
-                        on:click={onSave}
-                        >{#if isTransacting}
-                            <span class="loading loading-spinner" />
-                        {:else}
-                            Save
+                        {#if canAquiferize}
+                            <button
+                                class="btn btn-primary mb-4 ms-4"
+                                class:btn-disabled={isTransacting}
+                                on:click={openAquiferizeModal}
+                                >{#if isTransacting}
+                                    <span class="loading loading-spinner" />
+                                {:else}
+                                    Aquiferize
+                                {/if}
+                            </button>
                         {/if}
-                    </button>
-                {/if}
-                <button class="btn btn-primary btn-outline ms-4" on:click={goBack}>Close</button>
+                        {#if canMakeContentEdits}
+                            <button
+                                class="btn btn-primary mb-4 ms-4 w-[72px]"
+                                class:btn-disabled={!contentUpdated || isTransacting || selectedVersion.isPublished}
+                                on:click={onSave}
+                                >{#if isTransacting}
+                                    <span class="loading loading-spinner" />
+                                {:else}
+                                    Save
+                                {/if}
+                            </button>
+                        {/if}
+                        <button class="btn btn-primary btn-outline mb-4 ms-4" on:click={goBack}>Close</button>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="flex h-[85vh]">
@@ -372,6 +389,7 @@
                     displayNameText={selectedVersion.displayName}
                     typeText={resourceContent.parentResourceName}
                     isPublished={hasPublished}
+                    on:saveTitle={onSave}
                 />
                 <Process
                     translationStatus={resourceContent.status}

@@ -5,16 +5,24 @@
     import { originalValues, updatedValues, updateValues, setOriginalValues } from '$lib/stores/tiptapContent';
     import checkCircleO from 'svelte-awesome/icons/checkCircleO';
     import ban from 'svelte-awesome/icons/ban';
+    import { createEventDispatcher } from 'svelte';
 
     export let displayNameText: string;
     export let typeText: string;
     export let isPublished: boolean;
     export let canEdit: boolean;
+    const dispatch = createEventDispatcher();
 
     let displayNameInput: HTMLInputElement;
     setOriginalValues({ displayName: displayNameText });
     $: updateValues({ displayName: displayNameText });
     $: displayNameUpdated = $originalValues?.displayName !== $updatedValues?.displayName;
+
+    function saveOnBlur() {
+        if (displayNameUpdated) {
+            dispatch('saveTitle');
+        }
+    }
 </script>
 
 <div class="mb-4 flex max-h-[calc(26%-16px)] grow flex-col rounded-lg border border-base-300 bg-base-200">
@@ -31,6 +39,7 @@
                                 bind:this={displayNameInput}
                                 bind:value={displayNameText}
                                 class="input input-ghost h-6 w-full pl-0 text-right"
+                                on:blur={() => saveOnBlur()}
                             />
                         {:else}
                             {displayNameText}
