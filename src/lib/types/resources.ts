@@ -91,9 +91,12 @@ export interface ResourceContentAssignedUser {
     name: string;
 }
 
-export interface ContentIdWithLanguageId {
+export interface ContentTranslation {
     contentId: number;
     languageId: number;
+    status: string;
+    hasDraft: boolean;
+    hasPublished: boolean;
 }
 
 export interface ResourceContent {
@@ -106,7 +109,7 @@ export interface ResourceContent {
     status: ResourceContentStatusEnum;
     language: Language;
     hasAudio: boolean;
-    otherLanguageContentIds: ContentIdWithLanguageId[];
+    contentTranslations: ContentTranslation[];
     contentVersions: ResourceContentVersion[];
 }
 

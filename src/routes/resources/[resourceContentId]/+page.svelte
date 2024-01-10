@@ -1,12 +1,16 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import LanguageDropdown from '$lib/components/resources/LanguageDropdown.svelte';
     import Overview from '$lib/components/resources/Overview.svelte';
     import Process from '$lib/components/resources/Process.svelte';
     import RelatedContent from '$lib/components/resources/RelatedContent.svelte';
     import BibleReferences from '$lib/components/resources/BibleReferences.svelte';
     import Content from '$lib/components/resources/Content.svelte';
-    import type { ResourceContent, ResourceContentVersion, ContentItem } from '$lib/types/resources';
+    import type {
+        ResourceContent,
+        ResourceContentVersion,
+        ContentItem,
+        ContentTranslation,
+    } from '$lib/types/resources';
     import { originalValues, updatedValues, resetUpdated, updateOriginal } from '$lib/stores/tiptapContent';
     import { beforeNavigate, goto } from '$app/navigation';
     import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
@@ -15,6 +19,8 @@
     import { getSortedReferences } from '$lib/utils/reference';
     import UserSelector from './UserSelector.svelte';
     import { Permission } from '$lib/stores/auth';
+    import Translations from '$lib/components/resources/Translations.svelte';
+    import TranslationSelector from './TranslationSelector.svelte';
 
     beforeNavigate((x) => {
         if (contentUpdated) {
@@ -29,9 +35,11 @@
     let aquiferizeModal: HTMLDialogElement;
     let assignUserModal: HTMLDialogElement;
     let publishModal: HTMLDialogElement;
+    let addTranslationModal: HTMLDialogElement;
     let confirmSendReviewModal: HTMLDialogElement;
 
     let assignToUserId: string | null = null;
+    let newTranslationLanguageId: string | null = null;
     let canMakeContentEdits = false;
     let canAquiferize = false;
     let canAssign = false;
@@ -46,21 +54,13 @@
     let hasPublished = false;
     let hasDraft = false;
     let selectedVersion: ResourceContentVersion;
+    let englishContentTranslation: ContentTranslation | undefined;
+    let createTranslationFromDraft = false;
 
     export let data: PageData;
 
     $: resourceContentPromise = unwrapStreamedDataWithCallback(data.streamedResourceContent, handleFetchedResource);
-
     $: contentUpdated = JSON.stringify($originalValues) !== JSON.stringify($updatedValues);
-
-    function availableLanguages(resourceContent: ResourceContent) {
-        return resourceContent.otherLanguageContentIds
-            .map((rc) => ({
-                label: data.languages.find((language) => rc.languageId === language.id)?.englishDisplay,
-                contentId: rc.contentId,
-            }))
-            .filter(Boolean);
-    }
 
     function handleFetchedResource(resourceContent: ResourceContent) {
         draftVersion = resourceContent.contentVersions.find((x) => x.isDraft);
@@ -70,6 +70,7 @@
         hasPublished = publishedVersion !== undefined;
 
         selectedVersion = draftVersion || publishedVersion || resourceContent.contentVersions[0];
+        englishContentTranslation = resourceContent.contentTranslations.find((x) => x.languageId === 1);
 
         const currentUserIsAssigned = selectedVersion.assignedUser?.id === data.currentUser.id;
 
@@ -133,6 +134,12 @@
         assignUserModal.showModal();
     }
 
+    function openAddTranslationModal() {
+        createTranslationFromDraft = false;
+        newTranslationLanguageId = null;
+        addTranslationModal.showModal();
+    }
+
     async function takeActionAndRefresh(action: () => Promise<unknown>) {
         isTransacting = true;
         if (contentUpdated) {
@@ -150,7 +157,7 @@
     }
 
     async function unpublish() {
-        takeActionAndRefresh(() =>
+        await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/unpublish`, {
                 method: 'POST',
             })
@@ -158,7 +165,7 @@
     }
 
     async function sendReview() {
-        takeActionAndRefresh(() =>
+        await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/send-review`, {
                 method: 'POST',
             })
@@ -166,7 +173,7 @@
     }
 
     async function startReview() {
-        takeActionAndRefresh(() =>
+        await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/review`, {
                 method: 'POST',
             })
@@ -174,7 +181,7 @@
     }
 
     async function aquiferize() {
-        takeActionAndRefresh(() =>
+        await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/aquiferize`, {
                 method: 'POST',
                 body: { assignedUserId: assignToUserId ? parseInt(assignToUserId) : null },
@@ -183,7 +190,7 @@
     }
 
     async function publish() {
-        takeActionAndRefresh(() =>
+        await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/publish`, {
                 method: 'POST',
                 body: {
@@ -195,11 +202,26 @@
     }
 
     async function assignUser() {
-        takeActionAndRefresh(() =>
+        await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/assign-editor`, {
                 method: 'POST',
                 body: {
                     assignedUserId: assignToUserId ? parseInt(assignToUserId) : null,
+                },
+            })
+        );
+    }
+
+    async function createTranslation() {
+        if (!newTranslationLanguageId) return;
+
+        await takeActionAndRefresh(() =>
+            fetchFromApiWithAuth('/admin/resources/translation/create', {
+                method: 'POST',
+                body: {
+                    languageId: parseInt(newTranslationLanguageId!),
+                    baseContentId: englishContentTranslation?.contentId,
+                    useDraft: createTranslationFromDraft,
                 },
             })
         );
@@ -266,7 +288,6 @@
             </h1>
 
             <div class="flex">
-                <LanguageDropdown languageSet={availableLanguages(resourceContent)} disable={contentUpdated} />
                 {#if hasDraft && hasPublished}
                     <div class="join ms-4">
                         <button
@@ -365,7 +386,7 @@
                 <button class="btn btn-primary btn-outline ms-4" on:click={goBack}>Close</button>
             </div>
         </div>
-        <div class="flex h-[85vh]">
+        <div class="flex">
             <div class="me-8 flex max-h-full w-4/12 flex-col">
                 <Overview
                     canEdit={canMakeContentEdits}
@@ -378,10 +399,17 @@
                     assignedUser={draftVersion?.assignedUser ?? null}
                     resourceContentStatuses={data.resourceContentStatuses}
                 />
+                <Translations
+                    languages={data.languages}
+                    translations={resourceContent.contentTranslations}
+                    englishTranslation={englishContentTranslation}
+                    canPublish
+                    openModal={openAddTranslationModal}
+                />
                 <RelatedContent relatedContent={resourceContent.associatedResources} />
                 <BibleReferences bibleReferences={getSortedReferences(resourceContent)} />
             </div>
-            <div class="flex max-h-full w-8/12 flex-col">
+            <div class="flex h-[85vh] w-8/12 flex-col">
                 <Content
                     canEdit={canMakeContentEdits && selectedVersion.isDraft}
                     resourceContentVersion={selectedVersion}
@@ -475,6 +503,42 @@
                     <div class="flex-grow" />
                     <button class="btn btn-primary" on:click={publish}>Publish</button>
                     <button class="btn btn-primary btn-outline" on:click={() => publishModal.close()}>Cancel</button>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog bind:this={addTranslationModal} class="modal">
+        <div class="modal-box">
+            <h3 class="w-full pb-4 text-center text-xl font-bold">Create translation</h3>
+            <div class="flex flex-col">
+                <TranslationSelector
+                    allLanguages={data.languages}
+                    existingTranslations={resourceContent.contentTranslations}
+                    bind:selectedLanguageId={newTranslationLanguageId}
+                />
+                <div class="flex w-full flex-row space-x-2 pt-4">
+                    {#if englishContentTranslation?.hasDraft}
+                        <div>
+                            <label class="label cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    class="checkbox-primary checkbox me-2"
+                                    bind:checked={createTranslationFromDraft}
+                                />
+                                <span class="label-text">Create from Draft</span>
+                            </label>
+                        </div>
+                    {/if}
+                    <div class="flex-grow" />
+                    <button
+                        class="btn btn-primary"
+                        on:click={createTranslation}
+                        disabled={newTranslationLanguageId === null}>Create</button
+                    >
+                    <button class="btn btn-primary btn-outline" on:click={() => addTranslationModal.close()}
+                        >Cancel</button
+                    >
                 </div>
             </div>
         </div>
