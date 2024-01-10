@@ -1,18 +1,17 @@
 ﻿import { type Writable, writable, get } from 'svelte/store';
 import type { JSONContent } from '@tiptap/core';
-import type { ResourceContentStatusEnum } from '$lib/types/base';
 
 export const originalValues: Writable<TiptapContentValues> = writable({
     contentId: undefined,
     content: undefined,
-    status: undefined,
+    wordCounts: [],
     displayName: undefined,
 });
 
 export const updatedValues: Writable<TiptapContentValues> = writable({
     contentId: undefined,
     content: undefined,
-    status: undefined,
+    wordCounts: [],
     displayName: undefined,
 });
 
@@ -37,11 +36,11 @@ export const updateOriginal = () => {
     originalValues.set(JSON.parse(JSON.stringify(get(updatedValues))));
 };
 
-interface TiptapContentValues {
+export interface TiptapContentValues {
     contentId?: number | undefined;
     content?: TiptapContentItemValues[] | undefined;
     displayName?: string | undefined;
-    status?: ResourceContentStatusEnum | undefined;
+    wordCounts?: number[];
 }
 
 export interface TiptapContentItemValues {
