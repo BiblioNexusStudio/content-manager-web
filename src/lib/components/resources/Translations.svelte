@@ -15,8 +15,6 @@
             contentId: translation.contentId,
         }))
         .sort((a, b) => a.languageName.localeCompare(b.languageName));
-
-    console.log(languages);
 </script>
 
 <div class="mb-4 flex grow flex-col rounded-lg border border-base-300 bg-base-200">
