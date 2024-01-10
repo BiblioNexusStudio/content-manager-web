@@ -40,6 +40,8 @@
     let hasPublished = false;
     let hasDraft = false;
     let selectedVersion: ResourceContentVersion;
+    let saveRetries = 0;
+    let showAutoSaveFailedMessage = false;
 
     export let data: PageData;
 
@@ -204,10 +206,23 @@
     async function onSave() {
         $userStoppedEditing = false;
         isTransacting = true;
+        showAutoSaveFailedMessage = false;
         try {
             await putData();
+        } catch {
+            if (saveRetries < 4) {
+                saveRetries++;
+                window.setTimeout(async () => {
+                    await onSave();
+                }, 20000);
+            } else {
+                showAutoSaveFailedMessage = true;
+                saveRetries = 0;
+            }
         } finally {
-            isTransacting = false;
+            if (saveRetries === 0) {
+                isTransacting = false;
+            }
         }
     }
 
@@ -228,21 +243,16 @@
     }
 
     async function putData() {
-        try {
-            await fetchFromApiWithAuth(`/admin/resources/content/summary/${$updatedValues.contentId}`, {
-                method: 'PUT',
-                body: {
-                    status: $updatedValues.status, // TODO: remove this once it gets removed from the API (don't want it manually editable)
-                    displayName: $updatedValues.displayName,
-                    content: $updatedValues.content,
-                },
-            });
+        await fetchFromApiWithAuth(`/admin/resources/content/summary/${$updatedValues.contentId}`, {
+            method: 'PUT',
+            body: {
+                status: $updatedValues.status, // TODO: remove this once it gets removed from the API (don't want it manually editable)
+                displayName: $updatedValues.displayName,
+                content: $updatedValues.content,
+            },
+        });
 
-            updateOriginal();
-        } catch (error) {
-            errorModal.showModal();
-            throw error;
-        }
+        updateOriginal();
     }
 
     function setSelectedVersion(version: ResourceContentVersion | undefined) {
@@ -259,10 +269,15 @@
 {:then resourceContent}
     <div class="p-8">
         <div class="mb-4 flex w-full items-center">
-            <h1 class="mb-4 me-8 w-4/12 text-2xl font-bold">
-                {resourceContent.parentResourceName} -
-                {$originalValues.displayName}
-            </h1>
+            <div class="mb-4 me-8 w-4/12">
+                <h1 class="relative w-full text-2xl font-bold">
+                    {resourceContent.parentResourceName} -
+                    {$originalValues.displayName}
+                </h1>
+                {#if showAutoSaveFailedMessage}
+                    <span class="absolute font-bold text-error">Auto-save failed</span>
+                {/if}
+            </div>
 
             <div class="flex w-8/12">
                 <div class="flex w-full justify-between">
