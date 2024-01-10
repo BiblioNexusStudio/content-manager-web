@@ -42,6 +42,7 @@
     let selectedVersion: ResourceContentVersion;
     let saveRetries = 0;
     let showAutoSaveFailedMessage = false;
+    let putDataSuccess = false;
 
     export let data: PageData;
 
@@ -210,18 +211,16 @@
         try {
             await putData();
         } catch {
-            if (saveRetries < 4) {
-                saveRetries++;
-                window.setTimeout(async () => {
-                    await onSave();
-                }, 20000);
-            } else {
-                showAutoSaveFailedMessage = true;
-                saveRetries = 0;
-            }
+            window.setTimeout(async () => {
+                await onSave();
+            }, 20000);
+            saveRetries < 4 ? saveRetries++ : (showAutoSaveFailedMessage = true);
         } finally {
-            if (saveRetries === 0) {
+            if (putDataSuccess) {
                 isTransacting = false;
+                saveRetries = 0;
+                showAutoSaveFailedMessage = false;
+                putDataSuccess = false;
             }
         }
     }
@@ -251,6 +250,8 @@
                 content: $updatedValues.content,
             },
         });
+
+        putDataSuccess = true;
 
         updateOriginal();
     }

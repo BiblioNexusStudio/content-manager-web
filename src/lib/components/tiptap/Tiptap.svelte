@@ -36,7 +36,7 @@
         editor?.commands?.setContent($updatedValues.content![$currentStepNumber - 1].tiptap ?? '');
     };
 
-    $: ($originalValues || $currentStepNumber) && setContent();
+    $: $currentStepNumber && setContent();
     $: editor?.setEditable(canEdit);
 
     function startDebounce() {
