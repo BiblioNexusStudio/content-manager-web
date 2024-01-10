@@ -7,7 +7,13 @@
     import BibleReferences from '$lib/components/resources/BibleReferences.svelte';
     import Content from '$lib/components/resources/Content.svelte';
     import type { ResourceContent, ResourceContentVersion, ContentItem } from '$lib/types/resources';
-    import { originalValues, updatedValues, resetUpdated, updateOriginal } from '$lib/stores/tiptapContent';
+    import {
+        originalValues,
+        updatedValues,
+        resetUpdated,
+        updateOriginal,
+        userStoppedEditing,
+    } from '$lib/stores/tiptapContent';
     import { beforeNavigate, goto } from '$app/navigation';
     import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
@@ -54,6 +60,8 @@
     $: resourceContentPromise = unwrapStreamedDataWithCallback(data.streamedResourceContent, handleFetchedResource);
 
     $: contentUpdated = JSON.stringify($originalValues) !== JSON.stringify($updatedValues);
+
+    $: contentUpdated && $userStoppedEditing ? onSave() : null;
 
     function availableLanguages(resourceContent: ResourceContent) {
         return resourceContent.otherLanguageContentIds
@@ -208,6 +216,7 @@
     }
 
     async function onSave() {
+        $userStoppedEditing = false;
         isTransacting = true;
         try {
             await putData();
@@ -294,14 +303,11 @@
                                 class="btn btn-primary mb-4 ms-4"
                                 class:btn-disabled={isTransacting}
                                 on:click={openAssignUserModal}
-                                >{#if isTransacting}
-                                    <span class="loading loading-spinner" />
-                                {:else}
-                                    {#if canAssign}
-                                        Assign User
-                                    {:else if canSendBack}
-                                        Send Back
-                                    {/if}
+                            >
+                                {#if canAssign}
+                                    Assign User
+                                {:else if canSendBack}
+                                    Send Back
                                 {/if}
                             </button>
                         {/if}
@@ -310,11 +316,7 @@
                                 class="btn btn-primary mb-4 ms-4"
                                 class:btn-disabled={isTransacting}
                                 on:click={() => publishOrOpenModal(resourceContent.status)}
-                                >{#if isTransacting}
-                                    <span class="loading loading-spinner" />
-                                {:else}
-                                    Publish
-                                {/if}
+                                >Publish
                             </button>
                         {/if}
                         {#if canUnpublish}
@@ -322,11 +324,7 @@
                                 class="btn btn-primary mb-4 ms-4"
                                 class:btn-disabled={isTransacting}
                                 on:click={unpublish}
-                                >{#if isTransacting}
-                                    <span class="loading loading-spinner" />
-                                {:else}
-                                    Unpublish
-                                {/if}
+                                >Unpublish
                             </button>
                         {/if}
                         {#if canSendReview}
@@ -334,11 +332,7 @@
                                 class="btn btn-primary mb-4 ms-4"
                                 class:btn-disabled={isTransacting}
                                 on:click={() => confirmSendReviewModal.showModal()}
-                                >{#if isTransacting}
-                                    <span class="loading loading-spinner" />
-                                {:else}
-                                    Send to Review
-                                {/if}
+                                >Send to Review
                             </button>
                         {/if}
                         {#if canStartReview}
@@ -346,11 +340,7 @@
                                 class="btn btn-primary mb-4 ms-4"
                                 class:btn-disabled={isTransacting}
                                 on:click={startReview}
-                                >{#if isTransacting}
-                                    <span class="loading loading-spinner" />
-                                {:else}
-                                    Review
-                                {/if}
+                                >Review
                             </button>
                         {/if}
                         {#if canAquiferize}
@@ -358,23 +348,7 @@
                                 class="btn btn-primary mb-4 ms-4"
                                 class:btn-disabled={isTransacting}
                                 on:click={openAquiferizeModal}
-                                >{#if isTransacting}
-                                    <span class="loading loading-spinner" />
-                                {:else}
-                                    Aquiferize
-                                {/if}
-                            </button>
-                        {/if}
-                        {#if canMakeContentEdits}
-                            <button
-                                class="btn btn-primary mb-4 ms-4 w-[72px]"
-                                class:btn-disabled={!contentUpdated || isTransacting || selectedVersion.isPublished}
-                                on:click={onSave}
-                                >{#if isTransacting}
-                                    <span class="loading loading-spinner" />
-                                {:else}
-                                    Save
-                                {/if}
+                                >Aquiferize
                             </button>
                         {/if}
                         <button class="btn btn-primary btn-outline mb-4 ms-4" on:click={goBack}>Close</button>

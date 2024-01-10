@@ -37,6 +37,8 @@ export const updateOriginal = () => {
     originalValues.set(JSON.parse(JSON.stringify(get(updatedValues))));
 };
 
+export const userStoppedEditing = writable(false);
+
 interface TiptapContentValues {
     contentId?: number | undefined;
     content?: TiptapContentItemValues[] | undefined;

@@ -19,7 +19,7 @@
     import Heading1Icon from '$lib/icons/Heading1Icon.svelte';
     import Heading2Icon from '$lib/icons/Heading2Icon.svelte';
     import Heading3Icon from '$lib/icons/Heading3Icon.svelte';
-    import { updatedValues, currentStepNumber, originalValues } from '$lib/stores/tiptapContent';
+    import { updatedValues, currentStepNumber, originalValues, userStoppedEditing } from '$lib/stores/tiptapContent';
     import * as customMarks from '$lib/components/tiptap/customMarks';
     import type { ComponentType } from 'svelte';
 
@@ -28,6 +28,7 @@
 
     let element: Element | undefined;
     let editor: Editor;
+    let timeout: number | undefined;
 
     let setContent = () => {
         // Doing $: editor?. causes a reset from onTransaction below, because editor changes.
@@ -37,6 +38,21 @@
 
     $: ($originalValues || $currentStepNumber) && setContent();
     $: editor?.setEditable(canEdit);
+
+    function startDebounce() {
+        if ($userStoppedEditing) {
+            $userStoppedEditing = false;
+        }
+
+        if (timeout) {
+            clearTimeout(timeout);
+        }
+
+        timeout = window.setTimeout(() => {
+            $userStoppedEditing = true;
+            clearTimeout(timeout);
+        }, 3000);
+    }
 
     onMount(async () => {
         await tick();
@@ -211,4 +227,4 @@
     </div>
 {/if}
 
-<div class=" {getContentTopPadding()}" bind:this={element} />
+<div class=" {getContentTopPadding()}" bind:this={element} on:keydown={startDebounce} role="presentation" />
