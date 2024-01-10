@@ -7,7 +7,7 @@
     export let selectedLanguageId: string | null;
 
     const languagesToShow = allLanguages
-        .filter((x) => existingTranslations.find((et) => et.languageId === x.id) === undefined)
+        .filter((x) => existingTranslations.every((et) => et.languageId !== x.id))
         .sort((a, b) => a.englishDisplay.localeCompare(b.englishDisplay));
 </script>
 

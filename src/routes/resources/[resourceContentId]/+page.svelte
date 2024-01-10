@@ -213,8 +213,6 @@
     }
 
     async function createTranslation() {
-        if (!newTranslationLanguageId) return;
-
         await takeActionAndRefresh(() =>
             fetchFromApiWithAuth('/admin/resources/translation/create', {
                 method: 'POST',
