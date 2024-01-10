@@ -255,9 +255,9 @@
             await fetchFromApiWithAuth(`/admin/resources/content/summary/${$updatedValues.contentId}`, {
                 method: 'PUT',
                 body: {
-                    status: $updatedValues.status, // TODO: remove this once it gets removed from the API (don't want it manually editable)
                     displayName: $updatedValues.displayName,
                     content: $updatedValues.content,
+                    wordCount: ($updatedValues.wordCounts || []).reduce((total, current) => total + current, 0),
                 },
             });
 

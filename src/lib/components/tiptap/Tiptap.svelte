@@ -1,10 +1,11 @@
 ﻿<script lang="ts">
-    import { onMount, onDestroy, tick } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { Editor } from '@tiptap/core';
     import Image from '@tiptap/extension-image';
     import Link from '@tiptap/extension-link';
     import Highlight from '@tiptap/extension-highlight';
     import Subscript from '@tiptap/extension-subscript';
+    import CharacterCount from '@tiptap/extension-character-count';
     import Superscript from '@tiptap/extension-superscript';
     import TextStyle from '@tiptap/extension-text-style';
     import StarterKit from '@tiptap/starter-kit';
@@ -19,69 +20,103 @@
     import Heading1Icon from '$lib/icons/Heading1Icon.svelte';
     import Heading2Icon from '$lib/icons/Heading2Icon.svelte';
     import Heading3Icon from '$lib/icons/Heading3Icon.svelte';
-    import { updatedValues, currentStepNumber, originalValues } from '$lib/stores/tiptapContent';
+    import {
+        updatedValues,
+        currentStepNumber,
+        originalValues,
+        type TiptapContentValues,
+    } from '$lib/stores/tiptapContent';
     import * as customMarks from '$lib/components/tiptap/customMarks';
     import type { ComponentType } from 'svelte';
 
     export let hasSteps = false;
     export let canEdit: boolean;
 
-    let element: Element | undefined;
-    let editor: Editor;
+    let parentElement: HTMLDivElement | undefined;
+    let editorElements: HTMLDivElement[];
+    let editors: Editor[] = [];
+    $: currentEditor = editors[$currentStepNumber - 1];
+    $: updateParentWithEditor($currentStepNumber);
+    $: updateEditorsWhenOriginalValuesChange($originalValues);
+    $: currentEditor?.setEditable(canEdit);
 
-    let setContent = () => {
-        // Doing $: editor?. causes a reset from onTransaction below, because editor changes.
-        // Having the separate setContent function prevents it from firing constantly
-        editor?.commands?.setContent($updatedValues.content![$currentStepNumber - 1].tiptap ?? '');
-    };
+    function updateParentWithEditor(stepNumber: number | undefined) {
+        if (stepNumber) {
+            const existing = parentElement?.firstChild;
+            if (existing) {
+                parentElement?.removeChild(existing);
+            }
+            parentElement?.append(editorElements[stepNumber - 1]);
+            currentEditor?.commands.focus();
+        }
+    }
 
-    $: ($originalValues || $currentStepNumber) && setContent();
-    $: editor?.setEditable(canEdit);
+    function updateEditorsWhenOriginalValuesChange(originalValues: TiptapContentValues) {
+        editors.forEach((editor, index) => {
+            const selection = editor.state.selection;
+            editor.commands.setContent(originalValues.content![index].tiptap!);
+            levelSetOriginalAndUpdatedState(editor, index);
+            editor.commands.setTextSelection(selection);
+            editor.commands.focus();
+        });
+    }
+
+    function levelSetOriginalAndUpdatedState(editor: Editor, index: number) {
+        $originalValues.content![index].tiptap = editor.getJSON();
+        $updatedValues.content![index].tiptap = editor.getJSON();
+        $originalValues.wordCounts![index] = editor.storage.characterCount.words();
+        $updatedValues.wordCounts![index] = editor.storage.characterCount.words();
+    }
 
     onMount(async () => {
-        await tick();
-
-        editor = new Editor({
-            element: element,
-            editable: canEdit,
-            extensions: [
-                StarterKit,
-                Image,
-                Link.configure({
-                    openOnClick: false,
-                }),
-                Underline,
-                Highlight,
-                Subscript,
-                Superscript,
-                TextStyle,
-                customMarks.bibleReferenceMark,
-                customMarks.resourceReferenceMark,
-            ],
-            editorProps: {
-                attributes: {
-                    class: 'prose dark:prose-invert prose-sm sm:prose-base focus:outline-none text-black mx-4 max-w-none',
-                },
-            },
-            content: $updatedValues.content![$currentStepNumber - 1].tiptap,
-            onTransaction: () => {
-                // force re-render so `editor.isActive` works as expected
-                editor = editor;
-            },
-            onUpdate: ({ editor }) => {
-                $updatedValues.content![$currentStepNumber - 1].tiptap = editor.getJSON();
-            },
-            onCreate: ({ editor }) => {
-                // Need to set this here because the formatting of editor.getJSON has the possibility of being different
-                // from what's in the database.
-                $originalValues.content![$currentStepNumber - 1].tiptap = editor.getJSON();
-            },
-        });
+        editorElements = $originalValues.content!.map((_) => document.createElement('div'));
+        editors = $originalValues.content!.map(
+            (content, index) =>
+                new Editor({
+                    element: editorElements[index],
+                    editable: canEdit,
+                    extensions: [
+                        StarterKit,
+                        Image,
+                        Link.configure({
+                            openOnClick: false,
+                        }),
+                        Underline,
+                        Highlight,
+                        Subscript,
+                        Superscript,
+                        TextStyle,
+                        CharacterCount.configure({}),
+                        customMarks.bibleReferenceMark,
+                        customMarks.resourceReferenceMark,
+                    ],
+                    editorProps: {
+                        attributes: {
+                            class: 'prose dark:prose-invert prose-sm sm:prose-base focus:outline-none text-black mx-4 max-w-none',
+                        },
+                    },
+                    content: content.tiptap,
+                    onTransaction: () => {
+                        // force re-render so `editor.isActive` works as expected
+                        currentEditor = currentEditor;
+                    },
+                    onUpdate: ({ editor }) => {
+                        $updatedValues.content![index].tiptap = editor.getJSON();
+                        $updatedValues.wordCounts![index] = editor.storage.characterCount.words();
+                    },
+                    onCreate: ({ editor }) => {
+                        // Need to call this here because the formatting of editor.getJSON has the possibility of being different
+                        // from what's in the database.
+                        levelSetOriginalAndUpdatedState(editor, index);
+                    },
+                })
+        );
+        updateParentWithEditor($currentStepNumber);
     });
 
     onDestroy(() => {
-        if (editor) {
-            editor.destroy();
+        if (editors) {
+            editors.forEach((e) => e.destroy());
         }
     });
 
@@ -97,7 +132,7 @@
     // };
 
     const addLink = () => {
-        let previousUrl = editor.getAttributes('link').href;
+        let previousUrl = currentEditor.getAttributes('link').href;
         let url: string | null;
 
         do {
@@ -110,7 +145,7 @@
 
             // empty
             if (url === '') {
-                editor.chain().focus().extendMarkRange('link').unsetLink().run();
+                currentEditor.chain().focus().extendMarkRange('link').unsetLink().run();
                 return;
             }
 
@@ -119,7 +154,7 @@
                 alert('Invalid URL. URL must begin with http:// or https://');
             } else {
                 // update link
-                editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+                currentEditor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
                 return;
             }
             // eslint-disable-next-line
@@ -135,27 +170,27 @@
     const formattingOptions = [
         {
             name: 'bold',
-            onClick: () => editor.chain().focus().toggleBold().run(),
+            onClick: () => currentEditor.chain().focus().toggleBold().run(),
             icon: BoldIcon,
         },
         {
             name: 'italic',
-            onClick: () => editor.chain().focus().toggleItalic().run(),
+            onClick: () => currentEditor.chain().focus().toggleItalic().run(),
             icon: ItalicsIcon,
         },
         {
             name: 'underline',
-            onClick: () => editor.chain().focus().toggleUnderline().run(),
+            onClick: () => currentEditor.chain().focus().toggleUnderline().run(),
             icon: UnderlineIcon,
         },
         {
             name: 'bulletList',
-            onClick: () => editor.chain().focus().toggleBulletList().run(),
+            onClick: () => currentEditor.chain().focus().toggleBulletList().run(),
             icon: UnorderedListIcon,
         },
         {
             name: 'orderedList',
-            onClick: () => editor.chain().focus().toggleOrderedList().run(),
+            onClick: () => currentEditor.chain().focus().toggleOrderedList().run(),
             icon: OrderedListIcon,
         },
     ];
@@ -173,7 +208,7 @@
     };
 </script>
 
-{#if editor && canEdit}
+{#if currentEditor && canEdit}
     <div
         class="absolute inset-x-0 {hasSteps
             ? 'top-[84px]'
@@ -182,7 +217,7 @@
         <div class="mx-6 mt-2">
             {#each formattingOptions as option}
                 <button
-                    class="btn btn-xs mx-1 px-0 {editor.isActive(option.name) ? 'btn-primary' : 'btn-link'}"
+                    class="btn btn-xs mx-1 px-0 {currentEditor.isActive(option.name) ? 'btn-primary' : 'btn-link'}"
                     on:click={option.onClick}
                 >
                     <svelte:component this={option.icon} />
@@ -190,19 +225,19 @@
             {/each}
             {#each headerLevels as header}
                 <button
-                    class="btn btn-xs mx-0.5 px-1 {editor.isActive('heading', {
+                    class="btn btn-xs mx-0.5 px-1 {currentEditor.isActive('heading', {
                         level: header.level,
                     })
                         ? 'btn-primary'
                         : 'btn-link'}"
-                    on:click={() => editor.chain().focus().toggleHeading({ level: header.level }).run()}
+                    on:click={() => currentEditor.chain().focus().toggleHeading({ level: header.level }).run()}
                 >
                     <svelte:component this={header.icon} />
                 </button>
             {/each}
             <!--        <button class="btn btn-accent btn-outline btn-xs my-1" on:click={addImage}> Image </button>-->
             <button
-                class="btn btn-xs mx-1 px-0 {editor.isActive('link') ? 'btn-primary' : 'btn-link'}"
+                class="btn btn-xs mx-1 px-0 {currentEditor.isActive('link') ? 'btn-primary' : 'btn-link'}"
                 on:click={addLink}
             >
                 <LinkIcon />
@@ -211,4 +246,4 @@
     </div>
 {/if}
 
-<div class=" {getContentTopPadding()}" bind:this={element} />
+<div class={getContentTopPadding()} bind:this={parentElement} />
