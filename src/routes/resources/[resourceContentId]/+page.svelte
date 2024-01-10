@@ -43,6 +43,7 @@
     let saveRetries = 0;
     let showAutoSaveFailedMessage = false;
     let putDataSuccess = false;
+    let saveInterval: number | undefined;
 
     export let data: PageData;
 
@@ -211,9 +212,11 @@
         try {
             await putData();
         } catch {
-            window.setTimeout(async () => {
-                await onSave();
-            }, 20000);
+            if (!saveInterval) {
+                saveInterval = window.setInterval(async () => {
+                    await onSave();
+                }, 20000);
+            }
             saveRetries < 4 ? saveRetries++ : (showAutoSaveFailedMessage = true);
         } finally {
             if (putDataSuccess) {
@@ -221,6 +224,8 @@
                 saveRetries = 0;
                 showAutoSaveFailedMessage = false;
                 putDataSuccess = false;
+                clearInterval(saveInterval);
+                saveInterval = undefined;
             }
         }
     }
