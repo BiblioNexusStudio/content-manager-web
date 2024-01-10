@@ -24,6 +24,7 @@
         updatedValues,
         currentStepNumber,
         originalValues,
+        userStoppedEditing,
         type TiptapContentValues,
     } from '$lib/stores/tiptapContent';
     import * as customMarks from '$lib/components/tiptap/customMarks';
@@ -35,6 +36,7 @@
     let parentElement: HTMLDivElement | undefined;
     let editorElements: HTMLDivElement[];
     let editors: Editor[] = [];
+    let timeout: number | undefined;
     $: currentEditor = editors[$currentStepNumber - 1];
     $: updateParentWithEditor($currentStepNumber);
     $: updateEditorsWhenOriginalValuesChange($originalValues);
@@ -66,6 +68,21 @@
         $updatedValues.content![index].tiptap = editor.getJSON();
         $originalValues.wordCounts![index] = editor.storage.characterCount.words();
         $updatedValues.wordCounts![index] = editor.storage.characterCount.words();
+    }
+
+    function startDebounce() {
+        if ($userStoppedEditing) {
+            $userStoppedEditing = false;
+        }
+
+        if (timeout) {
+            clearTimeout(timeout);
+        }
+
+        timeout = window.setTimeout(() => {
+            $userStoppedEditing = true;
+            clearTimeout(timeout);
+        }, 3000);
     }
 
     onMount(async () => {
@@ -246,4 +263,4 @@
     </div>
 {/if}
 
-<div class={getContentTopPadding()} bind:this={parentElement} />
+<div class={getContentTopPadding()} bind:this={parentElement} on:keydown={startDebounce} role="presentation" />
