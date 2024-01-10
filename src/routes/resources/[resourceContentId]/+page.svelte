@@ -7,14 +7,8 @@
     import BibleReferences from '$lib/components/resources/BibleReferences.svelte';
     import Content from '$lib/components/resources/Content.svelte';
     import type { ResourceContent, ResourceContentVersion, ContentItem } from '$lib/types/resources';
-    import {
-        originalValues,
-        updatedValues,
-        resetUpdated,
-        updateOriginal,
-        userStoppedEditing,
-    } from '$lib/stores/tiptapContent';
-    import { beforeNavigate, goto } from '$app/navigation';
+    import { originalValues, updatedValues, updateOriginal, userStoppedEditing } from '$lib/stores/tiptapContent';
+    import { goto } from '$app/navigation';
     import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum } from '$lib/types/base';
@@ -24,14 +18,6 @@
     import spinner from 'svelte-awesome/icons/spinner';
     import { Icon } from 'svelte-awesome';
 
-    beforeNavigate((x) => {
-        if (contentUpdated) {
-            onCloseModal.showModal();
-            x.cancel();
-        }
-    });
-
-    let onCloseModal: HTMLDialogElement;
     let loadingModal: HTMLDialogElement;
     let errorModal: HTMLDialogElement;
     let aquiferizeModal: HTMLDialogElement;
@@ -225,10 +211,12 @@
         }
     }
 
-    async function onSaveAndCloseClick() {
+    async function onSaveAndClose() {
         loadingModal.showModal();
         try {
-            await putData();
+            if (contentUpdated) {
+                await putData();
+            }
             goBack();
         } catch {
             loadingModal.close();
@@ -351,7 +339,7 @@
                                 >Aquiferize
                             </button>
                         {/if}
-                        <button class="btn btn-primary btn-outline mb-4 ms-4" on:click={goBack}>Close</button>
+                        <button class="btn btn-primary btn-outline mb-4 ms-4" on:click={onSaveAndClose}>Close</button>
                     </div>
                 </div>
             </div>
@@ -383,26 +371,6 @@
             </div>
         </div>
     </div>
-
-    <dialog bind:this={onCloseModal} class="modal">
-        <div class="modal-box">
-            <h3 class="text-xl font-bold">Unsaved Changes</h3>
-            <p class="py-4 text-lg">There are unsaved changes. Do you want to save them?</p>
-            <div class="modal-action pt-4">
-                <form method="dialog">
-                    <button class="btn btn-primary" on:click={onSaveAndCloseClick}>Save and Close</button>
-                    <button
-                        class="btn btn-error"
-                        on:click={() => {
-                            resetUpdated();
-                            goBack();
-                        }}>Discard Changes</button
-                    >
-                    <button class="btn btn-primary btn-outline">Cancel</button>
-                </form>
-            </div>
-        </div>
-    </dialog>
 
     <dialog bind:this={aquiferizeModal} class="modal">
         <div class="modal-box">
