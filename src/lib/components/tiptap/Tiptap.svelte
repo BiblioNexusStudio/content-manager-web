@@ -38,6 +38,7 @@
     $: currentEditor = editors[$currentStepNumber - 1];
     $: updateParentWithEditor($currentStepNumber);
     $: updateEditorsWhenOriginalValuesChange($originalValues);
+    $: currentEditor?.setEditable(canEdit);
 
     function updateParentWithEditor(stepNumber: number | undefined) {
         if (stepNumber) {
