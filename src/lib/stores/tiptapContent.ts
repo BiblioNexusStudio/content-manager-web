@@ -28,13 +28,11 @@ export const setOriginalValues = (values: TiptapContentValues) => {
     updateValues(clone);
 };
 
-export const resetUpdated = () => {
-    updatedValues.set(JSON.parse(JSON.stringify(get(originalValues))));
-};
-
 export const updateOriginal = () => {
     originalValues.set(JSON.parse(JSON.stringify(get(updatedValues))));
 };
+
+export const userStoppedEditing = writable(false);
 
 export interface TiptapContentValues {
     contentId?: number | undefined;
