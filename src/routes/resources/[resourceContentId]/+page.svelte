@@ -56,6 +56,7 @@
     let selectedVersion: ResourceContentVersion;
     let englishContentTranslation: ContentTranslation | undefined;
     let createTranslationFromDraft = false;
+    let isInTranslationWorkflow = false;
 
     export let data: PageData;
 
@@ -74,6 +75,12 @@
 
         const currentUserIsAssigned = selectedVersion.assignedUser?.id === data.currentUser.id;
 
+        isInTranslationWorkflow =
+            resourceContent.status === ResourceContentStatusEnum.TranslateNotStarted ||
+            resourceContent.status === ResourceContentStatusEnum.TranslateDrafting ||
+            resourceContent.status === ResourceContentStatusEnum.TranslateInProgress ||
+            resourceContent.status === ResourceContentStatusEnum.TranslateReviewPending;
+
         canMakeContentEdits =
             data.currentUser.can(Permission.EditContent) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
@@ -83,7 +90,8 @@
         canAquiferize =
             data.currentUser.can(Permission.AquiferizeContent) &&
             (resourceContent.status === ResourceContentStatusEnum.New ||
-                resourceContent.status === ResourceContentStatusEnum.Complete);
+                resourceContent.status === ResourceContentStatusEnum.Complete ||
+                resourceContent.status === ResourceContentStatusEnum.TranslateNotStarted);
 
         canAssign =
             (data.currentUser.can(Permission.AssignOverride) ||
@@ -214,13 +222,22 @@
 
     async function createTranslation() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth('/admin/resources/translation/create', {
+            fetchFromApiWithAuth('/admin/resources/content/create-translation', {
                 method: 'POST',
                 body: {
                     languageId: parseInt(newTranslationLanguageId!),
                     baseContentId: englishContentTranslation?.contentId,
                     useDraft: createTranslationFromDraft,
                 },
+            })
+        );
+    }
+
+    async function translate() {
+        await takeActionAndRefresh(() =>
+            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/assign-translator`, {
+                method: 'POST',
+                body: { assignedUserId: assignToUserId ? parseInt(assignToUserId) : null },
             })
         );
     }
@@ -364,6 +381,8 @@
                         on:click={openAquiferizeModal}
                         >{#if isTransacting}
                             <span class="loading loading-spinner" />
+                        {:else if isInTranslationWorkflow}
+                            Translate
                         {:else}
                             Aquiferize
                         {/if}
@@ -440,13 +459,21 @@
 
     <dialog bind:this={aquiferizeModal} class="modal">
         <div class="modal-box">
-            <h3 class="w-full pb-4 text-center text-xl font-bold">Choose an Editor</h3>
+            <h3 class="w-full pb-4 text-center text-xl font-bold">
+                {#if isInTranslationWorkflow}
+                    Choose a Translator
+                {:else}
+                    Choose an Editor
+                {/if}
+            </h3>
             <div class="flex flex-col">
                 <UserSelector users={data.users} defaultLabel="Select User" bind:selectedUserId={assignToUserId} />
                 <div class="flex w-full flex-row space-x-2 pt-4">
                     <div class="flex-grow" />
-                    <button class="btn btn-primary" on:click={aquiferize} disabled={assignToUserId === null}
-                        >Assign</button
+                    <button
+                        class="btn btn-primary"
+                        on:click={isInTranslationWorkflow ? translate : aquiferize}
+                        disabled={assignToUserId === null}>Assign</button
                     >
                     <button class="btn btn-primary btn-outline" on:click={() => aquiferizeModal.close()}>Cancel</button>
                 </div>
@@ -456,7 +483,13 @@
 
     <dialog bind:this={assignUserModal} class="modal">
         <div class="modal-box">
-            <h3 class="w-full pb-4 text-center text-xl font-bold">Choose an Editor</h3>
+            <h3 class="w-full pb-4 text-center text-xl font-bold">
+                {#if isInTranslationWorkflow}
+                    Choose a Translator
+                {:else}
+                    Choose an Editor
+                {/if}
+            </h3>
             <div class="flex flex-col">
                 <UserSelector
                     users={data.users}

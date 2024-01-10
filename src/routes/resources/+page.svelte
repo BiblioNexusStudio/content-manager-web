@@ -49,9 +49,9 @@
             case ResourceContentStatusEnum.TranslateNotStarted:
             case ResourceContentStatusEnum.New:
                 return 'badge-neutral';
-            case ResourceContentStatusEnum.TranslateEditing:
+            case ResourceContentStatusEnum.TranslateInProgress:
             case ResourceContentStatusEnum.TranslateDrafting:
-            case ResourceContentStatusEnum.TranslateReviewing:
+            case ResourceContentStatusEnum.TranslateReviewPending:
             case ResourceContentStatusEnum.AquiferizeInReview:
             case ResourceContentStatusEnum.AquiferizeReviewPending:
             case ResourceContentStatusEnum.AquiferizeInProgress:

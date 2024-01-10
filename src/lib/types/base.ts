@@ -22,8 +22,8 @@ export enum ResourceContentStatusEnum {
     AquiferizeInReview = 'AquiferizeInReview',
     TranslateNotStarted = 'TranslateNotStarted',
     TranslateDrafting = 'TranslateDrafting',
-    TranslateEditing = 'TranslateEditing',
-    TranslateReviewing = 'TranslateReviewing',
+    TranslateInProgress = 'TranslateInProgress',
+    TranslateReviewPending = 'TranslateReviewPending',
     OnHold = 'OnHold',
 }
 
