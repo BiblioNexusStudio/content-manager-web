@@ -75,48 +75,54 @@
         const currentUserIsAssigned = selectedVersion.assignedUser?.id === data.currentUser.id;
 
         isInTranslationWorkflow =
-            resourceContent.status === ResourceContentStatusEnum.TranslateNotStarted ||
-            resourceContent.status === ResourceContentStatusEnum.TranslateDrafting ||
-            resourceContent.status === ResourceContentStatusEnum.TranslateInProgress ||
-            resourceContent.status === ResourceContentStatusEnum.TranslateReviewPending;
+            resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted ||
+            resourceContent.status === ResourceContentStatusEnum.TranslationInReview ||
+            resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
+            resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending;
 
         canMakeContentEdits =
             data.currentUser.can(Permission.EditContent) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
-                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview) &&
+                resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationInReview) &&
             currentUserIsAssigned;
 
         canAquiferize =
             data.currentUser.can(Permission.AquiferizeContent) &&
             (resourceContent.status === ResourceContentStatusEnum.New ||
                 resourceContent.status === ResourceContentStatusEnum.Complete ||
-                resourceContent.status === ResourceContentStatusEnum.TranslateNotStarted);
+                resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted);
 
         canAssign =
             (data.currentUser.can(Permission.AssignOverride) ||
                 (data.currentUser.can(Permission.AssignContent) && currentUserIsAssigned)) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
-                resourceContent.status === ResourceContentStatusEnum.TranslateInProgress);
+                resourceContent.status === ResourceContentStatusEnum.TranslationInProgress);
 
         canSendBack =
             data.currentUser.can(Permission.AssignContent) &&
             currentUserIsAssigned &&
-            resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview;
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationInReview);
 
         canSendReview =
             data.currentUser.can(Permission.SendReviewContent) &&
             currentUserIsAssigned &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
-                resourceContent.status === ResourceContentStatusEnum.TranslateInProgress);
+                resourceContent.status === ResourceContentStatusEnum.TranslationInProgress);
 
         canStartReview =
             data.currentUser.can(Permission.ReviewContent) &&
-            resourceContent.status === ResourceContentStatusEnum.AquiferizeReviewPending;
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeReviewPending ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending);
 
         canPublish =
             data.currentUser.can(Permission.PublishContent) &&
             ((resourceContent.status === ResourceContentStatusEnum.New && !hasPublished) ||
-                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview);
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationInReview);
 
         canUnpublish = data.currentUser.can(Permission.PublishContent) && hasPublished;
     }
@@ -175,17 +181,27 @@
 
     async function sendReview() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/send-review`, {
-                method: 'POST',
-            })
+            fetchFromApiWithAuth(
+                `/admin/resources/content/${$updatedValues.contentId}/send-${
+                    isInTranslationWorkflow ? 'translation-' : ''
+                }review`,
+                {
+                    method: 'POST',
+                }
+            )
         );
     }
 
     async function startReview() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/review`, {
-                method: 'POST',
-            })
+            fetchFromApiWithAuth(
+                `/admin/resources/content/${$updatedValues.contentId}/review${
+                    isInTranslationWorkflow ? '-translation' : ''
+                }`,
+                {
+                    method: 'POST',
+                }
+            )
         );
     }
 
@@ -212,12 +228,17 @@
 
     async function assignUser() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/assign-editor`, {
-                method: 'POST',
-                body: {
-                    assignedUserId: assignToUserId ? parseInt(assignToUserId) : null,
-                },
-            })
+            fetchFromApiWithAuth(
+                `/admin/resources/content/${$updatedValues.contentId}/assign-${
+                    isInTranslationWorkflow ? 'translator' : 'editor'
+                }`,
+                {
+                    method: 'POST',
+                    body: {
+                        assignedUserId: assignToUserId ? parseInt(assignToUserId) : null,
+                    },
+                }
+            )
         );
     }
 
@@ -347,7 +368,7 @@
                         {#if canAssign || canSendBack}
                             <button
                                 class="btn btn-primary mb-4 ms-4"
-                                class:btn-disabled={isTransacting}
+                                disabled={isTransacting}
                                 on:click={openAssignUserModal}
                             >
                                 {#if canAssign}
@@ -360,7 +381,7 @@
                         {#if canPublish}
                             <button
                                 class="btn btn-primary mb-4 ms-4"
-                                class:btn-disabled={isTransacting}
+                                disabled={isTransacting}
                                 on:click={() => publishOrOpenModal(resourceContent.status)}
                                 >Publish
                             </button>

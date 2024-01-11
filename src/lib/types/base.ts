@@ -20,10 +20,10 @@ export enum ResourceContentStatusEnum {
     Complete = 'Complete',
     AquiferizeReviewPending = 'AquiferizeReviewPending',
     AquiferizeInReview = 'AquiferizeInReview',
-    TranslateNotStarted = 'TranslateNotStarted',
-    TranslateDrafting = 'TranslateDrafting',
-    TranslateInProgress = 'TranslateInProgress',
-    TranslateReviewPending = 'TranslateReviewPending',
+    TranslationNotStarted = 'TranslationNotStarted',
+    TranslationInProgress = 'TranslationInProgress',
+    TranslationReviewPending = 'TranslationReviewPending',
+    TranslationInReview = 'TranslationInReview',
     OnHold = 'OnHold',
 }
 
