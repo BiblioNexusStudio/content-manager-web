@@ -95,7 +95,8 @@
         canAssign =
             (data.currentUser.can(Permission.AssignOverride) ||
                 (data.currentUser.can(Permission.AssignContent) && currentUserIsAssigned)) &&
-            resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress;
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
+                resourceContent.status === ResourceContentStatusEnum.TranslateInProgress);
 
         canSendBack =
             data.currentUser.can(Permission.AssignContent) &&
@@ -105,7 +106,8 @@
         canSendReview =
             data.currentUser.can(Permission.SendReviewContent) &&
             currentUserIsAssigned &&
-            resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress;
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
+                resourceContent.status === ResourceContentStatusEnum.TranslateInProgress);
 
         canStartReview =
             data.currentUser.can(Permission.ReviewContent) &&
@@ -481,8 +483,10 @@
                 />
                 <div class="flex w-full flex-row space-x-2 pt-4">
                     <div class="flex-grow" />
-                    <button class="btn btn-primary" on:click={assignUser} disabled={assignToUserId === null}
-                        >Assign</button
+                    <button
+                        class="btn btn-primary"
+                        on:click={assignUser}
+                        disabled={assignToUserId === null || isTransacting}>Assign</button
                     >
                     <button class="btn btn-primary btn-outline" on:click={() => assignUserModal.close()}>Cancel</button>
                 </div>
@@ -514,7 +518,7 @@
                 </label>
                 <div class="flex w-full flex-row space-x-2 pt-4">
                     <div class="flex-grow" />
-                    <button class="btn btn-primary" on:click={publish}>Publish</button>
+                    <button class="btn btn-primary" on:click={publish} disabled={isTransacting}>Publish</button>
                     <button class="btn btn-primary btn-outline" on:click={() => publishModal.close()}>Cancel</button>
                 </div>
             </div>
@@ -547,7 +551,7 @@
                     <button
                         class="btn btn-primary"
                         on:click={createTranslation}
-                        disabled={newTranslationLanguageId === null}>Create</button
+                        disabled={newTranslationLanguageId === null || isTransacting}>Create</button
                     >
                     <button class="btn btn-primary btn-outline" on:click={() => addTranslationModal.close()}
                         >Cancel</button
@@ -563,7 +567,9 @@
             <p class="py-4 text-lg">Have you completed your editing? Your assignment will be removed.</p>
             <div class="modal-action pt-4">
                 <form method="dialog">
-                    <button class="btn btn-primary" on:click={sendReview}>Send to Review</button>
+                    <button class="btn btn-primary" on:click={sendReview} disabled={isTransacting}
+                        >Send to Review</button
+                    >
                     <button class="btn btn-primary btn-outline">Cancel</button>
                 </form>
             </div>
