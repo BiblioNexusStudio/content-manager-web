@@ -90,7 +90,7 @@
             currentUserIsAssigned;
 
         canAquiferize =
-            data.currentUser.can(Permission.AquiferizeContent) &&
+            data.currentUser.can(Permission.CreateContent) &&
             (resourceContent.status === ResourceContentStatusEnum.New ||
                 resourceContent.status === ResourceContentStatusEnum.Complete ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted);
