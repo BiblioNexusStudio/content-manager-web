@@ -1,14 +1,16 @@
 ﻿<script lang="ts">
     import Chart, { type ChartConfiguration, type ChartDataset } from 'chart.js/auto';
     import { onDestroy, onMount } from 'svelte';
-    import type { ResourcesByLanguage } from '../../routes/+page';
+    import type { ResourcesByLanguage, TotalsByMonth } from '../../routes/+page';
+    import { _ as translate } from 'svelte-i18n';
 
+    const defaultSelection = 'default';
     export let resourcesByLanguage: ResourcesByLanguage[];
-    export let defaultSelection = 'default';
+    export let totalsByMonth: TotalsByMonth[];
     export let languages: string[];
     export let selectedLanguage: string;
     export let selectedResource: string;
-    export let months: string[];
+    const months = totalsByMonth.map((item) => item.monthAbbreviation);
 
     let chart: Chart | undefined;
 
@@ -72,6 +74,14 @@
             datasets: [] as { label: string; data: number[] }[],
         },
         options: {
+            animation: {
+                onComplete: function () {
+                    this.options.animation = {
+                        duration: 1000,
+                    };
+                },
+                duration: 0,
+            },
             plugins: {
                 legend: {
                     display: true,
@@ -128,4 +138,7 @@
     });
 </script>
 
-<canvas class="!h-full !w-full" id="translatedResourcesBarChart" />
+<div class="flex flex-col">
+    <div class="mb-6 text-lg font-bold">{$translate('page.dashboard.charts.translatedResources.value')}</div>
+    <canvas class="!h-full !w-full" id="translatedResourcesBarChart" />
+</div>

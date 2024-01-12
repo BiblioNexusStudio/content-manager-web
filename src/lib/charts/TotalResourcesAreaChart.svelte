@@ -2,14 +2,15 @@
     import Chart, { type ChartConfiguration } from 'chart.js/auto';
     import { onDestroy, onMount } from 'svelte';
     import type { ResourcesByLanguage, ResourcesByParentResource, TotalsByMonth } from '../../routes/+page';
+    import { _ as translate } from 'svelte-i18n';
 
+    const defaultSelection = 'default';
     export let totalsByMonth: TotalsByMonth[];
     export let resourcesByLanguage: ResourcesByLanguage[];
     export let resourcesByType: ResourcesByParentResource[];
-    export let defaultSelection = 'default';
     export let selectedLanguage: string;
     export let selectedResource: string;
-    export let months: string[];
+    const months = totalsByMonth.map((item) => item.monthAbbreviation);
 
     let chart: Chart | undefined;
 
@@ -90,6 +91,14 @@
             ],
         },
         options: {
+            animation: {
+                onComplete: function () {
+                    this.options.animation = {
+                        duration: 1000,
+                    };
+                },
+                duration: 0,
+            },
             plugins: {
                 legend: { display: false },
             },
@@ -132,4 +141,7 @@
     });
 </script>
 
-<canvas class="!h-full !w-full" id="totalResourcesAreaChart" />
+<div class="flex flex-col">
+    <div class="mb-6 text-lg font-bold">{$translate('page.dashboard.charts.totalResources.value')}</div>
+    <canvas class="!h-full !w-full" id="totalResourcesAreaChart" />
+</div>
