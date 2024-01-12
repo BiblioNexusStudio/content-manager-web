@@ -46,12 +46,12 @@
 
     function getStatusClass(status: ResourceContentStatusEnum) {
         switch (status) {
-            case ResourceContentStatusEnum.TranslateNotStarted:
+            case ResourceContentStatusEnum.TranslationNotStarted:
             case ResourceContentStatusEnum.New:
                 return 'badge-neutral';
-            case ResourceContentStatusEnum.TranslateEditing:
-            case ResourceContentStatusEnum.TranslateDrafting:
-            case ResourceContentStatusEnum.TranslateReviewing:
+            case ResourceContentStatusEnum.TranslationInProgress:
+            case ResourceContentStatusEnum.TranslationInReview:
+            case ResourceContentStatusEnum.TranslationReviewPending:
             case ResourceContentStatusEnum.AquiferizeInReview:
             case ResourceContentStatusEnum.AquiferizeReviewPending:
             case ResourceContentStatusEnum.AquiferizeInProgress:

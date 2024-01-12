@@ -22,7 +22,7 @@ export enum Role {
 }
 
 export enum Permission {
-    AquiferizeContent = 'aquiferize:content',
+    CreateContent = 'create:content',
     PublishContent = 'publish:content',
     AssignContent = 'assign:content',
     AssignOverride = 'assign:override',

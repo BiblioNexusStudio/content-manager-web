@@ -1,14 +1,18 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import LanguageDropdown from '$lib/components/resources/LanguageDropdown.svelte';
     import Overview from '$lib/components/resources/Overview.svelte';
     import Process from '$lib/components/resources/Process.svelte';
     import RelatedContent from '$lib/components/resources/RelatedContent.svelte';
     import BibleReferences from '$lib/components/resources/BibleReferences.svelte';
     import Content from '$lib/components/resources/Content.svelte';
-    import type { ResourceContent, ResourceContentVersion, ContentItem } from '$lib/types/resources';
-    import { originalValues, updatedValues, updateOriginal, userStoppedEditing } from '$lib/stores/tiptapContent';
     import { goto } from '$app/navigation';
+    import type {
+        ResourceContent,
+        ResourceContentVersion,
+        ContentItem,
+        ContentTranslation,
+    } from '$lib/types/resources';
+    import { originalValues, updatedValues, updateOriginal, userStoppedEditing } from '$lib/stores/tiptapContent';
     import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum } from '$lib/types/base';
@@ -17,15 +21,19 @@
     import { Permission } from '$lib/stores/auth';
     import spinner from 'svelte-awesome/icons/spinner';
     import { Icon } from 'svelte-awesome';
+    import Translations from '$lib/components/resources/Translations.svelte';
+    import TranslationSelector from './TranslationSelector.svelte';
 
     let loadingModal: HTMLDialogElement;
     let errorModal: HTMLDialogElement;
     let aquiferizeModal: HTMLDialogElement;
     let assignUserModal: HTMLDialogElement;
     let publishModal: HTMLDialogElement;
+    let addTranslationModal: HTMLDialogElement;
     let confirmSendReviewModal: HTMLDialogElement;
 
     let assignToUserId: string | null = null;
+    let newTranslationLanguageId: string | null = null;
     let canMakeContentEdits = false;
     let canAquiferize = false;
     let canAssign = false;
@@ -40,6 +48,9 @@
     let hasPublished = false;
     let hasDraft = false;
     let selectedVersion: ResourceContentVersion;
+    let englishContentTranslation: ContentTranslation | undefined;
+    let createTranslationFromDraft = false;
+    let isInTranslationWorkflow = false;
     let saveRetries = 0;
     let showAutoSaveFailedMessage = false;
     let putDataSuccess = false;
@@ -48,19 +59,8 @@
     export let data: PageData;
 
     $: resourceContentPromise = unwrapStreamedDataWithCallback(data.streamedResourceContent, handleFetchedResource);
-
     $: contentUpdated = JSON.stringify($originalValues) !== JSON.stringify($updatedValues);
-
     $: contentUpdated && $userStoppedEditing ? onSave() : null;
-
-    function availableLanguages(resourceContent: ResourceContent) {
-        return resourceContent.otherLanguageContentIds
-            .map((rc) => ({
-                label: data.languages.find((language) => rc.languageId === language.id)?.englishDisplay,
-                contentId: rc.contentId,
-            }))
-            .filter(Boolean);
-    }
 
     function handleFetchedResource(resourceContent: ResourceContent) {
         draftVersion = resourceContent.contentVersions.find((x) => x.isDraft);
@@ -70,43 +70,59 @@
         hasPublished = publishedVersion !== undefined;
 
         selectedVersion = draftVersion || publishedVersion || resourceContent.contentVersions[0];
+        englishContentTranslation = resourceContent.contentTranslations.find((x) => x.languageId === 1);
 
         const currentUserIsAssigned = selectedVersion.assignedUser?.id === data.currentUser.id;
+
+        isInTranslationWorkflow =
+            resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted ||
+            resourceContent.status === ResourceContentStatusEnum.TranslationInReview ||
+            resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
+            resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending;
 
         canMakeContentEdits =
             data.currentUser.can(Permission.EditContent) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
-                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview) &&
+                resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationInReview) &&
             currentUserIsAssigned;
 
         canAquiferize =
-            data.currentUser.can(Permission.AquiferizeContent) &&
+            data.currentUser.can(Permission.CreateContent) &&
             (resourceContent.status === ResourceContentStatusEnum.New ||
-                resourceContent.status === ResourceContentStatusEnum.Complete);
+                resourceContent.status === ResourceContentStatusEnum.Complete ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted);
 
         canAssign =
             (data.currentUser.can(Permission.AssignOverride) ||
                 (data.currentUser.can(Permission.AssignContent) && currentUserIsAssigned)) &&
-            resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress;
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationInProgress);
 
         canSendBack =
             data.currentUser.can(Permission.AssignContent) &&
             currentUserIsAssigned &&
-            resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview;
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationInReview);
 
         canSendReview =
             data.currentUser.can(Permission.SendReviewContent) &&
             currentUserIsAssigned &&
-            resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress;
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationInProgress);
 
         canStartReview =
             data.currentUser.can(Permission.ReviewContent) &&
-            resourceContent.status === ResourceContentStatusEnum.AquiferizeReviewPending;
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeReviewPending ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending);
 
         canPublish =
             data.currentUser.can(Permission.PublishContent) &&
             ((resourceContent.status === ResourceContentStatusEnum.New && !hasPublished) ||
-                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview);
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationInReview);
 
         canUnpublish = data.currentUser.can(Permission.PublishContent) && hasPublished;
     }
@@ -133,6 +149,12 @@
         assignUserModal.showModal();
     }
 
+    function openAddTranslationModal() {
+        createTranslationFromDraft = false;
+        newTranslationLanguageId = null;
+        addTranslationModal.showModal();
+    }
+
     async function takeActionAndRefresh(action: () => Promise<unknown>) {
         isTransacting = true;
         if (contentUpdated) {
@@ -143,14 +165,13 @@
             window.location.reload(); // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
         } catch (error) {
             errorModal.showModal();
-            throw error;
-        } finally {
             isTransacting = false;
+            throw error;
         }
     }
 
     async function unpublish() {
-        takeActionAndRefresh(() =>
+        await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/unpublish`, {
                 method: 'POST',
             })
@@ -158,23 +179,33 @@
     }
 
     async function sendReview() {
-        takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/send-review`, {
-                method: 'POST',
-            })
+        await takeActionAndRefresh(() =>
+            fetchFromApiWithAuth(
+                isInTranslationWorkflow
+                    ? `/admin/resources/content/${$updatedValues.contentId}/send-translation-review`
+                    : `/admin/resources/content/${$updatedValues.contentId}/send-review`,
+                {
+                    method: 'POST',
+                }
+            )
         );
     }
 
     async function startReview() {
-        takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/review`, {
-                method: 'POST',
-            })
+        await takeActionAndRefresh(() =>
+            fetchFromApiWithAuth(
+                isInTranslationWorkflow
+                    ? `/admin/resources/content/${$updatedValues.contentId}/review-translation`
+                    : `/admin/resources/content/${$updatedValues.contentId}/review`,
+                {
+                    method: 'POST',
+                }
+            )
         );
     }
 
     async function aquiferize() {
-        takeActionAndRefresh(() =>
+        await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/aquiferize`, {
                 method: 'POST',
                 body: { assignedUserId: assignToUserId ? parseInt(assignToUserId) : null },
@@ -183,7 +214,7 @@
     }
 
     async function publish() {
-        takeActionAndRefresh(() =>
+        await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/publish`, {
                 method: 'POST',
                 body: {
@@ -195,12 +226,39 @@
     }
 
     async function assignUser() {
-        takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/assign-editor`, {
+        await takeActionAndRefresh(() =>
+            fetchFromApiWithAuth(
+                isInTranslationWorkflow
+                    ? `/admin/resources/content/${$updatedValues.contentId}/assign-translator`
+                    : `/admin/resources/content/${$updatedValues.contentId}/assign-editor`,
+                {
+                    method: 'POST',
+                    body: {
+                        assignedUserId: assignToUserId ? parseInt(assignToUserId) : null,
+                    },
+                }
+            )
+        );
+    }
+
+    async function createTranslation() {
+        await takeActionAndRefresh(() =>
+            fetchFromApiWithAuth('/admin/resources/content/create-translation', {
                 method: 'POST',
                 body: {
-                    assignedUserId: assignToUserId ? parseInt(assignToUserId) : null,
+                    languageId: parseInt(newTranslationLanguageId!),
+                    baseContentId: englishContentTranslation?.contentId,
+                    useDraft: createTranslationFromDraft,
                 },
+            })
+        );
+    }
+
+    async function translate() {
+        await takeActionAndRefresh(() =>
+            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/assign-translator`, {
+                method: 'POST',
+                body: { assignedUserId: assignToUserId ? parseInt(assignToUserId) : null },
             })
         );
     }
@@ -293,7 +351,6 @@
                         {/if}
                     </div>
                     <div class="flex flex-wrap justify-end">
-                        <LanguageDropdown languageSet={availableLanguages(resourceContent)} disable={contentUpdated} />
                         {#if hasDraft && hasPublished}
                             <div class="join mb-4 ms-4">
                                 <button
@@ -310,7 +367,7 @@
                         {#if canAssign || canSendBack}
                             <button
                                 class="btn btn-primary mb-4 ms-4"
-                                class:btn-disabled={isTransacting}
+                                disabled={isTransacting}
                                 on:click={openAssignUserModal}
                             >
                                 {#if canAssign}
@@ -323,7 +380,7 @@
                         {#if canPublish}
                             <button
                                 class="btn btn-primary mb-4 ms-4"
-                                class:btn-disabled={isTransacting}
+                                disabled={isTransacting}
                                 on:click={() => publishOrOpenModal(resourceContent.status)}
                                 >Publish
                             </button>
@@ -357,7 +414,11 @@
                                 class="btn btn-primary mb-4 ms-4"
                                 class:btn-disabled={isTransacting}
                                 on:click={openAquiferizeModal}
-                                >Aquiferize
+                                >{#if isInTranslationWorkflow}
+                                    Translate
+                                {:else}
+                                    Aquiferize
+                                {/if}
                             </button>
                         {/if}
                         <button class="btn btn-primary btn-outline mb-4 ms-4" on:click={onSaveAndClose}>Close</button>
@@ -365,7 +426,7 @@
                 </div>
             </div>
         </div>
-        <div class="flex h-[85vh]">
+        <div class="flex">
             <div class="me-8 flex max-h-full w-4/12 flex-col">
                 <Overview
                     canEdit={canMakeContentEdits}
@@ -379,10 +440,17 @@
                     assignedUser={draftVersion?.assignedUser ?? null}
                     resourceContentStatuses={data.resourceContentStatuses}
                 />
+                <Translations
+                    languages={data.languages}
+                    translations={resourceContent.contentTranslations}
+                    englishTranslation={englishContentTranslation}
+                    canPublish
+                    openModal={openAddTranslationModal}
+                />
                 <RelatedContent relatedContent={resourceContent.associatedResources} />
                 <BibleReferences bibleReferences={getSortedReferences(resourceContent)} />
             </div>
-            <div class="flex max-h-full w-8/12 flex-col">
+            <div class="flex h-[85vh] w-8/12 flex-col">
                 <Content
                     canEdit={canMakeContentEdits && selectedVersion.isDraft}
                     resourceContentVersion={selectedVersion}
@@ -395,13 +463,21 @@
 
     <dialog bind:this={aquiferizeModal} class="modal">
         <div class="modal-box">
-            <h3 class="w-full pb-4 text-center text-xl font-bold">Choose an Editor</h3>
+            <h3 class="w-full pb-4 text-center text-xl font-bold">
+                {#if isInTranslationWorkflow}
+                    Choose a Translator
+                {:else}
+                    Choose an Editor
+                {/if}
+            </h3>
             <div class="flex flex-col">
                 <UserSelector users={data.users} defaultLabel="Select User" bind:selectedUserId={assignToUserId} />
                 <div class="flex w-full flex-row space-x-2 pt-4">
                     <div class="flex-grow" />
-                    <button class="btn btn-primary" on:click={aquiferize} disabled={assignToUserId === null}
-                        >Assign</button
+                    <button
+                        class="btn btn-primary"
+                        on:click={isInTranslationWorkflow ? translate : aquiferize}
+                        disabled={assignToUserId === null}>Assign</button
                     >
                     <button class="btn btn-primary btn-outline" on:click={() => aquiferizeModal.close()}>Cancel</button>
                 </div>
@@ -411,7 +487,13 @@
 
     <dialog bind:this={assignUserModal} class="modal">
         <div class="modal-box">
-            <h3 class="w-full pb-4 text-center text-xl font-bold">Choose an Editor</h3>
+            <h3 class="w-full pb-4 text-center text-xl font-bold">
+                {#if isInTranslationWorkflow}
+                    Choose a Translator
+                {:else}
+                    Choose an Editor
+                {/if}
+            </h3>
             <div class="flex flex-col">
                 <UserSelector
                     users={data.users}
@@ -421,8 +503,10 @@
                 />
                 <div class="flex w-full flex-row space-x-2 pt-4">
                     <div class="flex-grow" />
-                    <button class="btn btn-primary" on:click={assignUser} disabled={assignToUserId === null}
-                        >Assign</button
+                    <button
+                        class="btn btn-primary"
+                        on:click={assignUser}
+                        disabled={assignToUserId === null || isTransacting}>Assign</button
                     >
                     <button class="btn btn-primary btn-outline" on:click={() => assignUserModal.close()}>Cancel</button>
                 </div>
@@ -454,8 +538,44 @@
                 </label>
                 <div class="flex w-full flex-row space-x-2 pt-4">
                     <div class="flex-grow" />
-                    <button class="btn btn-primary" on:click={publish}>Publish</button>
+                    <button class="btn btn-primary" on:click={publish} disabled={isTransacting}>Publish</button>
                     <button class="btn btn-primary btn-outline" on:click={() => publishModal.close()}>Cancel</button>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog bind:this={addTranslationModal} class="modal">
+        <div class="modal-box">
+            <h3 class="w-full pb-4 text-center text-xl font-bold">Create translation</h3>
+            <div class="flex flex-col">
+                <TranslationSelector
+                    allLanguages={data.languages}
+                    existingTranslations={resourceContent.contentTranslations}
+                    bind:selectedLanguageId={newTranslationLanguageId}
+                />
+                <div class="flex w-full flex-row space-x-2 pt-4">
+                    {#if englishContentTranslation?.hasDraft}
+                        <div>
+                            <label class="label cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    class="checkbox-primary checkbox me-2"
+                                    bind:checked={createTranslationFromDraft}
+                                />
+                                <span class="label-text">Create from Draft</span>
+                            </label>
+                        </div>
+                    {/if}
+                    <div class="flex-grow" />
+                    <button
+                        class="btn btn-primary"
+                        on:click={createTranslation}
+                        disabled={newTranslationLanguageId === null || isTransacting}>Create</button
+                    >
+                    <button class="btn btn-primary btn-outline" on:click={() => addTranslationModal.close()}
+                        >Cancel</button
+                    >
                 </div>
             </div>
         </div>
@@ -467,7 +587,9 @@
             <p class="py-4 text-lg">Have you completed your editing? Your assignment will be removed.</p>
             <div class="modal-action pt-4">
                 <form method="dialog">
-                    <button class="btn btn-primary" on:click={sendReview}>Send to Review</button>
+                    <button class="btn btn-primary" on:click={sendReview} disabled={isTransacting}
+                        >Send to Review</button
+                    >
                     <button class="btn btn-primary btn-outline">Cancel</button>
                 </form>
             </div>
