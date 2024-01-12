@@ -2,10 +2,12 @@ import type { PageLoad } from './$types';
 import { fetchJsonStreamingFromApi } from '$lib/utils/http-service';
 import type { ResourceContentStatusEnum } from '$lib/types/base';
 import { ssp, searchParametersForLoad } from '$lib/utils/sveltekit-search-params';
+import { get } from 'svelte/store';
+import { resourcesPerPage } from '$lib/stores/resources';
 
 export const _searchParamsConfig = {
     page: ssp.number(1),
-    perPage: ssp.number(10),
+    perPage: ssp.number(get(resourcesPerPage)),
     languageId: ssp.number(0),
     resourceId: ssp.number(0),
     query: ssp.string(''),

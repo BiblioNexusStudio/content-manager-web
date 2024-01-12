@@ -7,6 +7,7 @@
     import { _searchParamsConfig, type ResourceListItemContentIdWithLanguageId } from './+page';
     import { ResourceContentStatusEnum } from '$lib/types/base';
     import { searchParameters } from '$lib/utils/sveltekit-search-params';
+    import { resourcesPerPage } from '$lib/stores/resources';
 
     export let data: PageData;
 
@@ -19,7 +20,9 @@
     $: languageId = $searchParams.languageId;
     $: resourceId = $searchParams.resourceId;
     $: query = $searchParams.query;
-    $: perPage = $searchParams.perPage;
+    // $: perPage = $searchParams.perPage;
+
+    $: $searchParams.perPage = $resourcesPerPage;
 
     let resourceListCount = 0;
     $: unwrapStreamedDataWithCallback(data.streamedResourceListCount, setResourceCount);
@@ -32,7 +35,7 @@
 
     $: {
         // track these to return to page one when they change
-        const _deps = [languageId, resourceId, query, perPage];
+        const _deps = [languageId, resourceId, query, $resourcesPerPage];
         if (isInitialLoad) {
             isInitialLoad = false;
         } else {
@@ -195,7 +198,7 @@
                     values: { currentPage: $searchParams.page, totalPages },
                 })}
             </div>
-            <select bind:value={$searchParams.perPage} class="select select-bordered select-ghost select-xs">
+            <select bind:value={$resourcesPerPage} class="select select-bordered select-ghost select-xs">
                 {#each [10, 50, 100] as count, i}
                     <option value={count} selected={i === 0}>
                         {`${count} ${$translate('page.resources.table.navigation.perPage.value')}`}
