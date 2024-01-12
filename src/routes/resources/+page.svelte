@@ -4,7 +4,7 @@
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { unwrapStreamedData, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
-    import { _perPage, _searchParamsConfig, type ResourceListItemContentIdWithLanguageId } from './+page';
+    import { _searchParamsConfig, type ResourceListItemContentIdWithLanguageId } from './+page';
     import { ResourceContentStatusEnum } from '$lib/types/base';
     import { searchParameters } from '$lib/utils/sveltekit-search-params';
     import { resourcesPerPage } from '$lib/stores/resources';

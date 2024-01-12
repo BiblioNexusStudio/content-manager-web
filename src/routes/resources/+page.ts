@@ -12,8 +12,6 @@ export const _searchParamsConfig = {
     query: ssp.string(''),
 };
 
-export const _perPage = { perPage: get(resourcesPerPage) };
-
 export const load: PageLoad = async ({ url, fetch }) => {
     const searchParams = searchParametersForLoad(url, _searchParamsConfig);
 
