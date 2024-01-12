@@ -165,9 +165,8 @@
             window.location.reload(); // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
         } catch (error) {
             errorModal.showModal();
-            throw error;
-        } finally {
             isTransacting = false;
+            throw error;
         }
     }
 
