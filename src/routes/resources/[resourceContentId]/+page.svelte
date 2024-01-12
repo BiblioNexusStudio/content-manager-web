@@ -181,9 +181,9 @@
     async function sendReview() {
         await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(
-                `/admin/resources/content/${$updatedValues.contentId}/send-${
-                    isInTranslationWorkflow ? 'translation-' : ''
-                }review`,
+                isInTranslationWorkflow
+                    ? `/admin/resources/content/${$updatedValues.contentId}/send-translation-review`
+                    : `/admin/resources/content/${$updatedValues.contentId}/send-review`,
                 {
                     method: 'POST',
                 }
@@ -194,9 +194,9 @@
     async function startReview() {
         await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(
-                `/admin/resources/content/${$updatedValues.contentId}/review${
-                    isInTranslationWorkflow ? '-translation' : ''
-                }`,
+                isInTranslationWorkflow
+                    ? `/admin/resources/content/${$updatedValues.contentId}/review-translation`
+                    : `/admin/resources/content/${$updatedValues.contentId}/review`,
                 {
                     method: 'POST',
                 }
@@ -228,9 +228,9 @@
     async function assignUser() {
         await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(
-                `/admin/resources/content/${$updatedValues.contentId}/assign-${
-                    isInTranslationWorkflow ? 'translator' : 'editor'
-                }`,
+                isInTranslationWorkflow
+                    ? `/admin/resources/content/${$updatedValues.contentId}/assign-translator`
+                    : `/admin/resources/content/${$updatedValues.contentId}/assign-editor`,
                 {
                     method: 'POST',
                     body: {
