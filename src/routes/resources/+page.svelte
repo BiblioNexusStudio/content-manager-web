@@ -4,7 +4,7 @@
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { unwrapStreamedData, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
-    import { _searchParamsConfig, type ResourceListItemContentIdWithLanguageId } from './+page';
+    import { _perPage, _searchParamsConfig, type ResourceListItemContentIdWithLanguageId } from './+page';
     import { ResourceContentStatusEnum } from '$lib/types/base';
     import { searchParameters } from '$lib/utils/sveltekit-search-params';
     import { resourcesPerPage } from '$lib/stores/resources';
@@ -20,9 +20,6 @@
     $: languageId = $searchParams.languageId;
     $: resourceId = $searchParams.resourceId;
     $: query = $searchParams.query;
-    // $: perPage = $searchParams.perPage;
-
-    $: $searchParams.perPage = $resourcesPerPage;
 
     let resourceListCount = 0;
     $: unwrapStreamedDataWithCallback(data.streamedResourceListCount, setResourceCount);
@@ -91,7 +88,7 @@
         return contentIdsWithLanguageIds[0]!.contentId;
     }
 
-    $: totalPages = Math.ceil(resourceListCount / $searchParams.perPage) || 1;
+    $: totalPages = Math.ceil(resourceListCount / $resourcesPerPage) || 1;
 </script>
 
 <div class="mx-4 flex h-[95vh] flex-col pt-0 lg:h-screen lg:pt-4">

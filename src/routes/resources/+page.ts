@@ -7,11 +7,12 @@ import { resourcesPerPage } from '$lib/stores/resources';
 
 export const _searchParamsConfig = {
     page: ssp.number(1),
-    perPage: ssp.number(get(resourcesPerPage)),
     languageId: ssp.number(0),
     resourceId: ssp.number(0),
     query: ssp.string(''),
 };
+
+export const _perPage = { perPage: get(resourcesPerPage) };
 
 export const load: PageLoad = async ({ url, fetch }) => {
     const searchParams = searchParametersForLoad(url, _searchParamsConfig);
@@ -20,7 +21,7 @@ export const load: PageLoad = async ({ url, fetch }) => {
         streamedResourceList: getResourceList(
             fetch,
             searchParams.page,
-            searchParams.perPage,
+            get(resourcesPerPage),
             searchParams.languageId,
             searchParams.resourceId,
             searchParams.query
