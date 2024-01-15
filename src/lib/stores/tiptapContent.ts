@@ -2,16 +2,14 @@
 import type { JSONContent } from '@tiptap/core';
 
 export const originalValues: Writable<TiptapContentValues> = writable({
-    contentId: undefined,
     content: undefined,
-    wordCounts: [],
+    wordCounts: null,
     displayName: undefined,
 });
 
 export const updatedValues: Writable<TiptapContentValues> = writable({
-    contentId: undefined,
     content: undefined,
-    wordCounts: [],
+    wordCounts: null,
     displayName: undefined,
 });
 
@@ -35,10 +33,9 @@ export const updateOriginal = () => {
 export const userStoppedEditing = writable(false);
 
 export interface TiptapContentValues {
-    contentId?: number | undefined;
     content?: TiptapContentItemValues[] | undefined;
     displayName?: string | undefined;
-    wordCounts?: number[];
+    wordCounts?: number[] | null;
 }
 
 export interface TiptapContentItemValues {

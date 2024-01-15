@@ -6,11 +6,12 @@
     import BibleReferences from '$lib/components/resources/BibleReferences.svelte';
     import Content from '$lib/components/resources/Content.svelte';
     import { goto } from '$app/navigation';
-    import type {
-        ResourceContent,
-        ResourceContentVersion,
-        ContentItem,
-        ContentTranslation,
+    import {
+        type ResourceContent,
+        type ResourceContentVersion,
+        type ContentItem,
+        type ContentTranslation,
+        MediaTypeEnum,
     } from '$lib/types/resources';
     import { originalValues, updatedValues, updateOriginal, userStoppedEditing } from '$lib/stores/tiptapContent';
     import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
@@ -55,9 +56,11 @@
     let showAutoSaveFailedMessage = false;
     let putDataSuccess = false;
     let saveInterval: number | undefined;
+    let mediaType: MediaTypeEnum | undefined;
 
     export let data: PageData;
 
+    $: resourceContentId = data.resourceContentId;
     $: resourceContentPromise = unwrapStreamedDataWithCallback(data.streamedResourceContent, handleFetchedResource);
     $: contentUpdated = JSON.stringify($originalValues) !== JSON.stringify($updatedValues);
     $: contentUpdated && $userStoppedEditing ? onSave() : null;
@@ -65,6 +68,7 @@
     function handleFetchedResource(resourceContent: ResourceContent) {
         draftVersion = resourceContent.contentVersions.find((x) => x.isDraft);
         hasDraft = draftVersion !== undefined;
+        mediaType = resourceContent.mediaType;
 
         publishedVersion = resourceContent.contentVersions.find((x) => x.isPublished);
         hasPublished = publishedVersion !== undefined;
@@ -172,7 +176,7 @@
 
     async function unpublish() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/unpublish`, {
+            fetchFromApiWithAuth(`/admin/resources/content/${resourceContentId}/unpublish`, {
                 method: 'POST',
             })
         );
@@ -182,8 +186,8 @@
         await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(
                 isInTranslationWorkflow
-                    ? `/admin/resources/content/${$updatedValues.contentId}/send-translation-review`
-                    : `/admin/resources/content/${$updatedValues.contentId}/send-review`,
+                    ? `/admin/resources/content/${resourceContentId}/send-translation-review`
+                    : `/admin/resources/content/${resourceContentId}/send-review`,
                 {
                     method: 'POST',
                 }
@@ -195,8 +199,8 @@
         await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(
                 isInTranslationWorkflow
-                    ? `/admin/resources/content/${$updatedValues.contentId}/review-translation`
-                    : `/admin/resources/content/${$updatedValues.contentId}/review`,
+                    ? `/admin/resources/content/${resourceContentId}/review-translation`
+                    : `/admin/resources/content/${resourceContentId}/review`,
                 {
                     method: 'POST',
                 }
@@ -206,7 +210,7 @@
 
     async function aquiferize() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/aquiferize`, {
+            fetchFromApiWithAuth(`/admin/resources/content/${resourceContentId}/aquiferize`, {
                 method: 'POST',
                 body: { assignedUserId: assignToUserId ? parseInt(assignToUserId) : null },
             })
@@ -215,7 +219,7 @@
 
     async function publish() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/publish`, {
+            fetchFromApiWithAuth(`/admin/resources/content/${resourceContentId}/publish`, {
                 method: 'POST',
                 body: {
                     createDraft: createDraft,
@@ -229,8 +233,8 @@
         await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(
                 isInTranslationWorkflow
-                    ? `/admin/resources/content/${$updatedValues.contentId}/assign-translator`
-                    : `/admin/resources/content/${$updatedValues.contentId}/assign-editor`,
+                    ? `/admin/resources/content/${resourceContentId}/assign-translator`
+                    : `/admin/resources/content/${resourceContentId}/assign-editor`,
                 {
                     method: 'POST',
                     body: {
@@ -256,7 +260,7 @@
 
     async function translate() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${$updatedValues.contentId}/assign-translator`, {
+            fetchFromApiWithAuth(`/admin/resources/content/${resourceContentId}/assign-translator`, {
                 method: 'POST',
                 body: { assignedUserId: assignToUserId ? parseInt(assignToUserId) : null },
             })
@@ -300,9 +304,8 @@
         }
     }
 
-    function currentWordCount(wordCounts: number[] | undefined) {
-        wordCounts = wordCounts || [];
-        if (wordCounts.length > 0) {
+    function currentWordCount(wordCounts: number[] | null | undefined): number | null {
+        if (wordCounts) {
             return wordCounts.reduce((total, current) => total + current, 0);
         }
         return selectedVersion.wordCount;
@@ -313,12 +316,12 @@
     }
 
     async function putData() {
-        await fetchFromApiWithAuth(`/admin/resources/content/summary/${$updatedValues.contentId}`, {
+        await fetchFromApiWithAuth(`/admin/resources/content/summary/${resourceContentId}`, {
             method: 'PUT',
             body: {
                 displayName: $updatedValues.displayName,
-                content: $updatedValues.content,
                 wordCount: currentWordCount($updatedValues.wordCounts),
+                ...(mediaType === MediaTypeEnum.text ? { content: $updatedValues.content } : null),
             },
         });
 
@@ -464,7 +467,6 @@
                 <Content
                     canEdit={canMakeContentEdits && selectedVersion.isDraft}
                     resourceContentVersion={selectedVersion}
-                    contentId={resourceContent.resourceContentId}
                     mediaType={resourceContent.mediaType}
                 />
             </div>

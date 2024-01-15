@@ -8,11 +8,10 @@
 
     export let resourceContentVersion: ResourceContentVersion;
     export let canEdit: boolean;
-    export let contentId: number;
 
     $: content = resourceContentVersion.content as unknown as TiptapContentItemValues[];
     $: currentResourceStepsLength = content.length || 0;
-    $: setOriginalValues({ contentId, content });
+    $: setOriginalValues({ content });
     $: stepNavigation = currentResourceStepsLength > 1;
 
     const headings = [
