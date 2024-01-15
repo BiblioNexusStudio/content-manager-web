@@ -1,4 +1,4 @@
-import type { ResourceContentStatusEnum } from './base';
+import type { Language, ResourceContentStatusEnum } from './base';
 
 export enum ResourceTypeEnum {
     cbbterTranslationGuide = 'Translation Guide (SRV)',
@@ -75,11 +75,6 @@ export interface ContentItem {
     displayName: string;
 }
 
-export interface Language {
-    id: number;
-    displayName: string;
-}
-
 export interface AssociatedResource {
     mediaTypes: string[];
     parentResourceName: string;
@@ -120,4 +115,5 @@ export interface ResourceContentVersion {
     content: ContentItem | ContentItem[];
     isPublished: boolean;
     isDraft: boolean;
+    wordCount: number | null;
 }

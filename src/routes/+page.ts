@@ -62,7 +62,7 @@ export interface ResourceAssignedToSelf {
     displayName: string;
     parentResourceName: string;
     daysSinceAssignment: number;
-    wordCount: number;
+    wordCount: number | null;
 }
 
 export interface ResourcePendingReview {
@@ -70,6 +70,6 @@ export interface ResourcePendingReview {
     displayName: string;
     parentResourceName: string;
     daysSinceStatusChange: number;
-    wordCount: number;
+    wordCount: number | null;
     assignedUserName: string | null;
 }
