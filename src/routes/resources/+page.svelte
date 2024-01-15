@@ -8,6 +8,7 @@
     import { ResourceContentStatusEnum } from '$lib/types/base';
     import { searchParameters } from '$lib/utils/sveltekit-search-params';
     import { resourcesPerPage } from '$lib/stores/resources';
+    import { invalidateAll } from '$app/navigation';
 
     export let data: PageData;
 
@@ -29,6 +30,7 @@
     }
 
     let isInitialLoad = true;
+    let isInitialResourcePerPage = true;
 
     $: {
         // track these to return to page one when they change
@@ -37,6 +39,19 @@
             isInitialLoad = false;
         } else {
             goBackToPageOne();
+        }
+    }
+
+    $: {
+        // track whether resourcePerPage has changed
+        const _deps = [$resourcesPerPage];
+        if (isInitialResourcePerPage) {
+            isInitialResourcePerPage = false;
+        } else {
+            invalidateAll();
+            resourceList = new Promise(() => {
+                // do nothing, and wait for resourceList to be refetched.
+            });
         }
     }
 
