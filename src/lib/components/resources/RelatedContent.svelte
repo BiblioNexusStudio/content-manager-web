@@ -22,7 +22,7 @@
     }
 </script>
 
-<div class="mb-4 flex max-h-72 grow flex-col rounded-lg border border-base-300 bg-base-200">
+<div class="mb-4 flex h-fit max-h-72 flex-col rounded-lg border border-base-300 bg-base-200">
     <div class="px-4 py-2 text-xl font-medium">Related Content</div>
     <div class="h-full overflow-y-scroll rounded-lg bg-white p-4">
         <div class="flex flex-col">
