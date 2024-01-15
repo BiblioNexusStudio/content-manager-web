@@ -8,7 +8,7 @@
     export let resourceContentStatuses: ResourceContentStatus[];
 </script>
 
-<div class="mb-4 flex grow flex-col rounded-lg border border-base-300 bg-base-200">
+<div class="mb-4 flex h-fit flex-col rounded-lg border border-base-300 bg-base-200">
     <div class="px-4 py-2 text-xl font-medium">Process</div>
     <div class="h-full overflow-y-scroll rounded-lg bg-white p-4">
         <div class="flex w-full justify-between">

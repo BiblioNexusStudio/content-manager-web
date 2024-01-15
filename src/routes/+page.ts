@@ -6,6 +6,10 @@ import { redirect } from '@sveltejs/kit';
 export const load: PageLoad = async ({ fetch, parent }) => {
     const data = await parent();
 
+    if (!data.currentUser) {
+        return {};
+    }
+
     if (data.currentUser.is(Role.Publisher)) {
         const reportingSummary = fetchJsonStreamingFromApi(
             '/admin/resources/summary',
