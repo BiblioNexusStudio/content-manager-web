@@ -66,7 +66,9 @@
     function levelSetOriginalAndUpdatedState(editor: Editor, index: number) {
         $originalValues.content![index].tiptap = editor.getJSON();
         $updatedValues.content![index].tiptap = editor.getJSON();
-        $originalValues.wordCounts![index] = editor.storage.characterCount.words();
+        $originalValues.wordCounts ||= [];
+        $originalValues.wordCounts[index] = editor.storage.characterCount.words();
+        $updatedValues.wordCounts ||= [];
         $updatedValues.wordCounts![index] = editor.storage.characterCount.words();
     }
 
@@ -119,7 +121,8 @@
                     },
                     onUpdate: ({ editor }) => {
                         $updatedValues.content![index].tiptap = editor.getJSON();
-                        $updatedValues.wordCounts![index] = editor.storage.characterCount.words();
+                        $updatedValues.wordCounts ||= [];
+                        $updatedValues.wordCounts[index] = editor.storage.characterCount.words();
                     },
                     onCreate: ({ editor }) => {
                         // Need to call this here because the formatting of editor.getJSON has the possibility of being different

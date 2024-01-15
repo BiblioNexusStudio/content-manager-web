@@ -4,10 +4,9 @@
     import TiptapContent from './content-components/TiptapContent.svelte';
     import { MediaTypeEnum, type ResourceContentVersion } from '$lib/types/resources';
 
-    export let mediaType: string;
+    export let mediaType: MediaTypeEnum;
     export let resourceContentVersion: ResourceContentVersion;
     export let canEdit: boolean;
-    export let contentId: number;
 </script>
 
 <div class="relative flex h-full grow flex-col rounded-lg border border-base-300 bg-base-200">
@@ -18,7 +17,7 @@
         {:else if mediaType === MediaTypeEnum.video}
             <Video content={resourceContentVersion.content} />
         {:else if mediaType === MediaTypeEnum.text}
-            <TiptapContent {canEdit} {resourceContentVersion} {contentId} />
+            <TiptapContent {canEdit} {resourceContentVersion} />
         {/if}
     </div>
 </div>

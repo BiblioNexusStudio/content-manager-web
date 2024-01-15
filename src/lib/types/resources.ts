@@ -76,7 +76,7 @@ export interface ContentItem {
 }
 
 export interface AssociatedResource {
-    mediaTypes: string[];
+    mediaTypes: MediaTypeEnum[];
     parentResourceName: string;
     label: string;
 }
@@ -100,7 +100,7 @@ export interface ResourceContent {
     associatedResources: AssociatedResource[];
     parentResourceName: string;
     resourceContentId: number;
-    mediaType: string;
+    mediaType: MediaTypeEnum;
     status: ResourceContentStatusEnum;
     language: Language;
     hasAudio: boolean;
