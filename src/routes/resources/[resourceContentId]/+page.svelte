@@ -300,6 +300,14 @@
         }
     }
 
+    function currentWordCount(wordCounts: number[] | undefined) {
+        wordCounts = wordCounts || [];
+        if (wordCounts.length > 0) {
+            return wordCounts.reduce((total, current) => total + current, 0);
+        }
+        return selectedVersion.wordCount;
+    }
+
     function goBack() {
         window.history.length > 1 ? window.history.back() : goto('/resources');
     }
@@ -310,7 +318,7 @@
             body: {
                 displayName: $updatedValues.displayName,
                 content: $updatedValues.content,
-                wordCount: ($updatedValues.wordCounts || []).reduce((total, current) => total + current, 0),
+                wordCount: currentWordCount($updatedValues.wordCounts),
             },
         });
 
@@ -433,6 +441,8 @@
                     displayNameText={selectedVersion.displayName}
                     typeText={resourceContent.parentResourceName}
                     isPublished={hasPublished}
+                    wordCount={currentWordCount($updatedValues.wordCounts)}
+                    language={resourceContent.language}
                     on:saveTitle={onSave}
                 />
                 <Process
