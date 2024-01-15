@@ -7,6 +7,8 @@
     import { _searchParamsConfig, type ResourceListItemContentIdWithLanguageId } from './+page';
     import { ResourceContentStatusEnum } from '$lib/types/base';
     import { searchParameters } from '$lib/utils/sveltekit-search-params';
+    import { resourcesPerPage } from '$lib/stores/resources';
+    import { invalidateAll } from '$app/navigation';
 
     export let data: PageData;
 
@@ -19,7 +21,6 @@
     $: languageId = $searchParams.languageId;
     $: resourceId = $searchParams.resourceId;
     $: query = $searchParams.query;
-    $: perPage = $searchParams.perPage;
 
     let resourceListCount = 0;
     $: unwrapStreamedDataWithCallback(data.streamedResourceListCount, setResourceCount);
@@ -29,14 +30,28 @@
     }
 
     let isInitialLoad = true;
+    let isInitialResourcePerPage = true;
 
     $: {
         // track these to return to page one when they change
-        const _deps = [languageId, resourceId, query, perPage];
+        const _deps = [languageId, resourceId, query, $resourcesPerPage];
         if (isInitialLoad) {
             isInitialLoad = false;
         } else {
             goBackToPageOne();
+        }
+    }
+
+    $: {
+        // track whether resourcePerPage has changed
+        const _deps = [$resourcesPerPage];
+        if (isInitialResourcePerPage) {
+            isInitialResourcePerPage = false;
+        } else {
+            invalidateAll();
+            resourceList = new Promise(() => {
+                // do nothing, and wait for resourceList to be refetched.
+            });
         }
     }
 
@@ -88,7 +103,7 @@
         return contentIdsWithLanguageIds[0]!.contentId;
     }
 
-    $: totalPages = Math.ceil(resourceListCount / $searchParams.perPage) || 1;
+    $: totalPages = Math.ceil(resourceListCount / $resourcesPerPage) || 1;
 </script>
 
 <div class="mx-4 flex h-[95vh] flex-col pt-0 lg:h-screen lg:pt-4">
@@ -195,7 +210,7 @@
                     values: { currentPage: $searchParams.page, totalPages },
                 })}
             </div>
-            <select bind:value={$searchParams.perPage} class="select select-bordered select-ghost select-xs">
+            <select bind:value={$resourcesPerPage} class="select select-bordered select-ghost select-xs">
                 {#each [10, 50, 100] as count, i}
                     <option value={count} selected={i === 0}>
                         {`${count} ${$translate('page.resources.table.navigation.perPage.value')}`}
