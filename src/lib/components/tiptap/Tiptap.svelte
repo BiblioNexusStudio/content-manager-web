@@ -206,7 +206,9 @@
         <div class="mx-6 mt-2">
             {#each formattingOptions as option}
                 <button
-                    class="btn btn-xs mx-1 px-0 {currentEditor.isActive(option.name) ? 'btn-primary' : 'btn-link'}"
+                    class="btn btn-xs mx-1 px-0 hover:bg-[#e6f7fc] {currentEditor.isActive(option.name)
+                        ? 'btn-primary'
+                        : 'btn-link'}"
                     on:click={option.onClick}
                 >
                     <svelte:component this={option.icon} />
@@ -214,7 +216,7 @@
             {/each}
             {#each headerLevels as header}
                 <button
-                    class="btn btn-xs mx-0.5 px-1 {currentEditor.isActive('heading', {
+                    class="btn btn-xs mx-0.5 px-1 hover:bg-[#e6f7fc] {currentEditor.isActive('heading', {
                         level: header.level,
                     })
                         ? 'btn-primary'
