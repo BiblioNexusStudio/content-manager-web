@@ -16,7 +16,6 @@
     import UnderlineIcon from '$lib/icons/UnderlineIcon.svelte';
     import UnorderedListIcon from '$lib/icons/UnorderedListIcon.svelte';
     import OrderedListIcon from '$lib/icons/OrderedListIcon.svelte';
-    import LinkIcon from '$lib/icons/LinkIcon.svelte';
     import Heading1Icon from '$lib/icons/Heading1Icon.svelte';
     import Heading2Icon from '$lib/icons/Heading2Icon.svelte';
     import Heading3Icon from '$lib/icons/Heading3Icon.svelte';
@@ -151,36 +150,6 @@
     //     }
     // };
 
-    const addLink = () => {
-        let previousUrl = currentEditor.getAttributes('link').href;
-        let url: string | null;
-
-        do {
-            url = window.prompt('URL (must begin with http:// or https://)', previousUrl);
-
-            // cancelled
-            if (url === null) {
-                return;
-            }
-
-            // empty
-            if (url === '') {
-                currentEditor.chain().focus().extendMarkRange('link').unsetLink().run();
-                return;
-            }
-
-            // re-prompt if URL does not start with http:// or https://
-            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                alert('Invalid URL. URL must begin with http:// or https://');
-            } else {
-                // update link
-                currentEditor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
-                return;
-            }
-            // eslint-disable-next-line
-        } while (true);
-    };
-
     const headerLevels: { level: Level; icon: ComponentType }[] = [
         { level: 1, icon: Heading1Icon },
         { level: 2, icon: Heading2Icon },
@@ -256,12 +225,6 @@
                 </button>
             {/each}
             <!--        <button class="btn btn-accent btn-outline btn-xs my-1" on:click={addImage}> Image </button>-->
-            <button
-                class="btn btn-xs mx-1 px-0 {currentEditor.isActive('link') ? 'btn-primary' : 'btn-link'}"
-                on:click={addLink}
-            >
-                <LinkIcon />
-            </button>
         </div>
     </div>
 {/if}
