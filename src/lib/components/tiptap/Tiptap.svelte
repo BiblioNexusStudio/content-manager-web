@@ -19,6 +19,8 @@
     import Heading1Icon from '$lib/icons/Heading1Icon.svelte';
     import Heading2Icon from '$lib/icons/Heading2Icon.svelte';
     import Heading3Icon from '$lib/icons/Heading3Icon.svelte';
+    import UndoIcon from '$lib/icons/UndoIcon.svelte';
+    import RedoIcon from '$lib/icons/RedoIcon.svelte';
     import {
         updatedValues,
         currentStepNumber,
@@ -157,6 +159,16 @@
     ];
 
     const formattingOptions = [
+        {
+            name: 'undo',
+            onClick: () => currentEditor.commands.undo(),
+            icon: UndoIcon,
+        },
+        {
+            name: 'redo',
+            onClick: () => currentEditor.commands.redo(),
+            icon: RedoIcon,
+        },
         {
             name: 'bold',
             onClick: () => currentEditor.chain().focus().toggleBold().run(),
