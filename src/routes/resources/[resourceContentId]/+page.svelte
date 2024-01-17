@@ -132,6 +132,7 @@
     }
 
     let isTransacting = false;
+    let isSaving = false;
 
     function openAquiferizeModal() {
         assignToUserId = null;
@@ -269,7 +270,7 @@
 
     async function onSave() {
         $userStoppedEditing = false;
-        isTransacting = true;
+        isSaving = true;
         showAutoSaveFailedMessage = false;
         try {
             await putData();
@@ -282,7 +283,7 @@
             saveRetries < 4 ? saveRetries++ : (showAutoSaveFailedMessage = true);
         } finally {
             if (putDataSuccess) {
-                isTransacting = false;
+                isSaving = false;
                 saveRetries = 0;
                 showAutoSaveFailedMessage = false;
                 putDataSuccess = false;
@@ -357,7 +358,7 @@
             <div class="flex w-8/12">
                 <div class="flex w-full justify-between">
                     <div class="mb-4 flex items-center">
-                        {#if isTransacting}
+                        {#if isSaving}
                             <Icon data={spinner} pulse class="text-[#0175a2]" />
                         {/if}
                     </div>
