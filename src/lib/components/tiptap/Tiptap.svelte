@@ -16,10 +16,11 @@
     import UnderlineIcon from '$lib/icons/UnderlineIcon.svelte';
     import UnorderedListIcon from '$lib/icons/UnorderedListIcon.svelte';
     import OrderedListIcon from '$lib/icons/OrderedListIcon.svelte';
-    import LinkIcon from '$lib/icons/LinkIcon.svelte';
     import Heading1Icon from '$lib/icons/Heading1Icon.svelte';
     import Heading2Icon from '$lib/icons/Heading2Icon.svelte';
     import Heading3Icon from '$lib/icons/Heading3Icon.svelte';
+    import UndoIcon from '$lib/icons/UndoIcon.svelte';
+    import RedoIcon from '$lib/icons/RedoIcon.svelte';
     import {
         updatedValues,
         currentStepNumber,
@@ -151,36 +152,6 @@
     //     }
     // };
 
-    const addLink = () => {
-        let previousUrl = currentEditor.getAttributes('link').href;
-        let url: string | null;
-
-        do {
-            url = window.prompt('URL (must begin with http:// or https://)', previousUrl);
-
-            // cancelled
-            if (url === null) {
-                return;
-            }
-
-            // empty
-            if (url === '') {
-                currentEditor.chain().focus().extendMarkRange('link').unsetLink().run();
-                return;
-            }
-
-            // re-prompt if URL does not start with http:// or https://
-            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                alert('Invalid URL. URL must begin with http:// or https://');
-            } else {
-                // update link
-                currentEditor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
-                return;
-            }
-            // eslint-disable-next-line
-        } while (true);
-    };
-
     const headerLevels: { level: Level; icon: ComponentType }[] = [
         { level: 1, icon: Heading1Icon },
         { level: 2, icon: Heading2Icon },
@@ -188,6 +159,16 @@
     ];
 
     const formattingOptions = [
+        {
+            name: 'undo',
+            onClick: () => currentEditor.commands.undo(),
+            icon: UndoIcon,
+        },
+        {
+            name: 'redo',
+            onClick: () => currentEditor.commands.redo(),
+            icon: RedoIcon,
+        },
         {
             name: 'bold',
             onClick: () => currentEditor.chain().focus().toggleBold().run(),
@@ -237,7 +218,9 @@
         <div class="mx-6 mt-2">
             {#each formattingOptions as option}
                 <button
-                    class="btn btn-xs mx-1 px-0 {currentEditor.isActive(option.name) ? 'btn-primary' : 'btn-link'}"
+                    class="btn btn-xs mx-1 px-0 hover:bg-[#e6f7fc] {currentEditor.isActive(option.name)
+                        ? 'btn-primary'
+                        : 'btn-link'}"
                     on:click={option.onClick}
                 >
                     <svelte:component this={option.icon} />
@@ -245,7 +228,7 @@
             {/each}
             {#each headerLevels as header}
                 <button
-                    class="btn btn-xs mx-0.5 px-1 {currentEditor.isActive('heading', {
+                    class="btn btn-xs mx-0.5 px-1 hover:bg-[#e6f7fc] {currentEditor.isActive('heading', {
                         level: header.level,
                     })
                         ? 'btn-primary'
@@ -256,12 +239,6 @@
                 </button>
             {/each}
             <!--        <button class="btn btn-accent btn-outline btn-xs my-1" on:click={addImage}> Image </button>-->
-            <button
-                class="btn btn-xs mx-1 px-0 {currentEditor.isActive('link') ? 'btn-primary' : 'btn-link'}"
-                on:click={addLink}
-            >
-                <LinkIcon />
-            </button>
         </div>
     </div>
 {/if}
