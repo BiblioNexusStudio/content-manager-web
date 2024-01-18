@@ -5,7 +5,7 @@
     export let languages: Language[];
     export let translations: ContentTranslation[];
     export let englishTranslation: ContentTranslation | undefined;
-    export let canPublish: boolean;
+    export let canCreateTranslation: boolean;
     export let openModal: () => void;
 
     const mappedTranslations = translations
@@ -29,7 +29,7 @@
                 </div>
             {/each}
         </div>
-        {#if canPublish && englishTranslation?.hasPublished}
+        {#if canCreateTranslation && englishTranslation?.hasPublished && languages.length !== translations.length}
             <div class="mt-2 flex flex-col place-items-end">
                 <button class="btn btn-primary btn-sm" on:click={() => openModal()}> Add </button>
             </div>
