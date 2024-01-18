@@ -120,7 +120,7 @@
                         <div class="flex-grow-0">
                             <a
                                 href={navItem.href}
-                                class="btn btn-neutral btn-ghost btn-block justify-start px-2 text-lg normal-case text-neutral-100"
+                                class="btn btn-ghost btn-neutral btn-block justify-start px-2 text-lg normal-case text-neutral-100"
                                 ><svelte:component this={navItem.icon} />{navItem.name}</a
                             >
                         </div>

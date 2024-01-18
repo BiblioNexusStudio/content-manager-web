@@ -435,7 +435,7 @@
                                 {/if}
                             </button>
                         {/if}
-                        <button class="btn btn-primary btn-outline mb-4 ms-4" on:click={onSaveAndClose}>Close</button>
+                        <button class="btn btn-outline btn-primary mb-4 ms-4" on:click={onSaveAndClose}>Close</button>
                     </div>
                 </div>
             </div>
@@ -494,7 +494,7 @@
                         on:click={isInTranslationWorkflow ? translate : aquiferize}
                         disabled={assignToUserId === null}>Assign</button
                     >
-                    <button class="btn btn-primary btn-outline" on:click={() => aquiferizeModal.close()}>Cancel</button>
+                    <button class="btn btn-outline btn-primary" on:click={() => aquiferizeModal.close()}>Cancel</button>
                 </div>
             </div>
         </div>
@@ -523,7 +523,7 @@
                         on:click={assignUser}
                         disabled={assignToUserId === null || isTransacting}>Assign</button
                     >
-                    <button class="btn btn-primary btn-outline" on:click={() => assignUserModal.close()}>Cancel</button>
+                    <button class="btn btn-outline btn-primary" on:click={() => assignUserModal.close()}>Cancel</button>
                 </div>
             </div>
         </div>
@@ -554,7 +554,7 @@
                 <div class="flex w-full flex-row space-x-2 pt-4">
                     <div class="flex-grow" />
                     <button class="btn btn-primary" on:click={publish} disabled={isTransacting}>Publish</button>
-                    <button class="btn btn-primary btn-outline" on:click={() => publishModal.close()}>Cancel</button>
+                    <button class="btn btn-outline btn-primary" on:click={() => publishModal.close()}>Cancel</button>
                 </div>
             </div>
         </div>
@@ -588,7 +588,7 @@
                         on:click={createTranslation}
                         disabled={newTranslationLanguageId === null || isTransacting}>Create</button
                     >
-                    <button class="btn btn-primary btn-outline" on:click={() => addTranslationModal.close()}
+                    <button class="btn btn-outline btn-primary" on:click={() => addTranslationModal.close()}
                         >Cancel</button
                     >
                 </div>
@@ -605,7 +605,7 @@
                     <button class="btn btn-primary" on:click={sendReview} disabled={isTransacting}
                         >Send to Review</button
                     >
-                    <button class="btn btn-primary btn-outline">Cancel</button>
+                    <button class="btn btn-outline btn-primary">Cancel</button>
                 </form>
             </div>
         </div>
