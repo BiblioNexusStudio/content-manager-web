@@ -33,7 +33,7 @@
             (group, resource) => {
                 const { language, monthAbbreviation } = resource;
                 group[`${language}-${monthAbbreviation}`] = group[`${language}-${monthAbbreviation}`] ?? [];
-                group[`${language}-${monthAbbreviation}`].push(resource);
+                group[`${language}-${monthAbbreviation}`]!.push(resource);
 
                 return group;
             },
@@ -45,10 +45,10 @@
         for (let langMonth in langMonthGroup) {
             let group = langMonthGroup[langMonth];
             let total = 0;
-            for (let i = 0; i < group.length; i++) {
-                total += group[i].resourceCount;
+            for (let i = 0; i < group!.length; i++) {
+                total += group![i]!.resourceCount;
             }
-            translatedData?.find((x) => x.label === group[0].language)?.data.push(total);
+            translatedData?.find((x) => x.label === group![0]?.language)?.data.push(total);
         }
 
         updateChart(translatedData);
@@ -56,7 +56,7 @@
 
     const updateChart = (data: ChartDataset[]) => {
         for (let i = 0; i < data.length; i++) {
-            data[i].backgroundColor = colors[i];
+            data[i]!.backgroundColor = colors[i];
         }
 
         if (chart !== undefined) {
@@ -127,7 +127,9 @@
             let gradient = canvasContext.createLinearGradient(0, 0, 0, 300);
             gradient.addColorStop(0, '#81755690');
             gradient.addColorStop(1, '#81755600');
-            chartData.data.datasets[0].backgroundColor = gradient;
+            if (chartData.data.datasets[0]) {
+                chartData.data.datasets[0].backgroundColor = gradient;
+            }
         }
 
         chart = new Chart('translatedResourcesBarChart', chartData);
