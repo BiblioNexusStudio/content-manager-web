@@ -35,7 +35,7 @@
     export let canEdit: boolean;
 
     let parentElement: HTMLDivElement | undefined;
-    let editorElements: HTMLDivElement[];
+    let editorElements: HTMLDivElement[] | undefined;
     let editors: Editor[] = [];
     let timeout: number | undefined;
     $: currentEditor = editors[$currentStepNumber - 1];
@@ -49,7 +49,10 @@
             if (existing) {
                 parentElement?.removeChild(existing);
             }
-            parentElement?.append(editorElements[stepNumber - 1]);
+            const editorElement = editorElements?.[stepNumber - 1];
+            if (editorElement) {
+                parentElement?.append(editorElement);
+            }
             currentEditor?.commands.focus();
         }
     }
@@ -57,7 +60,9 @@
     function updateEditorsWhenOriginalValuesChange(originalValues: TiptapContentValues) {
         editors.forEach((editor, index) => {
             const selection = editor.state.selection;
-            editor.commands.setContent(originalValues.content![index].tiptap!);
+            if (originalValues.content![index]?.tiptap) {
+                editor.commands.setContent(originalValues.content![index]!.tiptap!);
+            }
             levelSetOriginalAndUpdatedState(editor, index);
             editor.commands.setTextSelection(selection);
             editor.commands.focus();
@@ -65,8 +70,12 @@
     }
 
     function levelSetOriginalAndUpdatedState(editor: Editor, index: number) {
-        $originalValues.content![index].tiptap = editor.getJSON();
-        $updatedValues.content![index].tiptap = editor.getJSON();
+        if ($originalValues.content![index]) {
+            $originalValues.content![index]!.tiptap = editor.getJSON();
+        }
+        if ($updatedValues.content![index]) {
+            $updatedValues.content![index]!.tiptap = editor.getJSON();
+        }
         $originalValues.wordCounts ||= [];
         $originalValues.wordCounts[index] = editor.storage.characterCount.words();
         $updatedValues.wordCounts ||= [];
@@ -93,7 +102,7 @@
         editors = $originalValues.content!.map(
             (content, index) =>
                 new Editor({
-                    element: editorElements[index],
+                    element: editorElements?.[index],
                     editable: canEdit,
                     extensions: [
                         StarterKit,
@@ -121,7 +130,9 @@
                         currentEditor = currentEditor;
                     },
                     onUpdate: ({ editor }) => {
-                        $updatedValues.content![index].tiptap = editor.getJSON();
+                        if ($updatedValues.content![index]) {
+                            $updatedValues.content![index]!.tiptap = editor.getJSON();
+                        }
                         $updatedValues.wordCounts ||= [];
                         $updatedValues.wordCounts[index] = editor.storage.characterCount.words();
                     },
@@ -161,37 +172,37 @@
     const formattingOptions = [
         {
             name: 'undo',
-            onClick: () => currentEditor.commands.undo(),
+            onClick: () => currentEditor?.commands.undo(),
             icon: UndoIcon,
         },
         {
             name: 'redo',
-            onClick: () => currentEditor.commands.redo(),
+            onClick: () => currentEditor?.commands.redo(),
             icon: RedoIcon,
         },
         {
             name: 'bold',
-            onClick: () => currentEditor.chain().focus().toggleBold().run(),
+            onClick: () => currentEditor?.chain().focus().toggleBold().run(),
             icon: BoldIcon,
         },
         {
             name: 'italic',
-            onClick: () => currentEditor.chain().focus().toggleItalic().run(),
+            onClick: () => currentEditor?.chain().focus().toggleItalic().run(),
             icon: ItalicsIcon,
         },
         {
             name: 'underline',
-            onClick: () => currentEditor.chain().focus().toggleUnderline().run(),
+            onClick: () => currentEditor?.chain().focus().toggleUnderline().run(),
             icon: UnderlineIcon,
         },
         {
             name: 'bulletList',
-            onClick: () => currentEditor.chain().focus().toggleBulletList().run(),
+            onClick: () => currentEditor?.chain().focus().toggleBulletList().run(),
             icon: UnorderedListIcon,
         },
         {
             name: 'orderedList',
-            onClick: () => currentEditor.chain().focus().toggleOrderedList().run(),
+            onClick: () => currentEditor?.chain().focus().toggleOrderedList().run(),
             icon: OrderedListIcon,
         },
     ];
@@ -233,7 +244,7 @@
                     })
                         ? 'btn-primary'
                         : 'btn-link'}"
-                    on:click={() => currentEditor.chain().focus().toggleHeading({ level: header.level }).run()}
+                    on:click={() => currentEditor?.chain().focus().toggleHeading({ level: header.level }).run()}
                 >
                     <svelte:component this={header.icon} />
                 </button>

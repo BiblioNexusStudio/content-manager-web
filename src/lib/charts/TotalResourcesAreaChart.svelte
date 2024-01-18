@@ -42,7 +42,7 @@
                 (group, resource) => {
                     const { monthAbbreviation } = resource;
                     group[monthAbbreviation] = group[monthAbbreviation] ?? [];
-                    group[monthAbbreviation].push(resource);
+                    group[monthAbbreviation]!.push(resource);
                     return group;
                 },
                 {} as { [month: string]: ResourcesByLanguage[] }
@@ -52,14 +52,16 @@
             for (let month in monthGroup) {
                 let group = monthGroup[month];
                 let total = 0;
-                for (let i = 0; i < group.length; i++) {
-                    total += group[i].resourceCount;
+                for (let i = 0; i < group!.length; i++) {
+                    total += group![i]!.resourceCount;
                 }
-                totals.push({
-                    resourceCount: total,
-                    monthAbbreviation: group[0].monthAbbreviation,
-                    date: group[0].date,
-                });
+                if (group![0]) {
+                    totals.push({
+                        resourceCount: total,
+                        monthAbbreviation: group![0].monthAbbreviation,
+                        date: group![0].date,
+                    });
+                }
             }
 
             updateChart(totals);
@@ -71,10 +73,14 @@
     const updateChart = (data: TotalsByMonth[]) => {
         let counts = data.map((item) => item.resourceCount);
         if (chart !== undefined) {
-            chart.data.datasets[0].data = counts;
-            chart.update();
+            if (chart?.data.datasets[0]) {
+                chart.data.datasets[0].data = counts;
+                chart.update();
+            }
         } else {
-            chartData.data.datasets[0].data = counts;
+            if (chartData.data.datasets[0]) {
+                chartData.data.datasets[0].data = counts;
+            }
         }
     };
 
@@ -130,7 +136,9 @@
             let gradient = canvasContext.createLinearGradient(0, 0, 0, 300);
             gradient.addColorStop(0, '#00A3E090');
             gradient.addColorStop(1, '#00A3E000');
-            chartData.data.datasets[0].backgroundColor = gradient;
+            if (chartData.data.datasets[0]) {
+                chartData.data.datasets[0].backgroundColor = gradient;
+            }
         }
 
         chart = new Chart('totalResourcesAreaChart', chartData);

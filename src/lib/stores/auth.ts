@@ -151,6 +151,9 @@ function setCookie(
 
 function getJwtExpiration(jwt: string) {
     const payload = jwt.split('.')[1];
-    const decodedPayload = JSON.parse(atob(payload));
-    return parseInt(decodedPayload.exp);
+    if (payload) {
+        const decodedPayload = JSON.parse(atob(payload));
+        return parseInt(decodedPayload.exp);
+    }
+    return 0;
 }
