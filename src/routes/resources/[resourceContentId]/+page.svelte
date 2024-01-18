@@ -43,6 +43,7 @@
     let canUnpublish = false;
     let canSendReview = false;
     let canStartReview = false;
+    let canCreateTranslation = false;
     let createDraft = false;
     let draftVersion: ResourceContentVersion | undefined = undefined;
     let publishedVersion: ResourceContentVersion | undefined = undefined;
@@ -129,6 +130,7 @@
                 resourceContent.status === ResourceContentStatusEnum.TranslationInReview);
 
         canUnpublish = data.currentUser.can(Permission.PublishContent) && hasPublished;
+        canCreateTranslation = data.currentUser.can(Permission.PublishContent);
     }
 
     let isTransacting = false;
@@ -458,7 +460,7 @@
                     languages={data.languages}
                     translations={resourceContent.contentTranslations}
                     englishTranslation={englishContentTranslation}
-                    {canPublish}
+                    {canCreateTranslation}
                     openModal={openAddTranslationModal}
                 />
                 <RelatedContent relatedContent={resourceContent.associatedResources} />
