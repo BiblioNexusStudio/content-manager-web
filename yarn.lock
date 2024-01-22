@@ -5611,6 +5611,11 @@ tinyspy@^2.1.1:
   resolved "https://registry.npmjs.org/tinyspy/-/tinyspy-2.1.1.tgz"
   integrity sha512-XPJL2uSzcOyBMky6OFrusqWlzfFrXtE0hPuMgW8A2HmaqrPo4ZQHRN/V0QXN3FSjKxpsbRrFc5LI7KOwBsT1/w==
 
+tiptap-text-direction@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/tiptap-text-direction/-/tiptap-text-direction-0.3.0.tgz#9195b7e2f5f256356ed9396f7fae3399df0bf245"
+  integrity sha512-n5PduD4RmjsorlImOmh/CHmjmIJHgprMmcPJDp6RwebjYgyvCCtgTFlF3Sbx2CI67MN/RKpyfY4/zv25SAf2pg==
+
 tmp@^0.0.33:
   version "0.0.33"
   resolved "https://registry.npmjs.org/tmp/-/tmp-0.0.33.tgz"

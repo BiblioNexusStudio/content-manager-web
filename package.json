@@ -36,7 +36,8 @@
         "svelte": "^4.0.5",
         "svelte-awesome": "^3.2.1",
         "svelte-i18n": "^3.7.0",
-        "tailwindcss": "^3.3.2"
+        "tailwindcss": "^3.3.2",
+        "tiptap-text-direction": "^0.3.0"
     },
     "devDependencies": {
         "@azure/static-web-apps-cli": "^1.1.4",
