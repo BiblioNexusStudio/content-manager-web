@@ -150,6 +150,6 @@
 </script>
 
 <div class="flex flex-col">
-    <div class="mb-6 text-lg font-bold">{$translate('page.dashboard.charts.totalResources.value')}</div>
+    <div class="mb-6 text-lg font-bold">{$translate('page.dashboard.charts.monthly.aquiferizationHistory')}</div>
     <canvas class="!h-full !w-full" id="totalResourcesAreaChart" />
 </div>
