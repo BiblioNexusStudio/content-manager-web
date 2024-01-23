@@ -22,6 +22,7 @@
     import { Permission } from '$lib/stores/auth';
     import spinner from 'svelte-awesome/icons/spinner';
     import { Icon } from 'svelte-awesome';
+    import ArrowLeftSmall from '$lib/icons/ArrowLeftSmall.svelte';
     import Translations from '$lib/components/resources/Translations.svelte';
     import TranslationSelector from './TranslationSelector.svelte';
 
@@ -347,7 +348,10 @@
 {:then resourceContent}
     <div class="p-8">
         <div class="mb-4 flex w-full items-center">
-            <div class="mb-4 me-8 w-4/12">
+            <div class="mb-4 me-8 flex w-4/12 place-items-center">
+                <button class="btn btn-link btn-sm m-0 me-2 min-h-0 p-0 text-black" on:click={onSaveAndClose}
+                    ><ArrowLeftSmall /></button
+                >
                 <h1 class="relative w-full text-2xl font-bold">
                     {resourceContent.parentResourceName} -
                     {$originalValues.displayName}
@@ -435,7 +439,6 @@
                                 {/if}
                             </button>
                         {/if}
-                        <button class="btn btn-outline btn-primary mb-4 ms-4" on:click={onSaveAndClose}>Close</button>
                     </div>
                 </div>
             </div>
