@@ -30,6 +30,7 @@
     } from '$lib/stores/tiptapContent';
     import * as customMarks from '$lib/components/tiptap/customMarks';
     import type { ComponentType } from 'svelte';
+    import TextDirection from 'tiptap-text-direction';
 
     export let hasSteps = false;
     export let canEdit: boolean;
@@ -118,6 +119,9 @@
                         CharacterCount.configure({}),
                         customMarks.bibleReferenceMark,
                         customMarks.resourceReferenceMark,
+                        TextDirection.configure({
+                            types: ['heading', 'paragraph', 'orderedList', 'bulletList', 'listItem'],
+                        }),
                     ],
                     editorProps: {
                         attributes: {
