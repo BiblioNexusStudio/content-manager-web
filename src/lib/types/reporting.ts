@@ -21,3 +21,16 @@ export interface ResourcesSummary {
     languages: string[];
     parentResourceNames: string[];
 }
+
+export interface ResourceItemsSummary {
+    aquiferizedResources: number;
+    aquiferizedResourcesThisMonth: number;
+    totalNonEnglishResources: number;
+    totalNonEnglishResourcesThisMonth: number;
+    totalResourceTranslastion: number;
+    totalResourceTranslastionedThisMonth: number;
+    totalResources: number;
+    totalResourcesThisMonth: number;
+    totalResourcesTwoPlus: number;
+    totalResourcesTwoPlusThisMonth: number;
+}

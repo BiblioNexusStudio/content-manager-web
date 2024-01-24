@@ -6,13 +6,14 @@
     import { unwrapStreamedData } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import Select from '$lib/components/Select.svelte';
-    import { getReportingLinkData, getMockReportSummaryCardData } from '$lib/utils/reporting';
+    import { getReportingLinkData } from '$lib/utils/reporting';
     import ReportingLink from '$lib/components/reporting/ReportingLink.svelte';
     import ReportSummaryCard from '$lib/components/reporting/ReportSummaryCard.svelte';
 
     export let data: PageData;
 
     $: summaryPromise = unwrapStreamedData(data.summary);
+    $: resourceItemsSummaryPromise = unwrapStreamedData(data.resourceItemsSummary);
 
     const defaultSelection = 'default';
 
@@ -20,14 +21,13 @@
     let selectedResource: string = defaultSelection;
 
     const reportingLinkData = getReportingLinkData();
-    const mockReportSummaryCardData = getMockReportSummaryCardData();
 
     let selectedChart = 'TotalResourcesAreaChart';
 </script>
 
-{#await summaryPromise}
+{#await Promise.all([summaryPromise, resourceItemsSummaryPromise])}
     <CenteredSpinner />
-{:then summary}
+{:then [summary, resourceItemsSummary]}
     {@const languages = summary.languages.sort()}
 
     <div class="mx-4 mb-4 mt-4 grid text-2xl font-bold">Reporting</div>
@@ -85,14 +85,36 @@
         </div>
 
         <div>
-            {#each mockReportSummaryCardData as summaryCard}
-                <ReportSummaryCard
-                    reportTitle={summaryCard.reportTitle}
-                    reportTotal={summaryCard.reportTotal}
-                    monthTotal={summaryCard.monthTotal}
-                    monthText={summaryCard.monthText}
-                />
-            {/each}
+            <ReportSummaryCard
+                addPlus={true}
+                reportTitle="Total Resource Items"
+                reportTotal={resourceItemsSummary.totalResources}
+                monthTotal={resourceItemsSummary.totalResourcesThisMonth}
+            />
+            <ReportSummaryCard
+                addPlus={true}
+                reportTitle="Total Resource Items (non-English)"
+                reportTotal={resourceItemsSummary.totalNonEnglishResources}
+                monthTotal={resourceItemsSummary.totalNonEnglishResourcesThisMonth}
+            />
+            <ReportSummaryCard
+                addPlus={true}
+                reportTitle="Total Resource Items (2+ Languages)"
+                reportTotal={resourceItemsSummary.totalResourcesTwoPlus}
+                monthTotal={resourceItemsSummary.totalResourcesTwoPlusThisMonth}
+            />
+            <ReportSummaryCard
+                reportTitle="Resource Items being Aquiferized"
+                reportTotal={resourceItemsSummary.aquiferizedResources}
+                monthTotal={resourceItemsSummary.aquiferizedResourcesThisMonth}
+                monthText="Started This Month"
+            />
+            <ReportSummaryCard
+                reportTitle="Resource Items being Translated"
+                reportTotal={resourceItemsSummary.totalResourceTranslastion}
+                monthTotal={resourceItemsSummary.totalResourceTranslastionedThisMonth}
+                monthText="Started This Month"
+            />
         </div>
     </div>
 
