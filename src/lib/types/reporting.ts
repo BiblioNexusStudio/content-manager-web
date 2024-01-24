@@ -22,6 +22,16 @@ export interface ResourcesSummary {
     parentResourceNames: string[];
 }
 
+export interface StatusCountPerMonth {
+    date: Date;
+    statusCount: number;
+}
+
+export interface MonthlyStartsAndCompletions {
+    starts: StatusCountPerMonth[];
+    completions: StatusCountPerMonth[];
+}
+
 export interface ResourceItemsSummary {
     aquiferizedResources: number;
     aquiferizedResourcesThisMonth: number;
