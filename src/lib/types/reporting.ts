@@ -37,10 +37,10 @@ export interface ResourceItemsSummary {
     aquiferizedResourcesThisMonth: number;
     totalNonEnglishResources: number;
     totalNonEnglishResourcesThisMonth: number;
-    totalResourceTranslastion: number;
-    totalResourceTranslastionedThisMonth: number;
+    totalResourceBeingTranslated: number;
+    totalResourceBeingTranslatedThisMonth: number;
     totalResources: number;
     totalResourcesThisMonth: number;
-    totalResourcesTwoPlus: number;
-    totalResourcesTwoPlusThisMonth: number;
+    totalResourcesTwoPlusLanguages: number;
+    totalResourcesTwoPlusLanguagesThisMonth: number;
 }

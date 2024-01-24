@@ -9,7 +9,7 @@ export function getReportingLinkData(): IReportingLinkData[] {
         {
             reportTitle: 'Aquiferization Progress Tracking',
             reportDescription: 'Line chart tracking monthly Aquiferization starts and completions',
-            reportLink: '/reporting/line-charts/aquiferization-progress-tracking',
+            reportLink: '/reporting/aquiferization',
         },
         {
             reportTitle: 'Daily Resource Item Downloads',

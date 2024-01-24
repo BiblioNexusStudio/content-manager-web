@@ -100,8 +100,8 @@
             <ReportSummaryCard
                 addPlus={true}
                 reportTitle="Total Resource Items (2+ Languages)"
-                reportTotal={resourceItemsSummary.totalResourcesTwoPlus}
-                monthTotal={resourceItemsSummary.totalResourcesTwoPlusThisMonth}
+                reportTotal={resourceItemsSummary.totalResourcesTwoPlusLanguages}
+                monthTotal={resourceItemsSummary.totalResourcesTwoPlusLanguagesThisMonth}
             />
             <ReportSummaryCard
                 reportTitle="Resource Items being Aquiferized"
@@ -111,8 +111,8 @@
             />
             <ReportSummaryCard
                 reportTitle="Resource Items being Translated"
-                reportTotal={resourceItemsSummary.totalResourceTranslastion}
-                monthTotal={resourceItemsSummary.totalResourceTranslastionedThisMonth}
+                reportTotal={resourceItemsSummary.totalResourceBeingTranslated}
+                monthTotal={resourceItemsSummary.totalResourceBeingTranslatedThisMonth}
                 monthText="Started This Month"
             />
         </div>
