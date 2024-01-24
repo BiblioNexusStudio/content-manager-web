@@ -37,6 +37,12 @@
                 "translatedResources": {
                     "value": "Translated Resources",
                     "_context": "Title for Translated Resources chart"
+                },
+                "monthly": {
+                    "aquiferizationHistory": {
+                        "value": "Aquiferization History",
+                        "_context": "Title for Aquiferization History Chart"
+                    }
                 }
             }
         },

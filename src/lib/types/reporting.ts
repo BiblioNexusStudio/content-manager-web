@@ -21,3 +21,13 @@ export interface ResourcesSummary {
     languages: string[];
     parentResourceNames: string[];
 }
+
+export interface StatusCountPerMonth {
+    date: Date;
+    statusCount: number;
+}
+
+export interface MonthlyStartsAndCompletions {
+    starts: StatusCountPerMonth[];
+    completions: StatusCountPerMonth[];
+}
