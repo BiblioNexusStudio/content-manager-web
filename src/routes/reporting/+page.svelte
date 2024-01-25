@@ -31,8 +31,8 @@
     {@const languages = summary.languages.sort()}
 
     <div class="mx-4 mb-4 mt-4 grid text-2xl font-bold">Reporting</div>
-    <div class="mx-4 mb-8 grid grid-cols-3 gap-4">
-        <div class="col-span-2 rounded border px-4 py-2 shadow-lg">
+    <div class="mx-4 mb-4 grid grid-cols-3 gap-4">
+        <div class="col-span-2 max-h-[614px] rounded border px-4 py-2 shadow-lg">
             <Select
                 bind:value={selectedChart}
                 class="select select-bordered me-2 mt-2 w-auto"
