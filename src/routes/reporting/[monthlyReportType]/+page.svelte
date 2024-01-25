@@ -6,6 +6,7 @@
     import MonthlyAquiferizationsChart from '$lib/charts/MonthlyAquiferizationsChart.svelte';
 
     export let data: PageData;
+    $: reportType = data.reportType;
 
     $: reportPromise = unwrapStreamedData(data.report);
 </script>
@@ -16,7 +17,7 @@
     <div class="mx-4 grid grid-cols-2">
         <div class="col-span-2 mt-4 text-3xl">{$translate('page.dashboard.header.value')}</div>
         <div class="col-span-2 mb-6 mt-4 text-lg font-bold">
-            {$translate('page.dashboard.charts.monthly.aquiferizationHistory.value')}
+            {reportType.charAt(0).toUpperCase() + reportType.slice(1)} History
         </div>
 
         <div class="me-10 ms-5">

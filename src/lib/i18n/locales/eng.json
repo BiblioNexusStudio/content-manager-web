@@ -5,20 +5,6 @@
                 "value": "Resource Overview",
                 "_context": "The page title header at the top of the page"
             },
-            "resourceSnapshot": {
-                "header": {
-                    "value": "Resource Snapshot",
-                    "_context": "Header title for the resource snapshot"
-                },
-                "total": {
-                    "value": "Total",
-                    "_context": "Label above number of resources"
-                },
-                "languages": {
-                    "value": "Languages",
-                    "_context": "Label below number of resources, indicating number of languages the resources support"
-                }
-            },
             "dropdowns": {
                 "allLanguages": {
                     "value": "All Languages",
@@ -37,12 +23,6 @@
                 "translatedResources": {
                     "value": "Translated Resources",
                     "_context": "Title for Translated Resources chart"
-                },
-                "monthly": {
-                    "aquiferizationHistory": {
-                        "value": "Aquiferization History",
-                        "_context": "Title for Aquiferization History Chart"
-                    }
                 }
             }
         },
