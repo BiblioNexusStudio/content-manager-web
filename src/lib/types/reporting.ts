@@ -31,3 +31,16 @@ export interface MonthlyStartsAndCompletions {
     starts: StatusCountPerMonth[];
     completions: StatusCountPerMonth[];
 }
+
+export interface ResourceItemsSummary {
+    aquiferizedResources: number;
+    aquiferizedResourcesThisMonth: number;
+    totalNonEnglishResources: number;
+    totalNonEnglishResourcesThisMonth: number;
+    totalResourceBeingTranslated: number;
+    totalResourceBeingTranslatedThisMonth: number;
+    totalResources: number;
+    totalResourcesThisMonth: number;
+    totalResourcesTwoPlusLanguages: number;
+    totalResourcesTwoPlusLanguagesThisMonth: number;
+}
