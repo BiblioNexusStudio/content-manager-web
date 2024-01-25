@@ -130,7 +130,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {#if assignedContents.length === 0}
+                            {#if pendingReviewContents.length === 0}
                                 <tr>
                                     <td colspan="4" class="text-center">No items pending review.</td>
                                 </tr>
