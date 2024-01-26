@@ -17,6 +17,7 @@
     import { log } from '$lib/logger';
     import type { LayoutData } from './$types';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
+    import { showSideBar } from '$lib/stores/app';
 
     $: userEmail = $profile?.email ?? ' '; // set to avoid flashing undefined
     $: userFullName = $profile?.name ?? ' ';
@@ -25,6 +26,8 @@
     export let data: LayoutData;
 
     $: log.pageView($page.route.id ?? '');
+    $: sideBarCheck = $showSideBar;
+    $: console.log(sideBarCheck);
 
     onMount(() => {
         if (typeof window !== 'undefined') {
@@ -100,8 +103,8 @@
     <!--     2) the user is legitimately not authenticated, in which case they'll be redirected to Auth0 -->
     <CenteredSpinner />
 {:else if data.loaded}
-    <div class="drawer lg:drawer-open">
-        <input id="main-drawer" type="checkbox" class="drawer-toggle" />
+    <div class="drawer {sideBarCheck ? 'lg:drawer-open' : ''}">
+        <input id="main-drawer" type="checkbox" class="drawer-toggle" bind:checked={sideBarCheck} />
         <div class="drawer-content">
             <!-- Page content here -->
             <label for="main-drawer" class="btn btn-link btn-active drawer-button btn-xs justify-start p-1 lg:hidden"
