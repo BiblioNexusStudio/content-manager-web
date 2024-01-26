@@ -10,7 +10,7 @@ export const load: PageLoad = async ({ fetch, parent }) => {
         return {};
     }
 
-    if (data.currentUser.is(Role.Publisher)) {
+    if (data.currentUser.is(Role.Publisher) || data.currentUser.is(Role.Admin)) {
         const reportingSummary = fetchJsonStreamingFromApi(
             '/admin/resources/summary',
             {},

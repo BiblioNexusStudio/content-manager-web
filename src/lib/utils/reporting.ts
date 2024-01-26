@@ -17,7 +17,7 @@ export function getReportingLinkData(): IReportingLinkData[] {
             reportLink: '/reporting/bar-charts/daily-resource-item-downloads',
         },
         {
-            reportTitle: 'Recently Editied Resource Items',
+            reportTitle: 'Recently Edited Resource Items',
             reportDescription: 'List of Resources Items edited in the last 30 days',
             reportLink: '/reporting/lists/recently-edited-resource-items',
         },
