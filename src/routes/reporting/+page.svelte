@@ -30,7 +30,7 @@
 {:then [summary, resourceItemsSummary]}
     {@const languages = summary.languages.sort()}
 
-    <div class="mx-4 mb-4 mt-4 grid text-3xl">Reporting</div>
+    <div class="mx-4 mb-4 mt-4 text-3xl">Reporting</div>
     <div class="mx-4 mb-4 grid grid-cols-3 gap-4">
         <div class="col-span-2 max-h-[614px] rounded border px-4 py-2 shadow-lg">
             <Select
