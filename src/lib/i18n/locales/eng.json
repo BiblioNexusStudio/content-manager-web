@@ -1,10 +1,6 @@
 {
     "page": {
         "dashboard": {
-            "header": {
-                "value": "Resource Overview",
-                "_context": "The page title header at the top of the page"
-            },
             "dropdowns": {
                 "allLanguages": {
                     "value": "All Languages",
