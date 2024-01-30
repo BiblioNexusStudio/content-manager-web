@@ -5,15 +5,21 @@
     import RelatedContent from '$lib/components/resources/RelatedContent.svelte';
     import BibleReferences from '$lib/components/resources/BibleReferences.svelte';
     import Content from '$lib/components/resources/Content.svelte';
-    import { goto } from '$app/navigation';
+    import { beforeNavigate, goto } from '$app/navigation';
     import {
         type ResourceContent,
         type ResourceContentVersion,
-        type ContentItem,
         type ContentTranslation,
         MediaTypeEnum,
     } from '$lib/types/resources';
-    import { originalValues, updatedValues, updateOriginal, userStoppedEditing } from '$lib/stores/tiptapContent';
+    import {
+        fakeContentVersionId,
+        originalValues,
+        setOriginalValues,
+        updatedValues,
+        updateOriginal,
+        userStoppedEditing,
+    } from '$lib/stores/tiptapContent';
     import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum } from '$lib/types/base';
@@ -25,9 +31,12 @@
     import ArrowLeftSmall from '$lib/icons/ArrowLeftSmall.svelte';
     import Translations from '$lib/components/resources/Translations.svelte';
     import TranslationSelector from './TranslationSelector.svelte';
+    import { createAutosaveStore } from '$lib/utils/auto-save-store';
+    import { onDestroy } from 'svelte';
 
     let loadingModal: HTMLDialogElement;
     let errorModal: HTMLDialogElement;
+    let autoSaveErrorModal: HTMLDialogElement;
     let aquiferizeModal: HTMLDialogElement;
     let assignUserModal: HTMLDialogElement;
     let publishModal: HTMLDialogElement;
@@ -51,23 +60,26 @@
     let hasPublished = false;
     let hasDraft = false;
     let selectedVersion: ResourceContentVersion;
+    let selectedVersionContentId: string;
     let englishContentTranslation: ContentTranslation | undefined;
     let createTranslationFromDraft = false;
     let isInTranslationWorkflow = false;
-    let saveRetries = 0;
-    let showAutoSaveFailedMessage = false;
-    let putDataSuccess = false;
-    let saveInterval: number | undefined;
     let mediaType: MediaTypeEnum | undefined;
 
     export let data: PageData;
 
+    const { save, resetSaveState, isSaving, showSavingFailed } = createAutosaveStore(putData);
+
     $: resourceContentId = data.resourceContentId;
     $: resourceContentPromise = unwrapStreamedDataWithCallback(data.streamedResourceContent, handleFetchedResource);
-    $: contentUpdated = JSON.stringify($originalValues) !== JSON.stringify($updatedValues);
-    $: contentUpdated && $userStoppedEditing ? onSave() : null;
+    $: contentUpdated =
+        JSON.stringify($originalValues[selectedVersionContentId]) !==
+        JSON.stringify($updatedValues[selectedVersionContentId]);
+    $: contentUpdated && $userStoppedEditing[selectedVersionContentId] && save();
 
     function handleFetchedResource(resourceContent: ResourceContent) {
+        resetSaveState();
+        $userStoppedEditing[selectedVersionContentId] = false;
         draftVersion = resourceContent.contentVersions.find((x) => x.isDraft);
         hasDraft = draftVersion !== undefined;
         mediaType = resourceContent.mediaType;
@@ -132,10 +144,30 @@
 
         canUnpublish = data.currentUser.can(Permission.PublishContent) && hasPublished;
         canCreateTranslation = data.currentUser.can(Permission.PublishContent);
+        setOriginalValues(resourceContent);
+        selectedVersionContentId = fakeContentVersionId(
+            resourceContent,
+            resourceContent.contentVersions.indexOf(selectedVersion)
+        );
     }
 
     let isTransacting = false;
-    let isSaving = false;
+
+    beforeNavigate(async ({ to, cancel }) => {
+        // beforeNavigate runs synchronously, but we can work around the limitation by always canceling the
+        // navigation up front, and then conditionally doing a `goto` if the save is successful.
+        // See https://github.com/sveltejs/kit/issues/4421#issuecomment-1129879937
+        if (contentUpdated) {
+            cancel();
+            if (!(await save(true))) {
+                autoSaveErrorModal.showModal();
+            } else {
+                to?.url && goto(to.url);
+            }
+        }
+    });
+
+    onDestroy(resetSaveState);
 
     function openAquiferizeModal() {
         assignToUserId = null;
@@ -271,43 +303,6 @@
         );
     }
 
-    async function onSave() {
-        $userStoppedEditing = false;
-        isSaving = true;
-        showAutoSaveFailedMessage = false;
-        try {
-            await putData();
-        } catch {
-            if (!saveInterval) {
-                saveInterval = window.setInterval(async () => {
-                    await onSave();
-                }, 20000);
-            }
-            saveRetries < 4 ? saveRetries++ : (showAutoSaveFailedMessage = true);
-        } finally {
-            if (putDataSuccess) {
-                isSaving = false;
-                saveRetries = 0;
-                showAutoSaveFailedMessage = false;
-                putDataSuccess = false;
-                clearInterval(saveInterval);
-                saveInterval = undefined;
-            }
-        }
-    }
-
-    async function onSaveAndClose() {
-        loadingModal.showModal();
-        try {
-            if (contentUpdated) {
-                await putData();
-            }
-            goBack();
-        } catch {
-            loadingModal.close();
-        }
-    }
-
     function currentWordCount(wordCounts: number[] | null | undefined): number | null {
         if (wordCounts) {
             return wordCounts.reduce((total, current) => total + current, 0);
@@ -320,25 +315,27 @@
     }
 
     async function putData() {
-        await fetchFromApiWithAuth(`/admin/resources/content/summary/${resourceContentId}`, {
-            method: 'PUT',
-            body: {
-                displayName: $updatedValues.displayName,
-                wordCount: currentWordCount($updatedValues.wordCounts),
-                ...(mediaType === MediaTypeEnum.text ? { content: $updatedValues.content } : null),
-            },
-        });
+        const selectedVersionValues = $updatedValues[selectedVersionContentId];
+        if (selectedVersionValues) {
+            await fetchFromApiWithAuth(`/admin/resources/content/summary/${resourceContentId}`, {
+                method: 'PUT',
+                body: {
+                    displayName: selectedVersionValues.displayName,
+                    wordCount: currentWordCount(selectedVersionValues.wordCounts),
+                    ...(mediaType === MediaTypeEnum.text ? { content: selectedVersionValues.content } : null),
+                },
+            });
+        }
 
-        putDataSuccess = true;
-
-        updateOriginal();
+        updateOriginal(selectedVersionContentId);
     }
 
-    function setSelectedVersion(version: ResourceContentVersion | undefined) {
-        if (selectedVersion.isDraft) {
-            draftVersion!.displayName = $updatedValues.displayName ?? '';
-            draftVersion!.content = $updatedValues.content as unknown as ContentItem[];
-        }
+    function setSelectedVersion(version: ResourceContentVersion | undefined, resourceContent: ResourceContent) {
+        // TODO: switch this to using the actual version id
+        selectedVersionContentId = fakeContentVersionId(
+            resourceContent,
+            resourceContent.contentVersions.indexOf(version!)
+        );
         selectedVersion = version!;
     }
 </script>
@@ -349,14 +346,14 @@
     <div class="p-8">
         <div class="mb-4 flex w-full items-center">
             <div class="mb-4 me-8 flex w-4/12 place-items-center">
-                <button class="btn btn-link btn-sm m-0 me-2 min-h-0 p-0 text-black" on:click={onSaveAndClose}
+                <button class="btn btn-link btn-sm m-0 me-2 min-h-0 p-0 text-black" on:click={goBack}
                     ><ArrowLeftSmall /></button
                 >
                 <h1 class="relative w-full text-2xl font-bold">
                     {resourceContent.parentResourceName} -
-                    {$originalValues.displayName}
+                    {$originalValues[selectedVersionContentId]?.displayName}
                 </h1>
-                {#if showAutoSaveFailedMessage}
+                {#if $showSavingFailed}
                     <span class="absolute font-bold text-error">Auto-save failed</span>
                 {/if}
             </div>
@@ -364,7 +361,7 @@
             <div class="flex w-8/12">
                 <div class="flex w-full justify-between">
                     <div class="mb-4 flex items-center">
-                        {#if isSaving}
+                        {#if $isSaving}
                             <Icon data={spinner} pulse class="text-[#0175a2]" />
                         {/if}
                     </div>
@@ -373,12 +370,13 @@
                             <div class="join mb-4 ms-4">
                                 <button
                                     class="btn {selectedVersion.isDraft ? 'btn-primary' : ''} join-item"
-                                    on:click={() => setSelectedVersion(draftVersion)}>Draft</button
+                                    on:click={() => setSelectedVersion(draftVersion, resourceContent)}>Draft</button
                                 >
                                 <button
                                     class="btn {selectedVersion.isPublished ? 'btn-primary' : ''} join-item"
                                     class:btn-disabled={contentUpdated && !selectedVersion.isPublished}
-                                    on:click={() => setSelectedVersion(publishedVersion)}>Published</button
+                                    on:click={() => setSelectedVersion(publishedVersion, resourceContent)}
+                                    >Published</button
                                 >
                             </div>
                         {/if}
@@ -446,13 +444,13 @@
         <div class="flex">
             <div class="me-8 flex max-h-full w-4/12 flex-col">
                 <Overview
-                    canEdit={canMakeContentEdits}
-                    displayNameText={selectedVersion.displayName}
+                    contentVersionId={selectedVersionContentId}
+                    canEdit={canMakeContentEdits && selectedVersion.isDraft}
                     typeText={resourceContent.parentResourceName}
                     isPublished={hasPublished}
-                    wordCount={currentWordCount($updatedValues.wordCounts)}
+                    wordCount={currentWordCount($updatedValues[selectedVersionContentId]?.wordCounts)}
                     language={resourceContent.language}
-                    on:saveTitle={onSave}
+                    on:saveTitle={() => save()}
                 />
                 <Process
                     translationStatus={resourceContent.status}
@@ -470,11 +468,18 @@
                 <BibleReferences bibleReferences={getSortedReferences(resourceContent)} />
             </div>
             <div class="flex h-[85vh] w-8/12 flex-col">
-                <Content
-                    canEdit={canMakeContentEdits && selectedVersion.isDraft}
-                    resourceContentVersion={selectedVersion}
-                    mediaType={resourceContent.mediaType}
-                />
+                {#each resourceContent.contentVersions as version, index}
+                    {@const contentVersionId = fakeContentVersionId(resourceContent, index)}
+                    {#key contentVersionId}
+                        <Content
+                            {contentVersionId}
+                            visible={selectedVersion === version}
+                            canEdit={canMakeContentEdits && version.isDraft}
+                            resourceContentVersion={version}
+                            mediaType={resourceContent.mediaType}
+                        />
+                    {/key}
+                {/each}
             </div>
         </div>
     </div>
@@ -625,6 +630,18 @@
             </form>
             <h3 class="text-xl font-bold">Error</h3>
             <p class="py-4 text-lg font-medium">An error occurred while saving. Please try again.</p>
+        </div>
+    </dialog>
+
+    <dialog bind:this={autoSaveErrorModal} class="modal">
+        <div class="modal-box bg-error">
+            <form method="dialog">
+                <button class="btn btn-circle btn-ghost btn-sm absolute right-2 top-2">✕</button>
+            </form>
+            <h3 class="text-xl font-bold">Error</h3>
+            <p class="py-4 text-lg font-medium">
+                You have unsaved edits that could not be saved. Please ensure they save before navigating away.
+            </p>
         </div>
     </dialog>
 {:catch}

@@ -3,15 +3,15 @@
     import arrowCircleLeft from 'svelte-awesome/icons/arrowCircleLeft';
     import arrowCircleRight from 'svelte-awesome/icons/arrowCircleRight';
     import Tiptap from '$lib/components/tiptap/Tiptap.svelte';
-    import { setOriginalValues, currentStepNumber, type TiptapContentItemValues } from '$lib/stores/tiptapContent';
+    import { currentStepNumber, type TiptapContentItemValues } from '$lib/stores/tiptapContent';
     import type { ResourceContentVersion } from '$lib/types/resources';
 
+    export let contentVersionId: string;
     export let resourceContentVersion: ResourceContentVersion;
     export let canEdit: boolean;
 
     $: content = resourceContentVersion.content as unknown as TiptapContentItemValues[];
     $: currentResourceStepsLength = content.length || 0;
-    $: setOriginalValues({ content });
     $: stepNavigation = currentResourceStepsLength > 1;
 
     const headings = [
@@ -78,5 +78,5 @@
             </div>
         </div>
     {/if}
-    <Tiptap {canEdit} hasSteps={stepNavigation} />
+    <Tiptap {contentVersionId} {canEdit} hasSteps={stepNavigation} />
 </div>
