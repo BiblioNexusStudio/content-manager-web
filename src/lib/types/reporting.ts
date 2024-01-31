@@ -44,3 +44,16 @@ export interface ResourceItemsSummary {
     totalResourcesTwoPlusLanguages: number;
     totalResourcesTwoPlusLanguagesThisMonth: number;
 }
+
+export interface EditedResourcesLastThirtyDaysResponse {
+    displayName: string;
+    englishLabel: string;
+    englishDisplay: string;
+}
+
+export interface MostRequestedResourcesResponse {
+    displayName: string;
+    englishLabel: string;
+    englishDisplay: string;
+    count: number;
+}
