@@ -1,8 +1,7 @@
 <script lang="ts">
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    export let tableData: Array<any> = [];
+    import { currentListData } from '$lib/stores/reporting';
 
-    $: columns = buildColumns(tableData[0]);
+    $: columns = buildColumns($currentListData[0]);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function buildColumns(object: any) {
@@ -26,7 +25,7 @@
         {/each}
     </thead>
     <tbody>
-        {#each tableData as row}
+        {#each $currentListData as row}
             <tr class="border text-gray-600">
                 {#each columns as column}
                     <td>{row[column]}</td>
