@@ -1,7 +1,7 @@
 import { type Writable, writable, derived } from 'svelte/store';
+import type { GenericReportRow } from '$lib/types/reporting';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const listData: Writable<any> = writable([]);
+export const listData: Writable<GenericReportRow[]> = writable([]);
 
 export const paginationStart: Writable<number> = writable(0);
 export const paginationEnd: Writable<number> = writable(100);

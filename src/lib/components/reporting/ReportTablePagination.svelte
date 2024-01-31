@@ -3,9 +3,9 @@
     import chevronRight from 'svelte-awesome/icons/chevronRight';
     import Icon from 'svelte-awesome/components/Icon.svelte';
     import { listData, paginationStart, paginationEnd } from '$lib/stores/reporting';
+    import type { GenericReportRow } from '$lib/types/reporting';
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    export let tableData: Array<any> = [];
+    export let tableData: Array<GenericReportRow> = [];
 
     $: $listData = tableData;
 

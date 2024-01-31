@@ -45,15 +45,6 @@ export interface ResourceItemsSummary {
     totalResourcesTwoPlusLanguagesThisMonth: number;
 }
 
-export interface EditedResourcesLastThirtyDaysResponse {
-    displayName: string;
-    englishLabel: string;
-    englishDisplay: string;
-}
-
-export interface MostRequestedResourcesResponse {
-    displayName: string;
-    englishLabel: string;
-    englishDisplay: string;
-    count: number;
+export interface GenericReportRow {
+    [key: string]: string | number;
 }

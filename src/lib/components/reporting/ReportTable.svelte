@@ -1,10 +1,10 @@
 <script lang="ts">
     import { currentListData } from '$lib/stores/reporting';
+    import type { GenericReportRow } from '$lib/types/reporting';
 
-    $: columns = buildColumns($currentListData[0]);
+    $: columns = buildColumns($currentListData[0] || {});
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function buildColumns(object: any) {
+    function buildColumns(object: GenericReportRow) {
         return Object.keys(object).map((key) => {
             return key;
         });
