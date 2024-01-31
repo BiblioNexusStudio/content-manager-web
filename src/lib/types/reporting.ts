@@ -32,6 +32,11 @@ export interface MonthlyStartsAndCompletions {
     completions: StatusCountPerMonth[];
 }
 
+export interface DailyResourceDownloads {
+    amount: number;
+    dateValue: Date;
+}
+
 export interface ResourceItemsSummary {
     aquiferizedResources: number;
     aquiferizedResourcesThisMonth: number;
