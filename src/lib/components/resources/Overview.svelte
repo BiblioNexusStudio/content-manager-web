@@ -2,13 +2,13 @@
     import { Icon } from 'svelte-awesome';
     import PencilSquareIcon from '$lib/icons/PencilSquareIcon.svelte';
     import XSquareIcon from '$lib/icons/XSquareIcon.svelte';
-    import { originalValues, updatedValues, updateValues, setOriginalValues } from '$lib/stores/tiptapContent';
+    import { originalValues, updatedValues, updateValues } from '$lib/stores/tiptapContent';
     import checkCircleO from 'svelte-awesome/icons/checkCircleO';
     import ban from 'svelte-awesome/icons/ban';
     import { createEventDispatcher } from 'svelte';
     import type { Language } from '$lib/types/base';
 
-    export let displayNameText: string;
+    export let contentVersionId: string;
     export let typeText: string;
     export let wordCount: number | null;
     export let language: Language;
@@ -17,9 +17,14 @@
     const dispatch = createEventDispatcher();
 
     let displayNameInput: HTMLInputElement;
-    setOriginalValues({ displayName: displayNameText });
-    $: updateValues({ displayName: displayNameText });
-    $: displayNameUpdated = $originalValues?.displayName !== $updatedValues?.displayName;
+    $: displayNameText = $originalValues[contentVersionId]?.displayName;
+    $: displayNameUpdated =
+        $originalValues[contentVersionId]?.displayName !== $updatedValues[contentVersionId]?.displayName;
+
+    function updateDisplayName(event: Event) {
+        const target = event.currentTarget as HTMLInputElement;
+        updateValues(contentVersionId, { displayName: target.value });
+    }
 
     function saveOnBlur() {
         if (displayNameUpdated) {
@@ -40,7 +45,8 @@
                             <input
                                 type="text"
                                 bind:this={displayNameInput}
-                                bind:value={displayNameText}
+                                value={displayNameText}
+                                on:change={updateDisplayName}
                                 class="input input-ghost h-6 w-full pl-0 text-right"
                                 on:blur={() => saveOnBlur()}
                             />
@@ -53,7 +59,8 @@
                     <button
                         class="h-6 w-6 p-0"
                         on:click={() => {
-                            if (displayNameUpdated) displayNameText = $originalValues?.displayName || '';
+                            if (displayNameUpdated)
+                                displayNameText = $originalValues[contentVersionId]?.displayName || '';
                             else displayNameInput.focus();
                         }}
                         ><label class="swap swap-rotate">
