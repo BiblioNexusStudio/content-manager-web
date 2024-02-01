@@ -49,3 +49,7 @@ export interface ResourceItemsSummary {
     totalResourcesTwoPlusLanguages: number;
     totalResourcesTwoPlusLanguagesThisMonth: number;
 }
+
+export interface GenericReportRow {
+    [key: string]: string | number;
+}
