@@ -41,3 +41,18 @@ export interface User {
 export interface CurrentUserApi extends User {
     permissions: Permission[];
 }
+
+export interface Bible {
+    id: number;
+    name: string;
+    abbreviation: string;
+    books: [
+        {
+            bookCode: string;
+            displayName: string;
+            textSize: number;
+            audioSize: number;
+            chapterCount: number;
+        },
+    ];
+}
