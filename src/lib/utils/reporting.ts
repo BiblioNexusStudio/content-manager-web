@@ -19,7 +19,7 @@ export function getReportingLinkData(): IReportingLinkData[] {
         {
             reportTitle: 'Recently Edited Resource Items',
             reportDescription: 'List of Resources Items edited in the last 30 days',
-            reportLink: '/reporting/lists/recently-edited-resource-items',
+            reportLink: '/reporting/lists/edited-last-thirty-days',
         },
         {
             reportTitle: 'Translation Progress Tracking',
@@ -29,7 +29,7 @@ export function getReportingLinkData(): IReportingLinkData[] {
         {
             reportTitle: 'Resource Items Downloaded',
             reportDescription: 'List of the most downloaded items for the last 30 days',
-            reportLink: '/reporting/lists/resource-items-downloaded',
+            reportLink: '/reporting/lists/most-requested-resources',
         },
         {
             reportTitle: 'Resource Project Tracking',
