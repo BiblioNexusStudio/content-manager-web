@@ -1,7 +1,6 @@
 import type { PageLoad } from './$types';
 import { fetchJsonStreamingFromApi, type StreamedData } from '$lib/utils/http-service';
 import { Role } from '$lib/stores/auth';
-import { redirect } from '@sveltejs/kit';
 
 export const load: PageLoad = async ({ fetch, parent }) => {
     const data = await parent();
@@ -26,8 +25,6 @@ export const load: PageLoad = async ({ fetch, parent }) => {
     } else if (data.currentUser.is(Role.Editor)) {
         const resourceContent = fetchAssignedResourceContent(fetch);
         return { editorDashboard: { resourceContent } };
-    } else {
-        throw redirect(301, '/reporting');
     }
 };
 

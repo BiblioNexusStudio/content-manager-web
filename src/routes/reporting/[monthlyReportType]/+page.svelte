@@ -7,9 +7,9 @@
 
     export let data: PageData;
     $showSideBar = false;
-    $: reportType = data.reportType;
+    $: reportType = data.reportType!;
 
-    $: reportPromise = unwrapStreamedData(data.report);
+    $: reportPromise = unwrapStreamedData(data.report!);
 </script>
 
 {#await reportPromise}
