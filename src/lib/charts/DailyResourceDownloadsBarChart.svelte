@@ -5,7 +5,7 @@
 
     export let amountsByMonth: DailyResourceDownloads[];
     const months = amountsByMonth.map((d) =>
-        new Date(d.dateValue).toLocaleString('default', { month: 'short', day: 'numeric' })
+        new Date(d.date).toLocaleString('default', { month: 'short', day: 'numeric' })
     );
 
     let chart: Chart | undefined;

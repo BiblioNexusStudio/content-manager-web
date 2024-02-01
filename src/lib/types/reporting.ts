@@ -34,7 +34,7 @@ export interface MonthlyStartsAndCompletions {
 
 export interface DailyResourceDownloads {
     amount: number;
-    dateValue: Date;
+    date: Date;
 }
 
 export interface ResourceItemsSummary {
