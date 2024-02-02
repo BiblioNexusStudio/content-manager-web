@@ -9,8 +9,8 @@
     export let data: PageData;
     $showSideBar = false;
 
-    $: listPromise = unwrapStreamedData(data.listData);
-    $: listId = formatListName(data.listId);
+    $: listPromise = unwrapStreamedData(data.listData!);
+    $: listId = formatListName(data.listId!);
 
     function formatListName(listName: string) {
         return listName.replace(/-/g, ' ');
