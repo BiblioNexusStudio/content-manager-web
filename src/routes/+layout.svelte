@@ -18,6 +18,7 @@
     import type { LayoutData } from './$types';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { showSideBar } from '$lib/stores/app';
+    import { Role } from '$lib/stores/auth';
 
     $: userEmail = $profile?.email ?? ' '; // set to avoid flashing undefined
     $: userFullName = $profile?.name ?? ' ';
@@ -63,6 +64,7 @@
             name: $translate('sidebar.reporting.value'),
             icon: PieChartIcon,
             href: '/reporting',
+            hidden: !(data?.currentUser?.is(Role.Publisher) || data?.currentUser?.is(Role.Admin)),
         },
         {
             name: $translate('sidebar.users.value'),
