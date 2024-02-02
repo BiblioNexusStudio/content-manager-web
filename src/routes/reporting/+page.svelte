@@ -12,8 +12,8 @@
 
     export let data: PageData;
 
-    $: summaryPromise = unwrapStreamedData(data.summary);
-    $: resourceItemsSummaryPromise = unwrapStreamedData(data.resourceItemsSummary);
+    $: summaryPromise = unwrapStreamedData(data.summary!);
+    $: resourceItemsSummaryPromise = unwrapStreamedData(data.resourceItemsSummary!);
 
     const defaultSelection = 'default';
 
