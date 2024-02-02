@@ -25,6 +25,8 @@ export const load: PageLoad = async ({ fetch, parent }) => {
     } else if (data.currentUser.is(Role.Editor)) {
         const resourceContent = fetchAssignedResourceContent(fetch);
         return { editorDashboard: { resourceContent } };
+    } else {
+        return {};
     }
 };
 
