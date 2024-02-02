@@ -64,7 +64,7 @@
             name: $translate('sidebar.reporting.value'),
             icon: PieChartIcon,
             href: '/reporting',
-            hidden: !(data.currentUser.is(Role.Publisher) || data.currentUser.is(Role.Admin)),
+            hidden: !(data?.currentUser?.is(Role.Publisher) || data?.currentUser?.is(Role.Admin)),
         },
         {
             name: $translate('sidebar.users.value'),
