@@ -10,6 +10,7 @@
     import SunIcon from '$lib/icons/SunIcon.svelte';
     import MoonIcon from '$lib/icons/MoonIcon.svelte';
     import PieChartIcon from '$lib/icons/PieChartIcon.svelte';
+    import ProjectsIcon from '$lib/icons/ProjectsIcon.svelte';
     import { page } from '$app/stores';
     import { onMount } from 'svelte';
     import { _ as translate } from 'svelte-i18n';
@@ -65,6 +66,11 @@
             icon: PieChartIcon,
             href: '/reporting',
             hidden: !(data?.currentUser?.is(Role.Publisher) || data?.currentUser?.is(Role.Admin)),
+        },
+        {
+            name: $translate('sidebar.projects.value'),
+            icon: ProjectsIcon,
+            href: '/projects',
         },
         {
             name: $translate('sidebar.users.value'),
@@ -149,7 +155,7 @@
                         </div>
                     </div>
                     <div class="mb-2 text-[10px]">{userEmail}</div>
-                    <label class="swap-rotate swap mb-1 mt-2 hidden h-4 w-4 place-self-center">
+                    <label class="swap swap-rotate mb-1 mt-2 hidden h-4 w-4 place-self-center">
                         <input type="checkbox" checked={theme === 'biblioNexusLight'} on:change={toggleTheme} />
                         <SunIcon />
                         <MoonIcon />
