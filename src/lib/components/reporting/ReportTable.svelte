@@ -3,7 +3,6 @@
     import type { GenericReportRow } from '$lib/types/reporting';
 
     $: columns = buildColumns($currentListData[0] || {});
-    $: columnWidth = generateColumnWidth(columns);
 
     function buildColumns(object: GenericReportRow) {
         return Object.keys(object).map((key) => {
@@ -17,27 +16,15 @@
             .join(' ')
             .replace(/^\w/, (c) => c.toUpperCase());
     }
-
-    function generateColumnWidth(columns: string[] | undefined) {
-        if (!columns) return 0;
-        const width = (100 / columns?.length).toFixed(1) + '%';
-        return width.replace(/\.0+/, '');
-    }
 </script>
 
-<table class="table w-full border">
-    <thead class="bg-gray-50">
+<div class="grid grid-cols-{columns.length} w-full rounded-md border border-b-0">
+    {#each columns as column}
+        <div class="border-b bg-gray-50 px-4 py-3 text-xs font-bold">{formatColumnName(column)}</div>
+    {/each}
+    {#each $currentListData as row}
         {#each columns as column}
-            <th class="text-black w-[{columnWidth}]">{formatColumnName(column)}</th>
+            <div class="border-b px-4 py-3 text-sm text-gray-600">{row[column]}</div>
         {/each}
-    </thead>
-    <tbody>
-        {#each $currentListData as row}
-            <tr class="border text-gray-600">
-                {#each columns as column}
-                    <td class="w-[{columnWidth}]">{row[column]}</td>
-                {/each}
-            </tr>
-        {/each}
-    </tbody>
-</table>
+    {/each}
+</div>
