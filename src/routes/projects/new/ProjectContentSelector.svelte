@@ -1,10 +1,10 @@
 <script lang="ts">
+    import Modal from '$lib/components/Modal.svelte';
     import Select from '$lib/components/Select.svelte';
     import ArrowLeftSmall from '$lib/icons/ArrowLeftSmall.svelte';
     import ArrowRightSmall from '$lib/icons/ArrowRightSmall.svelte';
-    import type { Bible } from '$lib/types/base';
     import { enterKeyHandler } from '$lib/utils/enter-key-action';
-    import { unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
+    import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
     import { parseNumbersListFromString } from '$lib/utils/number-list-parser';
     import type { PageData } from './$types';
     import ProjectContentSelectorTable from './ProjectContentSelectorTable.svelte';
@@ -12,14 +12,13 @@
 
     export let data: PageData;
     export let disabled: boolean;
-    export let finalizedResourceContentIds: number[];
+    export let languageId: number | null;
+    export let finalizedResourceIds: number[];
     export let isForAquiferization: boolean;
 
     const { resourceTypes } = data;
 
-    $: unwrapStreamedDataWithCallback(data.bibles, (fetchedBibles) => (bible = fetchedBibles[0]));
-
-    let bible: Bible | undefined;
+    $: bible = data.bibles?.[0];
     let resourceTypeId: string | null = null;
     let bookCode: string | null = null;
     let chaptersString = '';
@@ -32,6 +31,8 @@
     let allContentOnRight: ResourceContentForSelection[] = [];
     let isFetching = false;
 
+    let showingAquiferizeInProgressModal = false;
+
     $: chapters = parseNumbersListFromString(
         chaptersString,
         1,
@@ -39,56 +40,66 @@
     );
 
     $: bookCode && (chaptersString = ''); // reset chapters if book code changes
-    $: allContentIdsOnRight = new Set(allContentOnRight.map((c) => c.resourceContentId));
-    $: finalizedResourceContentIds = [...allContentIdsOnRight];
+    $: allContentIdsOnRight = new Set(allContentOnRight.map((c) => c.resourceId));
+    $: finalizedResourceIds = [...allContentIdsOnRight];
+    $: selectedOnLeftBeingAquiferized = [...idsSelectedOnLeft]
+        .map((id) => fetchedContentCache[id]!)
+        .filter((r) => r.isBeingAquiferized);
 
     function sortByName(a: ResourceContentForSelection, b: ResourceContentForSelection) {
         return a.title.localeCompare(b.title);
     }
 
-    function moveToRight() {
-        allContentOnRight = allContentOnRight
-            .concat([...idsSelectedOnLeft].map((id) => fetchedContentCache[id]!))
-            .sort(sortByName);
-        idsSelectedOnLeft = new Set();
+    function moveToRight(force: boolean) {
+        if (selectedOnLeftBeingAquiferized.length > 0 && !force) {
+            showingAquiferizeInProgressModal = true;
+        } else {
+            allContentOnRight = allContentOnRight
+                .concat([...idsSelectedOnLeft].map((id) => fetchedContentCache[id]!))
+                .sort(sortByName);
+            idsSelectedOnLeft = new Set();
+        }
     }
 
     function moveToLeft() {
-        allContentOnRight = allContentOnRight.filter((c) => !idsSelectedOnRight.has(c.resourceContentId));
+        allContentOnRight = allContentOnRight.filter((c) => !idsSelectedOnRight.has(c.resourceId));
         idsSelectedOnRight = new Set();
     }
 
-    function getRandomInt(min: number, max: number) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
     async function fetchContent() {
         if (chapters.length === 0 && !searchQuery) return;
 
         isFetching = true;
+
+        const searchParams = new URLSearchParams();
+        searchParams.set('searchQuery', searchQuery);
+        !!resourceTypeId && searchParams.set('parentResourceId', resourceTypeId);
+        !!bookCode && searchParams.set('bookCode', bookCode);
+        chapters.forEach((c) => searchParams.append('chapters', c.toString()));
+
         try {
-            const sampleContent = [
-                { title: 'Genesis 1.1', wordCount: 34, resourceContentId: 1 },
-                { title: 'Exodus 3.14', wordCount: 45, resourceContentId: 2 },
-                { title: 'Matthew 5.16', wordCount: 28, resourceContentId: 3 },
-                { title: 'John 3.16', wordCount: 33, resourceContentId: 4 },
-                { title: 'Romans 8.28', wordCount: 37, resourceContentId: 5 },
-            ];
-
-            // Simulate network request delay
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            // Randomly select some content to mimic dynamic content fetching
-            fetchedContentForLeft = sampleContent
-                .sort(() => 0.5 - Math.random())
-                .slice(0, getRandomInt(1, sampleContent.length));
-            fetchedContentForLeft.forEach((c) => (fetchedContentCache[c.resourceContentId] = c));
+            if (isForAquiferization) {
+                fetchedContentForLeft =
+                    (await fetchJsonFromApiWithAuth<ResourceContentForSelection[]>(
+                        `/resources/unaquiferized?${searchParams.toString()}`,
+                        {}
+                    )) ?? [];
+            } else {
+                !!languageId && searchParams.set('languageId', languageId.toString());
+                fetchedContentForLeft =
+                    (await fetchJsonFromApiWithAuth<ResourceContentForSelection[]>(
+                        `/resources/untranslated?${searchParams.toString()}`,
+                        {}
+                    )) ?? [];
+            }
+            fetchedContentForLeft.forEach((c) => (fetchedContentCache[c.resourceId] = c));
         } finally {
             isFetching = false;
         }
     }
 </script>
 
-<div class="flex flex-col">
+<div class="flex flex-col overflow-hidden">
     <div class="flex flex-row space-x-4">
         <!-- svelte-ignore a11y-label-has-associated-control -->
         <label class="form-control">
@@ -121,7 +132,6 @@
                 bind:value={bookCode}
             />
         </label>
-        <!-- svelte-ignore a11y-label-has-associated-control -->
         <label class="form-control">
             <div class="label">
                 <span class="label-text">Chapters</span>
@@ -159,19 +169,24 @@
             >
         </label>
     </div>
-    <div class="flex flex-row space-x-2 pt-2">
+    <div class="flex flex-row space-x-2 overflow-hidden pt-2">
         <div class="flex flex-1 flex-col">
             <div class="text-md font-semibold">
                 {isForAquiferization ? 'Unaquiferized Content' : 'Untranslated Content'}
             </div>
-            <ProjectContentSelectorTable
-                allContent={fetchedContentForLeft.filter((c) => !allContentIdsOnRight.has(c.resourceContentId))}
-                bind:selectedIds={idsSelectedOnLeft}
-            />
+            <div class="overflow-auto">
+                <ProjectContentSelectorTable
+                    allContent={fetchedContentForLeft.filter((c) => !allContentIdsOnRight.has(c.resourceId))}
+                    isLoading={isFetching}
+                    bind:selectedIds={idsSelectedOnLeft}
+                />
+            </div>
         </div>
         <div class="flex flex-col space-y-2 pt-6">
-            <button disabled={idsSelectedOnLeft.size === 0} class="btn btn-primary btn-sm" on:click={moveToRight}
-                ><ArrowRightSmall /></button
+            <button
+                disabled={idsSelectedOnLeft.size === 0}
+                class="btn btn-primary btn-sm"
+                on:click={() => moveToRight(false)}><ArrowRightSmall /></button
             >
             <button disabled={idsSelectedOnRight.size === 0} class="btn btn-primary btn-sm" on:click={moveToLeft}
                 ><ArrowLeftSmall /></button
@@ -179,11 +194,24 @@
         </div>
         <div class="flex flex-1 flex-col">
             <div class="text-md font-semibold">Project Content</div>
-            <ProjectContentSelectorTable
-                showTotalWordCount={true}
-                allContent={allContentOnRight}
-                bind:selectedIds={idsSelectedOnRight}
-            />
+            <div class="overflow-auto">
+                <ProjectContentSelectorTable
+                    showTotalWordCount={true}
+                    allContent={allContentOnRight}
+                    bind:selectedIds={idsSelectedOnRight}
+                />
+            </div>
         </div>
     </div>
 </div>
+
+<Modal
+    header="Not in Complete Status"
+    bind:open={showingAquiferizeInProgressModal}
+    primaryButtonText="Add Anyway"
+    primaryButtonOnClick={() => moveToRight(true)}
+    description={`The following resources are not in a Complete status:\n\n${selectedOnLeftBeingAquiferized
+        .map((r) => r.title)
+        .join('\n')}\n\nIf new items are created, the published version will be used and any changes being made will not
+be reflected. Are you sure you want to add them to this project?`}
+/>

@@ -1,5 +1,6 @@
 export interface ResourceContentForSelection {
     title: string;
     wordCount: number;
-    resourceContentId: number;
+    resourceId: number;
+    isBeingAquiferized?: boolean;
 }

@@ -1,26 +1,28 @@
 <script lang="ts">
+    import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import type { ResourceContentForSelection } from './types';
 
     export let allContent: ResourceContentForSelection[];
     export let selectedIds: Set<number>;
     export let showTotalWordCount = false;
+    export let isLoading = false;
 
-    $: allSelected = allContent.length > 0 && allContent.every((c) => selectedIds.has(c.resourceContentId));
+    $: allSelected = allContent.length > 0 && allContent.every((c) => selectedIds.has(c.resourceId));
 
     function selectOrDeselectAll() {
         if (allSelected) {
-            allContent.forEach((c) => selectedIds.delete(c.resourceContentId));
+            allContent.forEach((c) => selectedIds.delete(c.resourceId));
         } else {
-            allContent.forEach((c) => selectedIds.add(c.resourceContentId));
+            allContent.forEach((c) => selectedIds.add(c.resourceId));
         }
         selectedIds = selectedIds;
     }
 
-    function toggleSelectedId(resourceContentId: number) {
-        if (selectedIds.has(resourceContentId)) {
-            selectedIds.delete(resourceContentId);
+    function toggleSelectedId(resourceId: number) {
+        if (selectedIds.has(resourceId)) {
+            selectedIds.delete(resourceId);
         } else {
-            selectedIds.add(resourceContentId);
+            selectedIds.add(resourceId);
         }
         selectedIds = selectedIds;
     }
@@ -29,7 +31,7 @@
 <table class="table table-pin-rows">
     <thead>
         <tr class="bg-base-200">
-            <th
+            <th class="w-[1px]"
                 ><input
                     disabled={allContent.length === 0}
                     type="checkbox"
@@ -39,28 +41,29 @@
                 /></th
             >
             <th>Title</th>
-            <th
+            <th class="w-[1px]"
                 >Words
                 {#if showTotalWordCount}
-                    ({allContent.reduce((sum, content) => sum + content.wordCount, 0)})
+                    ({allContent.reduce((sum, content) => sum + content.wordCount, 0).toLocaleString()})
                 {/if}
             </th>
         </tr>
     </thead>
     <tbody>
-        {#each allContent as content}
+        {#if isLoading}
             <tr>
-                <td
-                    ><input
-                        type="checkbox"
-                        checked={selectedIds.has(content.resourceContentId)}
-                        on:change={() => toggleSelectedId(content.resourceContentId)}
-                        class="checkbox"
-                    /></td
-                >
-                <td>{content.title}</td>
-                <td>{content.wordCount}</td>
+                <td colspan="3">
+                    <CenteredSpinner />
+                </td>
             </tr>
-        {/each}
+        {:else}
+            {#each allContent as content}
+                <tr class="cursor-pointer" on:click={() => toggleSelectedId(content.resourceId)}>
+                    <td><input type="checkbox" checked={selectedIds.has(content.resourceId)} class="checkbox" /></td>
+                    <td>{content.title}</td>
+                    <td>{content.wordCount}</td>
+                </tr>
+            {/each}
+        {/if}
     </tbody>
 </table>

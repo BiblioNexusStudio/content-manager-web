@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
     import Select from '$lib/components/Select.svelte';
     import { Role } from '$lib/stores/auth';
     import type { PageData } from './$types';
@@ -6,34 +6,7 @@
 
     export let data: PageData;
 
-    const { languages } = data;
-
-    const users = [
-        { id: 1, name: 'Ben A', roles: [Role.Publisher] },
-        { id: 2, name: 'Kyle Grinstead', roles: [Role.Editor] },
-        { id: 3, name: 'Other Guy', roles: [] },
-    ];
-
-    const companies = [
-        { id: 1, name: 'Accent Network' },
-        { id: 2, name: 'BCS' },
-        { id: 3, name: 'BiblioNexus' },
-        { id: 4, name: 'Christian Lingua' },
-        { id: 5, name: 'Internal' },
-        { id: 6, name: 'Lilt' },
-        { id: 7, name: 'MVH' },
-        { id: 8, name: 'Prediction Guard' },
-        { id: 9, name: 'TextTree' },
-        { id: 10, name: 'Wycliffe Global Partners' },
-    ];
-
-    const platforms = [
-        { id: 1, name: 'Aquifer' },
-        { id: 2, name: 'Crowdin' },
-        { id: 3, name: 'Lilt' },
-        { id: 5, name: 'SmartCAT' },
-        { id: 6, name: 'Other' },
-    ];
+    const { languages, users, projectPlatforms, companies } = data;
 
     let title = '';
     let languageId: number | null = null;
@@ -41,13 +14,13 @@
     let companyId: number | null = null;
     let platformId: number | null = null;
     let companyLeadUserId: number | null = null;
-    let selectedResourceContentIds: number[] = [];
+    let selectedResourceIds: number[] = [];
 
     $: isForAquiferization = languages.find((l) => l.id === languageId)?.iso6393Code === 'eng';
-    $: requiresCompanyLead = platforms.find((p) => p.id === platformId)?.name === 'Aquifer';
+    $: requiresCompanyLead = projectPlatforms?.find((p) => p.id === platformId)?.name === 'Aquifer';
 </script>
 
-<div class="flex flex-col p-8">
+<div class="flex h-screen flex-col overflow-hidden px-8 py-4 short:h-full short:overflow-auto">
     <div class="mb-4 text-3xl">Create Project</div>
     <div class="mb-8 flex flex-col">
         <div class="pb-2 text-lg font-bold">Basic Information</div>
@@ -61,7 +34,7 @@
             <div class="flex-grow"></div>
             <Select
                 class="select select-bordered w-full max-w-[50%]"
-                disabled={selectedResourceContentIds.length > 0}
+                disabled={selectedResourceIds.length > 0}
                 options={[
                     { value: null, label: 'Select Language' },
                     ...languages.map((l) => ({
@@ -81,7 +54,7 @@
                 options={[
                     { value: null, label: 'Select User' },
                     ...(users || [])
-                        .filter((u) => u.roles.includes(Role.Publisher))
+                        .filter((u) => u.role === Role.Publisher)
                         .map((u) => ({ value: u.id, label: u.name })),
                 ]}
                 isNumber={true}
@@ -108,7 +81,7 @@
                 class="select select-bordered w-full max-w-[50%]"
                 options={[
                     { value: null, label: 'Select Platform' },
-                    ...(platforms || []).map((c) => ({ value: c.id, label: c.name })),
+                    ...(projectPlatforms || []).map((c) => ({ value: c.id, label: c.name })),
                 ]}
                 isNumber={true}
                 bind:value={platformId}
@@ -124,7 +97,7 @@
                     options={[
                         { value: null, label: 'Select User' },
                         ...(users || [])
-                            .filter((u) => u.roles.includes(Role.Publisher) || u.roles.includes(Role.Manager))
+                            .filter((u) => u.role === Role.Publisher || u.role === Role.Manager)
                             .map((c) => ({ value: c.id, label: c.name })),
                     ]}
                     isNumber={true}
@@ -133,15 +106,16 @@
             </div>
         </div>
     </div>
-    <div class="flex flex-col">
+    <div class="flex flex-col overflow-hidden short:h-[30rem]">
         <div class="text-lg font-bold">Add Content</div>
         <!-- ensure we reset the project content selection when language changes -->
         {#key languageId}
             <ProjectContentSelector
                 disabled={!languageId}
+                {languageId}
                 {data}
                 {isForAquiferization}
-                bind:finalizedResourceContentIds={selectedResourceContentIds}
+                bind:finalizedResourceIds={selectedResourceIds}
             />
         {/key}
     </div>

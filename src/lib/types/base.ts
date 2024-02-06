@@ -33,9 +33,14 @@ export interface Language {
     englishDisplay: string;
 }
 
-export interface User {
+export interface BasicUser {
     id: number;
     name: string;
+}
+
+export interface User extends BasicUser {
+    role: string;
+    companyName: string;
 }
 
 export interface CurrentUserApi extends User {
@@ -55,4 +60,14 @@ export interface Bible {
             chapterCount: number;
         },
     ];
+}
+
+export interface ProjectPlatform {
+    id: number;
+    name: string;
+}
+
+export interface Company {
+    id: number;
+    name: string;
 }
