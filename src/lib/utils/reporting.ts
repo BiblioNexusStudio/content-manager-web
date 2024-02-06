@@ -31,10 +31,5 @@ export function getReportingLinkData(): IReportingLinkData[] {
             reportDescription: 'List of the most downloaded items for the last 30 days',
             reportLink: '/reporting/lists/most-requested-resources',
         },
-        {
-            reportTitle: 'Resource Project Tracking',
-            reportDescription: 'Summary data for recently completed Projects',
-            reportLink: '/reporting/bar-charts/resource-project-tracking',
-        },
     ];
 }
