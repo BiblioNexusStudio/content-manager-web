@@ -42,7 +42,16 @@
                 duration: 0,
             },
             plugins: {
-                legend: { display: true, position: 'bottom' },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        boxWidth: 6,
+                        boxHeight: 6,
+                    },
+                },
             },
             elements: {
                 line: {
