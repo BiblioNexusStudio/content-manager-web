@@ -14,13 +14,6 @@ const auth0Audience = config.PUBLIC_AUTH0_AUDIENCE;
 
 export const AUTH_COOKIE_NAME = 'AuthToken';
 
-export enum Role {
-    Publisher = 'publisher',
-    Admin = 'admin',
-    Editor = 'editor',
-    Manager = 'manager',
-}
-
 export enum Permission {
     CreateContent = 'create:content',
     PublishContent = 'publish:content',
@@ -30,11 +23,11 @@ export enum Permission {
     ReviewContent = 'review:content',
     ReadUsers = 'read:users',
     EditContent = 'edit:content',
+    ReadReports = 'read:reports',
 }
 
 export interface CurrentUser extends User {
     can: (permission: Permission) => boolean;
-    is: (role: Role) => boolean;
 }
 
 export function initPermissionChecking(user: CurrentUserApi | null): CurrentUser | null {
@@ -42,7 +35,6 @@ export function initPermissionChecking(user: CurrentUserApi | null): CurrentUser
         return {
             ...user,
             can: (permission: Permission) => user.permissions.includes(permission),
-            is: (role: Role) => user.roles.includes(role),
         };
     }
     return null;
