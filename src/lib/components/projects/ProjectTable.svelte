@@ -8,8 +8,6 @@
         { name: 'days', label: 'Days' },
         { name: 'progress', label: 'Progress' },
     ];
-
-    console.log(columns.length);
 </script>
 
 <div class="grid w-full grid-cols-7 rounded-md border border-b-0">
