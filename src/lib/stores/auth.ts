@@ -15,15 +15,16 @@ const auth0Audience = config.PUBLIC_AUTH0_AUDIENCE;
 export const AUTH_COOKIE_NAME = 'AuthToken';
 
 export enum Permission {
-    CreateContent = 'create:content',
-    PublishContent = 'publish:content',
     AssignContent = 'assign:content',
     AssignOverride = 'assign:override',
-    SendReviewContent = 'send-review:content',
-    ReviewContent = 'review:content',
-    ReadUsers = 'read:users',
+    CreateContent = 'create:content',
+    CreateProject = 'create:project',
     EditContent = 'edit:content',
+    PublishContent = 'publish:content',
     ReadReports = 'read:reports',
+    ReadUsers = 'read:users',
+    ReviewContent = 'review:content',
+    SendReviewContent = 'send-review:content',
 }
 
 export interface CurrentUser extends User {

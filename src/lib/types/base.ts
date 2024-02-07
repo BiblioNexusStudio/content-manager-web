@@ -33,11 +33,49 @@ export interface Language {
     englishDisplay: string;
 }
 
-export interface User {
+export interface BasicUser {
     id: number;
     name: string;
 }
 
+export enum UserRole {
+    None = 'None',
+    Editor = 'Editor',
+    Manager = 'Manager',
+    Publisher = 'Publisher',
+    Admin = 'Admin',
+}
+
+export interface User extends BasicUser {
+    role: UserRole;
+    companyName: string;
+}
+
 export interface CurrentUserApi extends User {
     permissions: Permission[];
+}
+
+export interface Bible {
+    id: number;
+    name: string;
+    abbreviation: string;
+    books: [
+        {
+            bookCode: string;
+            displayName: string;
+            textSize: number;
+            audioSize: number;
+            chapterCount: number;
+        },
+    ];
+}
+
+export interface ProjectPlatform {
+    id: number;
+    name: string;
+}
+
+export interface Company {
+    id: number;
+    name: string;
 }
