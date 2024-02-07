@@ -38,8 +38,16 @@ export interface BasicUser {
     name: string;
 }
 
+export enum UserRole {
+    None = 'None',
+    Editor = 'Editor',
+    Manager = 'Manager',
+    Publisher = 'Publisher',
+    Admin = 'Admin',
+}
+
 export interface User extends BasicUser {
-    role: string;
+    role: UserRole;
     companyName: string;
 }
 

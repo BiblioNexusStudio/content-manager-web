@@ -1,6 +1,6 @@
 <script lang="ts">
     import Select from '$lib/components/Select.svelte';
-    import { Role } from '$lib/stores/auth';
+    import { UserRole } from '$lib/types/base';
     import type { PageData } from './$types';
     import ProjectContentSelector from './ProjectContentSelector.svelte';
 
@@ -54,7 +54,7 @@
                 options={[
                     { value: null, label: 'Select User' },
                     ...(users || [])
-                        .filter((u) => u.role === Role.Publisher)
+                        .filter((u) => u.role === UserRole.Publisher)
                         .map((u) => ({ value: u.id, label: u.name })),
                 ]}
                 isNumber={true}
@@ -97,7 +97,7 @@
                     options={[
                         { value: null, label: 'Select User' },
                         ...(users || [])
-                            .filter((u) => u.role === Role.Publisher || u.role === Role.Manager)
+                            .filter((u) => u.role === UserRole.Publisher || u.role === UserRole.Manager)
                             .map((c) => ({ value: c.id, label: c.name })),
                     ]}
                     isNumber={true}
