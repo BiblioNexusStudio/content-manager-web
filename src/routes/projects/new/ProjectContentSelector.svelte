@@ -169,7 +169,7 @@
             >
         </label>
     </div>
-    <div class="flex flex-row space-x-2 overflow-hidden pt-2">
+    <div class="mb-16 flex flex-row space-x-2 overflow-hidden pt-2">
         <div class="flex flex-1 flex-col">
             <div class="text-md font-semibold">
                 {isForAquiferization ? 'Unaquiferized Content' : 'Untranslated Content'}
