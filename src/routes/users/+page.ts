@@ -1,4 +1,4 @@
-import { Role } from '$lib/stores/auth';
+import { Permission } from '$lib/stores/auth';
 import { fetchJsonStreamingFromApi, type StreamedData } from '$lib/utils/http-service';
 import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
@@ -11,7 +11,7 @@ export const load: PageLoad = async ({ fetch, parent }) => {
         return {};
     }
 
-    if (data.currentUser.is(Role.Publisher) || data.currentUser.is(Role.Admin) || data.currentUser.is(Role.Manager)) {
+    if (data.currentUser.can(Permission.ReadUsers)) {
         const userData = fetchJsonStreamingFromApi(`/admin/users`, {}, fetch) as StreamedData<User[]>;
         return {
             userData,
