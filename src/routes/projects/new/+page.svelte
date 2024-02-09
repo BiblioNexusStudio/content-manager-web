@@ -1,6 +1,10 @@
 <script lang="ts">
+    import { goto } from '$app/navigation';
+    import Modal from '$lib/components/Modal.svelte';
     import Select from '$lib/components/Select.svelte';
+    import { log } from '$lib/logger';
     import { UserRole } from '$lib/types/base';
+    import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
     import type { PageData } from './$types';
     import ProjectContentSelector from './ProjectContentSelector.svelte';
 
@@ -15,12 +19,50 @@
     let platformId: number | null = null;
     let companyLeadUserId: number | null = null;
     let selectedResourceIds: number[] = [];
+    let isSaving = false;
+    let isShowingErrorModal = false;
 
     $: isForAquiferization = languages.find((l) => l.id === languageId)?.iso6393Code === 'eng';
     $: requiresCompanyLead = projectPlatforms?.find((p) => p.id === platformId)?.name === 'Aquifer';
+
+    $: canSave =
+        !!title &&
+        !!languageId &&
+        !!projectManagerUserId &&
+        !!companyId &&
+        !!platformId &&
+        (!requiresCompanyLead || !!companyLeadUserId) &&
+        selectedResourceIds.length > 0;
+
+    async function save() {
+        isSaving = true;
+        try {
+            const project = await fetchJsonFromApiWithAuth<{ id: number }>('/projects', {
+                method: 'POST',
+                body: {
+                    title,
+                    languageId,
+                    projectManagerUserId,
+                    companyId,
+                    projectPlatformId: platformId,
+                    companyLeadUserId,
+                    resourceIds: selectedResourceIds,
+                },
+            });
+            if (!project) {
+                throw new Error('No project created');
+            }
+            await goto(`/projects/${project.id}`);
+        } catch (error) {
+            log.exception(error as Error);
+            isShowingErrorModal = true;
+        } finally {
+            isSaving = false;
+        }
+    }
 </script>
 
-<div class="flex h-screen flex-col overflow-hidden px-8 py-4 short:h-full short:overflow-auto">
+<div class="relative flex h-screen flex-col overflow-hidden px-8 py-4 short:h-full short:overflow-auto">
     <div class="mb-4 text-3xl">Create Project</div>
     <div class="mb-8 flex flex-col">
         <div class="pb-2 text-lg font-bold">Basic Information</div>
@@ -108,7 +150,7 @@
     </div>
     <div class="flex flex-col overflow-hidden short:h-[30rem]">
         <div class="text-lg font-bold">Add Content</div>
-        <!-- ensure we reset the project content selection when language changes -->
+        <!-- the key ensures we reset the project content selection when language changes -->
         {#key languageId}
             <ProjectContentSelector
                 disabled={!languageId}
@@ -119,4 +161,21 @@
             />
         {/key}
     </div>
+    <div class="absolute bottom-0 left-0 right-0 z-50 flex flex-row border-t bg-white p-4">
+        <div class="flex-grow"></div>
+        <button class="btn btn-primary" on:click={save} disabled={!canSave}>
+            {#if isSaving}
+                <span class="loading loading-spinner" />
+            {:else}
+                Create
+            {/if}
+        </button>
+    </div>
 </div>
+
+<Modal
+    isError={true}
+    header="Error creating"
+    description="There was an error while saving"
+    bind:open={isShowingErrorModal}
+/>

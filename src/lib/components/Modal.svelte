@@ -1,8 +1,8 @@
 ﻿<script lang="ts">
     export let open: boolean;
     export let header: string;
-    export let primaryButtonText: string | undefined;
-    export let primaryButtonOnClick: (() => void) | undefined;
+    export let primaryButtonText: string | undefined = undefined;
+    export let primaryButtonOnClick: (() => void) | undefined = undefined;
     export let primaryButtonDisabled = false;
     export let isError = false;
     export let description: string | undefined;
