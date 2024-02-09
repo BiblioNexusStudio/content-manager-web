@@ -113,7 +113,7 @@ export async function fetchFromApiWithAuth(
     const fetchOptions: FetchOptions = options as FetchOptions;
 
     fetchOptions.headers = {
-        'Content-Type': 'application/json',
+        ...(options.body ? { 'Content-Type': 'application/json' } : null),
         ...options.headers,
     };
 

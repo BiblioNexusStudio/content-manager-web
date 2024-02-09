@@ -26,7 +26,7 @@ export const load: LayoutLoad = async ({ fetch, url, data }) => {
     let users: User[] | null = null;
 
     if (currentUser?.permissions.includes(Permission.ReadUsers)) {
-        users = await fetchJsonFromApiWithAuth<User[]>('/admin/users', {}, fetch);
+        users = await fetchJsonFromApiWithAuth<User[]>('/users', {}, fetch);
     }
 
     await initI18n();
@@ -56,7 +56,7 @@ async function getLanguages(fetch: typeof window.fetch, isAuthenticated: boolean
 
 async function getCurrentUser(fetch: typeof window.fetch, isAuthenticated: boolean) {
     if (isAuthenticated) {
-        return await fetchJsonFromApiWithAuth<CurrentUserApi>('/admin/users/self', {}, fetch);
+        return await fetchJsonFromApiWithAuth<CurrentUserApi>('/users/self', {}, fetch);
     }
     return null;
 }
