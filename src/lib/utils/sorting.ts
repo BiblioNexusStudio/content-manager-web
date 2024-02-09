@@ -35,3 +35,8 @@ export function createListSorter<T>(
         });
     };
 }
+
+export function sortByKey<T>(items: T[] | null, key: keyof T): T[] | null {
+    if (!items) return null;
+    return items.sort((a, b) => (a[key] > b[key] ? 1 : -1));
+}

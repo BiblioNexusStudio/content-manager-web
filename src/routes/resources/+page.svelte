@@ -80,7 +80,7 @@
 
     function getStatusName(inputStatus: ResourceContentStatusEnum) {
         return (
-            data.resourceContentStatuses.find(({ status }) => status === inputStatus)?.displayName ??
+            (data.resourceContentStatuses || []).find(({ status }) => status === inputStatus)?.displayName ??
             $translate('page.resources.table.statuses.none.value')
         );
     }
@@ -116,7 +116,7 @@
                     class="select select-bordered me-2 w-2/6 max-w-xs bg-base-200 pe-14 ps-4"
                 >
                     <option value={0} selected>{$translate('page.resources.dropdowns.allLanguages.value')}</option>
-                    {#each data.languages as language}
+                    {#each data.languages || [] as language}
                         <option value={language.id}>{language.englishDisplay}</option>
                     {/each}
                 </select>
@@ -127,7 +127,7 @@
                     class="select select-bordered w-2/6 max-w-xs bg-base-200 pe-14 ps-4"
                 >
                     <option value={0} selected>{$translate('page.resources.dropdowns.allResources.value')}</option>
-                    {#each data.resourceTypes as resourceType}
+                    {#each data.resourceTypes || [] as resourceType}
                         <option value={resourceType.id}>{resourceType.displayName}</option>
                     {/each}
                 </select>

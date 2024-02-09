@@ -6,6 +6,7 @@
     import { enterKeyHandler } from '$lib/utils/enter-key-action';
     import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
     import { parseNumbersListFromString } from '$lib/utils/number-list-parser';
+    import { sortByKey } from '$lib/utils/sorting';
     import type { PageData } from './$types';
     import ProjectContentSelectorTable from './ProjectContentSelectorTable.svelte';
     import type { ResourceContentForSelection } from './types';
@@ -27,7 +28,7 @@
     let allContentIdsOnRight: Set<number> = new Set();
     let idsSelectedOnLeft: Set<number> = new Set();
     let idsSelectedOnRight: Set<number> = new Set();
-    let fetchedContentForLeft: ResourceContentForSelection[] = [];
+    let fetchedContentForLeft: ResourceContentForSelection[] | null = null;
     let allContentOnRight: ResourceContentForSelection[] = [];
     let isFetching = false;
 
@@ -46,17 +47,14 @@
         .map((id) => fetchedContentCache[id]!)
         .filter((r) => r.isBeingAquiferized);
 
-    function sortByName(a: ResourceContentForSelection, b: ResourceContentForSelection) {
-        return a.title.localeCompare(b.title);
-    }
-
     function moveToRight(force: boolean) {
         if (selectedOnLeftBeingAquiferized.length > 0 && !force) {
             showingAquiferizeInProgressModal = true;
         } else {
-            allContentOnRight = allContentOnRight
-                .concat([...idsSelectedOnLeft].map((id) => fetchedContentCache[id]!))
-                .sort(sortByName);
+            allContentOnRight = sortByKey(
+                allContentOnRight.concat([...idsSelectedOnLeft].map((id) => fetchedContentCache[id]!)),
+                'title'
+            )!;
             idsSelectedOnLeft = new Set();
         }
     }
@@ -111,7 +109,7 @@
                 class="select select-bordered"
                 options={[
                     { value: null, label: 'Select Type' },
-                    ...resourceTypes.map((r) => ({ value: r.id, label: r.displayName })),
+                    ...(resourceTypes || []).map((r) => ({ value: r.id, label: r.displayName })),
                 ]}
                 isNumber={true}
                 bind:value={resourceTypeId}
@@ -176,7 +174,8 @@
             </div>
             <div class="overflow-auto">
                 <ProjectContentSelectorTable
-                    allContent={fetchedContentForLeft.filter((c) => !allContentIdsOnRight.has(c.resourceId))}
+                    hasSearched={fetchedContentForLeft !== null}
+                    allContent={(fetchedContentForLeft ?? []).filter((c) => !allContentIdsOnRight.has(c.resourceId))}
                     isLoading={isFetching}
                     bind:selectedIds={idsSelectedOnLeft}
                 />
