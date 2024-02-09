@@ -69,7 +69,7 @@
             name: $translate('sidebar.users.value'),
             icon: UsersIcon,
             href: '/users',
-            hidden: true,
+            hidden: !data?.currentUser?.can(Permission.ReadUsers),
         },
     ];
 
