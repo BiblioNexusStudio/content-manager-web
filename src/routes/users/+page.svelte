@@ -8,9 +8,6 @@
     export let data: PageData;
 
     $: userDataPromise = unwrapStreamedData(data.userData!);
-
-    let scrollingDiv: HTMLDivElement | undefined;
-    $: scrollingDiv && (scrollingDiv.scrollTop = 0);
     let searchInputVal: string | undefined;
 
     $: searchVal = searchInputVal;
@@ -48,7 +45,7 @@
             </div>
         </div>
         <div class="flex flex-row space-x-4 overflow-y-hidden">
-            <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-scroll">
+            <div class="my-4 max-h-full flex-[2] overflow-y-scroll rounded border-2">
                 <table class="table table-pin-rows">
                     <thead>
                         <tr class="bg-base-200">
