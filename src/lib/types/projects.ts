@@ -13,3 +13,9 @@ export interface ProjectResourceStatusCounts {
     inReview: number;
     completed: number;
 }
+
+export interface ProjectTableColumn {
+    name: string;
+    label: string;
+    sorted: boolean;
+}
