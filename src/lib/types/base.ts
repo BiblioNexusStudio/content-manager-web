@@ -49,7 +49,6 @@ export enum UserRole {
 export interface User extends BasicUser {
     role: UserRole;
     company: Company;
-    companyName: string;
     isEmailVerified: string;
     email: string;
 }

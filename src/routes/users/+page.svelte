@@ -62,7 +62,7 @@
                                 <td class="p-5">{user.name}</td>
                                 <td class="p-5">{user.email}</td>
                                 <td class="p-5">{user.role}</td>
-                                <td class="p-5">{user.companyName}</td>
+                                <td class="p-5">{user.company.name}</td>
                                 <td class="p-5">{user.isEmailVerified ? 'Verified' : 'Invited'}</td>
                             </tr>
                         {/each}
