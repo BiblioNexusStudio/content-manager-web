@@ -3,6 +3,9 @@ export default {
     content: ['./src/**/*.{html,js,svelte,ts}'],
     theme: {
         extend: {
+            screens: {
+                short: { raw: '(max-height: 900px)' },
+            },
             colors: {
                 'primary-50': 'var(--primary-50)',
                 'primary-300': 'var(--primary-300)',

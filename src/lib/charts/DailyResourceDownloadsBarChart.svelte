@@ -4,9 +4,10 @@
     import type { DailyResourceDownloads } from '$lib/types/reporting';
 
     export let amountsByMonth: DailyResourceDownloads[];
-    const months = amountsByMonth.map((d) =>
-        new Date(d.date).toLocaleString('default', { month: 'short', day: 'numeric' })
-    );
+    const months = amountsByMonth.map((d) => {
+        const utc = new Date(d.date).toUTCString();
+        return utc.substring(4, 11);
+    });
 
     let chart: Chart | undefined;
 
@@ -41,7 +42,16 @@
                 duration: 0,
             },
             plugins: {
-                legend: { display: true, position: 'bottom' },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        boxWidth: 6,
+                        boxHeight: 6,
+                    },
+                },
             },
             elements: {
                 line: {
