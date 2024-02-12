@@ -1,6 +1,7 @@
 ﻿<script lang="ts">
     import type { Language } from '$lib/types/base';
     import type { ContentTranslation } from '$lib/types/resources';
+    import { sortByKey } from '$lib/utils/sorting';
 
     export let languages: Language[];
     export let translations: ContentTranslation[];
@@ -8,13 +9,14 @@
     export let canCreateTranslation: boolean;
     export let openModal: () => void;
 
-    const mappedTranslations = translations
-        .map((translation) => ({
+    const mappedTranslations = sortByKey(
+        translations.map((translation) => ({
             languageName: languages.find((x) => x.id === translation.languageId)?.englishDisplay ?? '',
             status: translation.status,
             contentId: translation.contentId,
-        }))
-        .sort((a, b) => a.languageName.localeCompare(b.languageName));
+        })),
+        'languageName'
+    )!;
 </script>
 
 <div class="mb-4 flex h-fit flex-col rounded-lg border border-base-300 bg-base-200">

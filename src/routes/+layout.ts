@@ -2,9 +2,10 @@ import type { LayoutLoad } from './$types';
 import { waitLocale } from 'svelte-i18n';
 import { initI18n } from '$lib/i18n';
 import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
-import type { Language, ResourceContentStatus, ResourceType, User, CurrentUserApi } from '$lib/types/base';
+import type { Language, ResourceContentStatus, ResourceType, User, CurrentUser } from '$lib/types/base';
 import { browser } from '$app/environment';
-import { initAuth0, initPermissionChecking, type CurrentUser, Permission } from '$lib/stores/auth';
+import { initAuth0, initPermissionChecking, Permission } from '$lib/stores/auth';
+import { sortByKey } from '$lib/utils/sorting';
 
 export const load: LayoutLoad = async ({ fetch, url, data }) => {
     let isAuthenticated: boolean;
@@ -25,25 +26,24 @@ export const load: LayoutLoad = async ({ fetch, url, data }) => {
 
     let users: User[] | null = null;
 
-    if (currentUser?.permissions.includes(Permission.ReadUsers)) {
-        users = await fetchJsonFromApiWithAuth<User[]>('/admin/users', {}, fetch);
+    const currentUserHydrated = initPermissionChecking(currentUser);
+
+    if (currentUserHydrated.can(Permission.ReadUsers)) {
+        users = await fetchJsonFromApiWithAuth<User[]>('/users', {}, fetch);
     }
 
     await initI18n();
     await waitLocale();
 
-    // IMPORTANT: This type-casting is not technically correct, since the fetched data could be `null`
-    //            due to an auth error. However, we have code that conditionally renders the UI based on
-    //            the `loaded` boolean so we can be sure that when rendering any pages these are non-null.
     return {
         isAuthenticated,
         loaded:
             languages !== null && resourceTypes !== null && resourceContentStatuses !== null && currentUser !== null,
-        languages: languages as Language[],
-        resourceTypes: resourceTypes as ResourceType[],
-        resourceContentStatuses: resourceContentStatuses as ResourceContentStatus[],
-        currentUser: initPermissionChecking(currentUser) as CurrentUser,
-        users,
+        languages: sortByKey(languages, 'englishDisplay'),
+        resourceTypes: resourceTypes,
+        resourceContentStatuses: resourceContentStatuses,
+        currentUser: currentUserHydrated,
+        users: sortByKey(users, 'name'),
     };
 };
 
@@ -56,7 +56,7 @@ async function getLanguages(fetch: typeof window.fetch, isAuthenticated: boolean
 
 async function getCurrentUser(fetch: typeof window.fetch, isAuthenticated: boolean) {
     if (isAuthenticated) {
-        return await fetchJsonFromApiWithAuth<CurrentUserApi>('/admin/users/self', {}, fetch);
+        return await fetchJsonFromApiWithAuth<CurrentUser>('/users/self', {}, fetch);
     }
     return null;
 }

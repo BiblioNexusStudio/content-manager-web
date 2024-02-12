@@ -1,14 +1,15 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import { Role } from '$lib/stores/auth';
     import EditorDashboard from './EditorDashboard.svelte';
     import PublisherDashboard from './PublisherDashboard.svelte';
 
     export let data: PageData;
 </script>
 
-{#if data.currentUser.is(Role.Editor)}
+{#if data.publisherDashboard}
+    <PublisherDashboard {data} />
+{:else if data.editorDashboard}
     <EditorDashboard {data} />
 {:else}
-    <PublisherDashboard {data} />
+    You don't have permission to see this page.
 {/if}

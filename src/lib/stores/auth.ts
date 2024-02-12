@@ -3,7 +3,7 @@ import { Auth0Client, createAuth0Client, User as Auth0User } from '@auth0/auth0-
 import config from '$lib/config';
 import { log } from '$lib/logger';
 import { dev } from '$app/environment';
-import type { CurrentUserApi, User } from '$lib/types/base';
+import type { CurrentUser } from '$lib/types/base';
 
 export let auth0Client: Auth0Client | undefined = undefined;
 export const profile: Writable<Auth0User | undefined> = writable(undefined);
@@ -14,38 +14,42 @@ const auth0Audience = config.PUBLIC_AUTH0_AUDIENCE;
 
 export const AUTH_COOKIE_NAME = 'AuthToken';
 
-export enum Role {
-    Publisher = 'publisher',
-    Admin = 'admin',
-    Editor = 'editor',
-    Manager = 'manager',
-}
-
 export enum Permission {
-    CreateContent = 'create:content',
-    PublishContent = 'publish:content',
     AssignContent = 'assign:content',
+    AssignOutsideCompany = 'assign:outside-company',
     AssignOverride = 'assign:override',
-    SendReviewContent = 'send-review:content',
-    ReviewContent = 'review:content',
-    ReadUsers = 'read:users',
+    CreateContent = 'create:content',
+    CreateProject = 'create:project',
     EditContent = 'edit:content',
+    EditProjects = 'edit:projects',
+    PublishContent = 'publish:content',
+    ReadProjects = 'read:projects',
+    ReadReports = 'read:reports',
+    ReadUsers = 'read:users',
+    ReviewContent = 'review:content',
+    SendReviewContent = 'send-review:content',
 }
 
-export interface CurrentUser extends User {
+export interface CurrentUserHydrated extends CurrentUser, MissingUserWithFunctions {}
+
+export interface MissingUserWithFunctions {
     can: (permission: Permission) => boolean;
-    is: (role: Role) => boolean;
+    inCompany: (companyId: number | undefined) => boolean;
 }
 
-export function initPermissionChecking(user: CurrentUserApi | null): CurrentUser | null {
-    if (user) {
+export function initPermissionChecking(user: CurrentUser | null): CurrentUserHydrated | MissingUserWithFunctions {
+    if (user === null) {
+        return {
+            can: () => false,
+            inCompany: () => false,
+        } as MissingUserWithFunctions;
+    } else {
         return {
             ...user,
             can: (permission: Permission) => user.permissions.includes(permission),
-            is: (role: Role) => user.roles.includes(role),
-        };
+            inCompany: (companyId: number | undefined) => user.company?.id === companyId,
+        } as CurrentUserHydrated;
     }
-    return null;
 }
 
 export async function initAuth0(url: URL) {

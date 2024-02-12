@@ -2,21 +2,15 @@
     import Chart, { type ChartConfiguration } from 'chart.js/auto';
     import { onDestroy, onMount } from 'svelte';
     import type { StatusCountPerMonth } from '$lib/types/reporting';
+    import { sortByKey } from '$lib/utils/sorting';
 
     export let completesByMonth: StatusCountPerMonth[];
     export let startsByMonth: StatusCountPerMonth[];
     const months = [
         ...new Set( //removes duplicates
-            completesByMonth
-                .concat(startsByMonth)
-                .sort((a, b) => {
-                    if (a.date > b.date) return 1;
-                    else if (b.date > a.date) return -1;
-                    else return 0;
-                })
-                .map((item) => {
-                    if (item) return new Date(item.date).toLocaleString('default', { month: 'short' });
-                })
+            sortByKey(completesByMonth.concat(startsByMonth), 'date')!.map((item) => {
+                if (item) return new Date(item.date).toLocaleString('default', { month: 'short' });
+            })
         ),
     ];
 

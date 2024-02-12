@@ -1,4 +1,4 @@
-import type { Permission, Role } from '$lib/stores/auth';
+import type { Permission } from '$lib/stores/auth';
 
 export type ExtendType<T, K extends keyof T, V> = Omit<T, K> & { [P in K]?: V };
 
@@ -33,12 +33,52 @@ export interface Language {
     englishDisplay: string;
 }
 
-export interface User {
+export interface BasicUser {
     id: number;
     name: string;
 }
 
-export interface CurrentUserApi extends User {
+export enum UserRole {
+    None = 'None',
+    Editor = 'Editor',
+    Manager = 'Manager',
+    Publisher = 'Publisher',
+    Admin = 'Admin',
+}
+
+export interface User extends BasicUser {
+    role: UserRole;
+    company: Company;
+    isEmailVerified: string;
+    email: string;
+}
+
+export interface CurrentUser extends BasicUser {
     permissions: Permission[];
-    roles: Role[];
+    company: { id: number };
+}
+
+export interface Bible {
+    id: number;
+    name: string;
+    abbreviation: string;
+    books: [
+        {
+            bookCode: string;
+            displayName: string;
+            textSize: number;
+            audioSize: number;
+            chapterCount: number;
+        },
+    ];
+}
+
+export interface ProjectPlatform {
+    id: number;
+    name: string;
+}
+
+export interface Company {
+    id: number;
+    name: string;
 }

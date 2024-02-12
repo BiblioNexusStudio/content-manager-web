@@ -34,7 +34,6 @@
     import { createAutosaveStore } from '$lib/utils/auto-save-store';
     import { onDestroy } from 'svelte';
 
-    let loadingModal: HTMLDialogElement;
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
     let aquiferizeModal: HTMLDialogElement;
@@ -90,7 +89,9 @@
         selectedVersion = draftVersion || publishedVersion || resourceContent.contentVersions[0]!;
         englishContentTranslation = resourceContent.contentTranslations.find((x) => x.languageId === 1);
 
-        const currentUserIsAssigned = selectedVersion.assignedUser?.id === data.currentUser.id;
+        const currentUserIsAssigned =
+            'id' in data.currentUser && selectedVersion.assignedUser?.id === data.currentUser.id;
+        const assignedUserIsInCompany = data.currentUser.inCompany(selectedVersion.assignedUser?.companyId);
 
         isInTranslationWorkflow =
             resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted ||
@@ -114,7 +115,8 @@
                 resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted);
 
         canAssign =
-            (data.currentUser.can(Permission.AssignOverride) ||
+            ((data.currentUser.can(Permission.AssignOverride) &&
+                (data.currentUser.can(Permission.AssignOutsideCompany) || assignedUserIsInCompany)) ||
                 (data.currentUser.can(Permission.AssignContent) && currentUserIsAssigned)) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationInProgress);
@@ -338,6 +340,13 @@
         );
         selectedVersion = version!;
     }
+
+    function usersThatCanBeAssigned() {
+        if (data.currentUser.can(Permission.AssignOutsideCompany)) {
+            return data.users;
+        }
+        return data.users?.filter((u) => data.currentUser.inCompany(u.company.id)) ?? null;
+    }
 </script>
 
 {#await resourceContentPromise}
@@ -455,10 +464,10 @@
                 <Process
                     translationStatus={resourceContent.status}
                     assignedUser={draftVersion?.assignedUser ?? null}
-                    resourceContentStatuses={data.resourceContentStatuses}
+                    resourceContentStatuses={data.resourceContentStatuses || []}
                 />
                 <Translations
-                    languages={data.languages}
+                    languages={data.languages || []}
                     translations={resourceContent.contentTranslations}
                     englishTranslation={englishContentTranslation}
                     {canCreateTranslation}
@@ -494,7 +503,11 @@
                 {/if}
             </h3>
             <div class="flex flex-col">
-                <UserSelector users={data.users} defaultLabel="Select User" bind:selectedUserId={assignToUserId} />
+                <UserSelector
+                    users={usersThatCanBeAssigned()}
+                    defaultLabel="Select User"
+                    bind:selectedUserId={assignToUserId}
+                />
                 <div class="flex w-full flex-row space-x-2 pt-4">
                     <div class="flex-grow" />
                     <button
@@ -519,7 +532,7 @@
             </h3>
             <div class="flex flex-col">
                 <UserSelector
-                    users={data.users}
+                    users={usersThatCanBeAssigned()}
                     defaultLabel="Select User"
                     bind:selectedUserId={assignToUserId}
                     hideUser={selectedVersion.assignedUser}
@@ -553,7 +566,7 @@
                         <span class="label-text">Aquiferization Assignment (optional)</span>
                     </div>
                     <UserSelector
-                        users={data.users}
+                        users={usersThatCanBeAssigned()}
                         defaultLabel="Unassigned"
                         disabled={!createDraft}
                         bind:selectedUserId={assignToUserId}
@@ -573,7 +586,7 @@
             <h3 class="w-full pb-4 text-center text-xl font-bold">Create translation</h3>
             <div class="flex flex-col">
                 <TranslationSelector
-                    allLanguages={data.languages}
+                    allLanguages={data.languages || []}
                     existingTranslations={resourceContent.contentTranslations}
                     bind:selectedLanguageId={newTranslationLanguageId}
                 />
@@ -617,10 +630,6 @@
                 </form>
             </div>
         </div>
-    </dialog>
-
-    <dialog bind:this={loadingModal} class="modal">
-        <span class="loading loading-spinner w-24 text-primary"></span>
     </dialog>
 
     <dialog bind:this={errorModal} class="modal">

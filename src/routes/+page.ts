@@ -1,15 +1,15 @@
 import type { PageLoad } from './$types';
 import { fetchJsonStreamingFromApi, type StreamedData } from '$lib/utils/http-service';
-import { Role } from '$lib/stores/auth';
+import { Permission } from '$lib/stores/auth';
 
 export const load: PageLoad = async ({ fetch, parent }) => {
     const data = await parent();
 
-    if (!data.currentUser) {
+    if (!data.loaded) {
         return {};
     }
 
-    if (data.currentUser.is(Role.Publisher) || data.currentUser.is(Role.Admin)) {
+    if (data.currentUser.can(Permission.ReviewContent) || data.currentUser.can(Permission.PublishContent)) {
         const reportingSummary = fetchJsonStreamingFromApi(
             '/admin/resources/summary',
             {},
@@ -22,7 +22,7 @@ export const load: PageLoad = async ({ fetch, parent }) => {
             fetch
         ) as StreamedData<ResourcePendingReview[]>;
         return { publisherDashboard: { assignedResourceContent, reportingSummary, pendingReviewResourceContent } };
-    } else if (data.currentUser.is(Role.Editor)) {
+    } else if (data.currentUser.can(Permission.EditContent)) {
         const resourceContent = fetchAssignedResourceContent(fetch);
         return { editorDashboard: { resourceContent } };
     } else {

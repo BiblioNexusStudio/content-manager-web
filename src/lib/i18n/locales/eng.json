@@ -80,6 +80,32 @@
                 }
             }
         },
+        "users": {
+            "header": {
+                "value": "Users",
+                "_context": "The header for user table"
+            },
+            "name": {
+                "value": "Name",
+                "_context": "The label for the user name"
+            },
+            "email": {
+                "value": "Email",
+                "_context": "The label for the user's email"
+            },
+            "role": {
+                "value": "Role",
+                "_context": "The label for the users's role"
+            },
+            "company": {
+                "value": "Company",
+                "_context": "The label for the company the user belongs to"
+            },
+            "status": {
+                "value": "Status",
+                "_context": "The label for whether the user email is verified"
+            }
+        },
         "errorMessage": {}
     },
     "sidebar": {
@@ -94,6 +120,10 @@
         "reporting": {
             "value": "Reporting",
             "_context": "The label for the reporting link"
+        },
+        "projects": {
+            "value": "Projects",
+            "_context": "The label for the projects link"
         },
         "users": {
             "value": "Users",

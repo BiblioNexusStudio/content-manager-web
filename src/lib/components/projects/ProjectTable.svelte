@@ -1,0 +1,123 @@
+<script lang="ts">
+    import type { ProjectListResponse, ProjectTableColumn } from '$lib/types/projects';
+    import ProjectProgressBar from '../ProjectProgressBar.svelte';
+    import ChevronDownIcon from '$lib/icons/ChevronDownIcon.svelte';
+    import ChevronUpIcon from '$lib/icons/ChevronUpIcon.svelte';
+
+    export let projects: ProjectListResponse[] = [];
+    export let showClosed = false;
+    export let projectSearchValue = '';
+
+    let currentColumn = 'name';
+
+    const initColumnsState: ProjectTableColumn[] = [
+        { name: 'name', label: 'Title', sorted: true },
+        { name: 'company', label: 'Company', sorted: false },
+        { name: 'projectPlatform', label: 'Platform', sorted: false },
+        { name: 'language', label: 'Language', sorted: false },
+        { name: 'projectLead', label: 'Project Lead', sorted: false },
+        { name: 'days', label: 'Days', sorted: false },
+        { name: 'progress', label: 'Progress', sorted: false },
+    ];
+
+    $: listData = handleListData(projects, showClosed, projectSearchValue, columns);
+    $: columns = sortListData(currentColumn);
+
+    function handleListData(
+        projects: ProjectListResponse[],
+        showClosed: boolean,
+        projectSearchValue: string,
+        columns: ProjectTableColumn[]
+    ) {
+        const lowerCaseSearchValue = projectSearchValue.toLowerCase();
+
+        const unsortedProjects = projects.filter((project) => {
+            const isInProgress = project.counts.inProgress !== 0 && project.counts.inReview !== 0;
+            const matchesSearchValue = [project.name].some((field) =>
+                field.toLowerCase().includes(lowerCaseSearchValue)
+            );
+
+            if (!showClosed && !projectSearchValue) {
+                return isInProgress;
+            } else if (showClosed && !projectSearchValue) {
+                return true;
+            } else if (!showClosed && projectSearchValue) {
+                return isInProgress && matchesSearchValue;
+            } else {
+                return matchesSearchValue;
+            }
+        });
+
+        const sortedProjects = unsortedProjects.sort((a, b) => {
+            const sortedColumn = columns.find((column) => column.sorted);
+
+            if (sortedColumn && sortedColumn.name !== 'days' && sortedColumn.name !== 'progress') {
+                const fieldA = a[sortedColumn.name as keyof ProjectListResponse];
+                const fieldB = b[sortedColumn.name as keyof ProjectListResponse];
+
+                if (fieldA && fieldB && fieldA < fieldB) {
+                    return -1;
+                }
+                if (fieldA && fieldB && fieldA > fieldB) {
+                    return 1;
+                }
+                return 0;
+            }
+
+            return a.name.localeCompare(b.name);
+        });
+
+        return sortedProjects;
+    }
+
+    function sortListData(columnName: string) {
+        initColumnsState.forEach((col) => (col.sorted = false));
+
+        const column = initColumnsState.find((col) => col.name === columnName);
+
+        if (column) {
+            column.sorted = true;
+            currentColumn = columnName;
+        }
+
+        return initColumnsState;
+    }
+</script>
+
+<div class="grid w-full grid-cols-7 rounded-md border border-b-0">
+    {#each columns as column}
+        <div class="flex items-center justify-between border-b bg-gray-50 px-4 py-3">
+            <div class="text-xs font-bold">{column.label}</div>
+            <div>
+                {#if column.sorted && column.name !== 'progress'}
+                    <button class="flex w-8 items-center justify-end" on:click={() => sortListData(column.name)}>
+                        <ChevronUpIcon />
+                    </button>
+                {:else if !column.sorted && column.name !== 'progress'}
+                    <button class="flex w-8 items-center justify-end" on:click={() => sortListData(column.name)}>
+                        <ChevronDownIcon />
+                    </button>
+                {/if}
+            </div>
+        </div>
+    {/each}
+    {#each listData as row}
+        {@const redColor = row?.days && row?.days < 0}
+        <div class="border-b px-4 py-3 text-xs">{row.name}</div>
+        <div class="border-b px-4 py-3 text-xs">{row.company}</div>
+        <div class="border-b px-4 py-3 text-xs">{row.projectPlatform}</div>
+        <div class="border-b px-4 py-3 text-xs">{row.language}</div>
+        <div class="border-b px-4 py-3 text-xs">{row.projectLead}</div>
+        <div class="border-b px-4 py-3 text-xs {redColor ? 'text-red-600' : ''}">
+            {row.days === null ? '' : row.days}
+        </div>
+        <div class="border-b px-4 py-3 text-xs">
+            <ProjectProgressBar
+                inProgressCount={row.counts.inProgress}
+                inReviewCount={row.counts.inReview}
+                completeCount={row.counts.completed}
+                showLegend={false}
+            />
+        </div>
+    {/each}
+</div>
