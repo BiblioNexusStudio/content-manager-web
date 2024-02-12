@@ -84,6 +84,7 @@ export interface AssociatedResource {
 export interface ResourceContentAssignedUser {
     id: number;
     name: string;
+    companyId: number;
 }
 
 export interface ContentTranslation {

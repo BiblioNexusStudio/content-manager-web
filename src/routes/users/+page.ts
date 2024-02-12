@@ -2,17 +2,17 @@ import { Permission } from '$lib/stores/auth';
 import { fetchJsonStreamingFromApi, type StreamedData } from '$lib/utils/http-service';
 import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
-import type { User } from '$lib/types/users';
+import type { User } from '$lib/types/base';
 
 export const load: PageLoad = async ({ fetch, parent }) => {
     const data = await parent();
 
-    if (!data.currentUser) {
+    if (!data.loaded) {
         return {};
     }
 
     if (data.currentUser.can(Permission.ReadUsers)) {
-        const userData = fetchJsonStreamingFromApi(`/admin/users`, {}, fetch) as StreamedData<User[]>;
+        const userData = fetchJsonStreamingFromApi(`/users`, {}, fetch) as StreamedData<User[]>;
         return {
             userData,
         };

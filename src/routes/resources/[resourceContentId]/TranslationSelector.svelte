@@ -6,9 +6,7 @@
     export let existingTranslations: ContentTranslation[];
     export let selectedLanguageId: string | null;
 
-    const languagesToShow = allLanguages
-        .filter((x) => existingTranslations.every((et) => et.languageId !== x.id))
-        .sort((a, b) => a.englishDisplay.localeCompare(b.englishDisplay));
+    const languagesToShow = allLanguages.filter((x) => existingTranslations.every((et) => et.languageId !== x.id));
 </script>
 
 {#if languagesToShow}

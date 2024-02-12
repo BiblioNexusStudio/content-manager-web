@@ -22,7 +22,7 @@
     let isSaving = false;
     let isShowingErrorModal = false;
 
-    $: isForAquiferization = languages.find((l) => l.id === languageId)?.iso6393Code === 'eng';
+    $: isForAquiferization = (languages || []).find((l) => l.id === languageId)?.iso6393Code === 'eng';
     $: requiresCompanyLead = projectPlatforms?.find((p) => p.id === platformId)?.name === 'Aquifer';
 
     $: canSave =
@@ -79,7 +79,7 @@
                 disabled={selectedResourceIds.length > 0}
                 options={[
                     { value: null, label: 'Select Language' },
-                    ...languages.map((l) => ({
+                    ...(languages || []).map((l) => ({
                         value: l.id,
                         label: l.iso6393Code === 'eng' ? 'English (Aquiferize)' : l.englishDisplay,
                     })),

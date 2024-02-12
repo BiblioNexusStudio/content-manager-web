@@ -3,7 +3,7 @@
     import { unwrapStreamedData } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { _ as translate } from 'svelte-i18n';
-    import type { User } from '$lib/types/users';
+    import type { User } from '$lib/types/base';
 
     export let data: PageData;
 
@@ -62,7 +62,7 @@
                                 <td class="p-5">{user.name}</td>
                                 <td class="p-5">{user.email}</td>
                                 <td class="p-5">{user.role}</td>
-                                <td class="p-5">{user.companyName}</td>
+                                <td class="p-5">{user.company.name}</td>
                                 <td class="p-5">{user.isEmailVerified ? 'Verified' : 'Invited'}</td>
                             </tr>
                         {/each}
