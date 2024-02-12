@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { goto } from '$app/navigation';
     import type { PageData } from './$types';
     import { unwrapStreamedData } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
@@ -22,7 +21,7 @@
         <h1 class="my-auto text-3xl">Projects</h1>
 
         <div class="flex w-2/5 items-center">
-            <button class="btn btn-primary me-4" on:click={() => goto('/projects/new')}>Create</button>
+            <a class="btn btn-primary me-4" href="/projects/new">Create</a>
             <ProjectSearch bind:projectSearchValue />
         </div>
     </div>
