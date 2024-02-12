@@ -3,7 +3,7 @@
     import { unwrapStreamedData } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { _ as translate } from 'svelte-i18n';
-    import type { User } from '$lib/types/users';
+    import type { User } from '$lib/types/base';
 
     export let data: PageData;
 

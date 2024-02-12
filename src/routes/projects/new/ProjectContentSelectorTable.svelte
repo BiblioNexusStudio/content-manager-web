@@ -6,6 +6,7 @@
     export let selectedIds: Set<number>;
     export let showTotalWordCount = false;
     export let isLoading = false;
+    export let hasSearched = false;
 
     $: allSelected = allContent.length > 0 && allContent.every((c) => selectedIds.has(c.resourceId));
 
@@ -63,6 +64,12 @@
                     <td>{content.title}</td>
                     <td>{content.wordCount}</td>
                 </tr>
+            {:else}
+                {#if hasSearched}
+                    <tr>
+                        <td colspan="3"><div class="text-center">No results</div></td>
+                    </tr>
+                {/if}
             {/each}
         {/if}
     </tbody>

@@ -63,13 +63,13 @@
             name: $translate('sidebar.reporting.value'),
             icon: PieChartIcon,
             href: '/reporting',
-            hidden: !data?.currentUser?.can(Permission.ReadReports),
+            hidden: !data.currentUser.can(Permission.ReadReports),
         },
         {
             name: $translate('sidebar.users.value'),
             icon: UsersIcon,
             href: '/users',
-            hidden: !data?.currentUser?.can(Permission.ReadUsers),
+            hidden: !data.currentUser.can(Permission.ReadUsers),
         },
     ];
 

@@ -5,7 +5,7 @@ import { Permission } from '$lib/stores/auth';
 export const load: PageLoad = async ({ fetch, parent }) => {
     const data = await parent();
 
-    if (!data.currentUser) {
+    if (!data.loaded) {
         return {};
     }
 

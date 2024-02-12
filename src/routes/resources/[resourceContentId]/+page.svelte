@@ -90,7 +90,8 @@
         selectedVersion = draftVersion || publishedVersion || resourceContent.contentVersions[0]!;
         englishContentTranslation = resourceContent.contentTranslations.find((x) => x.languageId === 1);
 
-        const currentUserIsAssigned = selectedVersion.assignedUser?.id === data.currentUser.id;
+        const currentUserIsAssigned =
+            'id' in data.currentUser && selectedVersion.assignedUser?.id === data.currentUser.id;
 
         isInTranslationWorkflow =
             resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted ||
@@ -455,10 +456,10 @@
                 <Process
                     translationStatus={resourceContent.status}
                     assignedUser={draftVersion?.assignedUser ?? null}
-                    resourceContentStatuses={data.resourceContentStatuses}
+                    resourceContentStatuses={data.resourceContentStatuses || []}
                 />
                 <Translations
-                    languages={data.languages}
+                    languages={data.languages || []}
                     translations={resourceContent.contentTranslations}
                     englishTranslation={englishContentTranslation}
                     {canCreateTranslation}
@@ -573,7 +574,7 @@
             <h3 class="w-full pb-4 text-center text-xl font-bold">Create translation</h3>
             <div class="flex flex-col">
                 <TranslationSelector
-                    allLanguages={data.languages}
+                    allLanguages={data.languages || []}
                     existingTranslations={resourceContent.contentTranslations}
                     bind:selectedLanguageId={newTranslationLanguageId}
                 />

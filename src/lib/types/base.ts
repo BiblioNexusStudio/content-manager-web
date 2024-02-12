@@ -48,11 +48,15 @@ export enum UserRole {
 
 export interface User extends BasicUser {
     role: UserRole;
+    company: Company;
     companyName: string;
+    isEmailVerified: string;
+    email: string;
 }
 
-export interface CurrentUserApi extends User {
+export interface CurrentUser extends BasicUser {
     permissions: Permission[];
+    company: { id: number };
 }
 
 export interface Bible {
