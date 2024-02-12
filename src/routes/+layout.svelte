@@ -10,6 +10,7 @@
     import SunIcon from '$lib/icons/SunIcon.svelte';
     import MoonIcon from '$lib/icons/MoonIcon.svelte';
     import PieChartIcon from '$lib/icons/PieChartIcon.svelte';
+    import ProjectsIcon from '$lib/icons/ProjectsIcon.svelte';
     import { page } from '$app/stores';
     import { onMount } from 'svelte';
     import { _ as translate } from 'svelte-i18n';
@@ -64,6 +65,12 @@
             icon: PieChartIcon,
             href: '/reporting',
             hidden: !data.currentUser.can(Permission.ReadReports),
+        },
+        {
+            name: $translate('sidebar.projects.value'),
+            icon: ProjectsIcon,
+            href: '/projects',
+            hidden: !data.currentUser.can(Permission.ReadProjects),
         },
         {
             name: $translate('sidebar.users.value'),

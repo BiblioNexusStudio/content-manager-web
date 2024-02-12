@@ -121,6 +121,10 @@
             "value": "Reporting",
             "_context": "The label for the reporting link"
         },
+        "projects": {
+            "value": "Projects",
+            "_context": "The label for the projects link"
+        },
         "users": {
             "value": "Users",
             "_context": "The label for the users link"
