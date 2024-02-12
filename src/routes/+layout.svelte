@@ -70,7 +70,7 @@
             name: $translate('sidebar.projects.value'),
             icon: ProjectsIcon,
             href: '/projects',
-            hidden: !(data?.currentUser?.is(Role.Publisher) || data?.currentUser?.is(Role.Admin)),
+            hidden: !data.currentUser.can(Permission.ReadProjects),
         },
         {
             name: $translate('sidebar.users.value'),
