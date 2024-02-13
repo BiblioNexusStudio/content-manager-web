@@ -6,12 +6,12 @@
     import checkCircleO from 'svelte-awesome/icons/checkCircleO';
     import ban from 'svelte-awesome/icons/ban';
     import { createEventDispatcher } from 'svelte';
-    import type { Language } from '$lib/types/base';
+    import type { ResourceContent } from '$lib/types/resources';
+    import { Permission, userCan } from '$lib/stores/auth';
 
     export let contentVersionId: string;
-    export let typeText: string;
+    export let resourceContent: ResourceContent;
     export let wordCount: number | null;
-    export let language: Language;
     export let isPublished: boolean;
     export let canEdit: boolean;
     const dispatch = createEventDispatcher();
@@ -77,18 +77,18 @@
             </div>
             <div class="mb-2 flex justify-between">
                 <span class="me-4 font-bold">Language</span><span
-                    >{language.englishDisplay} [{language.iso6393Code}]</span
+                    >{resourceContent.language.englishDisplay} [{resourceContent.language.iso6393Code}]</span
                 >
             </div>
             <div class="mb-2 flex justify-between">
-                <span class="me-4 font-bold">Type</span><span>{typeText}</span>
+                <span class="me-4 font-bold">Type</span><span>{resourceContent.parentResourceName}</span>
             </div>
             {#if wordCount !== null}
                 <div class="mb-2 flex justify-between">
                     <span class="me-4 font-bold">Word Count</span><span>{wordCount}</span>
                 </div>
             {/if}
-            <div class="flex justify-between">
+            <div class="mb-2 flex justify-between">
                 <span class="me-4 font-bold">Published</span>
                 {#if isPublished}
                     <Icon data={checkCircleO} style="height: 28px; width: auto; color: #00a5e0" />
@@ -96,6 +96,18 @@
                     <Icon data={ban} style="height: 28px; width: auto; color: #abaeb1" />
                 {/if}
             </div>
+            {#if resourceContent.project !== null}
+                <div class="flex justify-between">
+                    <span class="me-4 font-bold">Project</span>
+                    {#if $userCan(Permission.ReadProjects)}
+                        <a class="btn-link font-bold no-underline" href={`/projects/${resourceContent.project.id}`}
+                            >{resourceContent.project.name}</a
+                        >
+                    {:else}
+                        {resourceContent.project.name}
+                    {/if}
+                </div>
+            {/if}
         </div>
     </div>
 </div>
