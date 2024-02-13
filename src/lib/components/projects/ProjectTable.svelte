@@ -103,11 +103,21 @@
     {/each}
     {#each listData as row}
         {@const redColor = row?.days && row?.days < 0}
-        <div class="border-b px-4 py-3 text-xs">{row.name}</div>
-        <div class="border-b px-4 py-3 text-xs">{row.company}</div>
-        <div class="border-b px-4 py-3 text-xs">{row.projectPlatform}</div>
-        <div class="border-b px-4 py-3 text-xs">{row.language}</div>
-        <div class="border-b px-4 py-3 text-xs">{row.projectLead}</div>
+        <a href={`/projects/${row.id}`}>
+            <div class="border-b px-4 py-3 text-xs">{row.name}</div>
+        </a>
+        <a href={`/projects/${row.id}`}>
+            <div class="border-b px-4 py-3 text-xs">{row.company}</div>
+        </a>
+        <a href={`/projects/${row.id}`}>
+            <div class="border-b px-4 py-3 text-xs">{row.projectPlatform}</div>
+        </a>
+        <a href={`/projects/${row.id}`}>
+            <div class="border-b px-4 py-3 text-xs">{row.language}</div>
+        </a>
+        <a href={`/projects/${row.id}`}>
+            <div class="border-b px-4 py-3 text-xs">{row.projectLead}</div>
+        </a>
         <div class="border-b px-4 py-3 text-xs {redColor ? 'text-red-600' : ''}">
             {row.days === null ? '' : row.days}
         </div>

@@ -1,4 +1,5 @@
 export interface ProjectListResponse {
+    id: number;
     name: string;
     language: string;
     projectLead: string;
@@ -18,4 +19,22 @@ export interface ProjectTableColumn {
     name: string;
     label: string;
     sorted: boolean;
+}
+
+export interface ProjectResponse {
+    name: string;
+    language: string;
+    projectManager: string;
+    company: string;
+    projectPlatform: string;
+    companyLead?: string;
+    sourceWordCount: number;
+    effectiveWordCount?: number;
+    quotedCost?: number;
+    started?: string | null;
+    projectedDeliveryDate?: string;
+    actualDeliveryDate?: string;
+    projectedPublishDate?: string;
+    actualPublishDate?: string;
+    counts: ProjectResourceStatusCounts;
 }

@@ -2,9 +2,10 @@
     import ProjectOverview from './ProjectOverview.svelte';
     import ProjectQuote from './ProjectQuote.svelte';
     import ProjectDelivery from './ProjectDelivery.svelte';
-    import ProjectProgressBar from '../ProjectProgressBar.svelte';
+    import type { ProjectResponse } from '$lib/types/projects';
 
-    // todo: add enum
+    export let project: ProjectResponse;
+
     let tabs = [
         { name: 'Overview', href: '#', current: true },
         { name: 'Quote', href: '#', current: false },
@@ -36,13 +37,10 @@
 </div>
 <div class="flex">
     {#if currentTab.name === 'Overview'}
-        <ProjectOverview />
+        <ProjectOverview {project} />
     {:else if currentTab.name === 'Quote'}
-        <ProjectQuote />
+        <ProjectQuote {project} />
     {:else if currentTab.name === 'Delivery'}
-        <ProjectDelivery />
+        <ProjectDelivery {project} />
     {/if}
-</div>
-<div class="mb-8 w-1/2 pe-8">
-    <ProjectProgressBar inProgressCount={100} inReviewCount={50} completeCount={25} showLegend={true} />
 </div>
