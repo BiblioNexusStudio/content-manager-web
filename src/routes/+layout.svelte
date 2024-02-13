@@ -14,7 +14,7 @@
     import { page } from '$app/stores';
     import { onMount } from 'svelte';
     import { _ as translate } from 'svelte-i18n';
-    import { logout, profile, auth0Client, syncAuthTokenToCookies, Permission } from '$lib/stores/auth';
+    import { logout, profile, auth0Client, syncAuthTokenToCookies, Permission, userCan } from '$lib/stores/auth';
     import { log } from '$lib/logger';
     import type { LayoutData } from './$types';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
@@ -64,19 +64,19 @@
             name: $translate('sidebar.reporting.value'),
             icon: PieChartIcon,
             href: '/reporting',
-            hidden: !data.currentUser.can(Permission.ReadReports),
+            hidden: !$userCan(Permission.ReadReports),
         },
         {
             name: $translate('sidebar.projects.value'),
             icon: ProjectsIcon,
             href: '/projects',
-            hidden: !data.currentUser.can(Permission.ReadProjects),
+            hidden: !$userCan(Permission.ReadProjects),
         },
         {
             name: $translate('sidebar.users.value'),
             icon: UsersIcon,
             href: '/users',
-            hidden: !data.currentUser.can(Permission.ReadUsers),
+            hidden: !$userCan(Permission.ReadUsers),
         },
     ];
 
