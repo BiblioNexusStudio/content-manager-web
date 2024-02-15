@@ -107,6 +107,12 @@ export interface ResourceContent {
     hasAudio: boolean;
     contentTranslations: ContentTranslation[];
     contentVersions: ResourceContentVersion[];
+    project: Project | null;
+}
+
+export interface Project {
+    id: number;
+    name: string;
 }
 
 export interface ResourceContentVersion {

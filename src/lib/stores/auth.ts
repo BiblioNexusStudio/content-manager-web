@@ -1,4 +1,4 @@
-﻿import { type Writable, writable } from 'svelte/store';
+﻿import { type Writable, writable, derived } from 'svelte/store';
 import { Auth0Client, createAuth0Client, User as Auth0User } from '@auth0/auth0-spa-js';
 import config from '$lib/config';
 import { log } from '$lib/logger';
@@ -8,6 +8,25 @@ import type { CurrentUser } from '$lib/types/base';
 export let auth0Client: Auth0Client | undefined = undefined;
 export const profile: Writable<Auth0User | undefined> = writable(undefined);
 export const isAuthenticatedStore: Writable<boolean | undefined> = writable(undefined);
+
+const currentUser: Writable<CurrentUser | null> = writable(null);
+
+export function setCurrentUser(user: CurrentUser | null) {
+    currentUser.set(user);
+}
+
+export const userCan = derived(currentUser, (user) => {
+    return (permission: Permission) => !!user?.permissions.includes(permission);
+});
+
+export const userIsInCompany = derived(currentUser, (user) => {
+    return (companyId: number | undefined) => companyId !== undefined && user?.company.id === companyId;
+});
+
+export const userIsEqual = derived(currentUser, (user) => {
+    return (userId: number | undefined) => userId !== undefined && user?.id === userId;
+});
+
 const auth0Domain = config.PUBLIC_AUTH0_DOMAIN;
 const auth0ClientId = config.PUBLIC_AUTH0_CLIENT_ID;
 const auth0Audience = config.PUBLIC_AUTH0_AUDIENCE;

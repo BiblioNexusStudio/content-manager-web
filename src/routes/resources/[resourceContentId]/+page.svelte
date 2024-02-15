@@ -25,7 +25,7 @@
     import { ResourceContentStatusEnum } from '$lib/types/base';
     import { getSortedReferences } from '$lib/utils/reference';
     import UserSelector from './UserSelector.svelte';
-    import { Permission } from '$lib/stores/auth';
+    import { Permission, userCan, userIsEqual, userIsInCompany } from '$lib/stores/auth';
     import spinner from 'svelte-awesome/icons/spinner';
     import { Icon } from 'svelte-awesome';
     import ArrowLeftSmall from '$lib/icons/ArrowLeftSmall.svelte';
@@ -89,9 +89,8 @@
         selectedVersion = draftVersion || publishedVersion || resourceContent.contentVersions[0]!;
         englishContentTranslation = resourceContent.contentTranslations.find((x) => x.languageId === 1);
 
-        const currentUserIsAssigned =
-            'id' in data.currentUser && selectedVersion.assignedUser?.id === data.currentUser.id;
-        const assignedUserIsInCompany = data.currentUser.inCompany(selectedVersion.assignedUser?.companyId);
+        const currentUserIsAssigned = $userIsEqual(selectedVersion.assignedUser?.id);
+        const assignedUserIsInCompany = $userIsInCompany(selectedVersion.assignedUser?.companyId);
 
         isInTranslationWorkflow =
             resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted ||
@@ -100,7 +99,7 @@
             resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending;
 
         canMakeContentEdits =
-            data.currentUser.can(Permission.EditContent) &&
+            $userCan(Permission.EditContent) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
@@ -109,43 +108,43 @@
             currentUserIsAssigned;
 
         canAquiferize =
-            data.currentUser.can(Permission.CreateContent) &&
+            $userCan(Permission.CreateContent) &&
             (resourceContent.status === ResourceContentStatusEnum.New ||
                 resourceContent.status === ResourceContentStatusEnum.Complete ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted);
 
         canAssign =
-            ((data.currentUser.can(Permission.AssignOverride) &&
-                (data.currentUser.can(Permission.AssignOutsideCompany) || assignedUserIsInCompany)) ||
-                (data.currentUser.can(Permission.AssignContent) && currentUserIsAssigned)) &&
+            (($userCan(Permission.AssignOverride) &&
+                ($userCan(Permission.AssignOutsideCompany) || assignedUserIsInCompany)) ||
+                ($userCan(Permission.AssignContent) && currentUserIsAssigned)) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationInProgress);
 
         canSendBack =
-            data.currentUser.can(Permission.AssignContent) &&
+            $userCan(Permission.AssignContent) &&
             currentUserIsAssigned &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationInReview);
 
         canSendReview =
-            data.currentUser.can(Permission.SendReviewContent) &&
+            $userCan(Permission.SendReviewContent) &&
             currentUserIsAssigned &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationInProgress);
 
         canStartReview =
-            data.currentUser.can(Permission.ReviewContent) &&
+            $userCan(Permission.ReviewContent) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeReviewPending ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending);
 
         canPublish =
-            data.currentUser.can(Permission.PublishContent) &&
+            $userCan(Permission.PublishContent) &&
             ((resourceContent.status === ResourceContentStatusEnum.New && !hasPublished) ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationInReview);
 
-        canUnpublish = data.currentUser.can(Permission.PublishContent) && hasPublished;
-        canCreateTranslation = data.currentUser.can(Permission.PublishContent);
+        canUnpublish = $userCan(Permission.PublishContent) && hasPublished;
+        canCreateTranslation = $userCan(Permission.PublishContent);
         setOriginalValues(resourceContent);
         selectedVersionContentId = fakeContentVersionId(
             resourceContent,
@@ -342,10 +341,10 @@
     }
 
     function usersThatCanBeAssigned() {
-        if (data.currentUser.can(Permission.AssignOutsideCompany)) {
+        if ($userCan(Permission.AssignOutsideCompany)) {
             return data.users;
         }
-        return data.users?.filter((u) => data.currentUser.inCompany(u.company.id)) ?? null;
+        return data.users?.filter((u) => $userIsInCompany(u.company.id)) ?? null;
     }
 </script>
 
@@ -453,12 +452,11 @@
         <div class="flex">
             <div class="me-8 flex max-h-full w-4/12 flex-col">
                 <Overview
+                    {resourceContent}
                     contentVersionId={selectedVersionContentId}
                     canEdit={canMakeContentEdits && selectedVersion.isDraft}
-                    typeText={resourceContent.parentResourceName}
                     isPublished={hasPublished}
                     wordCount={currentWordCount($updatedValues[selectedVersionContentId]?.wordCounts)}
-                    language={resourceContent.language}
                     on:saveTitle={() => save()}
                 />
                 <Process

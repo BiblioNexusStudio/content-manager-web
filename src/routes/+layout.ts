@@ -4,7 +4,7 @@ import { initI18n } from '$lib/i18n';
 import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
 import type { Language, ResourceContentStatus, ResourceType, User, CurrentUser } from '$lib/types/base';
 import { browser } from '$app/environment';
-import { initAuth0, initPermissionChecking, Permission } from '$lib/stores/auth';
+import { initAuth0, initPermissionChecking, Permission, setCurrentUser } from '$lib/stores/auth';
 import { sortByKey } from '$lib/utils/sorting';
 
 export const load: LayoutLoad = async ({ fetch, url, data }) => {
@@ -26,6 +26,7 @@ export const load: LayoutLoad = async ({ fetch, url, data }) => {
 
     let users: User[] | null = null;
 
+    setCurrentUser(currentUser);
     const currentUserHydrated = initPermissionChecking(currentUser);
 
     if (currentUserHydrated.can(Permission.ReadUsers)) {
