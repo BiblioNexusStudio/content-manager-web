@@ -2,9 +2,6 @@
     import ProjectOverview from './ProjectOverview.svelte';
     import ProjectQuote from './ProjectQuote.svelte';
     import ProjectDelivery from './ProjectDelivery.svelte';
-    import type { ProjectResponse } from '$lib/types/projects';
-
-    export let project: ProjectResponse;
 
     let tabs = [
         { name: 'Overview', href: '#', current: true },
@@ -37,10 +34,10 @@
 </div>
 <div class="flex">
     {#if currentTab.name === 'Overview'}
-        <ProjectOverview {project} />
+        <ProjectOverview />
     {:else if currentTab.name === 'Quote'}
-        <ProjectQuote {project} />
+        <ProjectQuote />
     {:else if currentTab.name === 'Delivery'}
-        <ProjectDelivery {project} />
+        <ProjectDelivery />
     {/if}
 </div>

@@ -3,20 +3,29 @@
     import { unwrapStreamedData } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { Permission } from '$lib/stores/auth';
-
+    import { users, project } from '$lib/stores/projects';
     import ArrowLeftSmall from '$lib/icons/ArrowLeftSmall.svelte';
     import ProjectViewTabs from '$lib/components/projects/ProjectViewTabs.svelte';
     import ProjectViewTable from '$lib/components/projects/ProjectViewTable.svelte';
     import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
+    import { onMount } from 'svelte';
 
     export let data: PageData;
 
     $: projectPromise = unwrapStreamedData(data.projectResponse!);
-    $: console.log(projectPromise);
 
     function startProject() {
         console.log('start project');
     }
+
+    async function assignApiDataToStore() {
+        $project = await projectPromise;
+        $users = await unwrapStreamedData(data.users!);
+    }
+
+    onMount(() => {
+        assignApiDataToStore();
+    });
 </script>
 
 {#await projectPromise}
@@ -31,13 +40,12 @@
         </div>
         <div class="flex">
             {#if projectResponse.started === null && data.currentUser.can(Permission.EditProjects)}
-                <button class="btn btn-primary me-4" on:click={startProject}>Start</button>
+                <button class="btn btn-primary" on:click={startProject}>Start</button>
             {/if}
-            <button class="btn btn-primary">Download</button>
         </div>
     </div>
     <div class="m-4">
-        <ProjectViewTabs project={projectResponse} />
+        <ProjectViewTabs />
         <div class="mb-8 w-1/2 pe-8">
             <ProjectProgressBar
                 inProgressCount={projectResponse?.counts?.inProgress}
