@@ -5,6 +5,7 @@
     import { log } from '$lib/logger';
     import { UserRole } from '$lib/types/base';
     import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
+    import type { HttpError } from '@sveltejs/kit';
     import type { PageData } from './$types';
     import ProjectContentSelector from './ProjectContentSelector.svelte';
 
@@ -21,9 +22,13 @@
     let selectedResourceIds: number[] = [];
     let isSaving = false;
     let isShowingErrorModal = false;
+    let errorMessage = '';
+
+    $: !isShowingErrorModal && (errorMessage = '');
 
     $: isForAquiferization = (languages || []).find((l) => l.id === languageId)?.iso6393Code === 'eng';
     $: requiresCompanyLead = projectPlatforms?.find((p) => p.id === platformId)?.name === 'Aquifer';
+    $: !requiresCompanyLead && (companyLeadUserId = null);
 
     $: canSave =
         !!title &&
@@ -55,6 +60,10 @@
             await goto(`/projects/${project.id}`);
         } catch (error) {
             log.exception(error as Error);
+            // TODO: make this less hacky, need a better way to propagate errors and parse the message instead of this `includes`
+            if ((error as HttpError)?.body?.message?.includes('project with this title already exists')) {
+                errorMessage = 'A project with this name already exists.';
+            }
             isShowingErrorModal = true;
         } finally {
             isSaving = false;
@@ -110,7 +119,7 @@
                 class="select select-bordered w-full max-w-[50%]"
                 options={[
                     { value: null, label: 'Select Company' },
-                    ...(companies || []).map((c) => ({ value: c.id, label: c.name })),
+                    ...(companies || []).filter((c) => c.name !== 'N/A').map((c) => ({ value: c.id, label: c.name })),
                 ]}
                 isNumber={true}
                 bind:value={companyId}
@@ -176,6 +185,6 @@
 <Modal
     isError={true}
     header="Error creating"
-    description="There was an error while saving"
+    description={errorMessage || 'There was an error while saving.'}
     bind:open={isShowingErrorModal}
 />
