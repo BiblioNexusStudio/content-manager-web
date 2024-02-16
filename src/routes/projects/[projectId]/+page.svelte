@@ -32,31 +32,33 @@
 {#await projectPromise}
     <CenteredSpinner />
 {:then projectResponse}
-    <div class="m-4 flex justify-between">
-        <div class="flex items-center">
-            <ArrowLeftSmall />
-            <span class="ms-2 text-2xl">
-                {projectResponse.company} - {projectResponse.name}
-            </span>
+    <div class="flex max-h-screen flex-col overflow-hidden p-4">
+        <div class="flex justify-between">
+            <div class="flex items-center">
+                <ArrowLeftSmall />
+                <span class="ms-2 text-2xl">
+                    {projectResponse.company} - {projectResponse.name}
+                </span>
+            </div>
+            <div class="flex">
+                {#if projectResponse.started === null && data.currentUser.can(Permission.EditProjects)}
+                    <button class="btn btn-primary" on:click={startProject}>Start</button>
+                {/if}
+            </div>
         </div>
-        <div class="flex">
-            {#if projectResponse.started === null && data.currentUser.can(Permission.EditProjects)}
-                <button class="btn btn-primary" on:click={startProject}>Start</button>
-            {/if}
+        <div>
+            <ProjectViewTabs />
+            <div class="mb-8 w-1/2 pe-8">
+                <ProjectProgressBar
+                    inProgressCount={projectResponse?.counts?.inProgress}
+                    inReviewCount={projectResponse?.counts?.inReview}
+                    completeCount={projectResponse?.counts?.completed}
+                    showLegend={true}
+                />
+            </div>
         </div>
-    </div>
-    <div class="m-4">
-        <ProjectViewTabs />
-        <div class="mb-8 w-1/2 pe-8">
-            <ProjectProgressBar
-                inProgressCount={projectResponse?.counts?.inProgress}
-                inReviewCount={projectResponse?.counts?.inReview}
-                completeCount={projectResponse?.counts?.completed}
-                showLegend={true}
-            />
+        <div class="flex w-full grow flex-col overflow-hidden rounded-md border">
+            <ProjectViewTable />
         </div>
-    </div>
-    <div class="m-4">
-        <ProjectViewTable />
     </div>
 {/await}
