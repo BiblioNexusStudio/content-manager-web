@@ -2,34 +2,31 @@
     import { users, project } from '$lib/stores/projects';
     import Select from '$lib/components/Select.svelte';
     import { UserRole } from '$lib/types/base';
+    import ViewTabSlot from './ViewTabSlot.svelte';
 
-    $: projectManagerUserId = $project?.projectManager ?? 0;
+    $: currentProjectManager = $users?.find((u) => u.name === $project?.projectManager);
+    $: projectManagerUserId = currentProjectManager?.id ?? 0;
 </script>
 
-<div class="my-4 grid min-h-[120px] w-full grid-cols-2 gap-x-8">
+<div class="my-4 grid min-h-[192px] w-full grid-cols-2 gap-x-8">
     <div class="flex flex-col">
-        <div class="mb-4 flex justify-between">
-            <div class="font-bold">Title</div>
+        <ViewTabSlot title="Title">
             <div>{$project?.name ?? ''}</div>
-        </div>
-        <div class="mb-4 flex justify-between">
-            <div class="font-bold">Language</div>
+        </ViewTabSlot>
+        <ViewTabSlot title="Language">
             <div>{$project?.language ?? ''}</div>
-        </div>
+        </ViewTabSlot>
     </div>
     <div class="flex flex-col">
-        <div class="mb-4 flex justify-between">
-            <div class="font-bold">Company</div>
+        <ViewTabSlot title="Company">
             <div>{$project?.company ?? ''}</div>
-        </div>
-        <div class="mb-4 flex justify-between">
-            <div class="font-bold">Platform</div>
+        </ViewTabSlot>
+        <ViewTabSlot title="Platform">
             <div>{$project?.projectPlatform ?? ''}</div>
-        </div>
+        </ViewTabSlot>
     </div>
     <div class="flex flex-col">
-        <div class="mb-4 flex justify-between">
-            <div class="font-bold">Project Manager</div>
+        <ViewTabSlot title="Project Manager">
             {#if $project?.started === null && $users}
                 <Select
                     class="select select-bordered w-full max-w-[50%]"
@@ -45,6 +42,6 @@
             {:else}
                 <div>{$project?.projectManager ?? ''}</div>
             {/if}
-        </div>
+        </ViewTabSlot>
     </div>
 </div>

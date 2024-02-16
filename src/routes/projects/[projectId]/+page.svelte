@@ -48,14 +48,16 @@
         </div>
         <div>
             <ProjectViewTabs />
-            <div class="mb-8 w-1/2 pe-8">
-                <ProjectProgressBar
-                    inProgressCount={projectResponse?.counts?.inProgress}
-                    inReviewCount={projectResponse?.counts?.inReview}
-                    completeCount={projectResponse?.counts?.completed}
-                    showLegend={true}
-                />
-            </div>
+            {#if projectResponse?.counts?.inProgress != 0 || projectResponse?.counts?.inReview != 0 || projectResponse?.counts?.completed != 0}
+                <div class="mb-8 w-1/2 pe-8">
+                    <ProjectProgressBar
+                        inProgressCount={projectResponse?.counts?.inProgress}
+                        inReviewCount={projectResponse?.counts?.inReview}
+                        completeCount={projectResponse?.counts?.completed}
+                        showLegend={true}
+                    />
+                </div>
+            {/if}
         </div>
         <div class="flex w-full grow flex-col overflow-hidden rounded-md border">
             <ProjectViewTable />

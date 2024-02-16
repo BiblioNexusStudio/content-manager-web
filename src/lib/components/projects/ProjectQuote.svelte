@@ -1,30 +1,32 @@
 <script lang="ts">
     import { project } from '$lib/stores/projects';
+    import ViewTabSlot from './ViewTabSlot.svelte';
 </script>
 
-<div class="my-4 grid min-h-[120px] w-full grid-cols-2 gap-x-8">
+<div class="my-4 grid min-h-[192px] w-full grid-cols-2 gap-x-8">
     <div class="flex flex-col">
-        <div class="mb-4 flex justify-between">
-            <div class="font-bold">Source Words</div>
+        <ViewTabSlot title="Source Words">
             {#if $project?.started === null}
-                <input type="text" value={$project?.sourceWordCount ?? '0'} class="rounded border ps-4" />
+                <input type="text" value={$project?.sourceWordCount ?? '0'} class="rounded border py-2 ps-4" />
             {:else}
                 <div>{$project?.sourceWordCount ?? '0'}</div>
             {/if}
-        </div>
-        <div class="mb-4 flex justify-between">
-            <div class="font-bold">Efective Words</div>
+        </ViewTabSlot>
+        <ViewTabSlot title="Efective Words">
             {#if $project?.started === null}
-                <input type="text" value={$project?.effectiveWordCount ?? '0'} class="rounded border ps-4" />
+                <input type="text" value={$project?.effectiveWordCount ?? '0'} class="rounded border py-2 ps-4" />
             {:else}
                 <div>{$project?.effectiveWordCount ?? '0'}</div>
             {/if}
-        </div>
+        </ViewTabSlot>
     </div>
     <div class="flex flex-col">
-        <div class="mb-4 flex justify-between">
-            <div class="font-bold">Quoted Cost</div>
-            <div>{$project?.quotedCost ?? ''}</div>
-        </div>
+        <ViewTabSlot title="Quoted Cost">
+            {#if $project?.started === null}
+                <input type="text" value={$project?.quotedCost ?? '0'} class="rounded border py-2 ps-4" />
+            {:else}
+                <div>{$project?.quotedCost ?? '0'}</div>
+            {/if}
+        </ViewTabSlot>
     </div>
 </div>

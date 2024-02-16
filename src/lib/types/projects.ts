@@ -30,6 +30,7 @@ export interface ProjectResouce {
 }
 
 export interface ProjectResponse {
+    id: number;
     name: string;
     language: string;
     projectManager: string;

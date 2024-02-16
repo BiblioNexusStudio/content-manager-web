@@ -21,7 +21,7 @@
     }
 </script>
 
-<div class="mb-4 flex ps-4">
+<div class="mt-4 flex ps-4">
     {#each tabs as tab, index}
         <a
             href={tab.href}
