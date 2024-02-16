@@ -21,6 +21,14 @@ export interface ProjectTableColumn {
     sorted: boolean;
 }
 
+export interface ProjectResouce {
+    assignedUserName: string | null;
+    englishLabel: string | null;
+    parentResourceName: string | null;
+    resourceContentId: number | null;
+    statusDisplayName: string | null;
+}
+
 export interface ProjectResponse {
     name: string;
     language: string;
@@ -37,4 +45,5 @@ export interface ProjectResponse {
     projectedPublishDate?: string;
     actualPublishDate?: string;
     counts: ProjectResourceStatusCounts;
+    items: ProjectResouce[];
 }

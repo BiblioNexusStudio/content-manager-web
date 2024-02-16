@@ -3,7 +3,6 @@ import { fetchJsonStreamingFromApi, type StreamedData } from '$lib/utils/http-se
 import type { ProjectResponse } from '$lib/types/projects';
 import { Permission } from '$lib/stores/auth';
 import { redirect } from '@sveltejs/kit';
-import type { User } from '$lib/types/base';
 
 export const load: PageLoad = async ({ fetch, params, parent }) => {
     const data = await parent();
@@ -18,8 +17,7 @@ export const load: PageLoad = async ({ fetch, params, parent }) => {
             {},
             fetch
         ) as StreamedData<ProjectResponse>;
-        const users = fetchJsonStreamingFromApi('/users', {}, fetch) as StreamedData<User[]>;
-        return { projectResponse, users };
+        return { projectResponse };
     } else {
         throw redirect(301, '/');
     }

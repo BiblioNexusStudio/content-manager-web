@@ -11,6 +11,7 @@
     import { onMount } from 'svelte';
 
     export let data: PageData;
+    const { users: dataUsers } = data;
 
     $: projectPromise = unwrapStreamedData(data.projectResponse!);
 
@@ -20,7 +21,7 @@
 
     async function assignApiDataToStore() {
         $project = await projectPromise;
-        $users = await unwrapStreamedData(data.users!);
+        $users = dataUsers;
     }
 
     onMount(() => {
