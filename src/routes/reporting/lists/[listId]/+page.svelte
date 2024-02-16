@@ -4,10 +4,8 @@
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import ReportTable from '$lib/components/reporting/ReportTable.svelte';
     import ReportTablePagination from '$lib/components/reporting/ReportTablePagination.svelte';
-    import { showSideBar } from '$lib/stores/app';
 
     export let data: PageData;
-    $showSideBar = false;
 
     $: listPromise = unwrapStreamedData(data.listData!);
     $: listId = formatListName(data.listId!);
