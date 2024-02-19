@@ -4,9 +4,12 @@ import type { PageLoad } from './$types';
 import { Permission, userCan } from '$lib/stores/auth';
 import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
+import { sideBarHiddenOnPage } from '$lib/stores/app';
 
 export const load: PageLoad = async ({ fetch, params, parent }) => {
     const data = await parent();
+
+    sideBarHiddenOnPage.set(true);
 
     if (!data.loaded) {
         return {};

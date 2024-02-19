@@ -33,7 +33,7 @@
                     "_context": "Label for dropdown to select a language"
                 },
                 "allResources": {
-                    "value": "All Types",
+                    "value": "All Resources",
                     "_context": "Label for dropdown to select resource types"
                 }
             },
@@ -47,7 +47,7 @@
                     "_context": "The table header for the name column"
                 },
                 "typeHeader": {
-                    "value": "Type",
+                    "value": "Resource",
                     "_context": "The table header for the resource type column"
                 },
                 "statusHeader": {
