@@ -18,10 +18,22 @@
 
     <div class="grid w-full grow grid-cols-4 overflow-auto">
         {#each $project?.items as item}
-            <div class="border-b px-4 py-3 text-sm text-gray-600">{item?.englishLabel ?? ''}</div>
-            <div class="border-b px-4 py-3 text-sm text-gray-600">{item?.parentResourceName ?? ''}</div>
-            <div class="border-b px-4 py-3 text-sm text-gray-600">{item?.assignedUserName ?? ''}</div>
-            <div class="border-b px-4 py-3 text-sm text-gray-600">{item?.statusDisplayName ?? ''}</div>
+            <a
+                href={`/resources/${item.resourceContentId}`}
+                class="flex items-center border-b px-4 py-3 text-sm text-gray-600">{item?.englishLabel ?? ''}</a
+            >
+            <a
+                href={`/resources/${item.resourceContentId}`}
+                class="flex items-center border-b px-4 py-3 text-sm text-gray-600">{item?.parentResourceName ?? ''}</a
+            >
+            <a
+                href={`/resources/${item.resourceContentId}`}
+                class="flex items-center border-b px-4 py-3 text-sm text-gray-600">{item?.assignedUserName ?? ''}</a
+            >
+            <a
+                href={`/resources/${item.resourceContentId}`}
+                class="flex items-center border-b px-4 py-3 text-sm text-gray-600">{item?.statusDisplayName ?? ''}</a
+            >
         {/each}
     </div>
 {/if}

@@ -103,25 +103,15 @@
     {/each}
     {#each listData as row}
         {@const redColor = row?.days && row?.days < 0}
-        <a href={`/projects/${row.id}`}>
-            <div class="border-b px-4 py-3 text-xs">{row.name}</div>
-        </a>
-        <a href={`/projects/${row.id}`}>
-            <div class="border-b px-4 py-3 text-xs">{row.company}</div>
-        </a>
-        <a href={`/projects/${row.id}`}>
-            <div class="border-b px-4 py-3 text-xs">{row.projectPlatform}</div>
-        </a>
-        <a href={`/projects/${row.id}`}>
-            <div class="border-b px-4 py-3 text-xs">{row.language}</div>
-        </a>
-        <a href={`/projects/${row.id}`}>
-            <div class="border-b px-4 py-3 text-xs">{row.projectLead}</div>
-        </a>
-        <div class="border-b px-4 py-3 text-xs {redColor ? 'text-red-600' : ''}">
+        <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.name}</a>
+        <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.company}</a>
+        <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.projectPlatform}</a>
+        <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.language}</a>
+        <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.projectLead}</a>
+        <div class="flex items-center border-b px-4 py-3 text-xs {redColor ? 'text-red-600' : ''}">
             {row.days === null ? '' : row.days}
         </div>
-        <div class="border-b px-4 py-3 text-xs">
+        <div class="flex items-center border-b px-4 py-3 text-xs">
             <ProjectProgressBar
                 inProgressCount={row.counts.inProgress}
                 inReviewCount={row.counts.inReview}

@@ -6,6 +6,8 @@
 
     $: currentProjectManager = $users?.find((u) => u.name === $project?.projectManager);
     $: projectManagerUserId = currentProjectManager?.id ?? 0;
+
+    let test: number = projectManagerUserId;
 </script>
 
 <div class="my-4 grid min-h-[192px] w-full grid-cols-2 gap-x-8">
@@ -37,7 +39,7 @@
                             .map((u) => ({ value: u.id, label: u.name })),
                     ]}
                     isNumber={true}
-                    bind:value={projectManagerUserId}
+                    bind:value={test}
                 />
             {:else}
                 <div>{$project?.projectManager ?? ''}</div>

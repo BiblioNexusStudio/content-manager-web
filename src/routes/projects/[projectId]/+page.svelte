@@ -9,14 +9,18 @@
     import ProjectViewTable from '$lib/components/projects/ProjectViewTable.svelte';
     import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
     import { onMount } from 'svelte';
+    import { startProject } from '$lib/utils/projects';
 
     export let data: PageData;
     const { users: dataUsers } = data;
 
     $: projectPromise = unwrapStreamedData(data.projectResponse!);
 
-    function startProject() {
-        console.log('start project');
+    function onStartProject() {
+        if ($project) {
+            startProject($project?.id);
+            $project.started = new Date().toISOString();
+        }
     }
 
     async function assignApiDataToStore() {
@@ -42,7 +46,7 @@
             </div>
             <div class="flex">
                 {#if projectResponse.started === null && data.currentUser.can(Permission.EditProjects)}
-                    <button class="btn btn-primary" on:click={startProject}>Start</button>
+                    <button class="btn btn-primary" on:click={onStartProject}>Start</button>
                 {/if}
             </div>
         </div>

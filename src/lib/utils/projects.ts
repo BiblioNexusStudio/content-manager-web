@@ -15,11 +15,18 @@ export function formatDate(date: Date | string | null | undefined): string {
     return formattedDate;
 }
 
-export async function updateProject(id: number | string, data: { [key: string]: string }) {
+export async function updateProject(id: number | string | undefined, data: { [key: string]: string | number }) {
     await fetchFromApiWithAuth(`/projects/${id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         body: {
             ...data,
         },
+    });
+}
+
+export async function startProject(id: number | string | undefined) {
+    await fetchFromApiWithAuth(`/projects/${id}/start`, {
+        method: 'POST',
+        body: {},
     });
 }
