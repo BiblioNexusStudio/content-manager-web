@@ -38,11 +38,11 @@
         tab: ssp.string(Tab.myWork),
     });
 
-    $: pendingReviewContentsPromise = unwrapStreamedData(data.publisherDashboard!.pendingReviewResourceContent);
+    $: reviewPendingContentsPromise = unwrapStreamedData(data.publisherDashboard!.reviewPendingResourceContent);
     $: assignedContentsPromise = unwrapStreamedData(data.publisherDashboard!.assignedResourceContent);
     $: reportingSummaryPromise = unwrapStreamedData(data.publisherDashboard!.reportingSummary);
 
-    $: allDataPromise = Promise.all([assignedContentsPromise, pendingReviewContentsPromise, reportingSummaryPromise]);
+    $: allDataPromise = Promise.all([assignedContentsPromise, reviewPendingContentsPromise, reportingSummaryPromise]);
 
     let scrollingDiv: HTMLDivElement | undefined;
     $: $searchParams.sort && scrollingDiv && (scrollingDiv.scrollTop = 0);
@@ -50,7 +50,7 @@
 
 {#await allDataPromise}
     <CenteredSpinner />
-{:then [assignedContents, pendingReviewContents, reportingSummary]}
+{:then [assignedContents, reviewPendingContents, reportingSummary]}
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Publisher Dashboard</h1>
         <div role="tablist" class="tabs tabs-bordered w-fit pt-4">
@@ -64,7 +64,7 @@
                 on:click={() => ($searchParams.tab = Tab.reviewPending)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.reviewPending && 'tab-active'}"
-                >Review Pending ({pendingReviewContents.length})</button
+                >Review Pending ({reviewPendingContents.length})</button
             >
         </div>
         <div class="flex flex-row space-x-4 overflow-y-hidden">
@@ -75,6 +75,7 @@
                             <tr class="bg-base-200">
                                 <th>Title</th>
                                 <th>Resource</th>
+                                <th>Status</th>
                                 <SortingTableHeaderCell
                                     text="Days"
                                     sortKey={SORT_KEYS.days}
@@ -102,6 +103,9 @@
                                             {resource.parentResourceName}
                                         </LinkedTableCell>
                                         <LinkedTableCell href={`/resources/${resource.contentId}`}>
+                                            {resource.status}
+                                        </LinkedTableCell>
+                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
                                             {resource.daysSinceAssignment}
                                         </LinkedTableCell>
                                         <LinkedTableCell href={`/resources/${resource.contentId}`}>
@@ -116,7 +120,6 @@
                             <tr class="bg-base-200">
                                 <th>Title</th>
                                 <th>Resource</th>
-                                <th>Assigned</th>
                                 <SortingTableHeaderCell
                                     text="Days"
                                     sortKey={SORT_KEYS.days}
@@ -130,21 +133,18 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {#if pendingReviewContents.length === 0}
+                            {#if reviewPendingContents.length === 0}
                                 <tr>
                                     <td colspan="4" class="text-center">No items pending review.</td>
                                 </tr>
                             {:else}
-                                {#each sortPendingData(pendingReviewContents, $searchParams.sort) as resource (resource.contentId)}
+                                {#each sortPendingData(reviewPendingContents, $searchParams.sort) as resource (resource.contentId)}
                                     <tr>
                                         <LinkedTableCell href={`/resources/${resource.contentId}`}>
                                             {resource.displayName}
                                         </LinkedTableCell>
                                         <LinkedTableCell href={`/resources/${resource.contentId}`}>
                                             {resource.parentResourceName}
-                                        </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
-                                            {resource.assignedUserName ?? ''}
                                         </LinkedTableCell>
                                         <LinkedTableCell href={`/resources/${resource.contentId}`}>
                                             {resource.daysSinceStatusChange}

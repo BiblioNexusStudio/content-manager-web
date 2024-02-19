@@ -17,12 +17,12 @@ export const load: PageLoad = async ({ fetch, parent }) => {
             fetch
         ) as StreamedData<ResourcesSummary>;
         const assignedResourceContent = fetchAssignedResourceContent(fetch);
-        const pendingReviewResourceContent = fetchJsonStreamingFromApi(
-            '/admin/resources/content/pending-review',
+        const reviewPendingResourceContent = fetchJsonStreamingFromApi(
+            '/resources/content/review-pending',
             {},
             fetch
         ) as StreamedData<ResourcePendingReview[]>;
-        return { publisherDashboard: { assignedResourceContent, reportingSummary, pendingReviewResourceContent } };
+        return { publisherDashboard: { assignedResourceContent, reportingSummary, reviewPendingResourceContent } };
     } else if (get(userCan)(Permission.EditContent)) {
         const resourceContent = fetchAssignedResourceContent(fetch);
         return { editorDashboard: { resourceContent } };
@@ -32,7 +32,7 @@ export const load: PageLoad = async ({ fetch, parent }) => {
 };
 
 function fetchAssignedResourceContent(injectedFetch: typeof window.fetch) {
-    return fetchJsonStreamingFromApi('/admin/resources/content/assigned-to-self', {}, injectedFetch) as StreamedData<
+    return fetchJsonStreamingFromApi('/resources/content/assigned-to-self', {}, injectedFetch) as StreamedData<
         ResourceAssignedToSelf[]
     >;
 }
@@ -67,6 +67,7 @@ export interface ResourceAssignedToSelf {
     parentResourceName: string;
     daysSinceAssignment: number;
     wordCount: number | null;
+    status: string;
 }
 
 export interface ResourcePendingReview {
@@ -75,5 +76,4 @@ export interface ResourcePendingReview {
     parentResourceName: string;
     daysSinceStatusChange: number;
     wordCount: number | null;
-    assignedUserName: string | null;
 }
