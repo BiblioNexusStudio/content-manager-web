@@ -7,6 +7,7 @@ export interface ProjectListResponse {
     projectPlatform: string;
     days?: number;
     counts: ProjectResourceStatusCounts;
+    isStarted: boolean;
 }
 
 export interface ProjectResourceStatusCounts {
