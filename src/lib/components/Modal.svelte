@@ -5,7 +5,7 @@
     export let primaryButtonOnClick: (() => void) | undefined = undefined;
     export let primaryButtonDisabled = false;
     export let isError = false;
-    export let description: string | undefined;
+    export let description: string | undefined = undefined;
 
     let dialog: HTMLDialogElement;
 
@@ -33,7 +33,9 @@
                 {@html description.replaceAll('\n', '<br />')}
             </p>
         {/if}
-        <slot />
+        <div class="flex flex-col">
+            <slot />
+        </div>
         {#if primaryButtonText}
             <div class="flex w-full flex-row justify-end space-x-2 pt-4">
                 <button class="btn btn-primary" on:click={handlePrimaryClick} disabled={primaryButtonDisabled}>

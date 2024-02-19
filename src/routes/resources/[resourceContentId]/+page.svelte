@@ -22,7 +22,7 @@
     } from '$lib/stores/tiptapContent';
     import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
-    import { ResourceContentStatusEnum } from '$lib/types/base';
+    import { ResourceContentStatusEnum, UserRole, type BasicUser } from '$lib/types/base';
     import { getSortedReferences } from '$lib/utils/reference';
     import UserSelector from './UserSelector.svelte';
     import { Permission, userCan, userIsEqual, userIsInCompany } from '$lib/stores/auth';
@@ -33,6 +33,7 @@
     import TranslationSelector from './TranslationSelector.svelte';
     import { createAutosaveStore } from '$lib/utils/auto-save-store';
     import { onDestroy } from 'svelte';
+    import Modal from '$lib/components/Modal.svelte';
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -42,8 +43,9 @@
     let addTranslationModal: HTMLDialogElement;
     let confirmSendReviewModal: HTMLDialogElement;
 
-    let assignToUserId: string | null = null;
+    let assignToUserId: number | null = null;
     let newTranslationLanguageId: string | null = null;
+    let currentUserIsAssigned = false;
     let canMakeContentEdits = false;
     let canAquiferize = false;
     let canAssign = false;
@@ -51,8 +53,10 @@
     let canPublish = false;
     let canUnpublish = false;
     let canSendReview = false;
-    let canStartReview = false;
+    let canAssignReview = false;
     let canCreateTranslation = false;
+    let isAssignReviewModalOpen = false;
+    let isInReview = false;
     let createDraft = false;
     let draftVersion: ResourceContentVersion | undefined = undefined;
     let publishedVersion: ResourceContentVersion | undefined = undefined;
@@ -89,8 +93,12 @@
         selectedVersion = draftVersion || publishedVersion || resourceContent.contentVersions[0]!;
         englishContentTranslation = resourceContent.contentTranslations.find((x) => x.languageId === 1);
 
-        const currentUserIsAssigned = $userIsEqual(selectedVersion.assignedUser?.id);
+        currentUserIsAssigned = $userIsEqual(selectedVersion.assignedUser?.id);
         const assignedUserIsInCompany = $userIsInCompany(selectedVersion.assignedUser?.companyId);
+
+        isInReview =
+            resourceContent.status === ResourceContentStatusEnum.TranslationInReview ||
+            resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview;
 
         isInTranslationWorkflow =
             resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted ||
@@ -132,9 +140,11 @@
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationInProgress);
 
-        canStartReview =
+        canAssignReview =
             $userCan(Permission.ReviewContent) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeReviewPending ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationInReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending);
 
         canPublish =
@@ -190,6 +200,11 @@
         assignUserModal.showModal();
     }
 
+    function openAssignReviewModal() {
+        assignToUserId = currentUserIsAssigned ? null : (data.currentUser as BasicUser).id;
+        isAssignReviewModalOpen = true;
+    }
+
     function openAddTranslationModal() {
         createTranslationFromDraft = false;
         newTranslationLanguageId = null;
@@ -232,16 +247,12 @@
         );
     }
 
-    async function startReview() {
+    async function assignReview() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(
-                isInTranslationWorkflow
-                    ? `/admin/resources/content/${resourceContentId}/review-translation`
-                    : `/admin/resources/content/${resourceContentId}/review`,
-                {
-                    method: 'POST',
-                }
-            )
+            fetchFromApiWithAuth(`/resources/content/${resourceContentId}/assign-review`, {
+                body: { assignedUserId: assignToUserId },
+                method: 'POST',
+            })
         );
     }
 
@@ -249,7 +260,7 @@
         await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(`/admin/resources/content/${resourceContentId}/aquiferize`, {
                 method: 'POST',
-                body: { assignedUserId: assignToUserId ? parseInt(assignToUserId) : null },
+                body: { assignedUserId: assignToUserId },
             })
         );
     }
@@ -260,7 +271,7 @@
                 method: 'POST',
                 body: {
                     createDraft: createDraft,
-                    assignedUserId: assignToUserId ? parseInt(assignToUserId) : null,
+                    assignedUserId: assignToUserId,
                 },
             })
         );
@@ -275,7 +286,7 @@
                 {
                     method: 'POST',
                     body: {
-                        assignedUserId: assignToUserId ? parseInt(assignToUserId) : null,
+                        assignedUserId: assignToUserId,
                     },
                 }
             )
@@ -299,7 +310,7 @@
         await takeActionAndRefresh(() =>
             fetchFromApiWithAuth(`/admin/resources/content/${resourceContentId}/assign-translator`, {
                 method: 'POST',
-                body: { assignedUserId: assignToUserId ? parseInt(assignToUserId) : null },
+                body: { assignedUserId: assignToUserId },
             })
         );
     }
@@ -401,6 +412,14 @@
                                 {/if}
                             </button>
                         {/if}
+                        {#if canAssignReview}
+                            <button
+                                class="btn btn-primary mb-4 ms-4"
+                                class:btn-disabled={isTransacting}
+                                on:click={openAssignReviewModal}
+                                >{isInReview ? 'Assign' : 'Review'}
+                            </button>
+                        {/if}
                         {#if canPublish}
                             <button
                                 class="btn btn-primary mb-4 ms-4"
@@ -423,14 +442,6 @@
                                 class:btn-disabled={isTransacting}
                                 on:click={() => confirmSendReviewModal.showModal()}
                                 >Send to Review
-                            </button>
-                        {/if}
-                        {#if canStartReview}
-                            <button
-                                class="btn btn-primary mb-4 ms-4"
-                                class:btn-disabled={isTransacting}
-                                on:click={startReview}
-                                >Review
                             </button>
                         {/if}
                         {#if canAquiferize}
@@ -490,6 +501,21 @@
             </div>
         </div>
     </div>
+
+    <Modal
+        primaryButtonText="Assign"
+        primaryButtonOnClick={assignReview}
+        primaryButtonDisabled={!assignToUserId}
+        bind:open={isAssignReviewModalOpen}
+        header="Choose a Reviewer"
+    >
+        <UserSelector
+            users={data.users?.filter((u) => u.role === UserRole.Publisher) ?? []}
+            hideUser={selectedVersion.assignedUser}
+            defaultLabel="Select User"
+            bind:selectedUserId={assignToUserId}
+        />
+    </Modal>
 
     <dialog bind:this={aquiferizeModal} class="modal">
         <div class="modal-box">
