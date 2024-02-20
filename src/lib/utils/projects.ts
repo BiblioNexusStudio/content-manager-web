@@ -30,3 +30,16 @@ export async function startProject(id: number | string | undefined) {
         body: {},
     });
 }
+
+export function formatCurrency(amount: number | string): string {
+    const formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+    });
+
+    return formatter.format(Number(amount));
+}
+
+export function formatNumberWithCommas(amount: number | string): string {
+    return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}

@@ -2,6 +2,7 @@
     import { project } from '$lib/stores/projects';
     import ViewTabSlot from './ViewTabSlot.svelte';
     import { updateProject } from '$lib/utils/projects';
+    import { formatCurrency, formatNumberWithCommas } from '$lib/utils/projects';
 
     async function updateEffectiveWordCount(event: Event) {
         const effectiveWordCount = (event.target as HTMLInputElement).value;
@@ -25,7 +26,7 @@
 <div class="my-4 grid min-h-[192px] w-full grid-cols-2 gap-x-8">
     <div class="flex flex-col">
         <ViewTabSlot title="Source Words">
-            <div>{$project?.sourceWordCount ?? '0'}</div>
+            <div>{formatNumberWithCommas($project?.sourceWordCount ?? '0')}</div>
         </ViewTabSlot>
         <ViewTabSlot title="Efective Words">
             {#if $project?.started === null}
@@ -36,7 +37,7 @@
                     class="rounded border py-2 ps-4"
                 />
             {:else}
-                <div>{$project?.effectiveWordCount ?? '0'}</div>
+                <div>{formatNumberWithCommas($project?.effectiveWordCount ?? '0')}</div>
             {/if}
         </ViewTabSlot>
     </div>
@@ -50,7 +51,7 @@
                     class="rounded border py-2 ps-4"
                 />
             {:else}
-                <div>{$project?.quotedCost ?? '0'}</div>
+                <div>{formatCurrency($project?.quotedCost ?? 0)}</div>
             {/if}
         </ViewTabSlot>
     </div>
