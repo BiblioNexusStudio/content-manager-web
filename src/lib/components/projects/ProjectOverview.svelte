@@ -10,14 +10,11 @@
     $: currentCompanyLead = $users?.find((u) => u.name === $project?.companyLead);
     $: companyLeadUserId = currentCompanyLead?.id ?? 0;
 
-    let projectManagerSelectValue: string | number | null;
-    let companyLeadSelectValue: string | number | null;
-
     async function handleProjectManagerSelectChange(value: string | number | null) {
         const selectedUser = $users?.find((u) => u.id === value);
         if (selectedUser) {
             await updateProject($project?.id, { projectManagerUserId: selectedUser.id });
-            projectManagerSelectValue = value;
+            $project && ($project.projectManager = selectedUser.name);
         }
     }
 
@@ -25,7 +22,7 @@
         const selectedUser = $users?.find((u) => u.id === value);
         if (selectedUser) {
             await updateProject($project?.id, { companyLeadUserId: selectedUser.id });
-            companyLeadSelectValue = value;
+            $project && ($project.companyLead = selectedUser.name);
         }
     }
 </script>
@@ -49,7 +46,7 @@
                             .map((u) => ({ value: u.id, label: u.name })),
                     ]}
                     isNumber={true}
-                    value={projectManagerSelectValue || projectManagerUserId}
+                    value={projectManagerUserId}
                     onChange={handleProjectManagerSelectChange}
                 />
             {/if}
@@ -73,7 +70,7 @@
                             .map((u) => ({ value: u.id, label: u.name })),
                     ]}
                     isNumber={true}
-                    value={companyLeadSelectValue || companyLeadUserId}
+                    value={companyLeadUserId}
                     onChange={handleCompanyLeadSelectChange}
                 />
             </ViewTabSlot>

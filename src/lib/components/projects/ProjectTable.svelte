@@ -32,17 +32,17 @@
         const lowerCaseSearchValue = projectSearchValue.toLowerCase();
 
         const unsortedProjects = projects.filter((project) => {
-            const isInProgress = project.counts.inProgress !== 0 && project.counts.inReview !== 0 && project.isStarted;
+            const isClosed = project.counts.inProgress === 0 && project.counts.inReview === 0 && project.isStarted;
             const matchesSearchValue = [project.name].some((field) =>
                 field.toLowerCase().includes(lowerCaseSearchValue)
             );
 
             if (!showClosed && !projectSearchValue) {
-                return isInProgress;
+                return !isClosed;
             } else if (showClosed && !projectSearchValue) {
                 return true;
             } else if (!showClosed && projectSearchValue) {
-                return isInProgress && matchesSearchValue;
+                return !isClosed && matchesSearchValue;
             } else {
                 return matchesSearchValue;
             }
