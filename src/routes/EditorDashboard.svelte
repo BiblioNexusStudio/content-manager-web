@@ -41,7 +41,7 @@
                 <thead>
                     <tr class="bg-base-200">
                         <th>Title</th>
-                        <th>Type</th>
+                        <th>Resource</th>
                         <SortingTableHeaderCell
                             text="Days"
                             sortKey={SORT_KEYS.days}

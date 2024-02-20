@@ -102,13 +102,13 @@
         <!-- svelte-ignore a11y-label-has-associated-control -->
         <label class="form-control">
             <div class="label">
-                <span class="label-text">Type</span>
+                <span class="label-text">Resource</span>
             </div>
             <Select
                 disabled={disabled || allContentOnRight.length > 0}
                 class="select select-bordered"
                 options={[
-                    { value: null, label: 'Select Type' },
+                    { value: null, label: 'Select Resource' },
                     ...(resourceTypes || []).map((r) => ({ value: r.id, label: r.displayName })),
                 ]}
                 isNumber={true}

@@ -1,20 +1,27 @@
 <script lang="ts">
+    import Select from '$lib/components/Select.svelte';
     import type { BasicUser } from '$lib/types/base';
 
     export let users: BasicUser[] | null;
-    export let selectedUserId: string | null;
+    export let selectedUserId: number | null;
     export let disabled = false;
     export let defaultLabel: string;
     export let hideUser: BasicUser | null = null;
+
+    $: filteredUserOptions =
+        users?.filter((u) => u.id !== hideUser?.id).map((u) => ({ value: u.id, label: u.name })) ?? [];
 </script>
 
-{#if users}
-    <select {disabled} bind:value={selectedUserId} class="select select-bordered">
-        <option value={null} selected>{defaultLabel}</option>
-        {#each users as user}
-            {#if user.id !== hideUser?.id}
-                <option value={user.id}>{user.name}</option>
-            {/if}
-        {/each}
-    </select>
-{/if}
+<Select
+    bind:value={selectedUserId}
+    isNumber={true}
+    {disabled}
+    options={[
+        {
+            label: defaultLabel,
+            value: null,
+        },
+        ...filteredUserOptions,
+    ]}
+    class="select select-bordered"
+/>
