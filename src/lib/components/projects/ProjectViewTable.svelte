@@ -3,7 +3,7 @@
 
     const columns = [
         { name: 'title', label: 'Title' },
-        { name: 'type', label: 'Type' },
+        { name: 'type', label: 'Resource' },
         { name: 'assigned', label: 'Assigned' },
         { name: 'status', label: 'Status' },
     ];
