@@ -28,3 +28,47 @@ export function parseNumbersListFromString(input: string, min: number, max: numb
 
     return numbers.sort((a, b) => a - b);
 }
+
+export function parseStartAndEndFromSingleOrRangeString(
+    input: string,
+    min: number,
+    max: number
+): { start: number; end: number } {
+    input = input.trim().toLowerCase();
+
+    if (input === 'all') {
+        return { start: min, end: max };
+    }
+
+    if (input.includes('-')) {
+        let [start, end] = input.split('-').map(Number);
+        if (start && end) {
+            start = Math.max(start, min);
+            end = Math.min(end, max);
+            return { start, end };
+        }
+    } else {
+        const number = Number(input);
+        if (!isNaN(number) && number >= min && number <= max) {
+            return { start: number, end: number };
+        }
+    }
+
+    return { start: 0, end: 0 };
+}
+
+export function numbersRangeToString(start: number, end: number, min: number, max: number): string {
+    if (start === min && end === max) {
+        return 'all';
+    }
+
+    if (start > end || start < min || end < min) {
+        return '';
+    }
+
+    if (start === end) {
+        return start.toString();
+    }
+
+    return `${start}-${end}`;
+}
