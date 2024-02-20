@@ -5,6 +5,7 @@
     export let isNumber = false;
     export let value: string | number | null;
     export let disabled = false;
+    export let onChange: ((value: string | number | null) => void) | undefined = undefined;
 
     function handleChange(event: Event) {
         const selectTarget = event.target as HTMLSelectElement;
@@ -15,6 +16,7 @@
         } else {
             value = selectTarget.value;
         }
+        onChange && onChange(value);
     }
 </script>
 
