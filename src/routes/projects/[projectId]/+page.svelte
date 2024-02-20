@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import { unwrapStreamedData } from '$lib/utils/http-service';
+    import { unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { Permission } from '$lib/stores/auth';
     import { users, project } from '$lib/stores/projects';
@@ -8,13 +8,15 @@
     import ProjectViewTabs from '$lib/components/projects/ProjectViewTabs.svelte';
     import ProjectViewTable from '$lib/components/projects/ProjectViewTable.svelte';
     import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
-    import { onMount } from 'svelte';
     import { startProject } from '$lib/utils/projects';
 
     export let data: PageData;
     const { users: dataUsers } = data;
 
-    $: projectPromise = unwrapStreamedData(data.projectResponse!);
+    $: projectPromise = unwrapStreamedDataWithCallback(data.projectResponse!, (projectResponse) => {
+        $project = projectResponse;
+        $users = dataUsers;
+    });
 
     $: disabledStartButton =
         $project?.projectManager &&
@@ -29,15 +31,6 @@
             $project.started = new Date().toISOString();
         }
     }
-
-    async function assignApiDataToStore() {
-        $project = await projectPromise;
-        $users = dataUsers;
-    }
-
-    onMount(() => {
-        assignApiDataToStore();
-    });
 </script>
 
 {#await projectPromise}
