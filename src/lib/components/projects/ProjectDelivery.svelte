@@ -45,7 +45,7 @@
             {/if}
         </ViewTabSlot>
         <ViewTabSlot title="Actual Publish Date">
-            <div>{formatDate($project?.projectedDeliveryDate)}</div>
+            <div>{formatDate($project?.actualPublishDate)}</div>
         </ViewTabSlot>
     </div>
 </div>
