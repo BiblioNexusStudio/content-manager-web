@@ -4,9 +4,9 @@
     import ProjectDelivery from './ProjectDelivery.svelte';
 
     let tabs = [
-        { name: 'Overview', href: '#', current: true },
-        { name: 'Quote', href: '#', current: false },
-        { name: 'Delivery', href: '#', current: false },
+        { name: 'Overview', current: true },
+        { name: 'Quote', current: false },
+        { name: 'Delivery', current: false },
     ];
 
     $: currentTab = tabs.find((tab) => tab.current)!;
@@ -23,13 +23,12 @@
 
 <div class="mt-4 flex ps-4">
     {#each tabs as tab, index}
-        <a
-            href={tab.href}
+        <button
             class="me-4 py-2 text-lg {tab.current ? 'border-b-4 border-primary' : ''}"
             on:click={() => setCurrentTab(index)}
         >
             {tab.name}
-        </a>
+        </button>
     {/each}
 </div>
 <div class="flex">

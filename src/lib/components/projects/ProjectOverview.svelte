@@ -39,7 +39,7 @@
             <div>{$project?.language ?? ''}</div>
         </ViewTabSlot>
         <ViewTabSlot title="Project Manager">
-            {#if $project?.started === null && $users}
+            {#if $users}
                 <Select
                     class="select select-bordered w-full max-w-[50%]"
                     options={[
@@ -52,8 +52,6 @@
                     value={projectManagerSelectValue || projectManagerUserId}
                     onChange={handleProjectManagerSelectChange}
                 />
-            {:else}
-                <div>{$project?.projectManager ?? ''}</div>
             {/if}
         </ViewTabSlot>
     </div>
@@ -64,7 +62,7 @@
         <ViewTabSlot title="Platform">
             <div>{$project?.projectPlatform ?? ''}</div>
         </ViewTabSlot>
-        {#if $project?.projectPlatform === 'Aquifer'}
+        {#if $project?.projectPlatform === 'Aquifer' && $users}
             <ViewTabSlot title="Company Lead">
                 <Select
                     class="select select-bordered w-full max-w-[50%]"

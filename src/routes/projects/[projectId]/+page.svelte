@@ -16,6 +16,13 @@
 
     $: projectPromise = unwrapStreamedData(data.projectResponse!);
 
+    $: disabledStartButton =
+        $project?.projectManager &&
+        $project?.effectiveWordCount &&
+        $project?.quotedCost &&
+        $project?.projectedDeliveryDate &&
+        $project?.projectedPublishDate;
+
     function onStartProject() {
         if ($project) {
             startProject($project?.id);
@@ -46,7 +53,9 @@
             </div>
             <div class="flex">
                 {#if projectResponse.started === null && data.currentUser.can(Permission.EditProjects)}
-                    <button class="btn btn-primary" on:click={onStartProject}>Start</button>
+                    <button class="btn btn-primary" disabled={!disabledStartButton} on:click={onStartProject}
+                        >Start</button
+                    >
                 {/if}
             </div>
         </div>
