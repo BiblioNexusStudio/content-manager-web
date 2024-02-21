@@ -4,12 +4,12 @@
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { Permission } from '$lib/stores/auth';
     import { users, project } from '$lib/stores/projects';
-    import ArrowLeftSmall from '$lib/icons/ArrowLeftSmall.svelte';
     import ProjectViewTabs from '$lib/components/projects/ProjectViewTabs.svelte';
     import ProjectViewTable from '$lib/components/projects/ProjectViewTable.svelte';
     import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
     import { startProject } from '$lib/utils/projects';
     import { ProjectConstants } from '$lib/types/projects';
+    import BackButton from '$lib/components/BackButton.svelte';
 
     export let data: PageData;
     const { users: dataUsers } = data;
@@ -43,7 +43,7 @@
     <div class="flex max-h-screen flex-col overflow-hidden p-4">
         <div class="flex justify-between">
             <div class="flex items-center">
-                <ArrowLeftSmall />
+                <BackButton defaultPathIfNoHistory="/projects" />
                 <span class="ms-2 text-2xl">
                     {projectResponse.company} - {projectResponse.name}
                 </span>
