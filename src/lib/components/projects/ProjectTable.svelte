@@ -66,10 +66,9 @@
             }
 
             if (sortedColumn && sortedColumn.name === 'days') {
-                const daysA = a.days ?? 0;
-                const daysB = b.days ?? 0;
-
-                return daysB - daysA;
+                const daysA = a.days !== null ? a.days : Infinity;
+                const daysB = b.days !== null ? b.days : Infinity;
+                return daysA! - daysB!;
             }
 
             return a.name.localeCompare(b.name);
