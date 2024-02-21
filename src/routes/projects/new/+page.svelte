@@ -9,6 +9,7 @@
     import type { PageData } from './$types';
     import ProjectContentSelector from './ProjectContentSelector.svelte';
     import { ProjectConstants } from '$lib/types/projects';
+    import ArrowLeftSmall from '$lib/icons/ArrowLeftSmall.svelte';
 
     export let data: PageData;
 
@@ -70,10 +71,18 @@
             isSaving = false;
         }
     }
+
+    function goBack() {
+        window.history.length > 1 ? window.history.back() : goto('/projects');
+    }
 </script>
 
 <div class="relative flex h-screen flex-col overflow-hidden px-8 py-4 short:h-full short:overflow-auto">
-    <div class="mb-4 text-3xl">Create Project</div>
+    <div class="mb-4 flex flex-row items-center">
+        <button class="btn btn-link btn-sm m-0 me-2 min-h-0 p-0 text-black" on:click={goBack}><ArrowLeftSmall /></button
+        >
+        <div class="text-3xl">Create Project</div>
+    </div>
     <div class="mb-8 flex flex-col">
         <div class="pb-2 text-lg font-bold">Basic Information</div>
         <div class="flex flex-row items-center border-b border-t p-2">
