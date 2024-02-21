@@ -108,7 +108,7 @@
             </div>
         </div>
     {/each}
-    {#each listData as row}
+    {#each listData as row (row.id)}
         {@const redColor = row?.days && row?.days < 0}
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.name}</a>
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.company}</a>
@@ -116,7 +116,9 @@
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.language}</a>
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.projectLead}</a>
         <div class="flex items-center border-b px-4 py-3 text-xs {redColor ? 'font-bold text-red-600' : ''}">
-            {row.days === null ? '' : row.days}
+            {(row.counts.inProgress === 0 && row.counts.inReview === 0 && row.isStarted) || row.days === null
+                ? ''
+                : row.days}
         </div>
         <div class="flex items-center border-b px-4 py-3 text-xs">
             <ProjectProgressBar
