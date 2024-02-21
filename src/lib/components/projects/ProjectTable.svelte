@@ -9,6 +9,7 @@
     export let projectSearchValue = '';
 
     let currentColumn = 'days';
+    let sortedRemoved = true;
 
     const initColumnsState: ProjectTableColumn[] = [
         { name: 'name', label: 'Title', sorted: false },
@@ -96,11 +97,11 @@
         <div class="flex items-center justify-between border-b bg-gray-50 px-4 py-3">
             <div class="text-xs font-bold">{column.label}</div>
             <div>
-                {#if column.sorted && column.name !== 'progress'}
+                {#if column.sorted && column.name !== 'progress' && !sortedRemoved}
                     <button class="flex w-8 items-center justify-end" on:click={() => sortListData(column.name)}>
                         <ChevronUpIcon />
                     </button>
-                {:else if !column.sorted && column.name !== 'progress'}
+                {:else if !column.sorted && column.name !== 'progress' && !sortedRemoved}
                     <button class="flex w-8 items-center justify-end" on:click={() => sortListData(column.name)}>
                         <ChevronDownIcon />
                     </button>
