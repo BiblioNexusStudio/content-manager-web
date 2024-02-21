@@ -115,7 +115,7 @@
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.projectPlatform}</a>
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.language}</a>
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.projectLead}</a>
-        <div class="flex items-center border-b px-4 py-3 text-xs {redColor ? 'text-red-600' : ''}">
+        <div class="flex items-center border-b px-4 py-3 text-xs {redColor ? 'font-bold text-red-600' : ''}">
             {row.days === null ? '' : row.days}
         </div>
         <div class="flex items-center border-b px-4 py-3 text-xs">
