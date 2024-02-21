@@ -28,7 +28,7 @@
         <ViewTabSlot title="Source Words">
             <div>{formatNumberWithCommas($project?.sourceWordCount ?? '0')}</div>
         </ViewTabSlot>
-        <ViewTabSlot title="Efective Words">
+        <ViewTabSlot title="Effective Words">
             {#if $project?.started === null}
                 <input
                     type="text"

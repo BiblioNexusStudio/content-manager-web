@@ -8,15 +8,15 @@
     export let showClosed = false;
     export let projectSearchValue = '';
 
-    let currentColumn = 'name';
+    let currentColumn = 'days';
 
     const initColumnsState: ProjectTableColumn[] = [
-        { name: 'name', label: 'Title', sorted: true },
+        { name: 'name', label: 'Title', sorted: false },
         { name: 'company', label: 'Company', sorted: false },
         { name: 'projectPlatform', label: 'Platform', sorted: false },
         { name: 'language', label: 'Language', sorted: false },
         { name: 'projectLead', label: 'Project Lead', sorted: false },
-        { name: 'days', label: 'Days', sorted: false },
+        { name: 'days', label: 'Days', sorted: true },
         { name: 'progress', label: 'Progress', sorted: false },
     ];
 
@@ -62,6 +62,13 @@
                     return 1;
                 }
                 return 0;
+            }
+
+            if (sortedColumn && sortedColumn.name === 'days') {
+                const daysA = a.days ?? 0;
+                const daysB = b.days ?? 0;
+
+                return daysB - daysA;
             }
 
             return a.name.localeCompare(b.name);
