@@ -9,6 +9,7 @@
     import ProjectViewTable from '$lib/components/projects/ProjectViewTable.svelte';
     import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
     import { startProject } from '$lib/utils/projects';
+    import { ProjectConstants } from '$lib/types/projects';
 
     export let data: PageData;
     const { users: dataUsers } = data;
@@ -18,12 +19,15 @@
         $users = dataUsers;
     });
 
+    $: companyLeadSet = $project?.projectPlatform !== ProjectConstants.AQUIFER ? true : $project?.companyLead;
+
     $: disabledStartButton =
         $project?.projectManager &&
         $project?.effectiveWordCount &&
         $project?.quotedCost &&
         $project?.projectedDeliveryDate &&
-        $project?.projectedPublishDate;
+        $project?.projectedPublishDate &&
+        companyLeadSet;
 
     function onStartProject() {
         if ($project) {
@@ -45,7 +49,7 @@
                 </span>
             </div>
             <div class="flex">
-                {#if projectResponse.started === null && data.currentUser.can(Permission.EditProjects)}
+                {#if $project?.started === null && data.currentUser.can(Permission.EditProjects)}
                     <button class="btn btn-primary" disabled={!disabledStartButton} on:click={onStartProject}
                         >Start</button
                     >

@@ -8,6 +8,7 @@
     import type { HttpError } from '@sveltejs/kit';
     import type { PageData } from './$types';
     import ProjectContentSelector from './ProjectContentSelector.svelte';
+    import { ProjectConstants } from '$lib/types/projects';
 
     export let data: PageData;
 
@@ -27,7 +28,7 @@
     $: !isShowingErrorModal && (errorMessage = '');
 
     $: isForAquiferization = (languages || []).find((l) => l.id === languageId)?.iso6393Code === 'eng';
-    $: requiresCompanyLead = projectPlatforms?.find((p) => p.id === platformId)?.name === 'Aquifer';
+    $: requiresCompanyLead = projectPlatforms?.find((p) => p.id === platformId)?.name === ProjectConstants.AQUIFER;
     $: !requiresCompanyLead && (companyLeadUserId = null);
 
     $: canSave =
