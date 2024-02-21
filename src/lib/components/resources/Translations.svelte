@@ -23,7 +23,7 @@
     <div class="px-4 py-2 text-xl font-medium">Translations</div>
     <div class="h-full overflow-y-scroll rounded-lg bg-white p-4">
         <div class="flex flex-col">
-            {#each mappedTranslations as translation}
+            {#each mappedTranslations as translation (translation.contentId)}
                 <div class="mb-2 flex justify-between">
                     <span class="btn-link me-4 font-bold no-underline"
                         ><a href={`/resources/${translation.contentId}`}>{translation.languageName}</a></span

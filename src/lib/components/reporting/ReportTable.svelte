@@ -19,11 +19,11 @@
 </script>
 
 <div class="grid grid-cols-{columns.length} w-full rounded-md border border-b-0">
-    {#each columns as column}
+    {#each columns as column (column)}
         <div class="border-b bg-gray-50 px-4 py-3 text-xs font-bold">{formatColumnName(column)}</div>
     {/each}
-    {#each $currentListData as row}
-        {#each columns as column}
+    {#each $currentListData as row, i (i)}
+        {#each columns as column (column)}
             <div class="border-b px-4 py-3 text-sm text-gray-600">{row[column]}</div>
         {/each}
     {/each}

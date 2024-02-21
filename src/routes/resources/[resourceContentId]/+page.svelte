@@ -480,7 +480,7 @@
                 <BibleReferences bibleReferences={getSortedReferences(resourceContent)} />
             </div>
             <div class="flex h-[85vh] w-8/12 flex-col">
-                {#each resourceContent.contentVersions as version, index}
+                {#each resourceContent.contentVersions as version, index (index)}
                     {@const contentVersionId = fakeContentVersionId(resourceContent, index)}
                     {#key contentVersionId}
                         <Content

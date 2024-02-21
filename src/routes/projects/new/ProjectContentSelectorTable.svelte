@@ -58,7 +58,7 @@
                 </td>
             </tr>
         {:else}
-            {#each allContent as content}
+            {#each allContent as content (content.resourceId)}
                 <tr class="cursor-pointer" on:click={() => toggleSelectedId(content.resourceId)}>
                     <td><input type="checkbox" checked={selectedIds.has(content.resourceId)} class="checkbox" /></td>
                     <td>{content.title}</td>
