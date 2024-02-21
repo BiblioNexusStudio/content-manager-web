@@ -41,7 +41,6 @@
                 <Select
                     class="select select-bordered w-full max-w-[50%]"
                     options={[
-                        { value: null, label: 'Select User' },
                         ...($users || [])
                             .filter((u) => u.role === UserRole.Publisher)
                             .map((u) => ({ value: u.id, label: u.name })),
@@ -65,7 +64,6 @@
                 <Select
                     class="select select-bordered w-full max-w-[50%]"
                     options={[
-                        { value: null, label: 'Select User' },
                         ...($users || [])
                             .filter((u) => u.role === UserRole.Publisher || u.role === UserRole.Manager)
                             .map((u) => ({ value: u.id, label: u.name })),

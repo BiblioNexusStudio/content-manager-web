@@ -8,15 +8,16 @@
     export let showClosed = false;
     export let projectSearchValue = '';
 
-    let currentColumn = 'name';
+    let currentColumn = 'days';
+    let sortedRemoved = true;
 
     const initColumnsState: ProjectTableColumn[] = [
-        { name: 'name', label: 'Title', sorted: true },
+        { name: 'name', label: 'Title', sorted: false },
         { name: 'company', label: 'Company', sorted: false },
         { name: 'projectPlatform', label: 'Platform', sorted: false },
         { name: 'language', label: 'Language', sorted: false },
         { name: 'projectLead', label: 'Project Lead', sorted: false },
-        { name: 'days', label: 'Days', sorted: false },
+        { name: 'days', label: 'Days', sorted: true },
         { name: 'progress', label: 'Progress', sorted: false },
     ];
 
@@ -64,6 +65,13 @@
                 return 0;
             }
 
+            if (sortedColumn && sortedColumn.name === 'days') {
+                const daysA = a.days ?? 0;
+                const daysB = b.days ?? 0;
+
+                return daysB - daysA;
+            }
+
             return a.name.localeCompare(b.name);
         });
 
@@ -89,11 +97,11 @@
         <div class="flex items-center justify-between border-b bg-gray-50 px-4 py-3">
             <div class="text-xs font-bold">{column.label}</div>
             <div>
-                {#if column.sorted && column.name !== 'progress'}
+                {#if column.sorted && column.name !== 'progress' && !sortedRemoved}
                     <button class="flex w-8 items-center justify-end" on:click={() => sortListData(column.name)}>
                         <ChevronUpIcon />
                     </button>
-                {:else if !column.sorted && column.name !== 'progress'}
+                {:else if !column.sorted && column.name !== 'progress' && !sortedRemoved}
                     <button class="flex w-8 items-center justify-end" on:click={() => sortListData(column.name)}>
                         <ChevronDownIcon />
                     </button>
