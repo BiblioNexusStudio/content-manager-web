@@ -62,8 +62,8 @@ export interface ResourcesSummary {
 }
 
 export interface ResourceAssignedToSelf {
-    contentId: number;
-    displayName: string;
+    id: number;
+    englishLabel: string;
     parentResourceName: string;
     daysSinceAssignment: number;
     wordCount: number | null;
@@ -71,8 +71,8 @@ export interface ResourceAssignedToSelf {
 }
 
 export interface ResourcePendingReview {
-    contentId: number;
-    displayName: string;
+    id: number;
+    englishLabel: string;
     parentResourceName: string;
     daysSinceStatusChange: number;
     wordCount: number | null;

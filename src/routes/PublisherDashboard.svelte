@@ -94,21 +94,21 @@
                                     <td colspan="4" class="text-center">Your work is all done!</td>
                                 </tr>
                             {:else}
-                                {#each sortAssignedData(assignedContents, $searchParams.sort) as resource (resource.contentId)}
+                                {#each sortAssignedData(assignedContents, $searchParams.sort) as resource (resource.id)}
                                     <tr>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
-                                            {resource.displayName}
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
+                                            {resource.englishLabel}
                                         </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
                                             {resource.parentResourceName}
                                         </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
                                             {resource.status}
                                         </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
                                             {resource.daysSinceAssignment}
                                         </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
                                             {resource.wordCount}
                                         </LinkedTableCell>
                                     </tr>
@@ -138,18 +138,18 @@
                                     <td colspan="4" class="text-center">No items pending review.</td>
                                 </tr>
                             {:else}
-                                {#each sortPendingData(reviewPendingContents, $searchParams.sort) as resource (resource.contentId)}
+                                {#each sortPendingData(reviewPendingContents, $searchParams.sort) as resource (resource.id)}
                                     <tr>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
-                                            {resource.displayName}
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
+                                            {resource.englishLabel}
                                         </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
                                             {resource.parentResourceName}
                                         </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
                                             {resource.daysSinceStatusChange}
                                         </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
                                             {resource.wordCount}
                                         </LinkedTableCell>
                                     </tr>
