@@ -15,7 +15,7 @@
 {#if filteredLanguageSet.length > 0}
     <select on:change={onChange} class="select select-info font-semibold" disabled={disable}>
         <option value="" disabled selected>Select a Language</option>
-        {#each filteredLanguageSet as { label, contentId }}
+        {#each filteredLanguageSet as { label, contentId } (contentId)}
             <option value={contentId}>{label}</option>
         {/each}
     </select>

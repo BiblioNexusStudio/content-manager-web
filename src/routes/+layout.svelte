@@ -128,7 +128,7 @@
                 <div class="flex h-full w-48 flex-col bg-neutral pb-1">
                     <div class="m-2 flex-grow-0"><img src={AquiferLogo} alt="Aquifer" /></div>
 
-                    {#each sidebarNavigation as navItem}
+                    {#each sidebarNavigation as navItem (navItem.href)}
                         {#if !navItem.hidden}
                             <div class="flex-grow-0">
                                 <a

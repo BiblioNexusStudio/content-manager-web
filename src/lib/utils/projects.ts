@@ -6,11 +6,17 @@ export function formatDate(date: Date | string | null | undefined): string {
     }
 
     if (typeof date === 'string') {
-        date = new Date(date);
+        const dateParts = date.split('-').map((part) => parseInt(part, 10));
+
+        const year = dateParts[0] ?? 0;
+        const month = dateParts[1] ?? 0;
+        const day = dateParts[2] ?? 0;
+
+        date = new Date(year, month - 1, day);
     }
 
     const options = { month: 'short' as const, day: '2-digit' as const, year: 'numeric' as const };
-    const formattedDate = date.toLocaleDateString('en-US', options);
+    const formattedDate = (date as Date).toLocaleDateString('en-US', options);
 
     return formattedDate;
 }

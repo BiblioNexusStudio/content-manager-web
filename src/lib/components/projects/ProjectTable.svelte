@@ -8,15 +8,16 @@
     export let showClosed = false;
     export let projectSearchValue = '';
 
-    let currentColumn = 'name';
+    let currentColumn = 'days';
+    let sortedRemoved = true;
 
     const initColumnsState: ProjectTableColumn[] = [
-        { name: 'name', label: 'Title', sorted: true },
+        { name: 'name', label: 'Title', sorted: false },
         { name: 'company', label: 'Company', sorted: false },
         { name: 'projectPlatform', label: 'Platform', sorted: false },
         { name: 'language', label: 'Language', sorted: false },
         { name: 'projectLead', label: 'Project Lead', sorted: false },
-        { name: 'days', label: 'Days', sorted: false },
+        { name: 'days', label: 'Days', sorted: true },
         { name: 'progress', label: 'Progress', sorted: false },
     ];
 
@@ -64,6 +65,12 @@
                 return 0;
             }
 
+            if (sortedColumn && sortedColumn.name === 'days') {
+                const daysA = a.days !== null ? a.days : Infinity;
+                const daysB = b.days !== null ? b.days : Infinity;
+                return daysA! - daysB!;
+            }
+
             return a.name.localeCompare(b.name);
         });
 
@@ -85,15 +92,15 @@
 </script>
 
 <div class="grid w-full grid-cols-7 rounded-md border border-b-0">
-    {#each columns as column}
+    {#each columns as column (column.name)}
         <div class="flex items-center justify-between border-b bg-gray-50 px-4 py-3">
             <div class="text-xs font-bold">{column.label}</div>
             <div>
-                {#if column.sorted && column.name !== 'progress'}
+                {#if column.sorted && column.name !== 'progress' && !sortedRemoved}
                     <button class="flex w-8 items-center justify-end" on:click={() => sortListData(column.name)}>
                         <ChevronUpIcon />
                     </button>
-                {:else if !column.sorted && column.name !== 'progress'}
+                {:else if !column.sorted && column.name !== 'progress' && !sortedRemoved}
                     <button class="flex w-8 items-center justify-end" on:click={() => sortListData(column.name)}>
                         <ChevronDownIcon />
                     </button>
@@ -101,15 +108,17 @@
             </div>
         </div>
     {/each}
-    {#each listData as row}
+    {#each listData as row (row.id)}
         {@const redColor = row?.days && row?.days < 0}
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.name}</a>
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.company}</a>
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.projectPlatform}</a>
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.language}</a>
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.projectLead}</a>
-        <div class="flex items-center border-b px-4 py-3 text-xs {redColor ? 'text-red-600' : ''}">
-            {row.days === null ? '' : row.days}
+        <div class="flex items-center border-b px-4 py-3 text-xs {redColor ? 'font-bold text-red-600' : ''}">
+            {(row.counts.inProgress === 0 && row.counts.inReview === 0 && row.isStarted) || row.days === null
+                ? ''
+                : row.days}
         </div>
         <div class="flex items-center border-b px-4 py-3 text-xs">
             <ProjectProgressBar

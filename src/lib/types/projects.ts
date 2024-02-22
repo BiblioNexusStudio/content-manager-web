@@ -49,3 +49,7 @@ export interface ProjectResponse {
     counts: ProjectResourceStatusCounts;
     items: ProjectResouce[];
 }
+
+export enum ProjectConstants {
+    AQUIFER = 'Aquifer',
+}

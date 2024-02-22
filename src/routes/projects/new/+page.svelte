@@ -8,6 +8,8 @@
     import type { HttpError } from '@sveltejs/kit';
     import type { PageData } from './$types';
     import ProjectContentSelector from './ProjectContentSelector.svelte';
+    import { ProjectConstants } from '$lib/types/projects';
+    import BackButton from '$lib/components/BackButton.svelte';
 
     export let data: PageData;
 
@@ -27,7 +29,7 @@
     $: !isShowingErrorModal && (errorMessage = '');
 
     $: isForAquiferization = (languages || []).find((l) => l.id === languageId)?.iso6393Code === 'eng';
-    $: requiresCompanyLead = projectPlatforms?.find((p) => p.id === platformId)?.name === 'Aquifer';
+    $: requiresCompanyLead = projectPlatforms?.find((p) => p.id === platformId)?.name === ProjectConstants.AQUIFER;
     $: !requiresCompanyLead && (companyLeadUserId = null);
 
     $: canSave =
@@ -72,7 +74,10 @@
 </script>
 
 <div class="relative flex h-screen flex-col overflow-hidden px-8 py-4 short:h-full short:overflow-auto">
-    <div class="mb-4 text-3xl">Create Project</div>
+    <div class="mb-4 flex flex-row items-center">
+        <BackButton defaultPathIfNoHistory="/projects" />
+        <div class="text-3xl">Create Project</div>
+    </div>
     <div class="mb-8 flex flex-col">
         <div class="pb-2 text-lg font-bold">Basic Information</div>
         <div class="flex flex-row items-center border-b border-t p-2">
