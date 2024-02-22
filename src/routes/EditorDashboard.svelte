@@ -60,7 +60,7 @@
                             <td colspan="4" class="text-center">Your work is all done!</td>
                         </tr>
                     {:else}
-                        {#each sortData(resourceContents, $searchParams.sort) as resource}
+                        {#each sortData(resourceContents, $searchParams.sort) as resource (resource.contentId)}
                             <tr>
                                 <LinkedTableCell href={`/resources/${resource.contentId}`}>
                                     {resource.displayName}

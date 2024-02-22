@@ -27,7 +27,7 @@
     <div class="h-full overflow-y-scroll rounded-lg bg-white p-4">
         <div class="flex flex-col">
             {#if relatedContent.length > 0}
-                {#each relatedContent as resource}
+                {#each relatedContent as resource (resource.label)}
                     <div class="mb-4 flex">
                         <div class="flex items-center">
                             <Icon data={getIcon(resource.mediaTypes[0])} scale={3} />

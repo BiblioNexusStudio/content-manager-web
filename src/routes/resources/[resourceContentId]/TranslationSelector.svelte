@@ -12,7 +12,7 @@
 {#if languagesToShow}
     <select bind:value={selectedLanguageId} class="select select-bordered">
         <option disabled value={null} selected>Select language</option>
-        {#each languagesToShow as language}
+        {#each languagesToShow as language (language.id)}
             <option value={language.id}>{language.englishDisplay}</option>
         {/each}
     </select>

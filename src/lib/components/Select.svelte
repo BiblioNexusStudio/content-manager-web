@@ -21,7 +21,7 @@
 </script>
 
 <select {disabled} class={$$props.class} on:change={handleChange} {value}>
-    {#each options as option}
+    {#each options as option (option.value)}
         <option value={option.value}>{option.label}</option>
     {/each}
 </select>

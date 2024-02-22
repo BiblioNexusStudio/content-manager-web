@@ -116,7 +116,7 @@
                     class="select select-bordered me-2 w-2/6 max-w-xs bg-base-200 pe-14 ps-4"
                 >
                     <option value={0} selected>{$translate('page.resources.dropdowns.allLanguages.value')}</option>
-                    {#each data.languages || [] as language}
+                    {#each data.languages || [] as language (language.id)}
                         <option value={language.id}>{language.englishDisplay}</option>
                     {/each}
                 </select>
@@ -127,7 +127,7 @@
                     class="select select-bordered w-2/6 max-w-xs bg-base-200 pe-14 ps-4"
                 >
                     <option value={0} selected>{$translate('page.resources.dropdowns.allResources.value')}</option>
-                    {#each data.resourceTypes || [] as resourceType}
+                    {#each data.resourceTypes || [] as resourceType (resourceType.id)}
                         <option value={resourceType.id}>{resourceType.displayName}</option>
                     {/each}
                 </select>
@@ -174,7 +174,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {#each resourceList as resource}
+                    {#each resourceList as resource, i (i)}
                         {@const contentId = calculateContentId(resource.contentIdsWithLanguageIds)}
                         <tr class="hover">
                             <LinkedTableCell href={`/resources/${contentId}`}>
@@ -211,7 +211,7 @@
                 })}
             </div>
             <select bind:value={$resourcesPerPage} class="select select-bordered select-ghost select-xs">
-                {#each [10, 50, 100] as count, i}
+                {#each [10, 50, 100] as count, i (count)}
                     <option value={count} selected={i === 0}>
                         {`${count} ${$translate('page.resources.table.navigation.perPage.value')}`}
                     </option>

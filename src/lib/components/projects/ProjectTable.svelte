@@ -92,7 +92,7 @@
 </script>
 
 <div class="grid w-full grid-cols-7 rounded-md border border-b-0">
-    {#each columns as column}
+    {#each columns as column (column.name)}
         <div class="flex items-center justify-between border-b bg-gray-50 px-4 py-3">
             <div class="text-xs font-bold">{column.label}</div>
             <div>

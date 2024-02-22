@@ -93,7 +93,7 @@
                                     <td colspan="4" class="text-center">Your work is all done!</td>
                                 </tr>
                             {:else}
-                                {#each sortAssignedData(assignedContents, $searchParams.sort) as resource}
+                                {#each sortAssignedData(assignedContents, $searchParams.sort) as resource (resource.contentId)}
                                     <tr>
                                         <LinkedTableCell href={`/resources/${resource.contentId}`}>
                                             {resource.displayName}
@@ -135,7 +135,7 @@
                                     <td colspan="4" class="text-center">No items pending review.</td>
                                 </tr>
                             {:else}
-                                {#each sortPendingData(pendingReviewContents, $searchParams.sort) as resource}
+                                {#each sortPendingData(pendingReviewContents, $searchParams.sort) as resource (resource.contentId)}
                                     <tr>
                                         <LinkedTableCell href={`/resources/${resource.contentId}`}>
                                             {resource.displayName}
