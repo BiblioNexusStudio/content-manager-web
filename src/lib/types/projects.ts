@@ -20,6 +20,7 @@ export interface ProjectTableColumn {
     name: string;
     label: string;
     sorted: boolean;
+    sortable: boolean;
 }
 
 export interface ProjectResouce {

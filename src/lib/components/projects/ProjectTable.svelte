@@ -9,26 +9,27 @@
     export let projectSearchValue = '';
 
     let currentColumn = 'days';
-    let sortedRemoved = true;
+    let sortAsc = true;
 
     const initColumnsState: ProjectTableColumn[] = [
-        { name: 'name', label: 'Title', sorted: false },
-        { name: 'company', label: 'Company', sorted: false },
-        { name: 'projectPlatform', label: 'Platform', sorted: false },
-        { name: 'language', label: 'Language', sorted: false },
-        { name: 'projectLead', label: 'Project Lead', sorted: false },
-        { name: 'days', label: 'Days', sorted: true },
-        { name: 'progress', label: 'Progress', sorted: false },
+        { name: 'name', label: 'Title', sorted: false, sortable: true },
+        { name: 'company', label: 'Company', sorted: false, sortable: true },
+        { name: 'projectPlatform', label: 'Platform', sorted: false, sortable: true },
+        { name: 'language', label: 'Language', sorted: false, sortable: true },
+        { name: 'projectLead', label: 'Project Lead', sorted: false, sortable: true },
+        { name: 'days', label: 'Days', sorted: true, sortable: true },
+        { name: 'progress', label: 'Progress', sorted: false, sortable: false },
     ];
 
-    $: listData = handleListData(projects, showClosed, projectSearchValue, columns);
-    $: columns = sortListData(currentColumn);
+    $: columns = handleColumnState(currentColumn);
+    $: listData = handleListData(projects, showClosed, projectSearchValue, columns, sortAsc);
 
     function handleListData(
         projects: ProjectListResponse[],
         showClosed: boolean,
         projectSearchValue: string,
-        columns: ProjectTableColumn[]
+        columns: ProjectTableColumn[],
+        sortAsc: boolean
     ) {
         const lowerCaseSearchValue = projectSearchValue.toLowerCase();
 
@@ -57,10 +58,10 @@
                 const fieldB = b[sortedColumn.name as keyof ProjectListResponse];
 
                 if (fieldA && fieldB && fieldA < fieldB) {
-                    return -1;
+                    return sortAsc ? -1 : 1;
                 }
                 if (fieldA && fieldB && fieldA > fieldB) {
-                    return 1;
+                    return sortAsc ? 1 : -1;
                 }
                 return 0;
             }
@@ -68,7 +69,11 @@
             if (sortedColumn && sortedColumn.name === 'days') {
                 const daysA = a.days !== null ? a.days : Infinity;
                 const daysB = b.days !== null ? b.days : Infinity;
-                return daysA! - daysB!;
+                if (sortAsc) {
+                    return daysA! - daysB!;
+                } else {
+                    return daysB! - daysA!;
+                }
             }
 
             return a.name.localeCompare(b.name);
@@ -77,7 +82,7 @@
         return sortedProjects;
     }
 
-    function sortListData(columnName: string) {
+    function handleColumnState(columnName: string) {
         initColumnsState.forEach((col) => (col.sorted = false));
 
         const column = initColumnsState.find((col) => col.name === columnName);
@@ -89,6 +94,16 @@
 
         return initColumnsState;
     }
+
+    function setCurrentColumn(columnName: string) {
+        if (columnName === currentColumn) {
+            sortAsc = !sortAsc;
+        } else {
+            sortAsc = true;
+        }
+
+        currentColumn = columnName;
+    }
 </script>
 
 <div class="grid w-full grid-cols-7 rounded-md border border-b-0">
@@ -96,12 +111,12 @@
         <div class="flex items-center justify-between border-b bg-gray-50 px-4 py-3">
             <div class="text-xs font-bold">{column.label}</div>
             <div>
-                {#if column.sorted && column.name !== 'progress' && !sortedRemoved}
-                    <button class="flex w-8 items-center justify-end" on:click={() => sortListData(column.name)}>
+                {#if column.sorted && column.sortable}
+                    <button class="flex w-8 items-center justify-end" on:click={() => setCurrentColumn(column.name)}>
                         <ChevronUpIcon />
                     </button>
-                {:else if !column.sorted && column.name !== 'progress' && !sortedRemoved}
-                    <button class="flex w-8 items-center justify-end" on:click={() => sortListData(column.name)}>
+                {:else if !column.sorted && column.sortable}
+                    <button class="flex w-8 items-center justify-end" on:click={() => setCurrentColumn(column.name)}>
                         <ChevronDownIcon />
                     </button>
                 {/if}
