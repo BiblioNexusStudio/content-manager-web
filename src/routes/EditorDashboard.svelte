@@ -42,7 +42,6 @@
                     <tr class="bg-base-200">
                         <th>Title</th>
                         <th>Resource</th>
-                        <th>Status</th>
                         <SortingTableHeaderCell
                             text="Days"
                             sortKey={SORT_KEYS.days}
@@ -68,9 +67,6 @@
                                 </LinkedTableCell>
                                 <LinkedTableCell href={`/resources/${resource.id}`}>
                                     {resource.parentResourceName}
-                                </LinkedTableCell>
-                                <LinkedTableCell href={`/resources/${resource.id}`}>
-                                    {resource.status}
                                 </LinkedTableCell>
                                 <LinkedTableCell href={`/resources/${resource.id}`}>
                                     {resource.daysSinceAssignment}
