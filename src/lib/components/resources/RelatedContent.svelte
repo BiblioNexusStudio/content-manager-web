@@ -27,13 +27,13 @@
     <div class="h-full overflow-y-scroll rounded-lg bg-white p-4">
         <div class="flex flex-col">
             {#if relatedContent.length > 0}
-                {#each relatedContent as resource (resource.label)}
+                {#each relatedContent as resource, i (i)}
                     <div class="mb-4 flex">
                         <div class="flex items-center">
                             <Icon data={getIcon(resource.mediaTypes[0])} scale={3} />
                         </div>
                         <div class="ms-4 flex flex-col">
-                            <span class="font-bold">{resource.label}</span>
+                            <span class="font-bold">{resource.englishLabel}</span>
                             <span>{resource.parentResourceName}</span>
                         </div>
                     </div>
