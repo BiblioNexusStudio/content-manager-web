@@ -53,7 +53,7 @@
     <tbody>
         {#if isLoading}
             <tr>
-                <td colspan="3">
+                <td colspan="99">
                     <CenteredSpinner />
                 </td>
             </tr>
@@ -67,7 +67,7 @@
             {:else}
                 {#if hasSearched}
                     <tr>
-                        <td colspan="3"><div class="text-center">No results</div></td>
+                        <td colspan="99"><div class="text-center">No results</div></td>
                     </tr>
                 {/if}
             {/each}

@@ -144,6 +144,8 @@ let debouncedUpdateTimeout: SetTimeout;
 
 const debouncedTimeouts = new Map<string, SetTimeout>();
 
+export type SubscribedSearchParams<Type> = Type extends Writable<infer X> ? X : never;
+
 export function searchParameters<T extends object>(
     options?: Options<T>,
     { debounceHistory = 0, pushHistory = true }: StoreOptions = {}

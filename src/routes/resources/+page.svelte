@@ -1,7 +1,6 @@
 ﻿<script lang="ts">
     import type { PageData } from './$types';
     import { _ as translate } from 'svelte-i18n';
-    import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { unwrapStreamedData } from '$lib/utils/http-service';
     import { _searchParamsConfig } from './+page';
@@ -11,6 +10,7 @@
     import { enterKeyHandler } from '$lib/utils/enter-key-action';
     import Select from '$lib/components/Select.svelte';
     import { numbersRangeToString, parseStartAndEndFromSingleOrRangeString } from '$lib/utils/number-list-parser';
+    import LinkedTableRow from '$lib/components/LinkedTableRow.svelte';
 
     export let data: PageData;
 
@@ -146,31 +146,24 @@
                 <tbody>
                     {#if resourceContentsOrNull}
                         {#each resourceContentsOrNull.resourceContents as resourceContent (resourceContent.id)}
-                            <tr class="hover">
-                                <LinkedTableCell href={`/resources/${resourceContent.id}`}>
-                                    {resourceContent.englishLabel}
-                                </LinkedTableCell>
-                                <LinkedTableCell href={`/resources/${resourceContent.id}`}>
-                                    {resourceContent.parentResourceName}
-                                </LinkedTableCell>
-                                <LinkedTableCell href={`/resources/${resourceContent.id}`}>
-                                    {resourceContent.languageEnglishDisplay}
-                                </LinkedTableCell>
-                                <LinkedTableCell href={`/resources/${resourceContent.id}`}>
-                                    {resourceContent.status}
-                                </LinkedTableCell>
-                                <LinkedTableCell href={`/resources/${resourceContent.id}`}>
-                                    {resourceContent.isPublished ? 'Yes' : 'No'}
-                                </LinkedTableCell>
-                            </tr>
+                            <LinkedTableRow
+                                href={`/resources/${resourceContent.id}`}
+                                cellValues={[
+                                    resourceContent.englishLabel,
+                                    resourceContent.parentResourceName,
+                                    resourceContent.languageEnglishDisplay,
+                                    resourceContent.status,
+                                    resourceContent.isPublished ? 'Yes' : 'No',
+                                ]}
+                            />
                         {:else}
                             <tr>
-                                <td colspan="5" class="text-center">No results found.</td>
+                                <td colspan="99" class="text-center">No results found.</td>
                             </tr>
                         {/each}
                     {:else}
                         <tr>
-                            <td colspan="5" class="text-center">Select filters or Search. Then click "Apply".</td>
+                            <td colspan="99" class="text-center">Select filters or Search. Then click "Apply".</td>
                         </tr>
                     {/if}
                 </tbody>

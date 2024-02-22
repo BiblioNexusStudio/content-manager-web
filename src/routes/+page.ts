@@ -23,6 +23,14 @@ export const load: PageLoad = async ({ fetch, parent }) => {
             fetch
         ) as StreamedData<ResourcePendingReview[]>;
         return { publisherDashboard: { assignedResourceContent, reportingSummary, reviewPendingResourceContent } };
+    } else if (get(userCan)(Permission.ReadCompanyContentAssignments)) {
+        const assignedResourceContent = fetchAssignedResourceContent(fetch);
+        const manageResourceContent = fetchJsonStreamingFromApi(
+            '/resources/content/assigned-to-own-company',
+            {},
+            fetch
+        ) as StreamedData<ResourceAssignedToOwnCompany[]>;
+        return { managerDashboard: { assignedResourceContent, manageResourceContent } };
     } else if (get(userCan)(Permission.EditContent)) {
         const resourceContent = fetchAssignedResourceContent(fetch);
         return { editorDashboard: { resourceContent } };
@@ -69,6 +77,22 @@ export interface ResourceAssignedToSelf {
     daysSinceAssignment: number;
     wordCount: number | null;
     status: string;
+    projectName: string | null;
+    daysUntilProjectDeadline: number | null;
+}
+
+export interface ResourceAssignedToOwnCompany extends ResourceAssignedToSelf {
+    id: number;
+    englishLabel: string;
+    languageEnglishDisplay: string;
+    parentResourceName: string;
+    wordCount: number | null;
+    projectName: string | null;
+    daysUntilProjectDeadline: number | null;
+    assignedUser: {
+        id: number;
+        name: string;
+    };
 }
 
 export interface ResourcePendingReview {
