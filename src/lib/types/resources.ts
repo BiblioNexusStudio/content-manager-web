@@ -96,6 +96,7 @@ export interface ContentTranslation {
 }
 
 export interface ResourceContent {
+    englishLabel: string;
     passageReferences: PassageReference[];
     verseReferences: VerseReference[];
     associatedResources: AssociatedResource[];

@@ -364,7 +364,7 @@
                 <BackButton defaultPathIfNoHistory="/resources" />
                 <h1 class="relative w-full text-2xl font-bold">
                     {resourceContent.parentResourceName} -
-                    {$originalValues[selectedVersionContentId]?.displayName}
+                    {resourceContent.englishLabel}
                 </h1>
                 {#if $showSavingFailed}
                     <span class="absolute font-bold text-error">Auto-save failed</span>

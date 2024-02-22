@@ -81,7 +81,9 @@
                 >
             </div>
             <div class="mb-2 flex justify-between">
-                <span class="me-4 font-bold">Resource</span><span>{resourceContent.parentResourceName}</span>
+                <span class="me-4 font-bold">Resource</span><span class="text-right"
+                    >{resourceContent.parentResourceName}</span
+                >
             </div>
             {#if wordCount !== null}
                 <div class="mb-2 flex justify-between">
