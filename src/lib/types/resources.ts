@@ -78,7 +78,7 @@ export interface ContentItem {
 export interface AssociatedResource {
     mediaTypes: MediaTypeEnum[];
     parentResourceName: string;
-    label: string;
+    englishLabel: string;
 }
 
 export interface ResourceContentAssignedUser {
