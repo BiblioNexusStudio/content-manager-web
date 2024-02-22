@@ -17,16 +17,22 @@
     }
 
     const SORT_KEYS = {
+        title: 'title',
+        language: 'language',
         days: 'days',
         wordCount: 'word-count',
     };
 
     const sortAssignedData = createListSorter<ResourceAssignedToSelf>({
+        [SORT_KEYS.title]: 'englishLabel',
+        [SORT_KEYS.language]: 'languageEnglishDisplay',
         [SORT_KEYS.days]: 'daysSinceAssignment',
         [SORT_KEYS.wordCount]: 'wordCount',
     });
 
     const sortPendingData = createListSorter<ResourcePendingReview>({
+        [SORT_KEYS.title]: 'englishLabel',
+        [SORT_KEYS.language]: 'languageEnglishDisplay',
         [SORT_KEYS.days]: 'daysSinceStatusChange',
         [SORT_KEYS.wordCount]: 'wordCount',
     });
@@ -73,8 +79,17 @@
                     {#if $searchParams.tab === Tab.myWork}
                         <thead>
                             <tr class="bg-base-200">
-                                <th>Title</th>
+                                <SortingTableHeaderCell
+                                    text="Title"
+                                    sortKey={SORT_KEYS.title}
+                                    bind:currentSort={$searchParams.sort}
+                                />
                                 <th>Resource</th>
+                                <SortingTableHeaderCell
+                                    text="Language"
+                                    sortKey={SORT_KEYS.language}
+                                    bind:currentSort={$searchParams.sort}
+                                />
                                 <th>Status</th>
                                 <SortingTableHeaderCell
                                     text="Days"
@@ -103,6 +118,9 @@
                                             {resource.parentResourceName}
                                         </LinkedTableCell>
                                         <LinkedTableCell href={`/resources/${resource.id}`}>
+                                            {resource.languageEnglishDisplay}
+                                        </LinkedTableCell>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
                                             {resource.status}
                                         </LinkedTableCell>
                                         <LinkedTableCell href={`/resources/${resource.id}`}>
@@ -118,8 +136,17 @@
                     {:else if $searchParams.tab === Tab.reviewPending}
                         <thead>
                             <tr class="bg-base-200">
-                                <th>Title</th>
+                                <SortingTableHeaderCell
+                                    text="Title"
+                                    sortKey={SORT_KEYS.title}
+                                    bind:currentSort={$searchParams.sort}
+                                />
                                 <th>Resource</th>
+                                <SortingTableHeaderCell
+                                    text="Language"
+                                    sortKey={SORT_KEYS.language}
+                                    bind:currentSort={$searchParams.sort}
+                                />
                                 <SortingTableHeaderCell
                                     text="Days"
                                     sortKey={SORT_KEYS.days}
@@ -145,6 +172,9 @@
                                         </LinkedTableCell>
                                         <LinkedTableCell href={`/resources/${resource.id}`}>
                                             {resource.parentResourceName}
+                                        </LinkedTableCell>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
+                                            {resource.languageEnglishDisplay}
                                         </LinkedTableCell>
                                         <LinkedTableCell href={`/resources/${resource.id}`}>
                                             {resource.daysSinceStatusChange}
