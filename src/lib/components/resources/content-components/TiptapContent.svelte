@@ -6,7 +6,7 @@
     import { currentStepNumber, type TiptapContentItemValues } from '$lib/stores/tiptapContent';
     import type { ResourceContentVersion } from '$lib/types/resources';
 
-    export let contentVersionId: string;
+    export let contentVersionId: number;
     export let resourceContentVersion: ResourceContentVersion;
     export let canEdit: boolean;
 
