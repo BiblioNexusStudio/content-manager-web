@@ -13,7 +13,6 @@
         MediaTypeEnum,
     } from '$lib/types/resources';
     import {
-        fakeContentVersionId,
         originalValues,
         setOriginalValues,
         updatedValues,
@@ -63,7 +62,7 @@
     let hasPublished = false;
     let hasDraft = false;
     let selectedVersion: ResourceContentVersion;
-    let selectedVersionContentId: string;
+    let selectedVersionContentId: number;
     let englishContentTranslation: ContentTranslation | undefined;
     let createTranslationFromDraft = false;
     let isInTranslationWorkflow = false;
@@ -156,10 +155,7 @@
         canUnpublish = $userCan(Permission.PublishContent) && hasPublished;
         canCreateTranslation = $userCan(Permission.PublishContent);
         setOriginalValues(resourceContent);
-        selectedVersionContentId = fakeContentVersionId(
-            resourceContent,
-            resourceContent.contentVersions.indexOf(selectedVersion)
-        );
+        selectedVersionContentId = selectedVersion.id;
     }
 
     let isTransacting = false;
@@ -338,12 +334,8 @@
         updateOriginal(selectedVersionContentId);
     }
 
-    function setSelectedVersion(version: ResourceContentVersion | undefined, resourceContent: ResourceContent) {
-        // TODO: switch this to using the actual version id
-        selectedVersionContentId = fakeContentVersionId(
-            resourceContent,
-            resourceContent.contentVersions.indexOf(version!)
-        );
+    function setSelectedVersion(version: ResourceContentVersion | undefined) {
+        selectedVersionContentId = version!.id;
         selectedVersion = version!;
     }
 
@@ -383,13 +375,12 @@
                             <div class="join mb-4 ms-4">
                                 <button
                                     class="btn {selectedVersion.isDraft ? 'btn-primary' : ''} join-item"
-                                    on:click={() => setSelectedVersion(draftVersion, resourceContent)}>Draft</button
+                                    on:click={() => setSelectedVersion(draftVersion)}>Draft</button
                                 >
                                 <button
                                     class="btn {selectedVersion.isPublished ? 'btn-primary' : ''} join-item"
                                     class:btn-disabled={contentUpdated && !selectedVersion.isPublished}
-                                    on:click={() => setSelectedVersion(publishedVersion, resourceContent)}
-                                    >Published</button
+                                    on:click={() => setSelectedVersion(publishedVersion)}>Published</button
                                 >
                             </div>
                         {/if}
@@ -480,11 +471,10 @@
                 <BibleReferences bibleReferences={getSortedReferences(resourceContent)} />
             </div>
             <div class="flex h-[85vh] w-8/12 flex-col">
-                {#each resourceContent.contentVersions as version, index (index)}
-                    {@const contentVersionId = fakeContentVersionId(resourceContent, index)}
-                    {#key contentVersionId}
+                {#each resourceContent.contentVersions as version (version.id)}
+                    {#key version.id}
                         <Content
-                            {contentVersionId}
+                            contentVersionId={version.id}
                             visible={selectedVersion === version}
                             canEdit={canMakeContentEdits && version.isDraft}
                             resourceContentVersion={version}

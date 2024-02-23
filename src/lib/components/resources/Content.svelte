@@ -4,7 +4,7 @@
     import TiptapContent from './content-components/TiptapContent.svelte';
     import { MediaTypeEnum, type ResourceContentVersion } from '$lib/types/resources';
 
-    export let contentVersionId: string;
+    export let contentVersionId: number;
     export let visible: boolean;
     export let mediaType: MediaTypeEnum;
     export let resourceContentVersion: ResourceContentVersion;
