@@ -146,6 +146,7 @@ async function login(url: URL) {
 
 export async function logout(url: URL) {
     profile.set(undefined);
+    clearCookie(AUTH_COOKIE_NAME);
     await auth0Client?.logout({
         logoutParams: {
             returnTo: url.origin,
@@ -171,6 +172,10 @@ function setCookie(
     if (options.secure) cookie += ` Secure;`;
 
     document.cookie = cookie;
+}
+
+function clearCookie(name: string) {
+    setCookie(name, '', { expires: -1 });
 }
 
 function getJwtExpiration(jwt: string) {
