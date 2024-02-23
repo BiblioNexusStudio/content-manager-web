@@ -76,6 +76,7 @@ export interface ContentItem {
 }
 
 export interface AssociatedResource {
+    contentId: number | null;
     mediaTypes: MediaTypeEnum[];
     parentResourceName: string;
     englishLabel: string;
@@ -117,6 +118,7 @@ export interface Project {
 }
 
 export interface ResourceContentVersion {
+    id: number;
     displayName: string;
     contentSize: number;
     assignedUser: ResourceContentAssignedUser | null;
