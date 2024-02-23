@@ -67,8 +67,8 @@
             }
 
             if (sortedColumn && sortedColumn.name === 'days') {
-                const daysA = a.days !== null ? a.days : Infinity;
-                const daysB = b.days !== null ? b.days : Infinity;
+                const daysA = a.days === null || isProjectClosed(a) ? Infinity : a.days;
+                const daysB = b.days === null || isProjectClosed(b) ? Infinity : b.days;
                 if (sortAsc) {
                     return daysA! - daysB!;
                 } else {
@@ -104,19 +104,29 @@
 
         currentColumn = columnName;
     }
+
+    function isProjectClosed(project: ProjectListResponse) {
+        return project.counts.inProgress === 0 && project.counts.inReview === 0 && project.isStarted;
+    }
 </script>
 
 <div class="grid w-full grid-cols-7 rounded-md border border-b-0">
     {#each columns as column (column.name)}
-        <div class="flex items-center justify-between border-b bg-gray-50 px-4 py-3">
+        <div
+            class="flex items-center justify-between border-b {column.sorted ? 'bg-gray-200' : 'bg-gray-50'} px-4 py-3"
+        >
             <div class="text-xs font-bold">{column.label}</div>
             <div>
-                {#if column.sorted && column.sortable}
-                    <button class="flex w-8 items-center justify-end" on:click={() => setCurrentColumn(column.name)}>
+                {#if column.sorted && column.sortable && sortAsc}
+                    <button class="flex w-12 items-center justify-end" on:click={() => setCurrentColumn(column.name)}>
                         <ChevronUpIcon />
                     </button>
+                {:else if column.sorted && column.sortable && !sortAsc}
+                    <button class="flex w-12 items-center justify-end" on:click={() => setCurrentColumn(column.name)}>
+                        <ChevronDownIcon />
+                    </button>
                 {:else if !column.sorted && column.sortable}
-                    <button class="flex w-8 items-center justify-end" on:click={() => setCurrentColumn(column.name)}>
+                    <button class="flex w-12 items-center justify-end" on:click={() => setCurrentColumn(column.name)}>
                         <ChevronDownIcon />
                     </button>
                 {/if}
@@ -131,9 +141,7 @@
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.language}</a>
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.projectLead}</a>
         <div class="flex items-center border-b px-4 py-3 text-xs {redColor ? 'font-bold text-red-600' : ''}">
-            {(row.counts.inProgress === 0 && row.counts.inReview === 0 && row.isStarted) || row.days === null
-                ? ''
-                : row.days}
+            {isProjectClosed(row) || row.days === null ? '' : row.days}
         </div>
         <div class="flex items-center border-b px-4 py-3 text-xs">
             <ProjectProgressBar
