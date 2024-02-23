@@ -119,7 +119,7 @@
     </div>
 
     <div class="mx-4 mb-12 grid grid-cols-3 gap-4">
-        {#each reportingLinkData as link}
+        {#each reportingLinkData as link (link.reportLink)}
             <ReportingLink
                 reportTitle={link.reportTitle}
                 reportDescription={link.reportDescription}

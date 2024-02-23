@@ -144,6 +144,8 @@ let debouncedUpdateTimeout: SetTimeout;
 
 const debouncedTimeouts = new Map<string, SetTimeout>();
 
+export type SubscribedSearchParams<Type> = Type extends Writable<infer X> ? X : never;
+
 export function searchParameters<T extends object>(
     options?: Options<T>,
     { debounceHistory = 0, pushHistory = true }: StoreOptions = {}
@@ -244,4 +246,22 @@ export function searchParameters<T extends object>(
             setRef.value(newValue);
         },
     };
+}
+
+interface Param {
+    key: string;
+    value: string | number;
+    ignoreIfEquals?: string | number;
+}
+
+export function buildQueryString(params: Param[]): string {
+    const searchParams = new URLSearchParams();
+
+    params.forEach(({ key, value, ignoreIfEquals }) => {
+        if (value !== ignoreIfEquals) {
+            searchParams.append(key, value.toString());
+        }
+    });
+
+    return searchParams.toString();
 }

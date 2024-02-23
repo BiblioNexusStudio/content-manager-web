@@ -28,12 +28,12 @@
     import { Permission, userCan, userIsEqual, userIsInCompany } from '$lib/stores/auth';
     import spinner from 'svelte-awesome/icons/spinner';
     import { Icon } from 'svelte-awesome';
-    import ArrowLeftSmall from '$lib/icons/ArrowLeftSmall.svelte';
     import Translations from '$lib/components/resources/Translations.svelte';
     import TranslationSelector from './TranslationSelector.svelte';
     import { createAutosaveStore } from '$lib/utils/auto-save-store';
     import { onDestroy } from 'svelte';
     import Modal from '$lib/components/Modal.svelte';
+    import BackButton from '$lib/components/BackButton.svelte';
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -322,10 +322,6 @@
         return selectedVersion.wordCount;
     }
 
-    function goBack() {
-        window.history.length > 1 ? window.history.back() : goto('/resources');
-    }
-
     async function putData() {
         const selectedVersionValues = $updatedValues[selectedVersionContentId];
         if (selectedVersionValues) {
@@ -365,12 +361,10 @@
     <div class="p-8">
         <div class="mb-4 flex w-full items-center">
             <div class="mb-4 me-8 flex w-4/12 place-items-center">
-                <button class="btn btn-link btn-sm m-0 me-2 min-h-0 p-0 text-black" on:click={goBack}
-                    ><ArrowLeftSmall /></button
-                >
+                <BackButton defaultPathIfNoHistory="/resources" />
                 <h1 class="relative w-full text-2xl font-bold">
                     {resourceContent.parentResourceName} -
-                    {$originalValues[selectedVersionContentId]?.displayName}
+                    {resourceContent.englishLabel}
                 </h1>
                 {#if $showSavingFailed}
                     <span class="absolute font-bold text-error">Auto-save failed</span>
@@ -486,7 +480,7 @@
                 <BibleReferences bibleReferences={getSortedReferences(resourceContent)} />
             </div>
             <div class="flex h-[85vh] w-8/12 flex-col">
-                {#each resourceContent.contentVersions as version, index}
+                {#each resourceContent.contentVersions as version, index (index)}
                     {@const contentVersionId = fakeContentVersionId(resourceContent, index)}
                     {#key contentVersionId}
                         <Content

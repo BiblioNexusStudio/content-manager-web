@@ -251,7 +251,7 @@
             : 'top-[44px]'} z-20 flex h-16 w-[calc(100%-10px)] items-center rounded-md bg-white"
     >
         <div class="mx-6 mt-2">
-            {#each formattingOptions(currentEditor) as option}
+            {#each formattingOptions(currentEditor) as option (option.name)}
                 <button
                     class="btn btn-xs mx-1 px-0 hover:bg-[#e6f7fc] {option.disabled &&
                         '!bg-white'} {currentEditor.isActive(option.name) ? 'btn-primary' : 'btn-link'}"
@@ -261,7 +261,7 @@
                     <svelte:component this={option.icon} />
                 </button>
             {/each}
-            {#each headerLevels as header}
+            {#each headerLevels as header (header.level)}
                 <button
                     class="btn btn-xs mx-0.5 px-1 hover:bg-[#e6f7fc] {currentEditor.isActive('heading', {
                         level: header.level,

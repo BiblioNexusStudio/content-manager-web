@@ -4,6 +4,7 @@
     import { UserRole } from '$lib/types/base';
     import ViewTabSlot from './ViewTabSlot.svelte';
     import { updateProject } from '$lib/utils/projects';
+    import { ProjectConstants } from '$lib/types/projects';
 
     $: currentProjectManager = $users?.find((u) => u.name === $project?.projectManager);
     $: projectManagerUserId = currentProjectManager?.id ?? 0;
@@ -40,7 +41,6 @@
                 <Select
                     class="select select-bordered w-full max-w-[50%]"
                     options={[
-                        { value: null, label: 'Select User' },
                         ...($users || [])
                             .filter((u) => u.role === UserRole.Publisher)
                             .map((u) => ({ value: u.id, label: u.name })),
@@ -59,12 +59,11 @@
         <ViewTabSlot title="Platform">
             <div>{$project?.projectPlatform ?? ''}</div>
         </ViewTabSlot>
-        {#if $project?.projectPlatform === 'Aquifer' && $users}
+        {#if $project?.projectPlatform === ProjectConstants.AQUIFER && $users}
             <ViewTabSlot title="Company Lead">
                 <Select
                     class="select select-bordered w-full max-w-[50%]"
                     options={[
-                        { value: null, label: 'Select User' },
                         ...($users || [])
                             .filter((u) => u.role === UserRole.Publisher || u.role === UserRole.Manager)
                             .map((u) => ({ value: u.id, label: u.name })),

@@ -50,9 +50,17 @@
                     "value": "Resource",
                     "_context": "The table header for the resource type column"
                 },
+                "languageHeader": {
+                    "value": "Language",
+                    "_context": "The table header for the resource language column"
+                },
                 "statusHeader": {
                     "value": "Status",
                     "_context": "The table header for the resource status column"
+                },
+                "publishedHeader": {
+                    "value": "Published",
+                    "_context": "The table header for the resource published column"
                 },
                 "statuses": {
                     "none": {

@@ -80,7 +80,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each filterUsers(userData, searchVal) as user}
+                        {#each filterUsers(userData, searchVal) as user (user.email)}
                             <tr>
                                 <td class="p-5">{user.name}</td>
                                 <td class="p-5">{user.email}</td>

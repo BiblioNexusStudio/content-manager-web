@@ -20,6 +20,7 @@ export interface ProjectTableColumn {
     name: string;
     label: string;
     sorted: boolean;
+    sortable: boolean;
 }
 
 export interface ProjectResouce {
@@ -48,4 +49,8 @@ export interface ProjectResponse {
     actualPublishDate?: string;
     counts: ProjectResourceStatusCounts;
     items: ProjectResouce[];
+}
+
+export enum ProjectConstants {
+    AQUIFER = 'Aquifer',
 }

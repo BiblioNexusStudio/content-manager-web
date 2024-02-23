@@ -6,7 +6,7 @@
     import type { ResourceAssignedToSelf } from './+page';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
     import { createListSorter } from '$lib/utils/sorting';
-    import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
+    import LinkedTableRow from '$lib/components/LinkedTableRow.svelte';
 
     const SORT_KEYS = {
         days: 'days',
@@ -55,28 +55,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {#if resourceContents.length === 0}
-                        <tr>
-                            <td colspan="4" class="text-center">Your work is all done!</td>
-                        </tr>
+                    {#each sortData(resourceContents, $searchParams.sort) as resource (resource.id)}
+                        <LinkedTableRow
+                            href={`/resources/${resource.id}`}
+                            cellValues={[
+                                resource.englishLabel,
+                                resource.parentResourceName,
+                                resource.daysSinceAssignment,
+                                resource.wordCount ?? '',
+                            ]}
+                        />
                     {:else}
-                        {#each sortData(resourceContents, $searchParams.sort) as resource}
-                            <tr>
-                                <LinkedTableCell href={`/resources/${resource.contentId}`}>
-                                    {resource.displayName}
-                                </LinkedTableCell>
-                                <LinkedTableCell href={`/resources/${resource.contentId}`}>
-                                    {resource.parentResourceName}
-                                </LinkedTableCell>
-                                <LinkedTableCell href={`/resources/${resource.contentId}`}>
-                                    {resource.daysSinceAssignment}
-                                </LinkedTableCell>
-                                <LinkedTableCell href={`/resources/${resource.contentId}`}>
-                                    {resource.wordCount}
-                                </LinkedTableCell>
-                            </tr>
-                        {/each}
-                    {/if}
+                        <tr>
+                            <td colspan="99" class="text-center">Your work is all done!</td>
+                        </tr>
+                    {/each}
                 </tbody>
             </table>
         </div>

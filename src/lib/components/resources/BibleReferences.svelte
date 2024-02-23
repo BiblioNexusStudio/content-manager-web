@@ -29,15 +29,13 @@
     <div class="px-4 py-2 text-xl font-medium">Bible References</div>
     <div class="h-full overflow-y-scroll rounded-lg bg-white p-4">
         <div class="flex w-full flex-col">
-            {#if bibleReferences.length > 0}
-                {#each bibleReferences as bibleReference}
-                    <div class="mb-4 flex w-full justify-between">
-                        <p class="font-bold">{generateVerseFromReference(bibleReference)}</p>
-                    </div>
-                {/each}
+            {#each bibleReferences as bibleReference, i (i)}
+                <div class="mb-4 flex w-full justify-between">
+                    <p class="font-bold">{generateVerseFromReference(bibleReference)}</p>
+                </div>
             {:else}
                 <EmptyMessage message="No bible references" />
-            {/if}
+            {/each}
         </div>
     </div>
 </div>

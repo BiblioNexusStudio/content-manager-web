@@ -53,12 +53,12 @@
     <tbody>
         {#if isLoading}
             <tr>
-                <td colspan="3">
+                <td colspan="99">
                     <CenteredSpinner />
                 </td>
             </tr>
         {:else}
-            {#each allContent as content}
+            {#each allContent as content (content.resourceId)}
                 <tr class="cursor-pointer" on:click={() => toggleSelectedId(content.resourceId)}>
                     <td><input type="checkbox" checked={selectedIds.has(content.resourceId)} class="checkbox" /></td>
                     <td>{content.title}</td>
@@ -67,7 +67,7 @@
             {:else}
                 {#if hasSearched}
                     <tr>
-                        <td colspan="3"><div class="text-center">No results</div></td>
+                        <td colspan="99"><div class="text-center">No results</div></td>
                     </tr>
                 {/if}
             {/each}
