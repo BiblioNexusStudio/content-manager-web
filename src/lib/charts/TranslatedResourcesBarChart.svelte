@@ -8,25 +8,27 @@
     export let resourcesByLanguage: ResourcesByLanguage[];
     export let totalsByMonth: TotalsByMonth[];
     export let languages: string[];
-    export let selectedLanguage: string;
+    export let selectedLanguages: string[];
     export let selectedResource: string;
     const months = totalsByMonth.map((item) => item.monthAbbreviation);
 
     let chart: Chart | undefined;
 
-    $: updateTranslatedResourcesChart(selectedLanguage, selectedResource);
+    $: updateTranslatedResourcesChart(selectedLanguages, selectedResource);
 
     const colors = ['#0174a3', '#00A3E0', '#BABABA', '#344054', '#1D2939'];
 
-    const updateTranslatedResourcesChart = (language: string, resource: string) => {
+    const updateTranslatedResourcesChart = (selectedLanguages: string[], resource: string) => {
         let resources = resourcesByLanguage;
 
-        if (language === defaultSelection && resource !== defaultSelection) {
+        if (selectedLanguages.length === 0 && resource !== defaultSelection) {
             resources = resources.filter((x) => x.parentResourceName === resource);
-        } else if (language !== defaultSelection && resource === defaultSelection) {
-            resources = resources.filter((x) => x.language === language);
-        } else if (language !== defaultSelection && resource !== defaultSelection) {
-            resources = resources.filter((x) => x.language === language && x.parentResourceName === resource);
+        } else if (selectedLanguages.length > 0 && resource === defaultSelection) {
+            resources = resources.filter((x) => selectedLanguages.includes(x.language));
+        } else if (selectedLanguages.length > 0 && resource !== defaultSelection) {
+            resources = resources.filter(
+                (x) => selectedLanguages.includes(x.language) && x.parentResourceName === resource
+            );
         }
 
         let langMonthGroup = resources.reduce(
@@ -40,7 +42,10 @@
             {} as { [monthLanguage: string]: ResourcesByLanguage[] }
         );
 
-        let translatedData = languages.map((x: string) => ({ label: x, data: [] as number[] }));
+        let translatedData = (selectedLanguages.length === 0 ? languages : selectedLanguages).map((x: string) => ({
+            label: x,
+            data: [] as number[],
+        }));
 
         for (let langMonth in langMonthGroup) {
             let group = langMonthGroup[langMonth];

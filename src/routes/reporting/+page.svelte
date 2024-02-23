@@ -9,6 +9,7 @@
     import { getReportingLinkData } from '$lib/utils/reporting';
     import ReportingLink from '$lib/components/reporting/ReportingLink.svelte';
     import ReportSummaryCard from '$lib/components/reporting/ReportSummaryCard.svelte';
+    import MultipleSelect from '$lib/components/MultipleSelect.svelte';
 
     export let data: PageData;
 
@@ -17,7 +18,7 @@
 
     const defaultSelection = 'default';
 
-    let selectedLanguage: string = defaultSelection;
+    let selectedLanguages: string[] = [];
     let selectedResource: string = defaultSelection;
 
     const reportingLinkData = getReportingLinkData();
@@ -41,21 +42,19 @@
                     { value: 'TranslatedResourcesBarChart', label: 'Translated Resources' },
                 ]}
             />
-            <div class="mb-6 mt-4">
+            <div class="mb-6 mt-4 flex flex-row space-x-2">
                 <span>
-                    <Select
-                        bind:value={selectedLanguage}
-                        class="select select-bordered me-2 w-auto bg-base-200"
-                        options={[
-                            { value: 'default', label: $translate('page.dashboard.dropdowns.allLanguages.value') },
-                            ...languages.map((l) => ({ value: l, label: l })),
-                        ]}
+                    <MultipleSelect
+                        label={$translate('page.dashboard.dropdowns.allLanguages.value')}
+                        bind:values={selectedLanguages}
+                        class="w-[15rem]"
+                        options={[...languages.map((l) => ({ value: l, label: l }))]}
                     />
                 </span>
                 <span>
                     <Select
                         bind:value={selectedResource}
-                        class="select select-bordered w-auto bg-base-200"
+                        class="select select-bordered w-auto"
                         options={[
                             { value: 'default', label: $translate('page.dashboard.dropdowns.allResources.value') },
                             ...summary.parentResourceNames.sort().map((l) => ({ value: l, label: l })),
@@ -66,7 +65,7 @@
             <div class="me-10 ms-5">
                 {#if selectedChart === 'TotalResourcesAreaChart'}
                     <TotalResourcesAreaChart
-                        {selectedLanguage}
+                        {selectedLanguages}
                         {selectedResource}
                         resourcesByLanguage={summary.resourcesByLanguage}
                         totalsByMonth={summary.totalsByMonth}
@@ -74,7 +73,7 @@
                     />
                 {:else if selectedChart === 'TranslatedResourcesBarChart'}
                     <TranslatedResourcesBarChart
-                        {selectedLanguage}
+                        {selectedLanguages}
                         {selectedResource}
                         resourcesByLanguage={summary.resourcesByLanguage}
                         totalsByMonth={summary.totalsByMonth}
