@@ -40,7 +40,7 @@
                 {#if $listbox.selected.length === 1}
                     <span class="flex items-center gap-1">{$listbox.selected[0].label}</span>
                 {:else if $listbox.selected.length === 0}
-                    <span class="flex items-center gap-1">Select Chapters</span>
+                    <span class="flex items-center gap-1">{label}</span>
                 {:else}
                     <span class="flex items-center gap-1">({$listbox.selected.length}) Selected</span>
                 {/if}

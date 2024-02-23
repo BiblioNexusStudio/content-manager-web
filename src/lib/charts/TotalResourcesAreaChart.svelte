@@ -8,16 +8,16 @@
     export let totalsByMonth: TotalsByMonth[];
     export let resourcesByLanguage: ResourcesByLanguage[];
     export let resourcesByType: ResourcesByParentResource[];
-    export let selectedLanguage: string;
+    export let selectedLanguages: string[];
     export let selectedResource: string;
     const months = totalsByMonth.map((item) => item.monthAbbreviation);
 
     let chart: Chart | undefined;
 
-    $: updateTotalResourcesChart(selectedLanguage, selectedResource);
+    $: updateTotalResourcesChart(selectedLanguages, selectedResource);
 
-    const updateTotalResourcesChart = (language: string, resource: string) => {
-        if (language === defaultSelection && resource !== defaultSelection) {
+    const updateTotalResourcesChart = (languages: string[], resource: string) => {
+        if (languages.length === 0 && resource !== defaultSelection) {
             let totals = resourcesByType.reduce((resources: TotalsByMonth[], r) => {
                 if (r.parentResourceName === resource) {
                     resources.push({
@@ -30,12 +30,12 @@
             }, []);
 
             updateChart(totals);
-        } else if (language !== defaultSelection) {
+        } else if (languages.length > 0) {
             let languageResources =
                 resource === defaultSelection
-                    ? resourcesByLanguage.filter((resource) => resource.language === language)
+                    ? resourcesByLanguage.filter((resource) => languages.includes(resource.language))
                     : resourcesByLanguage.filter(
-                          (item) => item.language === language && item.parentResourceName === resource
+                          (item) => languages.includes(item.language) && item.parentResourceName === resource
                       );
 
             let monthGroup = languageResources.reduce(

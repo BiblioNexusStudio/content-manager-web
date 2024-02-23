@@ -172,7 +172,7 @@
             <div class="my-4 flex flex-1 flex-col space-y-2 overflow-y-scroll">
                 <div class="rounded-lg border border-secondary p-2">
                     <TotalResourcesAreaChart
-                        selectedLanguage="default"
+                        selectedLanguages={[]}
                         selectedResource="default"
                         resourcesByLanguage={reportingSummary.resourcesByLanguage}
                         totalsByMonth={reportingSummary.totalsByMonth}
@@ -181,7 +181,7 @@
                 </div>
                 <div class="rounded-lg border border-secondary p-2">
                     <TranslatedResourcesBarChart
-                        selectedLanguage="default"
+                        selectedLanguages={[]}
                         selectedResource="default"
                         resourcesByLanguage={reportingSummary.resourcesByLanguage}
                         totalsByMonth={reportingSummary.totalsByMonth}
