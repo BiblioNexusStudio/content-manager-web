@@ -9,7 +9,7 @@
     import type { ResourceContent } from '$lib/types/resources';
     import { Permission, userCan } from '$lib/stores/auth';
 
-    export let contentVersionId: string;
+    export let contentVersionId: number;
     export let resourceContent: ResourceContent;
     export let wordCount: number | null;
     export let isPublished: boolean;

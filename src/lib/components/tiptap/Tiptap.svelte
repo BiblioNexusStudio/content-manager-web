@@ -32,7 +32,7 @@
     import type { ComponentType } from 'svelte';
     import TextDirection from 'tiptap-text-direction';
 
-    export let contentVersionId: string;
+    export let contentVersionId: number;
     export let hasSteps = false;
     export let canEdit: boolean;
 

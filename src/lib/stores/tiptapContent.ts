@@ -2,19 +2,13 @@
 import type { JSONContent } from '@tiptap/core';
 import type { ResourceContent } from '$lib/types/resources';
 
-export const originalValues: Writable<Record<string, TiptapContentValues>> = writable({});
+export const originalValues: Writable<Record<number, TiptapContentValues>> = writable({});
 
-export const updatedValues: Writable<Record<string, TiptapContentValues>> = writable({});
+export const updatedValues: Writable<Record<number, TiptapContentValues>> = writable({});
 
 export const currentStepNumber: Writable<number> = writable(1, (set) => set(1));
 
-// This is to give a unique id to each content version for now, until we can update the API
-// to send the real content version down
-export function fakeContentVersionId(resourceContent: ResourceContent, versionIndex: number) {
-    return `${resourceContent.resourceContentId}.${versionIndex}`;
-}
-
-export const updateValues = (contentVersionId: string, values: TiptapContentValues) => {
+export const updateValues = (contentVersionId: number, values: TiptapContentValues) => {
     updatedValues.update((existing) => ({
         ...existing,
         [contentVersionId]: { ...existing[contentVersionId], ...values },
@@ -24,9 +18,9 @@ export const updateValues = (contentVersionId: string, values: TiptapContentValu
 export const setOriginalValues = (resourceContent: ResourceContent) => {
     originalValues.set(
         Object.fromEntries(
-            resourceContent.contentVersions.map((version, index) => {
+            resourceContent.contentVersions.map((version) => {
                 return [
-                    fakeContentVersionId(resourceContent, index),
+                    version.id,
                     {
                         displayName: version.displayName,
                         content: version.content as unknown as TiptapContentItemValues[],
@@ -37,9 +31,9 @@ export const setOriginalValues = (resourceContent: ResourceContent) => {
     );
     updatedValues.set(
         Object.fromEntries(
-            resourceContent.contentVersions.map((version, index) => {
+            resourceContent.contentVersions.map((version) => {
                 return [
-                    fakeContentVersionId(resourceContent, index),
+                    version.id,
                     {
                         displayName: version.displayName,
                         content: version.content as unknown as TiptapContentItemValues[],
@@ -51,7 +45,7 @@ export const setOriginalValues = (resourceContent: ResourceContent) => {
 };
 
 export const setUpdatedTiptapAndWordCountsByIndex = (
-    contentVersionId: string,
+    contentVersionId: number,
     index: number,
     newTiptapJson: JSONContent,
     newWordCount: number
@@ -74,7 +68,7 @@ export const setUpdatedTiptapAndWordCountsByIndex = (
 };
 
 export const setOriginalTiptapAndWordCountsByIndex = (
-    contentVersionId: string,
+    contentVersionId: number,
     index: number,
     newTiptapJson: JSONContent,
     newWordCount: number
@@ -96,7 +90,7 @@ export const setOriginalTiptapAndWordCountsByIndex = (
     });
 };
 
-export const updateOriginal = (contentVersionId: string) => {
+export const updateOriginal = (contentVersionId: number) => {
     originalValues.update((existing) => ({
         ...existing,
         [contentVersionId]: { ...existing[contentVersionId], ...get(updatedValues)[contentVersionId] },
