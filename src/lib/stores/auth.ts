@@ -3,13 +3,13 @@ import { Auth0Client, createAuth0Client, User as Auth0User } from '@auth0/auth0-
 import config from '$lib/config';
 import { log } from '$lib/logger';
 import { dev } from '$app/environment';
-import type { CurrentUser } from '$lib/types/base';
+import type { CurrentUser, UserRole } from '$lib/types/base';
 
 export let auth0Client: Auth0Client | undefined = undefined;
 export const profile: Writable<Auth0User | undefined> = writable(undefined);
 export const isAuthenticatedStore: Writable<boolean | undefined> = writable(undefined);
 
-const currentUser: Writable<CurrentUser | null> = writable(null);
+export const currentUser: Writable<CurrentUser | null> = writable(null);
 
 export function setCurrentUser(user: CurrentUser | null) {
     currentUser.set(user);
@@ -17,6 +17,10 @@ export function setCurrentUser(user: CurrentUser | null) {
 
 export const userCan = derived(currentUser, (user) => {
     return (permission: Permission) => !!user?.permissions.includes(permission);
+});
+
+export const userHasRole = derived(currentUser, (user) => {
+    return (role: UserRole | undefined) => role !== undefined && !!user?.roles.includes(role);
 });
 
 export const userIsInCompany = derived(currentUser, (user) => {
