@@ -32,7 +32,13 @@
                         <Icon data={getIcon(resource.mediaTypes[0])} scale={3} />
                     </div>
                     <div class="ms-4 flex flex-col">
-                        <span class="font-bold">{resource.englishLabel}</span>
+                        {#if resource.contentId}
+                            <a href={`/resources/${resource.contentId}`} class="font-bold text-primary"
+                                >{resource.englishLabel}</a
+                            >
+                        {:else}
+                            <span class="font-bold">{resource.englishLabel}</span>
+                        {/if}
                         <span>{resource.parentResourceName}</span>
                     </div>
                 </div>
