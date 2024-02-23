@@ -78,7 +78,7 @@ export interface ContentItem {
 export interface AssociatedResource {
     mediaTypes: MediaTypeEnum[];
     parentResourceName: string;
-    label: string;
+    englishLabel: string;
 }
 
 export interface ResourceContentAssignedUser {
@@ -96,6 +96,7 @@ export interface ContentTranslation {
 }
 
 export interface ResourceContent {
+    englishLabel: string;
     passageReferences: PassageReference[];
     verseReferences: VerseReference[];
     associatedResources: AssociatedResource[];

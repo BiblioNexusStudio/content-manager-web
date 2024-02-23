@@ -17,16 +17,22 @@
     }
 
     const SORT_KEYS = {
+        title: 'title',
+        language: 'language',
         days: 'days',
         wordCount: 'word-count',
     };
 
     const sortAssignedData = createListSorter<ResourceAssignedToSelf>({
+        [SORT_KEYS.title]: 'englishLabel',
+        [SORT_KEYS.language]: 'languageEnglishDisplay',
         [SORT_KEYS.days]: 'daysSinceAssignment',
         [SORT_KEYS.wordCount]: 'wordCount',
     });
 
     const sortPendingData = createListSorter<ResourcePendingReview>({
+        [SORT_KEYS.title]: 'englishLabel',
+        [SORT_KEYS.language]: 'languageEnglishDisplay',
         [SORT_KEYS.days]: 'daysSinceStatusChange',
         [SORT_KEYS.wordCount]: 'wordCount',
     });
@@ -38,11 +44,11 @@
         tab: ssp.string(Tab.myWork),
     });
 
-    $: pendingReviewContentsPromise = unwrapStreamedData(data.publisherDashboard!.pendingReviewResourceContent);
+    $: reviewPendingContentsPromise = unwrapStreamedData(data.publisherDashboard!.reviewPendingResourceContent);
     $: assignedContentsPromise = unwrapStreamedData(data.publisherDashboard!.assignedResourceContent);
     $: reportingSummaryPromise = unwrapStreamedData(data.publisherDashboard!.reportingSummary);
 
-    $: allDataPromise = Promise.all([assignedContentsPromise, pendingReviewContentsPromise, reportingSummaryPromise]);
+    $: allDataPromise = Promise.all([assignedContentsPromise, reviewPendingContentsPromise, reportingSummaryPromise]);
 
     let scrollingDiv: HTMLDivElement | undefined;
     $: $searchParams.sort && scrollingDiv && (scrollingDiv.scrollTop = 0);
@@ -50,7 +56,7 @@
 
 {#await allDataPromise}
     <CenteredSpinner />
-{:then [assignedContents, pendingReviewContents, reportingSummary]}
+{:then [assignedContents, reviewPendingContents, reportingSummary]}
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Publisher Dashboard</h1>
         <div role="tablist" class="tabs tabs-bordered w-fit pt-4">
@@ -64,7 +70,7 @@
                 on:click={() => ($searchParams.tab = Tab.reviewPending)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.reviewPending && 'tab-active'}"
-                >Review Pending ({pendingReviewContents.length})</button
+                >Review Pending ({reviewPendingContents.length})</button
             >
         </div>
         <div class="flex flex-row space-x-4 overflow-y-hidden">
@@ -73,8 +79,18 @@
                     {#if $searchParams.tab === Tab.myWork}
                         <thead>
                             <tr class="bg-base-200">
-                                <th>Title</th>
+                                <SortingTableHeaderCell
+                                    text="Title"
+                                    sortKey={SORT_KEYS.title}
+                                    bind:currentSort={$searchParams.sort}
+                                />
                                 <th>Resource</th>
+                                <SortingTableHeaderCell
+                                    text="Language"
+                                    sortKey={SORT_KEYS.language}
+                                    bind:currentSort={$searchParams.sort}
+                                />
+                                <th>Status</th>
                                 <SortingTableHeaderCell
                                     text="Days"
                                     sortKey={SORT_KEYS.days}
@@ -93,18 +109,24 @@
                                     <td colspan="4" class="text-center">Your work is all done!</td>
                                 </tr>
                             {:else}
-                                {#each sortAssignedData(assignedContents, $searchParams.sort) as resource (resource.contentId)}
+                                {#each sortAssignedData(assignedContents, $searchParams.sort) as resource (resource.id)}
                                     <tr>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
-                                            {resource.displayName}
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
+                                            {resource.englishLabel}
                                         </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
                                             {resource.parentResourceName}
                                         </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
+                                            {resource.languageEnglishDisplay}
+                                        </LinkedTableCell>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
+                                            {resource.status}
+                                        </LinkedTableCell>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
                                             {resource.daysSinceAssignment}
                                         </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
                                             {resource.wordCount}
                                         </LinkedTableCell>
                                     </tr>
@@ -114,9 +136,17 @@
                     {:else if $searchParams.tab === Tab.reviewPending}
                         <thead>
                             <tr class="bg-base-200">
-                                <th>Title</th>
+                                <SortingTableHeaderCell
+                                    text="Title"
+                                    sortKey={SORT_KEYS.title}
+                                    bind:currentSort={$searchParams.sort}
+                                />
                                 <th>Resource</th>
-                                <th>Assigned</th>
+                                <SortingTableHeaderCell
+                                    text="Language"
+                                    sortKey={SORT_KEYS.language}
+                                    bind:currentSort={$searchParams.sort}
+                                />
                                 <SortingTableHeaderCell
                                     text="Days"
                                     sortKey={SORT_KEYS.days}
@@ -130,26 +160,26 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {#if pendingReviewContents.length === 0}
+                            {#if reviewPendingContents.length === 0}
                                 <tr>
                                     <td colspan="4" class="text-center">No items pending review.</td>
                                 </tr>
                             {:else}
-                                {#each sortPendingData(pendingReviewContents, $searchParams.sort) as resource (resource.contentId)}
+                                {#each sortPendingData(reviewPendingContents, $searchParams.sort) as resource (resource.id)}
                                     <tr>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
-                                            {resource.displayName}
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
+                                            {resource.englishLabel}
                                         </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
                                             {resource.parentResourceName}
                                         </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
-                                            {resource.assignedUserName ?? ''}
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
+                                            {resource.languageEnglishDisplay}
                                         </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
                                             {resource.daysSinceStatusChange}
                                         </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.contentId}`}>
+                                        <LinkedTableCell href={`/resources/${resource.id}`}>
                                             {resource.wordCount}
                                         </LinkedTableCell>
                                     </tr>

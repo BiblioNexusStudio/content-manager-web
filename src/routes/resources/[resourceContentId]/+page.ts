@@ -6,7 +6,7 @@ export const load: PageLoad = async ({ params, fetch }) => {
     return {
         resourceContentId: params.resourceContentId,
         streamedResourceContent: fetchJsonStreamingFromApi<ResourceContent>(
-            `/admin/resources/content/summary/${params.resourceContentId}`,
+            `/resources/content/${params.resourceContentId}`,
             {},
             fetch
         ),

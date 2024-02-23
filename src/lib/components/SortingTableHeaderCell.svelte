@@ -18,8 +18,8 @@
 <th class="cursor-pointer select-none" on:click={toggleSort}>
     {text}
     {#if determineCaret(sortKey, currentSort) === ''}
-        <span class="invisible">↑</span>
+        <span class="text-sm opacity-50">↓</span>
     {:else}
-        <span>{determineCaret(sortKey, currentSort)}</span>
+        <span class="text-sm text-gray-700">{determineCaret(sortKey, currentSort)}</span>
     {/if}
 </th>

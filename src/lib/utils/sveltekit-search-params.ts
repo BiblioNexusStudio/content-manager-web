@@ -245,3 +245,21 @@ export function searchParameters<T extends object>(
         },
     };
 }
+
+interface Param {
+    key: string;
+    value: string | number;
+    ignoreIfEquals?: string | number;
+}
+
+export function buildQueryString(params: Param[]): string {
+    const searchParams = new URLSearchParams();
+
+    params.forEach(({ key, value, ignoreIfEquals }) => {
+        if (value !== ignoreIfEquals) {
+            searchParams.append(key, value.toString());
+        }
+    });
+
+    return searchParams.toString();
+}
