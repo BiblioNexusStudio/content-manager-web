@@ -1,12 +1,12 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import { fetchJsonFromApiWithAuth, unwrapStreamedData } from '$lib/utils/http-service';
+    import { unwrapStreamedData } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { _ as translate } from 'svelte-i18n';
     import { UserRole, type User } from '$lib/types/base';
     import NewUserModal from '$lib/components/users/NewUserModal.svelte';
     import { get } from 'svelte/store';
-    import { currentUser, userHasRole } from '$lib/stores/auth';
+    import { Permission, currentUser, userCan } from '$lib/stores/auth';
 
     export let data: PageData;
 
@@ -15,7 +15,7 @@
     $: allDataPromise = Promise.all([userDataPromise, companiesPromise]);
     let searchInputVal: string | undefined;
 
-    const userIsManager = get(userHasRole)(UserRole.Manager);
+    const userIsManager = get(userCan)(Permission.ReadUsers) && !get(userCan)(Permission.ReadAllUsers);
 
     $: searchVal = searchInputVal;
     const filterUsers = (users: User[], sortVal?: string) => {
@@ -28,22 +28,6 @@
 
     async function openModal() {
         isModalOpen = true;
-    }
-
-    async function save(email: string, firstName: string, lastname: string, role: UserRole, companyId: number) {
-        const user = await fetchJsonFromApiWithAuth<{ id: number }>('/users/create', {
-            method: 'POST',
-            body: {
-                email,
-                firstName,
-                lastname,
-                role,
-                companyId,
-            },
-        });
-        if (!user) {
-            throw new Error('No user created');
-        }
     }
 </script>
 
@@ -99,6 +83,5 @@
         roles={userIsManager ? [UserRole.Editor] : roles}
         header="Add User"
         bind:open={isModalOpen}
-        primaryButtonOnClick={save}
     />
 {/await}

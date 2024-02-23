@@ -3,12 +3,10 @@
     import Select from '$lib/components/Select.svelte';
     import type { Company, UserRole } from '$lib/types/base';
     import type { HttpError } from '@sveltejs/kit';
+    import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
 
     export let open: boolean;
     export let header: string;
-    export let primaryButtonOnClick:
-        | ((email: string, firstName: string, lastname: string, role: UserRole, companyId: number) => void)
-        | undefined = undefined;
     export let companies: Company[] | Company | undefined;
     export let roles: UserRole[];
 
@@ -29,24 +27,59 @@
             : [companies]
         : [{ id: -1, name: 'You are not part of a company' }];
 
-    $: canSave = !!firstName && !!lastName && !!email && email.includes('@') && !!companyId && !!role;
+    $: canSave =
+        !!firstName &&
+        !!lastName &&
+        !!email &&
+        email.includes('@') &&
+        inputCheck([firstName, lastName]) &&
+        !!companyId &&
+        !!role;
+
+    function inputCheck(input: string[]) {
+        var pass = true;
+        input.forEach((i) => {
+            if (!(i.length > 3 && i.length <= 65)) {
+                pass = false;
+            }
+        });
+        return pass;
+    }
 
     function close() {
         open = false;
     }
 
     $: isSaving;
-    function handlePrimaryClick() {
+    async function handlePrimaryClick() {
         isSaving = true;
         try {
-            primaryButtonOnClick?.(email, firstName, lastName, role!, companyId!);
+            const user = await fetchJsonFromApiWithAuth<{ id: number }>('/users/create', {
+                method: 'POST',
+                body: {
+                    email,
+                    firstName,
+                    lastName,
+                    role,
+                    companyId,
+                },
+            });
+            if (!user) {
+                throw new Error('No user created');
+            }
+            errorMessage = null;
         } catch (error) {
-            if ((error as HttpError)?.body?.message) {
-                errorMessage = (error as HttpError).body.message;
+            // TODO: make this less hacky, need a better way to propagate errors and parse the message instead of this `includes`
+            if ((error as HttpError)?.body?.message.includes('Unauthorized')) {
+                errorMessage = 'You are not authorized';
+            } else {
+                errorMessage = 'An error occurred.';
             }
         } finally {
             isSaving = false;
-            open = false;
+            if (!errorMessage) {
+                open = false;
+            }
         }
     }
 </script>
@@ -112,7 +145,7 @@
         </div>
         <div class="flex w-full flex-row justify-end pr-4">
             {#if errorMessage}
-                <div class="text-error">{errorMessage}</div>
+                <div class="pr-2 text-error">{errorMessage}</div>
             {/if}
             <button class="btn btn-primary" on:click={handlePrimaryClick} disabled={!canSave}
                 >{#if isSaving}
