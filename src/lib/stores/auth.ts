@@ -47,6 +47,7 @@ export enum Permission {
     ReadUsers = 'read:users',
     ReviewContent = 'review:content',
     SendReviewContent = 'send-review:content',
+    ReadCompanyContentAssignments = 'read:company-content-assignments',
 }
 
 export interface CurrentUserHydrated extends CurrentUser, MissingUserWithFunctions {}

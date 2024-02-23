@@ -6,10 +6,10 @@
     import type { ResourceAssignedToSelf } from './+page';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
     import { createListSorter } from '$lib/utils/sorting';
-    import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import type { ResourcePendingReview } from './proxy+page';
     import TranslatedResourcesBarChart from '$lib/charts/TranslatedResourcesBarChart.svelte';
     import TotalResourcesAreaChart from '$lib/charts/TotalResourcesAreaChart.svelte';
+    import LinkedTableRow from '$lib/components/LinkedTableRow.svelte';
 
     enum Tab {
         myWork = 'my-work',
@@ -59,7 +59,7 @@
 {:then [assignedContents, reviewPendingContents, reportingSummary]}
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Publisher Dashboard</h1>
-        <div role="tablist" class="tabs tabs-bordered w-fit pt-4">
+        <div role="tablist" class="tabs-bordered tabs w-fit pt-4">
             <button
                 on:click={() => ($searchParams.tab = Tab.myWork)}
                 role="tab"
@@ -104,34 +104,23 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {#if assignedContents.length === 0}
-                                <tr>
-                                    <td colspan="4" class="text-center">Your work is all done!</td>
-                                </tr>
+                            {#each sortAssignedData(assignedContents, $searchParams.sort) as resource (resource.id)}
+                                <LinkedTableRow
+                                    href={`/resources/${resource.id}`}
+                                    cellValues={[
+                                        resource.englishLabel,
+                                        resource.parentResourceName,
+                                        resource.languageEnglishDisplay,
+                                        resource.status,
+                                        resource.daysSinceAssignment,
+                                        resource.wordCount ?? '',
+                                    ]}
+                                />
                             {:else}
-                                {#each sortAssignedData(assignedContents, $searchParams.sort) as resource (resource.id)}
-                                    <tr>
-                                        <LinkedTableCell href={`/resources/${resource.id}`}>
-                                            {resource.englishLabel}
-                                        </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.id}`}>
-                                            {resource.parentResourceName}
-                                        </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.id}`}>
-                                            {resource.languageEnglishDisplay}
-                                        </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.id}`}>
-                                            {resource.status}
-                                        </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.id}`}>
-                                            {resource.daysSinceAssignment}
-                                        </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.id}`}>
-                                            {resource.wordCount}
-                                        </LinkedTableCell>
-                                    </tr>
-                                {/each}
-                            {/if}
+                                <tr>
+                                    <td colspan="99" class="text-center">Your work is all done!</td>
+                                </tr>
+                            {/each}
                         </tbody>
                     {:else if $searchParams.tab === Tab.reviewPending}
                         <thead>
@@ -160,31 +149,22 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {#if reviewPendingContents.length === 0}
-                                <tr>
-                                    <td colspan="4" class="text-center">No items pending review.</td>
-                                </tr>
+                            {#each sortPendingData(reviewPendingContents, $searchParams.sort) as resource (resource.id)}
+                                <LinkedTableRow
+                                    href={`/resources/${resource.id}`}
+                                    cellValues={[
+                                        resource.englishLabel,
+                                        resource.parentResourceName,
+                                        resource.languageEnglishDisplay,
+                                        resource.daysSinceStatusChange,
+                                        resource.wordCount ?? '',
+                                    ]}
+                                />
                             {:else}
-                                {#each sortPendingData(reviewPendingContents, $searchParams.sort) as resource (resource.id)}
-                                    <tr>
-                                        <LinkedTableCell href={`/resources/${resource.id}`}>
-                                            {resource.englishLabel}
-                                        </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.id}`}>
-                                            {resource.parentResourceName}
-                                        </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.id}`}>
-                                            {resource.languageEnglishDisplay}
-                                        </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.id}`}>
-                                            {resource.daysSinceStatusChange}
-                                        </LinkedTableCell>
-                                        <LinkedTableCell href={`/resources/${resource.id}`}>
-                                            {resource.wordCount}
-                                        </LinkedTableCell>
-                                    </tr>
-                                {/each}
-                            {/if}
+                                <tr>
+                                    <td colspan="99" class="text-center">No items pending review.</td>
+                                </tr>
+                            {/each}
                         </tbody>
                     {/if}
                 </table>
