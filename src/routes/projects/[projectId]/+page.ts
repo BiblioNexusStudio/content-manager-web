@@ -19,6 +19,6 @@ export const load: PageLoad = async ({ fetch, params, parent }) => {
         ) as StreamedData<ProjectResponse>;
         return { projectResponse };
     } else {
-        throw redirect(301, '/');
+        throw redirect(302, '/');
     }
 };

@@ -25,6 +25,6 @@ export const load: PageLoad = async ({ fetch, parent }) => {
         ) as StreamedData<ResourceItemsSummary>;
         return { summary, resourceItemsSummary };
     } else {
-        throw redirect(301, '/');
+        throw redirect(302, '/');
     }
 };

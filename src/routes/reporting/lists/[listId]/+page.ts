@@ -25,6 +25,6 @@ export const load: PageLoad = async ({ params, fetch, parent }) => {
             listId,
         };
     } else {
-        throw redirect(301, '/');
+        throw redirect(302, '/');
     }
 };
