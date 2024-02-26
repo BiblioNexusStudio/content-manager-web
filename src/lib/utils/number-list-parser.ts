@@ -36,10 +36,6 @@ export function parseStartAndEndFromSingleOrRangeString(
 ): { start: number; end: number } {
     input = input.trim().toLowerCase();
 
-    if (input === 'all') {
-        return { start: min, end: max };
-    }
-
     if (input.includes('-')) {
         let [start, end] = input.split('-').map(Number);
         if (start && end) {
@@ -59,7 +55,7 @@ export function parseStartAndEndFromSingleOrRangeString(
 
 export function numbersRangeToString(start: number, end: number, min: number, max: number): string {
     if (start === min && end === max) {
-        return 'all';
+        return '';
     }
 
     if (start > end || start < min || end < min) {
