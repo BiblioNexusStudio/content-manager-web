@@ -26,6 +26,8 @@
     let parentResourceId = $searchParams.resourceId;
     let bookCode = $searchParams.bookCode === '' ? null : $searchParams.bookCode;
     let isPublished = $searchParams.isPublished === '' ? null : $searchParams.isPublished;
+    let publishedChecked = isPublished === null || isPublished === 'true';
+    let unpublishedChecked = isPublished === null || isPublished === 'false';
 
     let chapterRange = numbersRangeToString(
         $searchParams.startChapter,
@@ -37,7 +39,13 @@
     let isInitialResourcePerPage = true;
 
     $: canApplyFilters =
-        !!searchInputValue || languageId > 0 || parentResourceId > 0 || !!bookCode || !!chapterRange || !!isPublished;
+        !!searchInputValue ||
+        languageId > 0 ||
+        parentResourceId > 0 ||
+        !!bookCode ||
+        !!chapterRange ||
+        !publishedChecked ||
+        !unpublishedChecked;
 
     $: {
         // track whether resourcePerPage has changed
@@ -61,7 +69,7 @@
             $searchParams.bookCode = bookCode || '';
             $searchParams.startChapter = start;
             $searchParams.endChapter = end;
-            $searchParams.isPublished = isPublished || '';
+            $searchParams.isPublished = !publishedChecked ? 'false' : !unpublishedChecked ? 'true' : '';
         }
     }
 
@@ -111,15 +119,30 @@
             class="input input-bordered input-md w-[9rem]"
             placeholder="Chapter Range"
         />
-        <Select
-            bind:value={isPublished}
-            class="select select-bordered"
-            options={[
-                { value: null, label: 'Published' },
-                { value: 'true', label: 'Yes' },
-                { value: 'false', label: 'No' },
-            ]}
-        />
+        <div class="flex flex-col justify-between">
+            <div class="form-control">
+                <label class="label cursor-pointer py-0">
+                    <span class="label-text text-xs">Published</span>
+                    <input
+                        disabled={!unpublishedChecked}
+                        type="checkbox"
+                        bind:checked={publishedChecked}
+                        class="checkbox checkbox-sm ms-2"
+                    />
+                </label>
+            </div>
+            <div class="form-control">
+                <label class="label cursor-pointer py-0">
+                    <span class="label-text text-xs">Unpublished</span>
+                    <input
+                        disabled={!publishedChecked}
+                        type="checkbox"
+                        bind:checked={unpublishedChecked}
+                        class="checkbox checkbox-sm ms-2"
+                    />
+                </label>
+            </div>
+        </div>
         <input
             bind:value={searchInputValue}
             use:enterKeyHandler={applyFilters}
