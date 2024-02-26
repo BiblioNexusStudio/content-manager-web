@@ -12,12 +12,16 @@
 
     let dialog: HTMLDialogElement;
     let firstName: string;
+    let firstNameErr: string | null = null;
     let lastName: string;
+    let lastNameErr: string | null = null;
     let email: string;
+    let emailErr: string | null = null;
     let companyId: number | null = null;
     let role: UserRole | null = null;
     let isSaving = false;
     let errorMessage: string | null = null;
+    const inputMinCharErrMessage = 'Please enter at least 3 characters';
 
     $: dialog ? (open ? dialog.showModal() : dialog.close()) : null;
 
@@ -27,23 +31,24 @@
             : [companies]
         : [{ id: -1, name: 'You are not part of a company' }];
 
-    $: canSave =
-        !!firstName &&
-        !!lastName &&
-        !!email &&
-        email.includes('@') &&
-        inputCheck([firstName, lastName]) &&
-        !!companyId &&
-        !!role;
+    $: canSave = !!firstName && !!lastName && !!email && !!companyId && !!role;
 
-    function inputCheck(input: string[]) {
-        var pass = true;
-        input.forEach((i) => {
-            if (!(i.length > 3 && i.length <= 65)) {
-                pass = false;
-            }
-        });
-        return pass;
+    function validateLength(input: string) {
+        if (!(input.length >= 3)) {
+            errorMessage = 'Input validation failed';
+            canSave = false;
+            return false;
+        }
+        return true;
+    }
+
+    function validateEmail() {
+        if (!email.includes('@')) {
+            canSave = false;
+            errorMessage = 'Input validation failed';
+            return false;
+        }
+        return true;
     }
 
     function close() {
@@ -53,27 +58,36 @@
     $: isSaving;
     async function handlePrimaryClick() {
         isSaving = true;
+        !validateLength(firstName) ? (firstNameErr = inputMinCharErrMessage) : (firstNameErr = null);
+        !validateLength(lastName) ? (lastNameErr = inputMinCharErrMessage) : (lastNameErr = null);
+        !validateEmail() ? (emailErr = 'Must be a valid email') : (emailErr = null);
+
         try {
-            const user = await fetchJsonFromApiWithAuth<{ id: number }>('/users/create', {
-                method: 'POST',
-                body: {
-                    email,
-                    firstName,
-                    lastName,
-                    role,
-                    companyId,
-                },
-            });
-            if (!user) {
-                throw new Error('No user created');
+            if (canSave) {
+                const user = await fetchJsonFromApiWithAuth<{ id: number }>('/users/create', {
+                    method: 'POST',
+                    body: {
+                        email,
+                        firstName,
+                        lastName,
+                        role,
+                        companyId,
+                    },
+                });
+                if (!user) {
+                    throw new Error('No user created');
+                }
+                errorMessage = null;
             }
-            errorMessage = null;
         } catch (error) {
             // TODO: make this less hacky, need a better way to propagate errors and parse the message instead of this `includes`
             if ((error as HttpError)?.body?.message.includes('Unauthorized')) {
                 errorMessage = 'You are not authorized';
+            } else if ((error as HttpError)?.body?.message.includes('The user already exists.')) {
+                errorMessage = 'User with that email already exists';
             } else {
-                errorMessage = 'An error occurred.';
+                console.log(error);
+                errorMessage = 'User creation failed';
             }
         } finally {
             isSaving = false;
@@ -102,17 +116,36 @@
 
         <div class="flex flex-col p-10">
             <div class="flex flex-col p-2">
-                <div class="text-md">First Name <span class="text-error">*</span></div>
+                <div class="text-md flex flex-row justify-between">
+                    <div>First Name <span class="text-error">*</span></div>
+                    {#if firstNameErr}
+                        <div class="text-error">{firstNameErr}</div>
+                    {/if}
+                </div>
                 <div class="flex-grow"></div>
-                <input class="input input-bordered max-h-[50%] w-full" bind:value={firstName} />
+                <input
+                    class="input input-bordered max-h-[50%] w-full"
+                    bind:value={firstName}
+                    on:input={() => (firstNameErr = null)}
+                />
             </div>
             <div class="flex flex-col p-2">
-                <div class="text-md">Last Name <span class="text-error">*</span></div>
+                <div class="text-md flex flex-row justify-between">
+                    <div>Last Name <span class="text-error">*</span></div>
+                    {#if lastNameErr}
+                        <div class="text-error">{lastNameErr}</div>
+                    {/if}
+                </div>
                 <div class="flex-grow"></div>
                 <input class="input input-bordered max-h-[50%] w-full" bind:value={lastName} />
             </div>
             <div class="flex flex-col p-2">
-                <div class="text-md">Email <span class="text-error">*</span></div>
+                <div class="text-md flex flex-row justify-between">
+                    <div>Email <span class="text-error">*</span></div>
+                    {#if emailErr}
+                        <div class="text-error">{emailErr}</div>
+                    {/if}
+                </div>
                 <div class="flex-grow"></div>
                 <input type="email" class="input input-bordered max-h-[50%] w-full" bind:value={email} />
             </div>
@@ -131,7 +164,9 @@
                 />
             </div>
             <div class="flex flex-col border-b p-2 pb-4">
-                <div class="text-md">Role <span class="text-error">*</span></div>
+                <div class="text-md">
+                    Role <span class="text-error">*</span>
+                </div>
                 <Select
                     class="select select-bordered w-full"
                     options={[
@@ -145,7 +180,7 @@
         </div>
         <div class="flex w-full flex-row justify-end pr-4">
             {#if errorMessage}
-                <div class="pr-2 text-error">{errorMessage}</div>
+                <div class="pr-2 pt-2 text-error">{errorMessage}</div>
             {/if}
             <button class="btn btn-primary" on:click={handlePrimaryClick} disabled={!canSave}
                 >{#if isSaving}
