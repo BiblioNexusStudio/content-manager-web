@@ -18,6 +18,6 @@ export const load: PageLoad = async ({ fetch, parent }) => {
         >;
         return { projectListResponse };
     } else {
-        throw redirect(301, '/');
+        throw redirect(302, '/');
     }
 };
