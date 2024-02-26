@@ -1,6 +1,6 @@
 import type { PageLoad } from './$types';
-import { fetchJsonFromApiWithAuth, fetchJsonStreamingFromApi } from '$lib/utils/http-service';
-import type { Bible, ResourceContentStatusEnum } from '$lib/types/base';
+import { fetchJsonStreamingFromApi } from '$lib/utils/http-service';
+import type { ResourceContentStatusEnum } from '$lib/types/base';
 import { ssp, searchParametersForLoad, buildQueryString } from '$lib/utils/sveltekit-search-params';
 import { get } from 'svelte/store';
 import { resourcesPerPage } from '$lib/stores/resources';
@@ -16,11 +16,8 @@ export const _searchParamsConfig = {
     query: ssp.string(''),
 };
 
-export const load: PageLoad = async ({ url, fetch, parent }) => {
-    const { languages } = await parent();
-
+export const load: PageLoad = async ({ url, fetch }) => {
     const searchParams = searchParametersForLoad(url, _searchParamsConfig);
-    const englishLanguageId = languages?.find((l) => l.iso6393Code === 'eng')?.id;
 
     return {
         streamedResourceContentData: getResourceContents(
@@ -35,7 +32,6 @@ export const load: PageLoad = async ({ url, fetch, parent }) => {
             searchParams.isPublished,
             searchParams.query
         ),
-        bibles: await fetchJsonFromApiWithAuth<Bible[]>(`/bibles/language/${englishLanguageId}`, {}, fetch),
     };
 };
 
