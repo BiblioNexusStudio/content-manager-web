@@ -9,7 +9,7 @@ export let auth0Client: Auth0Client | undefined = undefined;
 export const profile: Writable<Auth0User | undefined> = writable(undefined);
 export const isAuthenticatedStore: Writable<boolean | undefined> = writable(undefined);
 
-const currentUser: Writable<CurrentUser | null> = writable(null);
+export const currentUser: Writable<CurrentUser | null> = writable(null);
 
 export function setCurrentUser(user: CurrentUser | null) {
     currentUser.set(user);
@@ -39,12 +39,15 @@ export enum Permission {
     AssignOverride = 'assign:override',
     CreateContent = 'create:content',
     CreateProject = 'create:project',
+    CreateUser = 'create:user',
+    CreateUserInCompany = 'create:users-in-company',
     EditContent = 'edit:content',
     EditProjects = 'edit:projects',
     PublishContent = 'publish:content',
     ReadProjects = 'read:projects',
     ReadReports = 'read:reports',
     ReadUsers = 'read:users',
+    ReadAllUsers = 'read:all-users',
     ReviewContent = 'review:content',
     SendReviewContent = 'send-review:content',
     ReadCompanyContentAssignments = 'read:company-content-assignments',

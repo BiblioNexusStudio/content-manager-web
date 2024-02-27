@@ -75,7 +75,7 @@
             name: $translate('sidebar.users.value'),
             icon: UsersIcon,
             href: '/users',
-            hidden: true,
+            hidden: !($userCan(Permission.CreateUser) || $userCan(Permission.CreateUserInCompany)),
         },
     ];
 
