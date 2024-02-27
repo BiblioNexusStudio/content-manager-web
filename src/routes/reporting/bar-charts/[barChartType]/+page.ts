@@ -6,16 +6,14 @@ import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 import { sideBarHiddenOnPage } from '$lib/stores/app';
 
-export const load: PageLoad = async ({ fetch, params, parent }) => {
+export const load: PageLoad = async ({ params, parent }) => {
     await parent();
 
     sideBarHiddenOnPage.set(true);
 
     if (get(userCan)(Permission.ReadReports)) {
         const report = getFromApiWithoutBlocking<DailyResourceDownloads[]>(
-            `/reports/bar-charts/${params.barChartType}`,
-            {},
-            fetch
+            `/reports/bar-charts/${params.barChartType}`
         );
         return {
             report,

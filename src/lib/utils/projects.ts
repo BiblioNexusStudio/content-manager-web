@@ -23,17 +23,12 @@ export function formatDate(date: Date | string | null | undefined): string {
 
 export async function updateProject(id: number | string | undefined, data: { [key: string]: string | number }) {
     await patchToApi(`/projects/${id}`, {
-        body: {
-            ...data,
-        },
+        ...data,
     });
 }
 
 export async function startProject(id: number | string | undefined) {
-    await postToApi(`/projects/${id}/start`, {
-        method: 'POST',
-        body: {},
-    });
+    await postToApi(`/projects/${id}/start`);
 }
 
 export function formatCurrency(amount: number | string): string {

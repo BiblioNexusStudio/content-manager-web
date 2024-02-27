@@ -79,15 +79,13 @@
             if (isForAquiferization) {
                 fetchedContentForLeft =
                     (await getFromApi<ResourceContentForSelection[]>(
-                        `/resources/unaquiferized?${searchParams.toString()}`,
-                        {}
+                        `/resources/unaquiferized?${searchParams.toString()}`
                     )) ?? [];
             } else {
                 !!languageId && searchParams.set('languageId', languageId.toString());
                 fetchedContentForLeft =
                     (await getFromApi<ResourceContentForSelection[]>(
-                        `/resources/untranslated?${searchParams.toString()}`,
-                        {}
+                        `/resources/untranslated?${searchParams.toString()}`
                     )) ?? [];
             }
             fetchedContentForLeft.forEach((c) => (fetchedContentCache[c.resourceId] = c));

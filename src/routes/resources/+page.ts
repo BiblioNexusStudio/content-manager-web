@@ -65,7 +65,7 @@ function getResourceContents(
         return null;
     }
 
-    return getFromApiWithoutBlocking<ResourceContentResponse>(`/resources/content?${queryString}`, {}, fetch);
+    return getFromApiWithoutBlocking<ResourceContentResponse>(`/resources/content?${queryString}`);
 }
 
 export interface ResourceContentResponse {

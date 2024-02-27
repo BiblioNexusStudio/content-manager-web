@@ -4,7 +4,7 @@
     import Select from '$lib/components/Select.svelte';
     import { log } from '$lib/logger';
     import { UserRole } from '$lib/types/base';
-    import { getFromApi } from '$lib/utils/http-service';
+    import { postToApi } from '$lib/utils/http-service';
     import type { HttpError } from '@sveltejs/kit';
     import type { PageData } from './$types';
     import ProjectContentSelector from './ProjectContentSelector.svelte';
@@ -44,17 +44,14 @@
     async function save() {
         isSaving = true;
         try {
-            const project = await getFromApi<{ id: number }>('/projects', {
-                method: 'POST',
-                body: {
-                    title,
-                    languageId,
-                    projectManagerUserId,
-                    companyId,
-                    projectPlatformId: platformId,
-                    companyLeadUserId,
-                    resourceIds: selectedResourceIds,
-                },
+            const project = await postToApi<{ id: number }>('/projects', {
+                title,
+                languageId,
+                projectManagerUserId,
+                companyId,
+                projectPlatformId: platformId,
+                companyLeadUserId,
+                resourceIds: selectedResourceIds,
             });
             if (!project) {
                 throw new Error('No project created');

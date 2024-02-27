@@ -9,14 +9,14 @@ import { get } from 'svelte/store';
 
 export const ssr = false;
 
-export const load: LayoutLoad = async ({ fetch, url }) => {
+export const load: LayoutLoad = async ({ url }) => {
     await initAuth0(url);
 
     const [languages, resourceTypes, resourceContentStatuses, currentUser] = await Promise.all([
-        getFromApi<Language[]>('/languages', {}, fetch),
-        getFromApi<ResourceType[]>('/resources/parent-resources', {}, fetch),
-        getFromApi<ResourceContentStatus[]>('/admin/resources/content/statuses', {}, fetch),
-        getFromApi<CurrentUser>('/users/self', {}, fetch),
+        getFromApi<Language[]>('/languages'),
+        getFromApi<ResourceType[]>('/resources/parent-resources'),
+        getFromApi<ResourceContentStatus[]>('/admin/resources/content/statuses'),
+        getFromApi<CurrentUser>('/users/self'),
     ]);
 
     let users: User[] | null = null;
@@ -24,7 +24,7 @@ export const load: LayoutLoad = async ({ fetch, url }) => {
     setCurrentUser(currentUser);
 
     if (get(userCan)(Permission.ReadUsers)) {
-        users = await getFromApi<User[]>('/users', {}, fetch);
+        users = await getFromApi<User[]>('/users');
     }
 
     await initI18n();

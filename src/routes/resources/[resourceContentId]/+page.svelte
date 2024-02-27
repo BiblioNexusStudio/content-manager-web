@@ -226,7 +226,7 @@
     }
 
     async function unpublish() {
-        await takeActionAndRefresh(() => postToApi(`/admin/resources/content/${resourceContentId}/unpublish`, {}));
+        await takeActionAndRefresh(() => postToApi(`/admin/resources/content/${resourceContentId}/unpublish`));
     }
 
     async function sendReview() {
@@ -234,8 +234,7 @@
             postToApi(
                 isInTranslationWorkflow
                     ? `/admin/resources/content/${resourceContentId}/send-translation-review`
-                    : `/admin/resources/content/${resourceContentId}/send-review`,
-                {}
+                    : `/admin/resources/content/${resourceContentId}/send-review`
             )
         );
     }
@@ -243,7 +242,7 @@
     async function assignReview() {
         await takeActionAndRefresh(() =>
             postToApi(`/resources/content/${resourceContentId}/assign-review`, {
-                body: { assignedUserId: assignToUserId },
+                assignedUserId: assignToUserId,
             })
         );
     }
@@ -251,7 +250,7 @@
     async function aquiferize() {
         await takeActionAndRefresh(() =>
             postToApi(`/admin/resources/content/${resourceContentId}/aquiferize`, {
-                body: { assignedUserId: assignToUserId },
+                assignedUserId: assignToUserId,
             })
         );
     }
@@ -259,10 +258,8 @@
     async function publish() {
         await takeActionAndRefresh(() =>
             postToApi(`/admin/resources/content/${resourceContentId}/publish`, {
-                body: {
-                    createDraft: createDraft,
-                    assignedUserId: assignToUserId,
-                },
+                createDraft: createDraft,
+                assignedUserId: assignToUserId,
             })
         );
     }
@@ -274,9 +271,7 @@
                     ? `/admin/resources/content/${resourceContentId}/assign-translator`
                     : `/admin/resources/content/${resourceContentId}/assign-editor`,
                 {
-                    body: {
-                        assignedUserId: assignToUserId,
-                    },
+                    assignedUserId: assignToUserId,
                 }
             )
         );
@@ -285,11 +280,9 @@
     async function createTranslation() {
         await takeActionAndRefresh(() =>
             postToApi('/admin/resources/content/create-translation', {
-                body: {
-                    languageId: parseInt(newTranslationLanguageId!),
-                    baseContentId: englishContentTranslation?.contentId,
-                    useDraft: createTranslationFromDraft,
-                },
+                languageId: parseInt(newTranslationLanguageId!),
+                baseContentId: englishContentTranslation?.contentId,
+                useDraft: createTranslationFromDraft,
             })
         );
     }
@@ -297,7 +290,7 @@
     async function translate() {
         await takeActionAndRefresh(() =>
             postToApi(`/admin/resources/content/${resourceContentId}/assign-translator`, {
-                body: { assignedUserId: assignToUserId },
+                assignedUserId: assignToUserId,
             })
         );
     }
@@ -313,11 +306,9 @@
         const selectedVersionValues = $updatedValues[selectedVersionContentId];
         if (selectedVersionValues) {
             await putToApi(`/admin/resources/content/summary/${resourceContentId}`, {
-                body: {
-                    displayName: selectedVersionValues.displayName,
-                    wordCount: currentWordCount(selectedVersionValues.wordCounts),
-                    ...(mediaType === MediaTypeEnum.text ? { content: selectedVersionValues.content } : null),
-                },
+                displayName: selectedVersionValues.displayName,
+                wordCount: currentWordCount(selectedVersionValues.wordCounts),
+                ...(mediaType === MediaTypeEnum.text ? { content: selectedVersionValues.content } : null),
             });
         }
 
@@ -651,6 +642,4 @@
             </p>
         </div>
     </dialog>
-{:catch}
-    <div class="p-8">Resource not found</div>
 {/await}

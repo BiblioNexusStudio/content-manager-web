@@ -7,6 +7,7 @@ const API_KEY = config.PUBLIC_AQUIFER_API_KEY;
 const BASE_URL = config.PUBLIC_AQUIFER_API_URL;
 
 type CustomFetchOptions = ExtendType<FetchOptions, 'body', object | undefined>;
+type RequestBody = Record<string, unknown>;
 
 interface FetchOptions extends RequestInit {
     headers?: Record<string, string>;
@@ -14,23 +15,15 @@ interface FetchOptions extends RequestInit {
 
 // This takes advantage of SvelteKit's streaming functionality to allow a page
 // to be rendered before all of the data has finished loading.
-export function getFromApiWithoutBlocking<T = never>(
-    path: string,
-    options: CustomFetchOptions = {},
-    injectedFetch: typeof window.fetch | undefined = undefined
-): { promise: Promise<T> } {
+export function getFromApiWithoutBlocking<T = never>(path: string): { promise: Promise<T> } {
     return {
-        promise: rawApiFetch(path, options, injectedFetch).then((response) => response.json() as T),
+        promise: rawApiFetch(path, {}).then((response) => response.json() as T),
     };
 }
 
 // Base fetch function for the Aquifer API. Handles auth, body stringifying, content type, prefixing the API path with
 // the base URL, and detecting errors.
-async function rawApiFetch(
-    path: string,
-    options: CustomFetchOptions,
-    injectedFetch: typeof window.fetch | undefined = undefined
-) {
+async function rawApiFetch(path: string, options: CustomFetchOptions) {
     const fetchOptions: FetchOptions = options as FetchOptions;
 
     fetchOptions.headers = {
@@ -56,7 +49,7 @@ async function rawApiFetch(
     let response: Response | null;
 
     try {
-        response = await (injectedFetch || fetch)(url, fetchOptions);
+        response = await fetch(url, fetchOptions);
     } catch (error) {
         throw new Error(errorMessage((error as Error).message, null, pathWithSlash));
     }
@@ -73,20 +66,12 @@ async function rawApiFetch(
     return response;
 }
 
-export async function getFromApi<T = never>(
-    path: string,
-    options: CustomFetchOptions,
-    injectedFetch: typeof window.fetch | undefined = undefined
-): Promise<T | null> {
-    return await rawApiFetch(path, options, injectedFetch).then((response) => response.json());
+export async function getFromApi<T = never>(path: string): Promise<T | null> {
+    return await rawApiFetch(path, {}).then((response) => response.json());
 }
 
-export async function postToApi<T = never>(
-    path: string,
-    options: CustomFetchOptions,
-    injectedFetch: typeof window.fetch | undefined = undefined
-): Promise<T | null> {
-    const response = await rawApiFetch(path, { ...options, method: 'POST' }, injectedFetch);
+export async function postToApi<T = never>(path: string, body: RequestBody | undefined = undefined): Promise<T | null> {
+    const response = await rawApiFetch(path, { body, method: 'POST' });
     const text = await response.text();
     if (text === '') {
         return null;
@@ -96,10 +81,9 @@ export async function postToApi<T = never>(
 
 export async function patchToApi<T = never>(
     path: string,
-    options: CustomFetchOptions,
-    injectedFetch: typeof window.fetch | undefined = undefined
+    body: RequestBody | undefined = undefined
 ): Promise<T | null> {
-    const response = await rawApiFetch(path, { ...options, method: 'PATCH' }, injectedFetch);
+    const response = await rawApiFetch(path, { body, method: 'PATCH' });
     const text = await response.text();
     if (text === '') {
         return null;
@@ -107,12 +91,8 @@ export async function patchToApi<T = never>(
     return JSON.parse(text);
 }
 
-export async function putToApi<T = never>(
-    path: string,
-    options: CustomFetchOptions,
-    injectedFetch: typeof window.fetch | undefined = undefined
-): Promise<T | null> {
-    const response = await rawApiFetch(path, { ...options, method: 'PUT' }, injectedFetch);
+export async function putToApi<T = never>(path: string, body: RequestBody | undefined = undefined): Promise<T | null> {
+    const response = await rawApiFetch(path, { body, method: 'PUT' });
     const text = await response.text();
     if (text === '') {
         return null;
