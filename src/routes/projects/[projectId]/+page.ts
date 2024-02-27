@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import { fetchJsonStreamingFromApi, type StreamedData } from '$lib/utils/http-service';
+import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
 import type { ProjectResponse } from '$lib/types/projects';
 import { Permission, userCan } from '$lib/stores/auth';
 import { redirect } from '@sveltejs/kit';
@@ -9,11 +9,7 @@ export const load: PageLoad = async ({ fetch, params, parent }) => {
     await parent();
 
     if (get(userCan)(Permission.ReadProjects)) {
-        const projectResponse = fetchJsonStreamingFromApi(
-            `/projects/${params.projectId}`,
-            {},
-            fetch
-        ) as StreamedData<ProjectResponse>;
+        const projectResponse = getFromApiWithoutBlocking<ProjectResponse>(`/projects/${params.projectId}`, {}, fetch);
         return { projectResponse };
     } else {
         throw redirect(302, '/');

@@ -4,7 +4,7 @@
     import ArrowLeftSmall from '$lib/icons/ArrowLeftSmall.svelte';
     import ArrowRightSmall from '$lib/icons/ArrowRightSmall.svelte';
     import { enterKeyHandler } from '$lib/utils/enter-key-action';
-    import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
+    import { getFromApi } from '$lib/utils/http-service';
     import { parseNumbersListFromString } from '$lib/utils/number-list-parser';
     import { sortByKey } from '$lib/utils/sorting';
     import type { PageData } from './$types';
@@ -78,14 +78,14 @@
         try {
             if (isForAquiferization) {
                 fetchedContentForLeft =
-                    (await fetchJsonFromApiWithAuth<ResourceContentForSelection[]>(
+                    (await getFromApi<ResourceContentForSelection[]>(
                         `/resources/unaquiferized?${searchParams.toString()}`,
                         {}
                     )) ?? [];
             } else {
                 !!languageId && searchParams.set('languageId', languageId.toString());
                 fetchedContentForLeft =
-                    (await fetchJsonFromApiWithAuth<ResourceContentForSelection[]>(
+                    (await getFromApi<ResourceContentForSelection[]>(
                         `/resources/untranslated?${searchParams.toString()}`,
                         {}
                     )) ?? [];

@@ -2,7 +2,6 @@
     import type { PageData } from './$types';
     import { _ as translate } from 'svelte-i18n';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
-    import { unwrapStreamedData, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import { _searchParamsConfig } from './+page';
     import { searchParameters } from '$lib/utils/sveltekit-search-params';
     import { resourcesPerPage } from '$lib/stores/resources';
@@ -18,11 +17,14 @@
     const searchParams = searchParameters(_searchParamsConfig);
 
     $: resourceContentDataPromise =
-        data.streamedResourceContentData === null
-            ? Promise.resolve(null)
-            : unwrapStreamedData(data.streamedResourceContentData);
+        data.resourceContentData === null ? Promise.resolve(null) : data.resourceContentData.promise;
 
-    $: biblesPromise = unwrapStreamedDataWithCallback(data.bibles, (fetched) => (bibles = fetched));
+    $: biblesPromise = data.bibles.promise;
+    $: setBibles(data.bibles.promise);
+
+    async function setBibles(biblesPromise: Promise<Bible[]>) {
+        bibles = await biblesPromise;
+    }
 
     let bibles: Bible[] | null = null;
 

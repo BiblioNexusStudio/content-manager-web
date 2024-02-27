@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import { fetchJsonStreamingFromApi, type StreamedData } from '$lib/utils/http-service';
+import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
 import type { MonthlyStartsAndCompletions } from '$lib/types/reporting';
 import { Permission, userCan } from '$lib/stores/auth';
 import { redirect } from '@sveltejs/kit';
@@ -12,11 +12,11 @@ export const load: PageLoad = async ({ params, fetch, parent }) => {
     sideBarHiddenOnPage.set(true);
 
     if (get(userCan)(Permission.ReadReports)) {
-        const report = fetchJsonStreamingFromApi(
+        const report = getFromApiWithoutBlocking<MonthlyStartsAndCompletions>(
             `/reports/${params.monthlyReportType}/monthly`,
             {},
             fetch
-        ) as StreamedData<MonthlyStartsAndCompletions>;
+        );
         return {
             reportType: params.monthlyReportType,
             report,

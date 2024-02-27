@@ -4,7 +4,7 @@
     import Select from '$lib/components/Select.svelte';
     import { log } from '$lib/logger';
     import { UserRole } from '$lib/types/base';
-    import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
+    import { getFromApi } from '$lib/utils/http-service';
     import type { HttpError } from '@sveltejs/kit';
     import type { PageData } from './$types';
     import ProjectContentSelector from './ProjectContentSelector.svelte';
@@ -44,7 +44,7 @@
     async function save() {
         isSaving = true;
         try {
-            const project = await fetchJsonFromApiWithAuth<{ id: number }>('/projects', {
+            const project = await getFromApi<{ id: number }>('/projects', {
                 method: 'POST',
                 body: {
                     title,

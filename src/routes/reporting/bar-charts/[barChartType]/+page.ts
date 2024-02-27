@@ -1,5 +1,5 @@
 import type { DailyResourceDownloads } from '$lib/types/reporting';
-import { fetchJsonStreamingFromApi, type StreamedData } from '$lib/utils/http-service';
+import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
 import type { PageLoad } from './$types';
 import { Permission, userCan } from '$lib/stores/auth';
 import { redirect } from '@sveltejs/kit';
@@ -12,11 +12,11 @@ export const load: PageLoad = async ({ fetch, params, parent }) => {
     sideBarHiddenOnPage.set(true);
 
     if (get(userCan)(Permission.ReadReports)) {
-        const report = fetchJsonStreamingFromApi(
+        const report = getFromApiWithoutBlocking<DailyResourceDownloads[]>(
             `/reports/bar-charts/${params.barChartType}`,
             {},
             fetch
-        ) as StreamedData<DailyResourceDownloads[]>;
+        );
         return {
             report,
         };

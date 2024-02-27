@@ -3,7 +3,6 @@
     import TotalResourcesAreaChart from '$lib/charts/TotalResourcesAreaChart.svelte';
     import TranslatedResourcesBarChart from '$lib/charts/TranslatedResourcesBarChart.svelte';
     import { _ as translate } from 'svelte-i18n';
-    import { unwrapStreamedData } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import Select from '$lib/components/Select.svelte';
     import { getReportingLinkData } from '$lib/utils/reporting';
@@ -13,8 +12,8 @@
 
     export let data: PageData;
 
-    $: summaryPromise = unwrapStreamedData(data.summary!);
-    $: resourceItemsSummaryPromise = unwrapStreamedData(data.resourceItemsSummary!);
+    $: summaryPromise = data.summary!.promise;
+    $: resourceItemsSummaryPromise = data.resourceItemsSummary!.promise;
 
     const defaultSelection = 'default';
 

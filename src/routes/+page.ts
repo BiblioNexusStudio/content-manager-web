@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import { fetchJsonStreamingFromApi, type StreamedData } from '$lib/utils/http-service';
+import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
 import { Permission, userCan } from '$lib/stores/auth';
 import { get } from 'svelte/store';
 
@@ -7,25 +7,21 @@ export const load: PageLoad = async ({ fetch, parent }) => {
     await parent();
 
     if (get(userCan)(Permission.ReviewContent) || get(userCan)(Permission.PublishContent)) {
-        const reportingSummary = fetchJsonStreamingFromApi(
-            '/admin/resources/summary',
-            {},
-            fetch
-        ) as StreamedData<ResourcesSummary>;
+        const reportingSummary = getFromApiWithoutBlocking<ResourcesSummary>('/admin/resources/summary', {}, fetch);
         const assignedResourceContent = fetchAssignedResourceContent(fetch);
-        const reviewPendingResourceContent = fetchJsonStreamingFromApi(
+        const reviewPendingResourceContent = getFromApiWithoutBlocking<ResourcePendingReview[]>(
             '/resources/content/review-pending',
             {},
             fetch
-        ) as StreamedData<ResourcePendingReview[]>;
+        );
         return { publisherDashboard: { assignedResourceContent, reportingSummary, reviewPendingResourceContent } };
     } else if (get(userCan)(Permission.ReadCompanyContentAssignments)) {
         const assignedResourceContent = fetchAssignedResourceContent(fetch);
-        const manageResourceContent = fetchJsonStreamingFromApi(
+        const manageResourceContent = getFromApiWithoutBlocking<ResourceAssignedToOwnCompany[]>(
             '/resources/content/assigned-to-own-company',
             {},
             fetch
-        ) as StreamedData<ResourceAssignedToOwnCompany[]>;
+        );
         return { managerDashboard: { assignedResourceContent, manageResourceContent } };
     } else if (get(userCan)(Permission.EditContent)) {
         const resourceContent = fetchAssignedResourceContent(fetch);
@@ -36,9 +32,11 @@ export const load: PageLoad = async ({ fetch, parent }) => {
 };
 
 function fetchAssignedResourceContent(injectedFetch: typeof window.fetch) {
-    return fetchJsonStreamingFromApi('/resources/content/assigned-to-self', {}, injectedFetch) as StreamedData<
-        ResourceAssignedToSelf[]
-    >;
+    return getFromApiWithoutBlocking<ResourceAssignedToSelf[]>(
+        '/resources/content/assigned-to-self',
+        {},
+        injectedFetch
+    );
 }
 
 export interface ResourcesByParentResource extends TotalsByMonth {

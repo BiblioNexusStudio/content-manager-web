@@ -19,7 +19,7 @@
         updateOriginal,
         userStoppedEditing,
     } from '$lib/stores/tiptapContent';
-    import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
+    import { postToApi, putToApi } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import { getSortedReferences } from '$lib/utils/reference';
@@ -73,13 +73,16 @@
     const { save, resetSaveState, isSaving, showSavingFailed } = createAutosaveStore(putData);
 
     $: resourceContentId = data.resourceContentId;
-    $: resourceContentPromise = unwrapStreamedDataWithCallback(data.streamedResourceContent, handleFetchedResource);
+    $: resourceContentPromise = data.resourceContent.promise;
+    $: handleFetchedResource(data.resourceContent.promise);
+
     $: contentUpdated =
         JSON.stringify($originalValues[selectedVersionContentId]) !==
         JSON.stringify($updatedValues[selectedVersionContentId]);
     $: contentUpdated && $userStoppedEditing[selectedVersionContentId] && save();
 
-    function handleFetchedResource(resourceContent: ResourceContent) {
+    async function handleFetchedResource(resourceContentPromise: Promise<ResourceContent>) {
+        const resourceContent = await resourceContentPromise;
         resetSaveState();
         $userStoppedEditing[selectedVersionContentId] = false;
         draftVersion = resourceContent.contentVersions.find((x) => x.isDraft);
@@ -223,39 +226,31 @@
     }
 
     async function unpublish() {
-        await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${resourceContentId}/unpublish`, {
-                method: 'POST',
-            })
-        );
+        await takeActionAndRefresh(() => postToApi(`/admin/resources/content/${resourceContentId}/unpublish`, {}));
     }
 
     async function sendReview() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(
+            postToApi(
                 isInTranslationWorkflow
                     ? `/admin/resources/content/${resourceContentId}/send-translation-review`
                     : `/admin/resources/content/${resourceContentId}/send-review`,
-                {
-                    method: 'POST',
-                }
+                {}
             )
         );
     }
 
     async function assignReview() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/resources/content/${resourceContentId}/assign-review`, {
+            postToApi(`/resources/content/${resourceContentId}/assign-review`, {
                 body: { assignedUserId: assignToUserId },
-                method: 'POST',
             })
         );
     }
 
     async function aquiferize() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${resourceContentId}/aquiferize`, {
-                method: 'POST',
+            postToApi(`/admin/resources/content/${resourceContentId}/aquiferize`, {
                 body: { assignedUserId: assignToUserId },
             })
         );
@@ -263,8 +258,7 @@
 
     async function publish() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${resourceContentId}/publish`, {
-                method: 'POST',
+            postToApi(`/admin/resources/content/${resourceContentId}/publish`, {
                 body: {
                     createDraft: createDraft,
                     assignedUserId: assignToUserId,
@@ -275,12 +269,11 @@
 
     async function assignUser() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(
+            postToApi(
                 isInTranslationWorkflow
                     ? `/admin/resources/content/${resourceContentId}/assign-translator`
                     : `/admin/resources/content/${resourceContentId}/assign-editor`,
                 {
-                    method: 'POST',
                     body: {
                         assignedUserId: assignToUserId,
                     },
@@ -291,8 +284,7 @@
 
     async function createTranslation() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth('/admin/resources/content/create-translation', {
-                method: 'POST',
+            postToApi('/admin/resources/content/create-translation', {
                 body: {
                     languageId: parseInt(newTranslationLanguageId!),
                     baseContentId: englishContentTranslation?.contentId,
@@ -304,8 +296,7 @@
 
     async function translate() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${resourceContentId}/assign-translator`, {
-                method: 'POST',
+            postToApi(`/admin/resources/content/${resourceContentId}/assign-translator`, {
                 body: { assignedUserId: assignToUserId },
             })
         );
@@ -321,8 +312,7 @@
     async function putData() {
         const selectedVersionValues = $updatedValues[selectedVersionContentId];
         if (selectedVersionValues) {
-            await fetchFromApiWithAuth(`/admin/resources/content/summary/${resourceContentId}`, {
-                method: 'PUT',
+            await putToApi(`/admin/resources/content/summary/${resourceContentId}`, {
                 body: {
                     displayName: selectedVersionValues.displayName,
                     wordCount: currentWordCount(selectedVersionValues.wordCounts),

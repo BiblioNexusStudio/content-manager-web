@@ -1,4 +1,4 @@
-import { fetchFromApiWithAuth } from '$lib/utils/http-service';
+import { postToApi, patchToApi } from '$lib/utils/http-service';
 
 export function formatDate(date: Date | string | null | undefined): string {
     if (!date) {
@@ -22,8 +22,7 @@ export function formatDate(date: Date | string | null | undefined): string {
 }
 
 export async function updateProject(id: number | string | undefined, data: { [key: string]: string | number }) {
-    await fetchFromApiWithAuth(`/projects/${id}`, {
-        method: 'PATCH',
+    await patchToApi(`/projects/${id}`, {
         body: {
             ...data,
         },
@@ -31,7 +30,7 @@ export async function updateProject(id: number | string | undefined, data: { [ke
 }
 
 export async function startProject(id: number | string | undefined) {
-    await fetchFromApiWithAuth(`/projects/${id}/start`, {
+    await postToApi(`/projects/${id}/start`, {
         method: 'POST',
         body: {},
     });

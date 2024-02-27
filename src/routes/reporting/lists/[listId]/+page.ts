@@ -1,4 +1,4 @@
-import { fetchJsonStreamingFromApi, type StreamedData } from '$lib/utils/http-service';
+import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
 import type { PageLoad } from './$types';
 import type { GenericReportRow } from '$lib/types/reporting';
 import { Permission, userCan } from '$lib/stores/auth';
@@ -13,9 +13,7 @@ export const load: PageLoad = async ({ params, fetch, parent }) => {
 
     if (get(userCan)(Permission.ReadReports)) {
         const listId = params.listId;
-        const listData = fetchJsonStreamingFromApi(`/reports/resources/${listId}`, {}, fetch) as StreamedData<
-            GenericReportRow[]
-        >;
+        const listData = getFromApiWithoutBlocking<GenericReportRow[]>(`/reports/resources/${listId}`, {}, fetch);
         return {
             listData,
             listId,
