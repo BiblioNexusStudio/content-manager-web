@@ -1,5 +1,4 @@
 ﻿<script lang="ts">
-    import CheckCircleIcon from '$lib/icons/CheckCircleIcon.svelte';
     import { createListbox } from 'svelte-headlessui';
 
     interface Option {
@@ -61,18 +60,12 @@
                             : 'text-gray-900'}"
                         use:listbox.item={{ value: option }}
                     >
-                        <span class="block truncate {selected ? 'font-semibold' : 'font-normal'}">{option.label}</span>
-                        {#if selected}
-                            <span
-                                class="absolute inset-y-0 right-0 flex items-center pr-3 {active
-                                    ? 'text-white'
-                                    : 'text-black'}"
+                        <div class="flex flex-row">
+                            <input type="checkbox" checked={selected} class="checkbox checkbox-sm" />
+                            <span class="ms-2 truncate {selected ? 'font-semibold' : 'font-normal'}"
+                                >{option.label}</span
                             >
-                                <div class="ml-1 h-4 w-4">
-                                    <CheckCircleIcon />
-                                </div>
-                            </span>
-                        {/if}
+                        </div>
                     </li>
                 {/each}
             </ul>

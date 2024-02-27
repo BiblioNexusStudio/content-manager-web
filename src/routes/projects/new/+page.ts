@@ -23,6 +23,6 @@ export const load: PageLoad = async ({ fetch, parent }) => {
             bibles: await fetchJsonFromApiWithAuth<Bible[]>(`/bibles/language/${englishLanguageId}`, {}, fetch),
         };
     } else {
-        throw redirect(301, '/');
+        throw redirect(302, '/');
     }
 };

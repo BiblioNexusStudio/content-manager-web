@@ -26,6 +26,6 @@ export const load: PageLoad = async ({ params, fetch, parent }) => {
             report,
         };
     } else {
-        throw redirect(301, '/');
+        throw redirect(302, '/');
     }
 };

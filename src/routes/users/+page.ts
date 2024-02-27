@@ -22,6 +22,6 @@ export const load: PageLoad = async ({ fetch, parent }) => {
             roles,
         };
     } else {
-        throw redirect(301, '/');
+        throw redirect(302, '/');
     }
 };
