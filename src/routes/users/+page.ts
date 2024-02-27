@@ -12,7 +12,7 @@ export const load: PageLoad = async ({ fetch, parent }) => {
         return {};
     }
 
-    if (get(userCan)(Permission.ReadUsers)) {
+    if (get(userCan)(Permission.CreateUser) || get(userCan)(Permission.CreateUserInCompany)) {
         const userData = fetchJsonStreamingFromApi(`/users`, {}, fetch) as StreamedData<User[]>;
         const companies = fetchJsonStreamingFromApi(`/companies`, {}, fetch) as StreamedData<Company[]>;
         const roles = [UserRole.Editor, UserRole.Manager];

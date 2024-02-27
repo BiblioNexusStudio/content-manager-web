@@ -75,7 +75,7 @@
             name: $translate('sidebar.users.value'),
             icon: UsersIcon,
             href: '/users',
-            hidden: !$userCan(Permission.CreateUser),
+            hidden: !($userCan(Permission.CreateUser) || $userCan(Permission.CreateUserInCompany)),
         },
     ];
 
@@ -158,7 +158,7 @@
                             </div>
                         </div>
                         <div class="mb-2 text-[10px]">{userEmail}</div>
-                        <label class="swap-rotate swap mb-1 mt-2 hidden h-4 w-4 place-self-center">
+                        <label class="swap swap-rotate mb-1 mt-2 hidden h-4 w-4 place-self-center">
                             <input type="checkbox" checked={theme === 'biblioNexusLight'} on:change={toggleTheme} />
                             <SunIcon />
                             <MoonIcon />
