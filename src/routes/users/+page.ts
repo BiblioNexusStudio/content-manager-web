@@ -6,11 +6,7 @@ import { type User, type Company, UserRole } from '$lib/types/base';
 import { get } from 'svelte/store';
 
 export const load: PageLoad = async ({ fetch, parent }) => {
-    const data = await parent();
-
-    if (!data.loaded) {
-        return {};
-    }
+    await parent();
 
     if (get(userCan)(Permission.CreateUser) || get(userCan)(Permission.CreateUserInCompany)) {
         const userData = fetchJsonStreamingFromApi(`/users`, {}, fetch) as StreamedData<User[]>;

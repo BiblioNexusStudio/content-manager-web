@@ -4,7 +4,7 @@ import type { ResourceContentStatusEnum } from '$lib/types/base';
 import { ssp, searchParametersForLoad, buildQueryString } from '$lib/utils/sveltekit-search-params';
 import { get } from 'svelte/store';
 import { resourcesPerPage } from '$lib/stores/resources';
-export const ssr = false;
+
 export const _searchParamsConfig = {
     page: ssp.number(1),
     languageId: ssp.number(0),

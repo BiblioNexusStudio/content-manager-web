@@ -21,7 +21,7 @@
     } from '$lib/stores/tiptapContent';
     import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
-    import { ResourceContentStatusEnum, UserRole, type BasicUser } from '$lib/types/base';
+    import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import { getSortedReferences } from '$lib/utils/reference';
     import UserSelector from './UserSelector.svelte';
     import { Permission, userCan, userIsEqual, userIsInCompany } from '$lib/stores/auth';
@@ -197,7 +197,7 @@
     }
 
     function openAssignReviewModal() {
-        assignToUserId = currentUserIsAssigned ? null : (data.currentUser as BasicUser).id;
+        assignToUserId = currentUserIsAssigned ? null : data.currentUser.id;
         isAssignReviewModalOpen = true;
     }
 
@@ -458,10 +458,10 @@
                 <Process
                     translationStatus={resourceContent.status}
                     assignedUser={draftVersion?.assignedUser ?? null}
-                    resourceContentStatuses={data.resourceContentStatuses || []}
+                    resourceContentStatuses={data.resourceContentStatuses}
                 />
                 <Translations
-                    languages={data.languages || []}
+                    languages={data.languages}
                     translations={resourceContent.contentTranslations}
                     englishTranslation={englishContentTranslation}
                     {canCreateTranslation}
@@ -594,7 +594,7 @@
             <h3 class="w-full pb-4 text-center text-xl font-bold">Create translation</h3>
             <div class="flex flex-col">
                 <TranslationSelector
-                    allLanguages={data.languages || []}
+                    allLanguages={data.languages}
                     existingTranslations={resourceContent.contentTranslations}
                     bind:selectedLanguageId={newTranslationLanguageId}
                 />

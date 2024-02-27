@@ -1,17 +1,14 @@
 import type { PageLoad } from './$types';
 import { fetchJsonStreamingFromApi, type StreamedData } from '$lib/utils/http-service';
 import type { ProjectResponse } from '$lib/types/projects';
-import { Permission } from '$lib/stores/auth';
+import { Permission, userCan } from '$lib/stores/auth';
 import { redirect } from '@sveltejs/kit';
+import { get } from 'svelte/store';
 
 export const load: PageLoad = async ({ fetch, params, parent }) => {
-    const data = await parent();
+    await parent();
 
-    if (!data.loaded) {
-        return {};
-    }
-
-    if (data.currentUser.can(Permission.ReadProjects)) {
+    if (get(userCan)(Permission.ReadProjects)) {
         const projectResponse = fetchJsonStreamingFromApi(
             `/projects/${params.projectId}`,
             {},

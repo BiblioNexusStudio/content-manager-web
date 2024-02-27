@@ -6,11 +6,7 @@ import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 
 export const load: PageLoad = async ({ fetch, parent }) => {
-    const data = await parent();
-
-    if (!data.loaded) {
-        return {};
-    }
+    await parent();
 
     if (get(userCan)(Permission.ReadProjects)) {
         const projectListResponse = fetchJsonStreamingFromApi('/projects', {}, fetch) as StreamedData<

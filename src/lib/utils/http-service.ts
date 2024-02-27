@@ -1,4 +1,3 @@
-import { browser } from '$app/environment';
 import config from '$lib/config';
 import { auth0Client } from '$lib/stores/auth';
 import type { ExtendType } from '$lib/types/base';
@@ -121,15 +120,16 @@ export async function fetchFromApiWithAuth(
         fetchOptions.headers['api-key'] = API_KEY;
     }
 
+    if (!fetchOptions.headers['Authorization']) {
+        fetchOptions.headers['Authorization'] = await authTokenHeader();
+    }
+
     if (options.body) {
         fetchOptions.body = JSON.stringify(options.body);
     }
 
     const pathWithSlash = pathPrefixedWithSlash(path);
     const url = BASE_URL + pathWithSlash;
-
-    // Wait for fetch to be patched if it's a browser (prevents race conditions)
-    browser && (await waitForValidValue(async () => window._fetchIsPatched, false, 50));
 
     let response: Response | null;
 
@@ -156,35 +156,21 @@ export async function fetchJsonFromApiWithAuth<T = never>(
     options: CustomFetchOptions,
     injectedFetch: typeof window.fetch | undefined = undefined
 ): Promise<T | null> {
+    const response = await fetchFromApiWithAuth(path, options, injectedFetch);
     try {
-        const response = await fetchFromApiWithAuth(path, options, injectedFetch);
-        try {
-            return await response.json();
-        } catch {
-            throw error(400, 'Error parsing JSON');
-        }
-    } catch (error) {
-        // If we're on the client then throw the error because it truly is an error. However if we're on the server,
-        // then we want to swallow auth errors. These errors are common and unavoidable due to the nature of our auth
-        // implementation. Any user coming to the site after inactivity won't have a cookie and the SSR will not be
-        // able to authenticate properly. But then the client (which will have the token) will refetch the data and
-        // things will work.
-        if (!browser && (error as HttpError).status === 401) {
-            console.log('Missing auth token during SSR fetch. Client will re-fetch and handle any errors.', error);
-            return null;
-        } else {
-            throw error;
-        }
+        return await response.json();
+    } catch {
+        throw error(400, 'Error parsing JSON');
     }
 }
 
-export async function authTokenHeader(): Promise<object> {
+async function authTokenHeader(): Promise<string> {
     // Wait for the auth client to be initialized and a valid token (prevents race conditions)
     const token = await waitForValidValue(async () => await auth0Client?.getTokenSilently(), true, 50);
     if (token) {
-        return { Authorization: `Bearer ${token}` };
+        return `Bearer ${token}`;
     }
-    return {};
+    return '';
 }
 
 // Wait for a truthy (not null, not undefined, not false) value to be returned by `fn` or returns the most recent

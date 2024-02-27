@@ -2,7 +2,7 @@
     import type { PageData } from './$types';
     import { unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
-    import { Permission } from '$lib/stores/auth';
+    import { Permission, userCan } from '$lib/stores/auth';
     import { users, project } from '$lib/stores/projects';
     import ProjectViewTabs from '$lib/components/projects/ProjectViewTabs.svelte';
     import ProjectViewTable from '$lib/components/projects/ProjectViewTable.svelte';
@@ -49,7 +49,7 @@
                 </span>
             </div>
             <div class="flex">
-                {#if $project?.started === null && data.currentUser.can(Permission.EditProjects)}
+                {#if $project?.started === null && $userCan(Permission.EditProjects)}
                     <button class="btn btn-primary" disabled={!disabledStartButton} on:click={onStartProject}
                         >Start</button
                     >

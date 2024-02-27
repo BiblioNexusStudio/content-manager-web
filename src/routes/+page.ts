@@ -4,11 +4,7 @@ import { Permission, userCan } from '$lib/stores/auth';
 import { get } from 'svelte/store';
 
 export const load: PageLoad = async ({ fetch, parent }) => {
-    const data = await parent();
-
-    if (!data.loaded) {
-        return {};
-    }
+    await parent();
 
     if (get(userCan)(Permission.ReviewContent) || get(userCan)(Permission.PublishContent)) {
         const reportingSummary = fetchJsonStreamingFromApi(

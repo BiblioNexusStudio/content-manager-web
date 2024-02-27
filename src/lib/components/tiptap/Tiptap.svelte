@@ -117,7 +117,7 @@
                         ],
                         editorProps: {
                             attributes: {
-                                class: 'prose dark:prose-invert prose-sm sm:prose-base focus:outline-none text-black mx-4 max-w-none',
+                                class: 'prose prose-sm sm:prose-base focus:outline-none text-black mx-4 max-w-none',
                             },
                         },
                         content: content.tiptap,

@@ -7,13 +7,9 @@ import { get } from 'svelte/store';
 import { sideBarHiddenOnPage } from '$lib/stores/app';
 
 export const load: PageLoad = async ({ params, fetch, parent }) => {
-    const data = await parent();
+    await parent();
 
     sideBarHiddenOnPage.set(true);
-
-    if (!data.loaded) {
-        return {};
-    }
 
     if (get(userCan)(Permission.ReadReports)) {
         const report = fetchJsonStreamingFromApi(
