@@ -7,10 +7,7 @@
 //   const list: Content[] = ...;
 //   sorter(list, 'word-count'); // would sort by `wordCount` in ascending order
 //   sorter(list, '-word-count'); // would sort by `wordCount` in descending order
-export function createListSorter<T>(
-    mapping: { [sortKey: string]: keyof T },
-    secondarySortAttribute: keyof T | null = null
-): (list: T[], sort: string) => T[] {
+export function createListSorter<T>(mapping: { [sortKey: string]: keyof T }): (list: T[], sort: string) => T[] {
     return (list: T[], sort: string) => {
         const key = sort.replace(/^-/, '');
         const isDescending = sort.startsWith('-');
@@ -19,17 +16,17 @@ export function createListSorter<T>(
         if (!sortField) return list;
 
         return list.sort((a, b) => {
-            const valueA = a[sortField];
-            const valueB = b[sortField];
+            let valueA = a[sortField];
+            let valueB = b[sortField];
+            if (typeof valueA === 'string') {
+                valueA = valueA.toLowerCase() as typeof valueA;
+            }
+            if (typeof valueB === 'string') {
+                valueB = valueB.toLowerCase() as typeof valueB;
+            }
+
             if (valueA < valueB) return isDescending ? 1 : -1;
             if (valueA > valueB) return isDescending ? -1 : 1;
-
-            if (secondarySortAttribute) {
-                const secondaryA = a[secondarySortAttribute];
-                const secondaryB = b[secondarySortAttribute];
-                if (secondaryA < secondaryB) return -1;
-                if (secondaryA > secondaryB) return 1;
-            }
 
             return 0;
         });
