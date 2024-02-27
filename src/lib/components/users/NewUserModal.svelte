@@ -1,9 +1,11 @@
 <script lang="ts">
     import InfoIcon from '$lib/icons/InfoIcon.svelte';
     import Select from '$lib/components/Select.svelte';
-    import type { Company, UserRole } from '$lib/types/base';
+    import { UserRole, type Company } from '$lib/types/base';
+    import { fetchFromApiWithAuth } from '$lib/utils/http-service';
+    import { invalidateAll } from '$app/navigation';
+    import { Permission, currentUser, userCan } from '$lib/stores/auth';
     import type { HttpError } from '@sveltejs/kit';
-    import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
 
     export let open: boolean;
     export let header: string;
@@ -22,6 +24,7 @@
     let isSaving = false;
     let errorMessage: string | null = null;
     const inputMinCharErrMessage = 'Please enter at least 3 characters';
+    const onlyCreateUserInCompany = $userCan(Permission.CreateUserInCompany);
 
     $: dialog ? (open ? dialog.showModal() : dialog.close()) : null;
 
@@ -32,6 +35,31 @@
         : [{ id: -1, name: 'You are not part of a company' }];
 
     $: canSave = !!firstName && !!lastName && !!email && !!companyId && !!role;
+
+    function getCompanies() {
+        let companyOptions = [
+            ...companySelect.filter((c) => c.name !== 'N/A').map((c) => ({ value: c.id, label: c.name })),
+        ];
+        if (onlyCreateUserInCompany) {
+            // Users page is checked for permissions to even get here, and people should always
+            // be connected to a company
+            companyOptions = [companyOptions.find((c) => c.value == $currentUser!.company.id)!];
+            companyId = companyOptions[0]!.value;
+            return companyOptions;
+        } else {
+            return [...[{ value: null, label: 'Select Company' }], ...companyOptions];
+        }
+    }
+
+    function getRoles() {
+        const roleOptions = [...(roles || []).map((r) => ({ value: r, label: r }))];
+        if (onlyCreateUserInCompany) {
+            role = UserRole.Editor;
+            return roleOptions;
+        } else {
+            return [...[{ value: null, label: 'Select Role' }, ...roleOptions]];
+        }
+    }
 
     function validateLength(input: string) {
         if (!(input.length >= 3)) {
@@ -64,7 +92,7 @@
 
         try {
             if (canSave) {
-                const user = await fetchJsonFromApiWithAuth<{ id: number }>('/users/create', {
+                await fetchFromApiWithAuth('/users/create', {
                     method: 'POST',
                     body: {
                         email,
@@ -74,10 +102,8 @@
                         companyId,
                     },
                 });
-                if (!user) {
-                    throw new Error('No user created');
-                }
                 errorMessage = null;
+                invalidateAll();
             }
         } catch (error) {
             // TODO: make this less hacky, need a better way to propagate errors and parse the message instead of this `includes`
@@ -86,7 +112,6 @@
             } else if ((error as HttpError)?.body?.message.includes('The user already exists.')) {
                 errorMessage = 'User with that email already exists';
             } else {
-                console.log(error);
                 errorMessage = 'User creation failed';
             }
         } finally {
@@ -126,7 +151,10 @@
                 <input
                     class="input input-bordered max-h-[50%] w-full"
                     bind:value={firstName}
-                    on:input={() => (firstNameErr = null)}
+                    on:input={() => {
+                        firstNameErr = null;
+                        errorMessage = null;
+                    }}
                 />
             </div>
             <div class="flex flex-col p-2">
@@ -137,7 +165,14 @@
                     {/if}
                 </div>
                 <div class="flex-grow"></div>
-                <input class="input input-bordered max-h-[50%] w-full" bind:value={lastName} />
+                <input
+                    class="input input-bordered max-h-[50%] w-full"
+                    bind:value={lastName}
+                    on:input={() => {
+                        lastNameErr = null;
+                        errorMessage = null;
+                    }}
+                />
             </div>
             <div class="flex flex-col p-2">
                 <div class="text-md flex flex-row justify-between">
@@ -147,20 +182,24 @@
                     {/if}
                 </div>
                 <div class="flex-grow"></div>
-                <input type="email" class="input input-bordered max-h-[50%] w-full" bind:value={email} />
+                <input
+                    type="email"
+                    class="input input-bordered max-h-[50%] w-full"
+                    bind:value={email}
+                    on:input={() => {
+                        emailErr = null;
+                        errorMessage = null;
+                    }}
+                />
             </div>
             <div class="flex flex-col p-2">
                 <div class="text-md">Company <span class="text-error">*</span></div>
                 <Select
                     class="select select-bordered w-full"
-                    options={[
-                        { value: null, label: 'Select Company' },
-                        ...(companySelect || [])
-                            .filter((c) => c.name !== 'N/A')
-                            .map((c) => ({ value: c.id, label: c.name })),
-                    ]}
+                    options={getCompanies()}
                     isNumber={true}
                     bind:value={companyId}
+                    disabled={onlyCreateUserInCompany}
                 />
             </div>
             <div class="flex flex-col border-b p-2 pb-4">
@@ -168,11 +207,9 @@
                     Role <span class="text-error">*</span>
                 </div>
                 <Select
+                    disabled={onlyCreateUserInCompany}
                     class="select select-bordered w-full"
-                    options={[
-                        { value: null, label: 'Select Role' },
-                        ...(roles || []).map((r) => ({ value: r, label: r })),
-                    ]}
+                    options={getRoles()}
                     isNumber={false}
                     bind:value={role}
                 />

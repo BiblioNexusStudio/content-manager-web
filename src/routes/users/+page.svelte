@@ -3,10 +3,8 @@
     import { unwrapStreamedData } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { _ as translate } from 'svelte-i18n';
-    import { UserRole, type User } from '$lib/types/base';
     import NewUserModal from '$lib/components/users/NewUserModal.svelte';
-    import { get } from 'svelte/store';
-    import { Permission, currentUser, userCan } from '$lib/stores/auth';
+    import type { User } from '$lib/types/base';
 
     export let data: PageData;
 
@@ -15,15 +13,12 @@
     $: allDataPromise = Promise.all([userDataPromise, companiesPromise]);
     let searchInputVal: string | undefined;
 
-    const userIsManager = get(userCan)(Permission.ReadUsers) && !get(userCan)(Permission.ReadAllUsers);
-
     $: searchVal = searchInputVal;
     const filterUsers = (users: User[], sortVal?: string) => {
         return sortVal ? users.filter((u) => u.name.toLowerCase().includes(sortVal!.toLowerCase())) : users;
     };
     $: isModalOpen = false;
 
-    $: self = $currentUser!;
     $: roles = data.roles!;
 
     async function openModal() {
@@ -78,10 +73,5 @@
             </div>
         </div>
     </div>
-    <NewUserModal
-        companies={userIsManager ? companies.find((c) => c.id == self.company.id) : companies}
-        roles={userIsManager ? [UserRole.Editor] : roles}
-        header="Add User"
-        bind:open={isModalOpen}
-    />
+    <NewUserModal {companies} {roles} header="Add User" bind:open={isModalOpen} />
 {/await}

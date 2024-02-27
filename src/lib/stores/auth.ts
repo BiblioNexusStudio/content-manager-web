@@ -40,6 +40,7 @@ export enum Permission {
     CreateContent = 'create:content',
     CreateProject = 'create:project',
     CreateUser = 'create:user',
+    CreateUserInCompany = 'create:users-in-company',
     EditContent = 'edit:content',
     EditProjects = 'edit:projects',
     PublishContent = 'publish:content',
