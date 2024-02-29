@@ -1,13 +1,12 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import { unwrapStreamedData } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import MonthlyStartsAndCompletionsChart from '$lib/charts/MonthlyStartsAndCompletionsChart.svelte';
 
     export let data: PageData;
     $: reportType = data.reportType!;
 
-    $: reportPromise = unwrapStreamedData(data.report!);
+    $: reportPromise = data.report!.promise;
 </script>
 
 {#await reportPromise}

@@ -24,7 +24,7 @@ jobs:
             url: ${{ steps.deploy.outputs.deployed-url }}
         steps:
             - name: Checkout source code
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - uses: ./.github/actions/build-and-deploy-to-env
               id: deploy
               with:
@@ -43,7 +43,7 @@ jobs:
             url: ${{ steps.deploy.outputs.deployed-url }}
         steps:
             - name: Checkout source code
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - uses: ./.github/actions/build-and-deploy-to-env
               id: deploy
               with:
@@ -60,7 +60,7 @@ jobs:
             url: ${{ steps.deploy.outputs.deployed-url }}
         steps:
             - name: Checkout source code
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - uses: ./.github/actions/build-and-deploy-to-env
               id: deploy
               with:
@@ -74,7 +74,7 @@ jobs:
         needs: deploy_to_prod
         steps:
             - name: Checkout source code
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
 
             - name: Get the latest tag
               uses: actions-ecosystem/action-get-latest-tag@v1

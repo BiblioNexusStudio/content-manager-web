@@ -1,47 +1,46 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import { unwrapStreamedData } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { _ as translate } from 'svelte-i18n';
+    import NewUserModal from '$lib/components/users/NewUserModal.svelte';
     import type { User } from '$lib/types/base';
 
     export let data: PageData;
 
-    $: userDataPromise = unwrapStreamedData(data.userData!);
+    $: allDataPromise = Promise.all([data.userData!.promise, data.companies!.promise]);
     let searchInputVal: string | undefined;
 
     $: searchVal = searchInputVal;
     const filterUsers = (users: User[], sortVal?: string) => {
-        return sortVal ? users.filter((u) => u.name.toLowerCase().includes(sortVal!)) : users;
+        return sortVal ? users.filter((u) => u.name.toLowerCase().includes(sortVal!.toLowerCase())) : users;
     };
+    $: isModalOpen = false;
+
+    $: roles = data.roles!;
+
+    async function openModal() {
+        isModalOpen = true;
+    }
 </script>
 
-{#await userDataPromise}
+{#await allDataPromise}
     <CenteredSpinner />
-{:then userData}
+{:then [userData, companies]}
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <div class="mt-4 flex justify-between">
             <div class="text-3xl">{$translate('page.users.header.value')}</div>
             <div class="relative w-3/12 justify-self-end text-gray-600">
-                <span class="absolute inset-y-0 left-0 flex items-center ps-2">
-                    <button type="submit" class="p-1">
-                        <svg
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            viewBox="0 0 24 24"
-                            class="h-6 w-6"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg
-                        >
-                    </button>
-                </span>
-                <input
-                    bind:value={searchInputVal}
-                    type="search"
-                    class="min-h-12 w-full rounded-md border-[1px] py-2 ps-10 text-sm text-gray-900 focus:outline-none"
-                    placeholder={$translate('page.resources.searchBox.value')}
-                />
+                <div class="flex">
+                    <div class="flex w-2/5 items-center pr-20">
+                        <button class="btn btn-primary me-4" on:click={openModal}>Add User</button>
+                    </div>
+                    <input
+                        bind:value={searchInputVal}
+                        type="search"
+                        class="min-h-12 w-full rounded-md border-[1px] py-2 ps-5 text-sm text-gray-900 focus:outline-none"
+                        placeholder={$translate('page.resources.searchBox.value')}
+                    />
+                </div>
             </div>
         </div>
         <div class="flex flex-row space-x-4 overflow-y-hidden">
@@ -71,4 +70,5 @@
             </div>
         </div>
     </div>
+    <NewUserModal {companies} {roles} header="Add User" bind:open={isModalOpen} />
 {/await}

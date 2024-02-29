@@ -1,48 +1,34 @@
 import type { PageLoad } from './$types';
-import { fetchJsonStreamingFromApi, type StreamedData } from '$lib/utils/http-service';
+import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
 import { Permission, userCan } from '$lib/stores/auth';
 import { get } from 'svelte/store';
 
-export const load: PageLoad = async ({ fetch, parent }) => {
-    const data = await parent();
-
-    if (!data.loaded) {
-        return {};
-    }
+export const load: PageLoad = async ({ parent }) => {
+    await parent();
 
     if (get(userCan)(Permission.ReviewContent) || get(userCan)(Permission.PublishContent)) {
-        const reportingSummary = fetchJsonStreamingFromApi(
-            '/admin/resources/summary',
-            {},
-            fetch
-        ) as StreamedData<ResourcesSummary>;
-        const assignedResourceContent = fetchAssignedResourceContent(fetch);
-        const reviewPendingResourceContent = fetchJsonStreamingFromApi(
-            '/resources/content/review-pending',
-            {},
-            fetch
-        ) as StreamedData<ResourcePendingReview[]>;
+        const reportingSummary = getFromApiWithoutBlocking<ResourcesSummary>('/admin/resources/summary');
+        const assignedResourceContent = fetchAssignedResourceContent();
+        const reviewPendingResourceContent = getFromApiWithoutBlocking<ResourcePendingReview[]>(
+            '/resources/content/review-pending'
+        );
         return { publisherDashboard: { assignedResourceContent, reportingSummary, reviewPendingResourceContent } };
     } else if (get(userCan)(Permission.ReadCompanyContentAssignments)) {
-        const assignedResourceContent = fetchAssignedResourceContent(fetch);
-        const manageResourceContent = fetchJsonStreamingFromApi(
-            '/resources/content/assigned-to-own-company',
-            {},
-            fetch
-        ) as StreamedData<ResourceAssignedToOwnCompany[]>;
+        const assignedResourceContent = fetchAssignedResourceContent();
+        const manageResourceContent = getFromApiWithoutBlocking<ResourceAssignedToOwnCompany[]>(
+            '/resources/content/assigned-to-own-company'
+        );
         return { managerDashboard: { assignedResourceContent, manageResourceContent } };
     } else if (get(userCan)(Permission.EditContent)) {
-        const resourceContent = fetchAssignedResourceContent(fetch);
+        const resourceContent = fetchAssignedResourceContent();
         return { editorDashboard: { resourceContent } };
     } else {
         return {};
     }
 };
 
-function fetchAssignedResourceContent(injectedFetch: typeof window.fetch) {
-    return fetchJsonStreamingFromApi('/resources/content/assigned-to-self', {}, injectedFetch) as StreamedData<
-        ResourceAssignedToSelf[]
-    >;
+function fetchAssignedResourceContent() {
+    return getFromApiWithoutBlocking<ResourceAssignedToSelf[]>('/resources/content/assigned-to-self');
 }
 
 export interface ResourcesByParentResource extends TotalsByMonth {

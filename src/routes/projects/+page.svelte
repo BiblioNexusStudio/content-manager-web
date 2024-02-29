@@ -1,6 +1,5 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import { unwrapStreamedData } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import ShowClosed from '$lib/components/projects/ShowClosed.svelte';
     import ProjectSearch from '$lib/components/projects/ProjectSearch.svelte';
@@ -8,7 +7,7 @@
 
     export let data: PageData;
 
-    $: projectPromise = unwrapStreamedData(data.projectListResponse!);
+    $: projectPromise = data.projectListResponse!.promise;
 
     let showClosed = false;
     let projectSearchValue = '';

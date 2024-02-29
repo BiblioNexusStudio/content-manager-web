@@ -15,7 +15,6 @@ export default {
         },
     },
     plugins: [require('@tailwindcss/typography'), require('daisyui')],
-    darkMode: 'class',
     daisyui: {
         themes: [
             {
@@ -57,27 +56,7 @@ export default {
                     '--tw-prose-links-override': '#00A3E0',
                 },
             },
-            {
-                biblioNexusDark: {
-                    'color-scheme': 'dark',
-                    primary: '#a0967e',
-                    '--primary-300': '#776e5a',
-                    '--primary-50': '#3c372d',
-                    'primary-content': '#202020',
-                    secondary: '#232427',
-                    'secondary-content': '#bbbbbb',
-                    accent: '#DC8850',
-                    neutral: '#7e8795',
-                    info: '#686b6f',
-                    'base-content': '#dedfe2',
-                    '--base-700': '#b2b2b5',
-                    '--base-500': '#858688',
-                    'base-200': '#232427',
-                    'base-100': '#202020',
-                },
-            },
         ],
-        darkTheme: 'biblioNexusDark', // name of one of the included themes for dark mode
         base: true, // applies background color and foreground color for root element by default
         styled: true, // include daisyUI colors and design decisions for all components
         utils: true, // adds responsive and modifier utility classes
