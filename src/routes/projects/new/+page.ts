@@ -1,26 +1,20 @@
 import type { PageLoad } from './$types';
-import { fetchJsonFromApiWithAuth } from '$lib/utils/http-service';
+import { getFromApi } from '$lib/utils/http-service';
 import type { Bible, Company, ProjectPlatform } from '$lib/types/base';
 import { redirect } from '@sveltejs/kit';
-import { Permission } from '$lib/stores/auth';
+import { Permission, userCan } from '$lib/stores/auth';
 import { sortByKey } from '$lib/utils/sorting';
+import { get } from 'svelte/store';
 
-export const load: PageLoad = async ({ fetch, parent }) => {
-    const { languages, currentUser, loaded } = await parent();
+export const load: PageLoad = async ({ parent }) => {
+    const { languages } = await parent();
 
-    if (!loaded) {
-        return {};
-    }
-
-    if (currentUser.can(Permission.CreateProject)) {
+    if (get(userCan)(Permission.CreateProject)) {
         const englishLanguageId = languages?.find((l) => l.iso6393Code === 'eng')?.id;
         return {
-            projectPlatforms: sortByKey(
-                await fetchJsonFromApiWithAuth<ProjectPlatform[]>('/project-platforms', {}, fetch),
-                'name'
-            ),
-            companies: sortByKey(await fetchJsonFromApiWithAuth<Company[]>('/companies', {}, fetch), 'name'),
-            bibles: await fetchJsonFromApiWithAuth<Bible[]>(`/bibles/language/${englishLanguageId}`, {}, fetch),
+            projectPlatforms: sortByKey(await getFromApi<ProjectPlatform[]>('/project-platforms'), 'name'),
+            companies: sortByKey(await getFromApi<Company[]>('/companies'), 'name'),
+            bibles: await getFromApi<Bible[]>(`/bibles/language/${englishLanguageId}`),
         };
     } else {
         throw redirect(302, '/');

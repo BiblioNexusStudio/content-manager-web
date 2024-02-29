@@ -1,6 +1,5 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import { unwrapStreamedData } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { searchParameters, ssp, type SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
     import type { ResourceAssignedToOwnCompany, ResourceAssignedToSelf } from './+page';
@@ -50,8 +49,8 @@
         assignedUserId: ssp.number(0),
     });
 
-    $: manageContentsPromise = unwrapStreamedData(data.managerDashboard!.manageResourceContent);
-    $: assignedContentsPromise = unwrapStreamedData(data.managerDashboard!.assignedResourceContent);
+    $: manageContentsPromise = data.managerDashboard!.manageResourceContent.promise;
+    $: assignedContentsPromise = data.managerDashboard!.assignedResourceContent.promise;
 
     $: allDataPromise = Promise.all([assignedContentsPromise, manageContentsPromise]);
 

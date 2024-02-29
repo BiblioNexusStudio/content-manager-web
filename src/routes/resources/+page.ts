@@ -1,10 +1,10 @@
 import type { PageLoad } from './$types';
-import { fetchJsonStreamingFromApi } from '$lib/utils/http-service';
+import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
 import type { ResourceContentStatusEnum } from '$lib/types/base';
 import { ssp, searchParametersForLoad, buildQueryString } from '$lib/utils/sveltekit-search-params';
 import { get } from 'svelte/store';
 import { resourcesPerPage } from '$lib/stores/resources';
-export const ssr = false;
+
 export const _searchParamsConfig = {
     page: ssp.number(1),
     languageId: ssp.number(0),
@@ -20,7 +20,7 @@ export const load: PageLoad = async ({ url, fetch }) => {
     const searchParams = searchParametersForLoad(url, _searchParamsConfig);
 
     return {
-        streamedResourceContentData: getResourceContents(
+        resourceContentData: getResourceContents(
             fetch,
             searchParams.page,
             get(resourcesPerPage),
@@ -65,7 +65,7 @@ function getResourceContents(
         return null;
     }
 
-    return fetchJsonStreamingFromApi<ResourceContentResponse>(`/resources/content?${queryString}`, {}, fetch);
+    return getFromApiWithoutBlocking<ResourceContentResponse>(`/resources/content?${queryString}`);
 }
 
 export interface ResourceContentResponse {

@@ -1,4 +1,4 @@
-import { fetchJsonStreamingFromApi, type StreamedData } from '$lib/utils/http-service';
+import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
 import type { PageLoad } from './$types';
 import type { GenericReportRow } from '$lib/types/reporting';
 import { Permission, userCan } from '$lib/stores/auth';
@@ -6,20 +6,14 @@ import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 import { sideBarHiddenOnPage } from '$lib/stores/app';
 
-export const load: PageLoad = async ({ params, fetch, parent }) => {
-    const data = await parent();
+export const load: PageLoad = async ({ params, parent }) => {
+    await parent();
 
     sideBarHiddenOnPage.set(true);
 
-    if (!data.loaded) {
-        return {};
-    }
-
     if (get(userCan)(Permission.ReadReports)) {
         const listId = params.listId;
-        const listData = fetchJsonStreamingFromApi(`/reports/resources/${listId}`, {}, fetch) as StreamedData<
-            GenericReportRow[]
-        >;
+        const listData = getFromApiWithoutBlocking<GenericReportRow[]>(`/reports/resources/${listId}`);
         return {
             listData,
             listId,
