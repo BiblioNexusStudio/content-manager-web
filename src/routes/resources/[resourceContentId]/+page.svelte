@@ -68,6 +68,8 @@
     let isInTranslationWorkflow = false;
     let mediaType: MediaTypeEnum | undefined;
 
+    let canAiSimplify = $userCan(Permission.AiSimplify);
+
     export let data: PageData;
 
     const { save, resetSaveState, isSaving, showSavingFailed } = createAutosaveStore(putData);
@@ -169,7 +171,7 @@
             if (!(await save(true))) {
                 autoSaveErrorModal.showModal();
             } else {
-                to?.url && goto(to.url);
+                to?.url && (await goto(to.url));
             }
         }
     });
@@ -371,6 +373,12 @@
                         {/if}
                     </div>
                     <div class="flex flex-wrap justify-end">
+                        {#if canAiSimplify}
+                            <button
+                                class="btn btn-primary"
+                                on:click={() => goto(`/resources/${resourceContentId}/simplify`)}>AI Aquiferize</button
+                            >
+                        {/if}
                         {#if hasDraft && hasPublished}
                             <div class="join mb-4 ms-4">
                                 <button
