@@ -1,6 +1,5 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import { unwrapStreamedData } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
     import type { ResourceAssignedToSelf } from './+page';
@@ -44,11 +43,11 @@
         tab: ssp.string(Tab.myWork),
     });
 
-    $: reviewPendingContentsPromise = unwrapStreamedData(data.publisherDashboard!.reviewPendingResourceContent);
-    $: assignedContentsPromise = unwrapStreamedData(data.publisherDashboard!.assignedResourceContent);
-    $: reportingSummaryPromise = unwrapStreamedData(data.publisherDashboard!.reportingSummary);
-
-    $: allDataPromise = Promise.all([assignedContentsPromise, reviewPendingContentsPromise, reportingSummaryPromise]);
+    $: allDataPromise = Promise.all([
+        data.publisherDashboard!.assignedResourceContent.promise,
+        data.publisherDashboard!.reviewPendingResourceContent.promise,
+        data.publisherDashboard!.reportingSummary.promise,
+    ]);
 
     let scrollingDiv: HTMLDivElement | undefined;
     $: $searchParams.sort && scrollingDiv && (scrollingDiv.scrollTop = 0);

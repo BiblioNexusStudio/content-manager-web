@@ -19,9 +19,9 @@
         updateOriginal,
         userStoppedEditing,
     } from '$lib/stores/tiptapContent';
-    import { fetchFromApiWithAuth, unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
+    import { postToApi, putToApi } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
-    import { ResourceContentStatusEnum, UserRole, type BasicUser } from '$lib/types/base';
+    import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import { getSortedReferences } from '$lib/utils/reference';
     import UserSelector from './UserSelector.svelte';
     import { Permission, userCan, userIsEqual, userIsInCompany } from '$lib/stores/auth';
@@ -73,13 +73,16 @@
     const { save, resetSaveState, isSaving, showSavingFailed } = createAutosaveStore(putData);
 
     $: resourceContentId = data.resourceContentId;
-    $: resourceContentPromise = unwrapStreamedDataWithCallback(data.streamedResourceContent, handleFetchedResource);
+    $: resourceContentPromise = data.resourceContent.promise;
+    $: handleFetchedResource(data.resourceContent.promise);
+
     $: contentUpdated =
         JSON.stringify($originalValues[selectedVersionContentId]) !==
         JSON.stringify($updatedValues[selectedVersionContentId]);
     $: contentUpdated && $userStoppedEditing[selectedVersionContentId] && save();
 
-    function handleFetchedResource(resourceContent: ResourceContent) {
+    async function handleFetchedResource(resourceContentPromise: Promise<ResourceContent>) {
+        const resourceContent = await resourceContentPromise;
         resetSaveState();
         $userStoppedEditing[selectedVersionContentId] = false;
         draftVersion = resourceContent.contentVersions.find((x) => x.isDraft);
@@ -197,7 +200,7 @@
     }
 
     function openAssignReviewModal() {
-        assignToUserId = currentUserIsAssigned ? null : (data.currentUser as BasicUser).id;
+        assignToUserId = currentUserIsAssigned ? null : data.currentUser.id;
         isAssignReviewModalOpen = true;
     }
 
@@ -223,67 +226,52 @@
     }
 
     async function unpublish() {
-        await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${resourceContentId}/unpublish`, {
-                method: 'POST',
-            })
-        );
+        await takeActionAndRefresh(() => postToApi(`/admin/resources/content/${resourceContentId}/unpublish`));
     }
 
     async function sendReview() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(
+            postToApi(
                 isInTranslationWorkflow
                     ? `/admin/resources/content/${resourceContentId}/send-translation-review`
-                    : `/admin/resources/content/${resourceContentId}/send-review`,
-                {
-                    method: 'POST',
-                }
+                    : `/admin/resources/content/${resourceContentId}/send-review`
             )
         );
     }
 
     async function assignReview() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/resources/content/${resourceContentId}/assign-review`, {
-                body: { assignedUserId: assignToUserId },
-                method: 'POST',
+            postToApi(`/resources/content/${resourceContentId}/assign-review`, {
+                assignedUserId: assignToUserId,
             })
         );
     }
 
     async function aquiferize() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${resourceContentId}/aquiferize`, {
-                method: 'POST',
-                body: { assignedUserId: assignToUserId },
+            postToApi(`/admin/resources/content/${resourceContentId}/aquiferize`, {
+                assignedUserId: assignToUserId,
             })
         );
     }
 
     async function publish() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${resourceContentId}/publish`, {
-                method: 'POST',
-                body: {
-                    createDraft: createDraft,
-                    assignedUserId: assignToUserId,
-                },
+            postToApi(`/admin/resources/content/${resourceContentId}/publish`, {
+                createDraft: createDraft,
+                assignedUserId: assignToUserId,
             })
         );
     }
 
     async function assignUser() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(
+            postToApi(
                 isInTranslationWorkflow
                     ? `/admin/resources/content/${resourceContentId}/assign-translator`
                     : `/admin/resources/content/${resourceContentId}/assign-editor`,
                 {
-                    method: 'POST',
-                    body: {
-                        assignedUserId: assignToUserId,
-                    },
+                    assignedUserId: assignToUserId,
                 }
             )
         );
@@ -291,22 +279,18 @@
 
     async function createTranslation() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth('/admin/resources/content/create-translation', {
-                method: 'POST',
-                body: {
-                    languageId: parseInt(newTranslationLanguageId!),
-                    baseContentId: englishContentTranslation?.contentId,
-                    useDraft: createTranslationFromDraft,
-                },
+            postToApi('/admin/resources/content/create-translation', {
+                languageId: parseInt(newTranslationLanguageId!),
+                baseContentId: englishContentTranslation?.contentId,
+                useDraft: createTranslationFromDraft,
             })
         );
     }
 
     async function translate() {
         await takeActionAndRefresh(() =>
-            fetchFromApiWithAuth(`/admin/resources/content/${resourceContentId}/assign-translator`, {
-                method: 'POST',
-                body: { assignedUserId: assignToUserId },
+            postToApi(`/admin/resources/content/${resourceContentId}/assign-translator`, {
+                assignedUserId: assignToUserId,
             })
         );
     }
@@ -321,13 +305,10 @@
     async function putData() {
         const selectedVersionValues = $updatedValues[selectedVersionContentId];
         if (selectedVersionValues) {
-            await fetchFromApiWithAuth(`/admin/resources/content/summary/${resourceContentId}`, {
-                method: 'PUT',
-                body: {
-                    displayName: selectedVersionValues.displayName,
-                    wordCount: currentWordCount(selectedVersionValues.wordCounts),
-                    ...(mediaType === MediaTypeEnum.text ? { content: selectedVersionValues.content } : null),
-                },
+            await putToApi(`/admin/resources/content/summary/${resourceContentId}`, {
+                displayName: selectedVersionValues.displayName,
+                wordCount: currentWordCount(selectedVersionValues.wordCounts),
+                ...(mediaType === MediaTypeEnum.text ? { content: selectedVersionValues.content } : null),
             });
         }
 
@@ -458,10 +439,10 @@
                 <Process
                     translationStatus={resourceContent.status}
                     assignedUser={draftVersion?.assignedUser ?? null}
-                    resourceContentStatuses={data.resourceContentStatuses || []}
+                    resourceContentStatuses={data.resourceContentStatuses}
                 />
                 <Translations
-                    languages={data.languages || []}
+                    languages={data.languages}
                     translations={resourceContent.contentTranslations}
                     englishTranslation={englishContentTranslation}
                     {canCreateTranslation}
@@ -594,7 +575,7 @@
             <h3 class="w-full pb-4 text-center text-xl font-bold">Create translation</h3>
             <div class="flex flex-col">
                 <TranslationSelector
-                    allLanguages={data.languages || []}
+                    allLanguages={data.languages}
                     existingTranslations={resourceContent.contentTranslations}
                     bind:selectedLanguageId={newTranslationLanguageId}
                 />
@@ -661,6 +642,4 @@
             </p>
         </div>
     </dialog>
-{:catch}
-    <div class="p-8">Resource not found</div>
 {/await}

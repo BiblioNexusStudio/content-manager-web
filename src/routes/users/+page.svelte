@@ -1,6 +1,5 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import { unwrapStreamedData } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { _ as translate } from 'svelte-i18n';
     import NewUserModal from '$lib/components/users/NewUserModal.svelte';
@@ -8,9 +7,7 @@
 
     export let data: PageData;
 
-    $: userDataPromise = unwrapStreamedData(data.userData!);
-    $: companiesPromise = unwrapStreamedData(data.companies!);
-    $: allDataPromise = Promise.all([userDataPromise, companiesPromise]);
+    $: allDataPromise = Promise.all([data.userData!.promise, data.companies!.promise]);
     let searchInputVal: string | undefined;
 
     $: searchVal = searchInputVal;

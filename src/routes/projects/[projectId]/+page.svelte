@@ -1,23 +1,25 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import { unwrapStreamedDataWithCallback } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
-    import { Permission } from '$lib/stores/auth';
+    import { Permission, userCan } from '$lib/stores/auth';
     import { users, project } from '$lib/stores/projects';
     import ProjectViewTabs from '$lib/components/projects/ProjectViewTabs.svelte';
     import ProjectViewTable from '$lib/components/projects/ProjectViewTable.svelte';
     import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
     import { startProject } from '$lib/utils/projects';
-    import { ProjectConstants } from '$lib/types/projects';
+    import { ProjectConstants, type ProjectResponse } from '$lib/types/projects';
     import BackButton from '$lib/components/BackButton.svelte';
 
     export let data: PageData;
     const { users: dataUsers } = data;
 
-    $: projectPromise = unwrapStreamedDataWithCallback(data.projectResponse!, (projectResponse) => {
-        $project = projectResponse;
+    $: projectPromise = data.projectResponse!.promise;
+    $: setProjectStore(data.projectResponse!.promise);
+
+    async function setProjectStore(projectPromise: Promise<ProjectResponse>) {
+        $project = await projectPromise;
         $users = dataUsers;
-    });
+    }
 
     $: companyLeadSet = $project?.projectPlatform !== ProjectConstants.AQUIFER ? true : $project?.companyLead;
 
@@ -49,7 +51,7 @@
                 </span>
             </div>
             <div class="flex">
-                {#if $project?.started === null && data.currentUser.can(Permission.EditProjects)}
+                {#if $project?.started === null && $userCan(Permission.EditProjects)}
                     <button class="btn btn-primary" disabled={!disabledStartButton} on:click={onStartProject}
                         >Start</button
                     >
