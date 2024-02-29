@@ -1,14 +1,10 @@
 import type { PageLoad } from './$types';
-import { fetchJsonStreamingFromApi } from '$lib/utils/http-service';
+import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
 import type { ResourceContent } from '$lib/types/resources';
 
-export const load: PageLoad = async ({ params, fetch }) => {
+export const load: PageLoad = async ({ params }) => {
     return {
         resourceContentId: params.resourceContentId,
-        streamedResourceContent: fetchJsonStreamingFromApi<ResourceContent>(
-            `/resources/content/${params.resourceContentId}`,
-            {},
-            fetch
-        ),
+        resourceContent: getFromApiWithoutBlocking<ResourceContent>(`/resources/content/${params.resourceContentId}`),
     };
 };

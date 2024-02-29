@@ -1,13 +1,12 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import { unwrapStreamedData } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import ReportTable from '$lib/components/reporting/ReportTable.svelte';
     import ReportTablePagination from '$lib/components/reporting/ReportTablePagination.svelte';
 
     export let data: PageData;
 
-    $: listPromise = unwrapStreamedData(data.listData!);
+    $: listPromise = data.listData!.promise;
     $: listId = formatListName(data.listId!);
 
     function formatListName(listName: string) {

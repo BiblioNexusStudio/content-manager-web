@@ -2,7 +2,7 @@
     import InfoIcon from '$lib/icons/InfoIcon.svelte';
     import Select from '$lib/components/Select.svelte';
     import { UserRole, type Company } from '$lib/types/base';
-    import { fetchFromApiWithAuth } from '$lib/utils/http-service';
+    import { postToApi } from '$lib/utils/http-service';
     import { invalidateAll } from '$app/navigation';
     import { Permission, currentUser, userCan } from '$lib/stores/auth';
     import type { HttpError } from '@sveltejs/kit';
@@ -92,15 +92,12 @@
 
         try {
             if (canSave) {
-                await fetchFromApiWithAuth('/users/create', {
-                    method: 'POST',
-                    body: {
-                        email,
-                        firstName,
-                        lastName,
-                        role,
-                        companyId,
-                    },
+                await postToApi('/users/create', {
+                    email,
+                    firstName,
+                    lastName,
+                    role,
+                    companyId,
                 });
                 errorMessage = null;
                 invalidateAll();
