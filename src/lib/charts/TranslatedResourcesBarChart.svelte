@@ -3,6 +3,7 @@
     import { onDestroy, onMount } from 'svelte';
     import type { ResourcesByLanguage, TotalsByMonth } from '../../routes/+page';
     import { _ as translate } from 'svelte-i18n';
+    import { generateColors } from '$lib/utils/color-gen';
 
     const defaultSelection = 'default';
     export let resourcesByLanguage: ResourcesByLanguage[];
@@ -15,8 +16,6 @@
     let chart: Chart | undefined;
 
     $: updateTranslatedResourcesChart(selectedLanguages, selectedResource);
-
-    const colors = ['#0174a3', '#00A3E0', '#BABABA', '#344054', '#1D2939'];
 
     const updateTranslatedResourcesChart = (selectedLanguages: string[], resource: string) => {
         let resources = resourcesByLanguage;
@@ -60,6 +59,8 @@
     };
 
     const updateChart = (data: ChartDataset[]) => {
+        const colors = generateColors(data.length);
+
         for (let i = 0; i < data.length; i++) {
             data[i]!.backgroundColor = colors[i];
         }
