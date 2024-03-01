@@ -80,26 +80,33 @@ export async function initAuth0(url: URL) {
 
     auth0Client = client;
 
-    let isAuthenticated = await client.isAuthenticated();
-    isAuthenticatedStore.set(isAuthenticated);
-
-    if (!isAuthenticated && url.searchParams.has('code') && url.searchParams.has('state')) {
-        await client.handleRedirectCallback();
-        window.location.href = '/';
-        isAuthenticated = await client.isAuthenticated();
+    try {
+        let isAuthenticated = await client.isAuthenticated();
         isAuthenticatedStore.set(isAuthenticated);
-    }
 
-    if (isAuthenticated) {
-        try {
-            profile.set(await client.getUser());
-        } catch (error) {
-            log.exception(error as Error);
+        if (!isAuthenticated && url.searchParams.has('code') && url.searchParams.has('state')) {
+            await client.handleRedirectCallback();
+            window.location.href = '/';
+            isAuthenticated = await client.isAuthenticated();
+            isAuthenticatedStore.set(isAuthenticated);
         }
-    } else {
+
+        if (isAuthenticated) {
+            try {
+                profile.set(await client.getUser());
+            } catch (error) {
+                log.exception(error as Error);
+            }
+        } else {
+            await login(url);
+        }
+
+        return isAuthenticated;
+    } catch (error) {
+        console.error(error);
         await login(url);
+        return false;
     }
-    return isAuthenticated;
 }
 
 async function login(url: URL) {
