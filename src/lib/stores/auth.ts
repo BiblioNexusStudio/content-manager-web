@@ -63,6 +63,8 @@ export enum Permission {
     ReviewContent = 'review:content',
     SendReviewContent = 'send-review:content',
     ReadCompanyContentAssignments = 'read:company-content-assignments',
+    AiSimplify = 'ai:simplify',
+    AiTranslate = 'ai:translate',
 }
 
 export async function initAuth0(url: URL) {
