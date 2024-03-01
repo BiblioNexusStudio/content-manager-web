@@ -354,10 +354,12 @@
                         {/if}
                     </div>
                     <div class="flex flex-wrap justify-end">
-                        {#if canAiSimplify}
+                        {#if canAiSimplify && mediaType === MediaTypeEnum.text}
                             <button
                                 class="btn btn-primary"
-                                on:click={() => goto(`/resources/${resourceContentId}/simplify`)}>AI Aquiferize</button
+                                on:click={() =>
+                                    goto(`/resources/${resourceContentId}/simplify?v=${selectedVersion.id}`)}
+                                >AI Aquiferize</button
                             >
                         {/if}
                         {#if hasDraft && hasPublished}
