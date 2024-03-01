@@ -81,6 +81,8 @@ export async function initAuth0(url: URL) {
     auth0Client = client;
 
     try {
+        await auth0Client.getTokenSilently(); // fetch the token so we error if the session is expired
+
         let isAuthenticated = await client.isAuthenticated();
         isAuthenticatedStore.set(isAuthenticated);
 
