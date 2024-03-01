@@ -102,7 +102,7 @@ export async function putToApi<T = never>(path: string, body: RequestBody | unde
 
 async function authTokenHeader(): Promise<string> {
     // Wait for the auth client to be initialized and a valid token (prevents race conditions)
-    const token = await waitForValidValue(async () => await auth0Client?.getTokenSilently(), true, 50);
+    const token = await waitForValidValue(async () => await auth0Client?.getTokenSilently(), true, 500);
     if (token) {
         return `Bearer ${token}`;
     }
