@@ -92,21 +92,17 @@ export async function initAuth0(url: URL) {
         }
 
         if (isAuthenticated) {
-            try {
-                profile.set(await client.getUser());
-                await auth0Client.getTokenSilently();
-                isAuthenticatedStore.set(true);
-            } catch (error) {
-                log.exception(error as Error);
-                isAuthenticatedStore.set(false);
-            }
+            profile.set(await client.getUser());
+            await auth0Client.getTokenSilently();
+            isAuthenticatedStore.set(true);
         } else {
             await login(url);
         }
 
         return isAuthenticated;
     } catch (error) {
-        console.error(error);
+        log.exception(error as Error);
+        isAuthenticatedStore.set(false);
         await logout(url);
         return false;
     }
