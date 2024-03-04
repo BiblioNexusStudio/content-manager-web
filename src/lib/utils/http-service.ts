@@ -36,7 +36,11 @@ async function rawApiFetch(path: string, options: CustomFetchOptions) {
     }
 
     if (!fetchOptions.headers['Authorization']) {
-        fetchOptions.headers['Authorization'] = await authTokenHeader();
+        const authToken = await authTokenHeader();
+        if (!authToken) {
+            throw new Error('Unable to retrieve auth token');
+        }
+        fetchOptions.headers['Authorization'] = authToken;
     }
 
     if (options.body) {
@@ -63,6 +67,7 @@ async function rawApiFetch(path: string, options: CustomFetchOptions) {
         }
         throw error(response.status, errorMessage(message, response.status, pathWithSlash));
     }
+
     return response;
 }
 
@@ -100,13 +105,12 @@ export async function putToApi<T = never>(path: string, body: RequestBody | unde
     return JSON.parse(text);
 }
 
-async function authTokenHeader(): Promise<string> {
+async function authTokenHeader(): Promise<string | undefined> {
     // Wait for the auth client to be initialized and a valid token (prevents race conditions)
     const token = await waitForValidValue(async () => await auth0Client?.getTokenSilently(), true, 500);
     if (token) {
         return `Bearer ${token}`;
     }
-    return '';
 }
 
 // Wait for a truthy (not null, not undefined, not false) value to be returned by `fn` or returns the most recent

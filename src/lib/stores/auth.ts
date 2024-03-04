@@ -81,8 +81,6 @@ export async function initAuth0(url: URL) {
     auth0Client = client;
 
     try {
-        await auth0Client.getTokenSilently(); // fetch the token so we error if the session is expired
-
         let isAuthenticated = await client.isAuthenticated();
         isAuthenticatedStore.set(isAuthenticated);
 
@@ -96,8 +94,11 @@ export async function initAuth0(url: URL) {
         if (isAuthenticated) {
             try {
                 profile.set(await client.getUser());
+                await auth0Client.getTokenSilently();
+                isAuthenticatedStore.set(true);
             } catch (error) {
                 log.exception(error as Error);
+                isAuthenticatedStore.set(false);
             }
         } else {
             await login(url);
@@ -106,7 +107,7 @@ export async function initAuth0(url: URL) {
         return isAuthenticated;
     } catch (error) {
         console.error(error);
-        await login(url);
+        await logout(url);
         return false;
     }
 }
