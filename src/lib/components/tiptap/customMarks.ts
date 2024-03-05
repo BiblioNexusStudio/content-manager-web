@@ -21,7 +21,7 @@ export const bibleReferenceMark = Mark.create({
             {
                 tag: 'span',
                 getAttrs: (node) => {
-                    let bnType = (node as HTMLElement).getAttribute('data-bnType');
+                    const bnType = (node as HTMLElement).getAttribute('data-bnType');
                     if (bnType === 'bibleReference') {
                         return {
                             verses: [
@@ -71,7 +71,7 @@ export const resourceReferenceMark = Mark.create({
             {
                 tag: 'span',
                 getAttrs: (node) => {
-                    let bnType = (node as HTMLElement).getAttribute('data-bnType');
+                    const bnType = (node as HTMLElement).getAttribute('data-bnType');
                     if (bnType === 'resourceReference') {
                         return {
                             resourceId: (node as HTMLElement).getAttribute('data-resourceId'),
