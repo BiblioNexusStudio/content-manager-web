@@ -16,8 +16,39 @@ export const bibleReferenceMark = Mark.create({
             },
         };
     },
-    renderHTML() {
-        return ['span', { style: 'color: green' }, 0];
+    parseHTML() {
+        return [
+            {
+                tag: 'span',
+                getAttrs: (node) => {
+                    const bnType = (node as HTMLElement).getAttribute('data-bnType');
+                    if (bnType === 'bibleReference') {
+                        return {
+                            verses: [
+                                {
+                                    startVerse: (node as HTMLElement).getAttribute('data-startVerse'),
+                                    endVerse: (node as HTMLElement).getAttribute('data-endVerse'),
+                                },
+                            ],
+                        };
+                    }
+
+                    return false;
+                },
+            },
+        ];
+    },
+    renderHTML({ HTMLAttributes }) {
+        return [
+            'span',
+            {
+                'data-bnType': 'bibleReference',
+                'data-startVerse': HTMLAttributes.verses[0].startVerse,
+                'data-endVerse': HTMLAttributes.verses[0].endVerse,
+                style: 'color: green',
+            },
+            0,
+        ];
     },
 });
 
@@ -35,7 +66,34 @@ export const resourceReferenceMark = Mark.create({
             },
         };
     },
-    renderHTML() {
-        return ['span', { style: 'color: blue' }, 0];
+    parseHTML() {
+        return [
+            {
+                tag: 'span',
+                getAttrs: (node) => {
+                    const bnType = (node as HTMLElement).getAttribute('data-bnType');
+                    if (bnType === 'resourceReference') {
+                        return {
+                            resourceId: (node as HTMLElement).getAttribute('data-resourceId'),
+                            resourceType: (node as HTMLElement).getAttribute('data-resourceType'),
+                        };
+                    }
+
+                    return false;
+                },
+            },
+        ];
+    },
+    renderHTML({ HTMLAttributes }) {
+        return [
+            'span',
+            {
+                'data-bnType': 'resourceReference',
+                'data-resourceId': HTMLAttributes.resourceId,
+                'data-resourceType': HTMLAttributes.resourceType,
+                style: 'color: blue',
+            },
+            0,
+        ];
     },
 });

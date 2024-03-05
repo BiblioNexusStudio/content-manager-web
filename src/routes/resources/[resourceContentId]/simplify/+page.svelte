@@ -102,7 +102,7 @@
 {#await versionPromise}
     <CenteredSpinner />
 {:then version}
-    <div class="mx-4 mt-8 h-full">
+    <div class="mx-4 my-4">
         <div class="grid grid-cols-2 gap-4 gap-y-8">
             <div class="col-span-1">
                 <p>
