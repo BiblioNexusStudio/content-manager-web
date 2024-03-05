@@ -63,6 +63,8 @@ export enum Permission {
     ReviewContent = 'review:content',
     SendReviewContent = 'send-review:content',
     ReadCompanyContentAssignments = 'read:company-content-assignments',
+    AiSimplify = 'ai:simplify',
+    AiTranslate = 'ai:translate',
 }
 
 export async function initAuth0(url: URL) {
@@ -78,26 +80,32 @@ export async function initAuth0(url: URL) {
 
     auth0Client = client;
 
-    let isAuthenticated = await client.isAuthenticated();
-    isAuthenticatedStore.set(isAuthenticated);
-
-    if (!isAuthenticated && url.searchParams.has('code') && url.searchParams.has('state')) {
-        await client.handleRedirectCallback();
-        window.location.href = '/';
-        isAuthenticated = await client.isAuthenticated();
+    try {
+        let isAuthenticated = await client.isAuthenticated();
         isAuthenticatedStore.set(isAuthenticated);
-    }
 
-    if (isAuthenticated) {
-        try {
-            profile.set(await client.getUser());
-        } catch (error) {
-            log.exception(error as Error);
+        if (!isAuthenticated && url.searchParams.has('code') && url.searchParams.has('state')) {
+            await client.handleRedirectCallback();
+            window.location.href = '/';
+            isAuthenticated = await client.isAuthenticated();
+            isAuthenticatedStore.set(isAuthenticated);
         }
-    } else {
-        await login(url);
+
+        if (isAuthenticated) {
+            profile.set(await client.getUser());
+            await auth0Client.getTokenSilently();
+            isAuthenticatedStore.set(true);
+        } else {
+            await login(url);
+        }
+
+        return isAuthenticated;
+    } catch (error) {
+        log.exception(error as Error);
+        isAuthenticatedStore.set(false);
+        await logout(url);
+        return false;
     }
-    return isAuthenticated;
 }
 
 async function login(url: URL) {

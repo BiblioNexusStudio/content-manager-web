@@ -8,11 +8,12 @@
     import MenuIcon from '$lib/icons/MenuIcon.svelte';
     import PieChartIcon from '$lib/icons/PieChartIcon.svelte';
     import ProjectsIcon from '$lib/icons/ProjectsIcon.svelte';
-    import { page } from '$app/stores';
+    import { navigating, page } from '$app/stores';
     import { _ as translate } from 'svelte-i18n';
     import { logout, profile, Permission, userCan } from '$lib/stores/auth';
     import { log } from '$lib/logger';
     import { sideBarHiddenOnPage } from '$lib/stores/app';
+    import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
 
     $: userEmail = $profile?.email ?? ' '; // set to avoid flashing undefined
     $: userFullName = $profile?.name ?? ' ';
@@ -80,7 +81,11 @@
             <label for="main-drawer" class="btn btn-link btn-active drawer-button btn-xs justify-start p-1 lg:hidden"
                 ><MenuIcon /></label
             >
-            <slot />
+            {#if $navigating}
+                <CenteredSpinner />
+            {:else}
+                <slot />
+            {/if}
         </div>
         <div class="drawer-side z-10">
             <!-- Sidebar content here -->

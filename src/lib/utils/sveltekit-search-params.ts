@@ -10,7 +10,6 @@
 
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
 import { page } from '$app/stores';
 import { get, writable, type Updater, type Writable } from 'svelte/store';
@@ -24,21 +23,10 @@ const GOTO_OPTIONS = {
     replaceState: true,
 };
 
-const GOTO_OPTIONS_PUSH = {
-    keepFocus: true,
-    noScroll: true,
-    replaceState: false,
-};
-
 export type EncodeAndDecodeOptions<T = any> = {
     encode: (value: T) => string | undefined;
     decode: (value: string | null) => T | null;
     defaultValue: T;
-};
-
-export type StoreOptions = {
-    debounceHistory?: number;
-    pushHistory?: boolean;
 };
 
 type LooseAutocomplete<T> = {
@@ -83,7 +71,7 @@ function mixSearchAndOptions<T>(searchParams: URLSearchParams, options?: Options
             }
             const value = searchParams?.get(key);
             let actualValue;
-            if (browser && value == undefined && optionsKey?.defaultValue != undefined) {
+            if (value == undefined && optionsKey?.defaultValue != undefined) {
                 actualValue = optionsKey.defaultValue;
             } else {
                 actualValue = fnToCall(value);
@@ -142,13 +130,10 @@ const batchedUpdates = new Set<(query: URLSearchParams) => void>();
 let batchTimeout: SetTimeout;
 let debouncedUpdateTimeout: SetTimeout;
 
-const debouncedTimeouts = new Map<string, SetTimeout>();
-
 export type SubscribedSearchParams<Type> = Type extends Writable<infer X> ? X : never;
 
 export function searchParameters<T extends object>(
-    options?: Options<T>,
-    { debounceHistory = 0, pushHistory = true }: StoreOptions = {}
+    options?: Options<T>
 ): Writable<LooseAutocomplete<T>> & {
     calculateUrlWithGivenChanges: (params: Partial<LooseAutocomplete<T>>) => string;
 } {
@@ -185,15 +170,7 @@ export function searchParameters<T extends object>(
                     batchedUpdates.forEach((batched) => {
                         batched(query);
                     });
-                    clearTimeout(debouncedTimeouts.get('searchParameters'));
-                    if (browser) await goto(`?${query}${hash}`, GOTO_OPTIONS);
-                    if (pushHistory && browser) {
-                        goto(hash, GOTO_OPTIONS_PUSH);
-                        debouncedTimeouts.set(
-                            'queryParameters',
-                            setTimeout(() => {}, debounceHistory)
-                        );
-                    }
+                    await goto(`?${query}${hash}`, GOTO_OPTIONS);
                     batchedUpdates.clear();
                 });
             }, 50);
