@@ -11,7 +11,10 @@
     export let languages: string[];
     export let selectedLanguages: string[];
     export let selectedResource: string;
+
     const months = totalsByMonth.map((item) => item.monthAbbreviation);
+
+    let languagesToColors: { color: string; language: string }[] | undefined = undefined;
 
     let chart: Chart | undefined;
 
@@ -55,16 +58,21 @@
             translatedData?.find((x) => x.label === group![0]?.language)?.data.push(total);
         }
 
+        if (!languagesToColors) {
+            languagesToColors = generateColors(translatedData);
+        }
+
         updateChart(translatedData);
     };
 
     const updateChart = (data: ChartDataset[]) => {
-        const colors = generateColors(data.length);
-
-        for (let i = 0; i < data.length; i++) {
-            data[i]!.backgroundColor = colors[i];
+        if (languagesToColors) {
+            for (let i = 0; i < data.length; i++) {
+                data[i]!.backgroundColor = languagesToColors.find((lc) => lc.language == data[i]!.label)?.color;
+            }
         }
 
+        ('/');
         if (chart !== undefined) {
             chart.data.datasets = data;
             chart.update();
