@@ -72,7 +72,6 @@
             }
         }
 
-        ('/');
         if (chart !== undefined) {
             chart.data.datasets = data;
             chart.update();
