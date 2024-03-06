@@ -119,7 +119,7 @@
                                     resource.projectName ?? '',
                                     [
                                         resource.daysUntilProjectDeadline ?? '',
-                                        (resource.daysUntilProjectDeadline ?? 0) < 0 ? 'text-red' : '',
+                                        (resource.daysUntilProjectDeadline ?? 0) < 0 ? 'text-red-500' : '',
                                     ],
                                     resource.wordCount ?? '',
                                 ]}
