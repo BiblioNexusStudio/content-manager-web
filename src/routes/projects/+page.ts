@@ -5,11 +5,11 @@ import { Permission, userCan } from '$lib/stores/auth';
 import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 
-export const load: PageLoad = async ({ parent }) => {
+export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
 
     if (get(userCan)(Permission.ReadProjects)) {
-        const projectListResponse = getFromApiWithoutBlocking<ProjectListResponse[]>('/projects');
+        const projectListResponse = getFromApiWithoutBlocking<ProjectListResponse[]>('/projects', fetch);
         return { projectListResponse };
     } else {
         throw redirect(302, '/');

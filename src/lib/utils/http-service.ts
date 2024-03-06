@@ -6,6 +6,8 @@ import { error } from '@sveltejs/kit';
 const API_KEY = config.PUBLIC_AQUIFER_API_KEY;
 const BASE_URL = config.PUBLIC_AQUIFER_API_URL;
 
+export const AUTH_TOKEN_RETRIEVAL_ERROR = 'Unable to retrieve auth token. User must login again.';
+
 type CustomFetchOptions = ExtendType<FetchOptions, 'body', object | undefined>;
 type RequestBody = Record<string, unknown>;
 
@@ -15,15 +17,18 @@ interface FetchOptions extends RequestInit {
 
 // This takes advantage of SvelteKit's streaming functionality to allow a page
 // to be rendered before all of the data has finished loading.
-export function getFromApiWithoutBlocking<T = never>(path: string): { promise: Promise<T> } {
+export function getFromApiWithoutBlocking<T = never>(
+    path: string,
+    injectedFetch: typeof window.fetch
+): { promise: Promise<T> } {
     return {
-        promise: rawApiFetch(path, {}).then((response) => response.json() as T),
+        promise: rawApiFetch(path, injectedFetch, {}).then((response) => response.json() as T),
     };
 }
 
 // Base fetch function for the Aquifer API. Handles auth, body stringifying, content type, prefixing the API path with
 // the base URL, and detecting errors.
-async function rawApiFetch(path: string, options: CustomFetchOptions) {
+async function rawApiFetch(path: string, injectedFetch: typeof window.fetch | null, options: CustomFetchOptions) {
     const fetchOptions: FetchOptions = options as FetchOptions;
 
     fetchOptions.headers = {
@@ -38,7 +43,7 @@ async function rawApiFetch(path: string, options: CustomFetchOptions) {
     if (!fetchOptions.headers['Authorization']) {
         const authToken = await authTokenHeader();
         if (!authToken) {
-            throw new Error('Unable to retrieve auth token');
+            throw new Error(AUTH_TOKEN_RETRIEVAL_ERROR);
         }
         fetchOptions.headers['Authorization'] = authToken;
     }
@@ -71,12 +76,15 @@ async function rawApiFetch(path: string, options: CustomFetchOptions) {
     return response;
 }
 
-export async function getFromApi<T = never>(path: string): Promise<T | null> {
-    return await rawApiFetch(path, {}).then((response) => response.json());
+export async function getFromApi<T = never>(
+    path: string,
+    injectedFetch: typeof window.fetch | null = null
+): Promise<T | null> {
+    return await rawApiFetch(path, injectedFetch, {}).then((response) => response.json());
 }
 
 export async function postToApi<T = never>(path: string, body: RequestBody | undefined = undefined): Promise<T | null> {
-    const response = await rawApiFetch(path, { body, method: 'POST' });
+    const response = await rawApiFetch(path, null, { body, method: 'POST' });
     const text = await response.text();
     if (text === '') {
         return null;
@@ -88,7 +96,7 @@ export async function patchToApi<T = never>(
     path: string,
     body: RequestBody | undefined = undefined
 ): Promise<T | null> {
-    const response = await rawApiFetch(path, { body, method: 'PATCH' });
+    const response = await rawApiFetch(path, null, { body, method: 'PATCH' });
     const text = await response.text();
     if (text === '') {
         return null;
@@ -97,7 +105,7 @@ export async function patchToApi<T = never>(
 }
 
 export async function putToApi<T = never>(path: string, body: RequestBody | undefined = undefined): Promise<T | null> {
-    const response = await rawApiFetch(path, { body, method: 'PUT' });
+    const response = await rawApiFetch(path, null, { body, method: 'PUT' });
     const text = await response.text();
     if (text === '') {
         return null;

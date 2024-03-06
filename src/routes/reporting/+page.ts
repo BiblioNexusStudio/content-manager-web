@@ -5,12 +5,15 @@ import { Permission, userCan } from '$lib/stores/auth';
 import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 
-export const load: PageLoad = async ({ parent }) => {
+export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
 
     if (get(userCan)(Permission.ReadReports)) {
-        const summary = getFromApiWithoutBlocking<ResourcesSummary>('/admin/resources/summary');
-        const resourceItemsSummary = getFromApiWithoutBlocking<ResourceItemsSummary>('/reports/resources/item-totals');
+        const summary = getFromApiWithoutBlocking<ResourcesSummary>('/admin/resources/summary', fetch);
+        const resourceItemsSummary = getFromApiWithoutBlocking<ResourceItemsSummary>(
+            '/reports/resources/item-totals',
+            fetch
+        );
         return { summary, resourceItemsSummary };
     } else {
         throw redirect(302, '/');

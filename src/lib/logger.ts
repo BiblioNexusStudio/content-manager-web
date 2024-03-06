@@ -3,6 +3,7 @@ import config from '$lib/config';
 import { browser } from '$app/environment';
 import { isAuthenticatedStore, profile } from './stores/auth';
 import { get } from 'svelte/store';
+import { AUTH_TOKEN_RETRIEVAL_ERROR } from './utils/http-service';
 
 const appInsights = new ApplicationInsights({
     config: {
@@ -27,7 +28,9 @@ export const log = {
         if (
             error &&
             error.message &&
-            (error.message.includes('Failed to fetch') || error.message.includes('Load failed'))
+            (error.message.includes('Failed to fetch') ||
+                error.message.includes('Load failed') ||
+                error.message.includes(AUTH_TOKEN_RETRIEVAL_ERROR))
         ) {
             console.error(error);
         } else if (error) {

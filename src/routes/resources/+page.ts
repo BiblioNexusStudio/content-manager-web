@@ -36,7 +36,7 @@ export const load: PageLoad = async ({ url, fetch }) => {
 };
 
 function getResourceContents(
-    fetch: typeof window.fetch,
+    injectedFetch: typeof window.fetch,
     currentPage: number,
     limit: number,
     languageId: number,
@@ -65,7 +65,7 @@ function getResourceContents(
         return null;
     }
 
-    return getFromApiWithoutBlocking<ResourceContentResponse>(`/resources/content?${queryString}`);
+    return getFromApiWithoutBlocking<ResourceContentResponse>(`/resources/content?${queryString}`, injectedFetch);
 }
 
 export interface ResourceContentResponse {

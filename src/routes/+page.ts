@@ -3,32 +3,34 @@ import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
 import { Permission, userCan } from '$lib/stores/auth';
 import { get } from 'svelte/store';
 
-export const load: PageLoad = async ({ parent }) => {
+export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
 
     if (get(userCan)(Permission.ReviewContent) || get(userCan)(Permission.PublishContent)) {
-        const reportingSummary = getFromApiWithoutBlocking<ResourcesSummary>('/admin/resources/summary');
-        const assignedResourceContent = fetchAssignedResourceContent();
+        const reportingSummary = getFromApiWithoutBlocking<ResourcesSummary>('/admin/resources/summary', fetch);
+        const assignedResourceContent = fetchAssignedResourceContent(fetch);
         const reviewPendingResourceContent = getFromApiWithoutBlocking<ResourcePendingReview[]>(
-            '/resources/content/review-pending'
+            '/resources/content/review-pending',
+            fetch
         );
         return { publisherDashboard: { assignedResourceContent, reportingSummary, reviewPendingResourceContent } };
     } else if (get(userCan)(Permission.ReadCompanyContentAssignments)) {
-        const assignedResourceContent = fetchAssignedResourceContent();
+        const assignedResourceContent = fetchAssignedResourceContent(fetch);
         const manageResourceContent = getFromApiWithoutBlocking<ResourceAssignedToOwnCompany[]>(
-            '/resources/content/assigned-to-own-company'
+            '/resources/content/assigned-to-own-company',
+            fetch
         );
         return { managerDashboard: { assignedResourceContent, manageResourceContent } };
     } else if (get(userCan)(Permission.EditContent)) {
-        const resourceContent = fetchAssignedResourceContent();
+        const resourceContent = fetchAssignedResourceContent(fetch);
         return { editorDashboard: { resourceContent } };
     } else {
         return {};
     }
 };
 
-function fetchAssignedResourceContent() {
-    return getFromApiWithoutBlocking<ResourceAssignedToSelf[]>('/resources/content/assigned-to-self');
+function fetchAssignedResourceContent(injectedFetch: typeof window.fetch) {
+    return getFromApiWithoutBlocking<ResourceAssignedToSelf[]>('/resources/content/assigned-to-self', injectedFetch);
 }
 
 export interface ResourcesByParentResource extends TotalsByMonth {

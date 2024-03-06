@@ -8,6 +8,6 @@ export const load: LayoutLoad = async ({ parent }) => {
     const englishLanguageId = languages?.find((l) => l.iso6393Code === 'eng')?.id;
 
     return {
-        bibles: getFromApiWithoutBlocking<Bible[]>(`/bibles/language/${englishLanguageId}`),
+        bibles: getFromApiWithoutBlocking<Bible[]>(`/bibles/language/${englishLanguageId}`, fetch),
     };
 };
