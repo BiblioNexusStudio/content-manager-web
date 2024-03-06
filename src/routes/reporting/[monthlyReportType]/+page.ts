@@ -6,14 +6,15 @@ import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 import { sideBarHiddenOnPage } from '$lib/stores/app';
 
-export const load: PageLoad = async ({ params, parent }) => {
+export const load: PageLoad = async ({ params, parent, fetch }) => {
     await parent();
 
     sideBarHiddenOnPage.set(true);
 
     if (get(userCan)(Permission.ReadReports)) {
         const report = getFromApiWithoutBlocking<MonthlyStartsAndCompletions>(
-            `/reports/${params.monthlyReportType}/monthly`
+            `/reports/${params.monthlyReportType}/monthly`,
+            fetch
         );
         return {
             reportType: params.monthlyReportType,

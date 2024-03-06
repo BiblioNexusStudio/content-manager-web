@@ -88,13 +88,16 @@ export async function initAuth0(url: URL) {
             await client.handleRedirectCallback();
             window.location.href = '/';
             isAuthenticated = await client.isAuthenticated();
-            isAuthenticatedStore.set(isAuthenticated);
         }
 
         if (isAuthenticated) {
             profile.set(await client.getUser());
-            await auth0Client.getTokenSilently();
-            isAuthenticatedStore.set(true);
+            try {
+                await auth0Client.getTokenSilently();
+            } catch (error) {
+                await logout(url);
+                return false;
+            }
         } else {
             await login(url);
         }
@@ -102,7 +105,6 @@ export async function initAuth0(url: URL) {
         return isAuthenticated;
     } catch (error) {
         log.exception(error as Error);
-        isAuthenticatedStore.set(false);
         await logout(url);
         return false;
     }
@@ -118,6 +120,7 @@ async function login(url: URL) {
 
 export async function logout(url: URL) {
     profile.set(undefined);
+    isAuthenticatedStore.set(false);
     await auth0Client?.logout({
         logoutParams: {
             returnTo: url.origin,
