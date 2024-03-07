@@ -58,7 +58,7 @@ async function rawApiFetch(path: string, injectedFetch: typeof window.fetch | nu
     let response: Response | null;
 
     try {
-        response = await fetch(url, fetchOptions);
+        response = await (injectedFetch || fetch)(url, fetchOptions);
     } catch (error) {
         throw new Error(errorMessage((error as Error).message, null, pathWithSlash));
     }
@@ -84,7 +84,7 @@ export async function getFromApi<T = never>(
 }
 
 export async function postToApi<T = never>(path: string, body: RequestBody | undefined = undefined): Promise<T | null> {
-    const response = await rawApiFetch(path, null, { body, method: 'POST' });
+    const response = await rawApiFetch(path, null, { body: body || {}, method: 'POST' });
     const text = await response.text();
     if (text === '') {
         return null;
@@ -96,7 +96,7 @@ export async function patchToApi<T = never>(
     path: string,
     body: RequestBody | undefined = undefined
 ): Promise<T | null> {
-    const response = await rawApiFetch(path, null, { body, method: 'PATCH' });
+    const response = await rawApiFetch(path, null, { body: body || {}, method: 'PATCH' });
     const text = await response.text();
     if (text === '') {
         return null;
@@ -105,7 +105,7 @@ export async function patchToApi<T = never>(
 }
 
 export async function putToApi<T = never>(path: string, body: RequestBody | undefined = undefined): Promise<T | null> {
-    const response = await rawApiFetch(path, null, { body, method: 'PUT' });
+    const response = await rawApiFetch(path, null, { body: body || {}, method: 'PUT' });
     const text = await response.text();
     if (text === '') {
         return null;
