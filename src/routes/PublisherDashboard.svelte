@@ -54,7 +54,7 @@
     $: $searchParams.tab === Tab.myProjects && resetSort();
 
     function resetSort() {
-        const daysSort = '-' + SORT_KEYS.days;
+        const daysSort = SORT_KEYS.days;
         if ($searchParams.sort !== daysSort) {
             $searchParams.sort = daysSort;
         }
