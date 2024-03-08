@@ -54,7 +54,7 @@
     $: $searchParams.tab === Tab.myProjects && resetSort();
 
     function resetSort() {
-        const daysSort = '-' + SORT_KEYS.days;
+        const daysSort = SORT_KEYS.days;
         if ($searchParams.sort !== daysSort) {
             $searchParams.sort = daysSort;
         }
@@ -81,7 +81,7 @@
 {:then [assignedContents, reviewPendingContents, assignedProjects, reportingSummary]}
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Publisher Dashboard</h1>
-        <div role="tablist" class="tabs-bordered tabs w-fit pt-4">
+        <div role="tablist" class="tabs tabs-bordered w-fit pt-4">
             <button
                 on:click={() => ($searchParams.tab = Tab.myWork)}
                 role="tab"
