@@ -28,7 +28,9 @@
             >
             <a
                 href={`/resources/${item.resourceContentId}`}
-                class="flex items-center border-b px-4 py-3 text-sm text-gray-600">{item?.assignedUserName ?? ''}</a
+                class="flex items-center border-b px-4 py-3 text-sm text-gray-600"
+                >{item?.assignedUserName ??
+                    (item?.statusDisplayName?.includes('In Progress') ? 'External User' : '')}</a
             >
             <a
                 href={`/resources/${item.resourceContentId}`}

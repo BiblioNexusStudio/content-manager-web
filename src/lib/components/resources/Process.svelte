@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ as translate } from 'svelte-i18n';
-    import type { ResourceContentStatus, ResourceContentStatusEnum } from '$lib/types/base';
+    import { ResourceContentStatusEnum, type ResourceContentStatus } from '$lib/types/base';
     import type { ResourceContentAssignedUser } from '$lib/types/resources';
 
     export let translationStatus: ResourceContentStatusEnum;
@@ -22,6 +22,8 @@
                     <span class="me-2 font-bold">Assigned</span>
                     {#if assignedUser}
                         <span>{assignedUser.name}</span>
+                    {:else if translationStatus === ResourceContentStatusEnum.AquiferizeInProgress || translationStatus === ResourceContentStatusEnum.TranslationInProgress}
+                        <span>External User</span>
                     {/if}
                 </div>
             </div>
