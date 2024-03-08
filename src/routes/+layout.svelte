@@ -53,15 +53,13 @@
 
     function onError(event: Event) {
         if ('error' in event) {
-            const error = event.error as Error;
-            log.exception(error);
+            log.exception(event.error);
         }
     }
 
     function onRejection(event: PromiseRejectionEvent) {
-        const error = event.reason as Error;
         event.preventDefault();
-        log.exception(error);
+        log.exception(event.reason);
     }
 </script>
 

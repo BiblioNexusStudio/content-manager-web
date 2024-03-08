@@ -1,12 +1,10 @@
 import config from '$lib/config';
 import { auth0Client } from '$lib/stores/auth';
 import type { ExtendType } from '$lib/types/base';
-import { error } from '@sveltejs/kit';
+import { FetchError, ApiError, TokenError } from './http-errors';
 
 const API_KEY = config.PUBLIC_AQUIFER_API_KEY;
 const BASE_URL = config.PUBLIC_AQUIFER_API_URL;
-
-export const AUTH_TOKEN_RETRIEVAL_ERROR = 'Unable to retrieve auth token. User must login again.';
 
 type CustomFetchOptions = ExtendType<FetchOptions, 'body', object | undefined>;
 type RequestBody = Record<string, unknown>;
@@ -43,7 +41,7 @@ async function rawApiFetch(path: string, injectedFetch: typeof window.fetch | nu
     if (!fetchOptions.headers['Authorization']) {
         const authToken = await authTokenHeader();
         if (!authToken) {
-            throw new Error(AUTH_TOKEN_RETRIEVAL_ERROR);
+            throw new TokenError();
         }
         fetchOptions.headers['Authorization'] = authToken;
     }
@@ -60,17 +58,21 @@ async function rawApiFetch(path: string, injectedFetch: typeof window.fetch | nu
     try {
         response = await (injectedFetch || fetch)(url, fetchOptions);
     } catch (error) {
-        throw new Error(errorMessage((error as Error).message, null, pathWithSlash));
+        throw new FetchError(pathWithSlash, fetchOptions.method || 'GET', (error as Error).message);
     }
 
     if (response.status >= 400) {
-        let message: string | null = null;
+        let body: string | object | null = null;
         try {
-            message = await response.text();
+            body = await response.json();
         } catch {
-            // error getting response text, that's fine though, don't want to override the actual HTTP error
+            try {
+                body = await response.text();
+            } catch {
+                // ignore if both awaits fail
+            }
         }
-        throw error(response.status, errorMessage(message, response.status, pathWithSlash));
+        throw new ApiError(response.status, body, fetchOptions.method || 'GET', pathWithSlash);
     }
 
     return response;
@@ -141,18 +143,6 @@ async function waitForValidValue<T>(
         await new Promise((resolve) => setTimeout(resolve, 10));
     }
     return value;
-}
-
-function errorMessage(message: string | null, code: number | undefined | null, path: string) {
-    let output = 'HTTP error.';
-    if (code) {
-        output += ` Code: '${code}'`;
-    }
-    if (message) {
-        output += ` Message: '${message}'`;
-    }
-    output += ` Path: '${path}'`;
-    return output;
 }
 
 function pathPrefixedWithSlash(path: string) {
