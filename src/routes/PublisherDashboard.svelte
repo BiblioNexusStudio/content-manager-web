@@ -53,10 +53,9 @@
     let search = '';
 
     const searchParams = searchParameters({
+        sort: ssp.string('-' + SORT_KEYS.days),
         tab: ssp.string(Tab.myWork),
     });
-
-    let sort = $searchParams.tab === Tab.myProjects ? SORT_KEYS.days : '-' + SORT_KEYS.days;
 
     $: allDataPromise = Promise.all([
         data.publisherDashboard!.assignedResourceContent.promise,
@@ -66,7 +65,14 @@
     ]);
 
     let scrollingDiv: HTMLDivElement | undefined;
-    $: sort && scrollingDiv && (scrollingDiv.scrollTop = 0);
+    $: $searchParams.sort && scrollingDiv && (scrollingDiv.scrollTop = 0);
+
+    function selectTab(tab: Tab) {
+        return () => {
+            $searchParams.tab = tab;
+            $searchParams.sort = tab === Tab.myProjects ? SORT_KEYS.days : '-' + SORT_KEYS.days;
+        };
+    }
 </script>
 
 {#await allDataPromise}
@@ -76,19 +82,19 @@
         <h1 class="pt-4 text-3xl">Publisher Dashboard</h1>
         <div role="tablist" class="tabs-bordered tabs w-fit pt-4">
             <button
-                on:click={() => ($searchParams.tab = Tab.myWork)}
+                on:click={selectTab(Tab.myWork)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.myWork && 'tab-active'}"
                 >My Work ({assignedContents.length})</button
             >
             <button
-                on:click={() => ($searchParams.tab = Tab.reviewPending)}
+                on:click={selectTab(Tab.reviewPending)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.reviewPending && 'tab-active'}"
                 >Review Pending ({reviewPendingContents.length})</button
             >
             <button
-                on:click={() => ($searchParams.tab = Tab.myProjects)}
+                on:click={selectTab(Tab.myProjects)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.myProjects && 'tab-active'}"
                 >My Projects ({assignedProjects.length})</button
@@ -109,25 +115,29 @@
                                 <SortingTableHeaderCell
                                     text="Title"
                                     sortKey={SORT_KEYS.title}
-                                    bind:currentSort={sort}
+                                    bind:currentSort={$searchParams.sort}
                                 />
                                 <th>Resource</th>
                                 <SortingTableHeaderCell
                                     text="Language"
                                     sortKey={SORT_KEYS.language}
-                                    bind:currentSort={sort}
+                                    bind:currentSort={$searchParams.sort}
                                 />
                                 <th>Status</th>
-                                <SortingTableHeaderCell text="Days" sortKey={SORT_KEYS.days} bind:currentSort={sort} />
+                                <SortingTableHeaderCell
+                                    text="Days"
+                                    sortKey={SORT_KEYS.days}
+                                    bind:currentSort={$searchParams.sort}
+                                />
                                 <SortingTableHeaderCell
                                     text="Word Count"
                                     sortKey={SORT_KEYS.wordCount}
-                                    bind:currentSort={sort}
+                                    bind:currentSort={$searchParams.sort}
                                 />
                             </tr>
                         </thead>
                         <tbody>
-                            {#each sortAssignedResourceData(assignedContents, sort) as resource (resource.id)}
+                            {#each sortAssignedResourceData(assignedContents, $searchParams.sort) as resource (resource.id)}
                                 <LinkedTableRow
                                     href={`/resources/${resource.id}`}
                                     cellValues={[
@@ -152,11 +162,15 @@
                                 <th>Company</th>
                                 <th>Platform</th>
                                 <th>Language</th>
-                                <SortingTableHeaderCell text="Days" sortKey={SORT_KEYS.days} bind:currentSort={sort} />
+                                <SortingTableHeaderCell
+                                    text="Days"
+                                    sortKey={SORT_KEYS.days}
+                                    bind:currentSort={$searchParams.sort}
+                                />
                             </tr>
                         </thead>
                         <tbody>
-                            {#each sortAndFilterAssignedProjectData(assignedProjects, search, sort) as project (project.id)}
+                            {#each sortAndFilterAssignedProjectData(assignedProjects, search, $searchParams.sort) as project (project.id)}
                                 <LinkedTableRow
                                     href={`/projects/${project.id}`}
                                     cellValues={[
@@ -185,24 +199,28 @@
                                 <SortingTableHeaderCell
                                     text="Title"
                                     sortKey={SORT_KEYS.title}
-                                    bind:currentSort={sort}
+                                    bind:currentSort={$searchParams.sort}
                                 />
                                 <th>Resource</th>
                                 <SortingTableHeaderCell
                                     text="Language"
                                     sortKey={SORT_KEYS.language}
-                                    bind:currentSort={sort}
+                                    bind:currentSort={$searchParams.sort}
                                 />
-                                <SortingTableHeaderCell text="Days" sortKey={SORT_KEYS.days} bind:currentSort={sort} />
+                                <SortingTableHeaderCell
+                                    text="Days"
+                                    sortKey={SORT_KEYS.days}
+                                    bind:currentSort={$searchParams.sort}
+                                />
                                 <SortingTableHeaderCell
                                     text="Word Count"
                                     sortKey={SORT_KEYS.wordCount}
-                                    bind:currentSort={sort}
+                                    bind:currentSort={$searchParams.sort}
                                 />
                             </tr>
                         </thead>
                         <tbody>
-                            {#each sortPendingData(reviewPendingContents, sort) as resource (resource.id)}
+                            {#each sortPendingData(reviewPendingContents, $searchParams.sort) as resource (resource.id)}
                                 <LinkedTableRow
                                     href={`/resources/${resource.id}`}
                                     cellValues={[
