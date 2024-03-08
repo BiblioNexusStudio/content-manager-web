@@ -31,10 +31,10 @@
         $project?.projectedPublishDate &&
         companyLeadSet;
 
-    function onStartProject() {
+    async function onStartProject() {
         if ($project) {
-            startProject($project?.id);
-            $project.started = new Date().toISOString();
+            await startProject($project?.id);
+            window.location.reload();
         }
     }
 </script>
