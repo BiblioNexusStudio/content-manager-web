@@ -5,7 +5,7 @@
     import { log } from '$lib/logger';
     import { UserRole } from '$lib/types/base';
     import { postToApi } from '$lib/utils/http-service';
-    import type { HttpError } from '@sveltejs/kit';
+    import { isApiErrorWithMessage } from '$lib/utils/http-errors';
     import type { PageData } from './$types';
     import ProjectContentSelector from './ProjectContentSelector.svelte';
     import { ProjectConstants } from '$lib/types/projects';
@@ -58,10 +58,11 @@
             }
             await goto(`/projects/${project.id}`);
         } catch (error) {
-            log.exception(error as Error);
-            // TODO: make this less hacky, need a better way to propagate errors and parse the message instead of this `includes`
-            if ((error as HttpError)?.body?.message?.includes('project with this title already exists')) {
+            if (isApiErrorWithMessage(error, 'project with this title already exists', 'title')) {
                 errorMessage = 'A project with this name already exists.';
+            } else {
+                log.exception(error);
+                errorMessage = 'There was an error while saving.';
             }
             isShowingErrorModal = true;
         } finally {
@@ -184,9 +185,4 @@
     </div>
 </div>
 
-<Modal
-    isError={true}
-    header="Error creating"
-    description={errorMessage || 'There was an error while saving.'}
-    bind:open={isShowingErrorModal}
-/>
+<Modal isError={true} header="Error creating" description={errorMessage} bind:open={isShowingErrorModal} />

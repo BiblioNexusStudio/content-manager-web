@@ -3,7 +3,7 @@ import config from '$lib/config';
 import { browser } from '$app/environment';
 import { isAuthenticatedStore, profile } from './stores/auth';
 import { get } from 'svelte/store';
-import { AUTH_TOKEN_RETRIEVAL_ERROR } from './utils/http-service';
+import type { ApiError, FetchError, TokenError } from './utils/http-errors';
 
 const appInsights = new ApplicationInsights({
     config: {
@@ -23,27 +23,33 @@ const additionalProperties = {
 };
 
 export const log = {
-    exception: (error: Error | undefined) => {
-        // Distinguish between network errors (which can't be avoided) and other errors we may want to look into
-        if (
-            error &&
-            error.message &&
-            (error.message.includes('Failed to fetch') ||
-                error.message.includes('Load failed') ||
-                error.message.includes(AUTH_TOKEN_RETRIEVAL_ERROR))
-        ) {
-            console.error(error);
-        } else if (error) {
-            console.error(error);
-            appInsights.trackException(
-                { exception: error },
-                {
-                    ...additionalProperties,
-                    userName: get(profile)?.name ?? 'undefined',
-                    isAuthenticated: get(isAuthenticatedStore) ?? 'undefined',
-                    commitSha: config.PUBLIC_COMMIT_SHA,
+    exception: (uncastError: unknown) => {
+        if (uncastError && typeof uncastError === 'object' && 'message' in uncastError) {
+            const error = uncastError as Error | FetchError | ApiError | TokenError;
+
+            let logToAppInsights = true;
+
+            if ('isFetchError' in error) {
+                if (error.message.includes('Failed to fetch') || error.message.includes('Load failed')) {
+                    logToAppInsights = false;
                 }
-            );
+            } else if ('isTokenError' in error) {
+                logToAppInsights = false;
+            }
+
+            console.error(error);
+
+            if (logToAppInsights) {
+                appInsights.trackException(
+                    { exception: error },
+                    {
+                        ...additionalProperties,
+                        userName: get(profile)?.name ?? 'undefined',
+                        isAuthenticated: get(isAuthenticatedStore) ?? 'undefined',
+                        commitSha: config.PUBLIC_COMMIT_SHA,
+                    }
+                );
+            }
         }
     },
     pageView: (routeId: string) => {

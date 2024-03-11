@@ -3,9 +3,10 @@
     import Select from '$lib/components/Select.svelte';
     import { UserRole, type Company } from '$lib/types/base';
     import { postToApi } from '$lib/utils/http-service';
+    import { isApiErrorWithMessage, isAuthorizationError } from '$lib/utils/http-errors';
     import { invalidateAll } from '$app/navigation';
     import { Permission, currentUser, userCan } from '$lib/stores/auth';
-    import type { HttpError } from '@sveltejs/kit';
+    import { log } from '$lib/logger';
 
     export let open: boolean;
     export let header: string;
@@ -103,12 +104,12 @@
                 invalidateAll();
             }
         } catch (error) {
-            // TODO: make this less hacky, need a better way to propagate errors and parse the message instead of this `includes`
-            if ((error as HttpError)?.body?.message.includes('Unauthorized')) {
+            if (isAuthorizationError(error)) {
                 errorMessage = 'You are not authorized';
-            } else if ((error as HttpError)?.body?.message.includes('The user already exists.')) {
+            } else if (isApiErrorWithMessage(error, 'The user already exists.')) {
                 errorMessage = 'User with that email already exists';
             } else {
+                log.exception(error);
                 errorMessage = 'User creation failed';
             }
         } finally {

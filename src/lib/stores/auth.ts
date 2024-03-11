@@ -104,7 +104,7 @@ export async function initAuth0(url: URL) {
 
         return isAuthenticated;
     } catch (error) {
-        log.exception(error as Error);
+        log.exception(error);
         await logout(url);
         return false;
     }
