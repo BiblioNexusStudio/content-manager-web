@@ -11,14 +11,8 @@
         type ResourceContentVersion,
         type ContentTranslation,
         MediaTypeEnum,
+        type TiptapContentItem,
     } from '$lib/types/resources';
-    import {
-        originalValues,
-        setOriginalValues,
-        updatedValues,
-        updateOriginal,
-        userStoppedEditing,
-    } from '$lib/stores/tiptapContent';
     import { postToApi, putToApi } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
@@ -33,6 +27,8 @@
     import { onDestroy } from 'svelte';
     import Modal from '$lib/components/Modal.svelte';
     import BackButton from '$lib/components/BackButton.svelte';
+    import createChangeTrackingStore from '$lib/utils/change-tracking-store';
+    import { get } from 'svelte/store';
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -62,7 +58,6 @@
     let hasPublished = false;
     let hasDraft = false;
     let selectedVersion: ResourceContentVersion;
-    let selectedVersionContentId: number;
     let englishContentTranslation: ContentTranslation | undefined;
     let createTranslationFromDraft = false;
     let isInTranslationWorkflow = false;
@@ -74,19 +69,20 @@
 
     const { save, resetSaveState, isSaving, showSavingFailed } = createAutosaveStore(putData);
 
+    let editableContentStore = createChangeTrackingStore<TiptapContentItem[]>([], () => save(), 3000);
+    let editableDisplayNameStore = createChangeTrackingStore<string>('');
+    let wordCountsByStep: number[] = [];
+
+    let contentUpdated = false;
+    editableContentStore.hasChanges.subscribe((hasChanges) => (contentUpdated = hasChanges));
+
     $: resourceContentId = data.resourceContentId;
     $: resourceContentPromise = data.resourceContent.promise;
     $: handleFetchedResource(data.resourceContent.promise);
 
-    $: contentUpdated =
-        JSON.stringify($originalValues[selectedVersionContentId]) !==
-        JSON.stringify($updatedValues[selectedVersionContentId]);
-    $: contentUpdated && $userStoppedEditing[selectedVersionContentId] && save();
-
     async function handleFetchedResource(resourceContentPromise: Promise<ResourceContent>) {
         const resourceContent = await resourceContentPromise;
         resetSaveState();
-        $userStoppedEditing[selectedVersionContentId] = false;
         draftVersion = resourceContent.contentVersions.find((x) => x.isDraft);
         hasDraft = draftVersion !== undefined;
         mediaType = resourceContent.mediaType;
@@ -159,8 +155,10 @@
 
         canUnpublish = $userCan(Permission.PublishContent) && hasPublished;
         canCreateTranslation = $userCan(Permission.PublishContent);
-        setOriginalValues(resourceContent);
-        selectedVersionContentId = selectedVersion.id;
+        if (!('url' in selectedVersion.content)) {
+            editableContentStore.setOriginalAndUpdated(selectedVersion.content);
+        }
+        editableDisplayNameStore.setOriginalAndUpdated(selectedVersion.displayName);
     }
 
     let isTransacting = false;
@@ -228,17 +226,11 @@
     }
 
     async function unpublish() {
-        await takeActionAndRefresh(() => postToApi(`/admin/resources/content/${resourceContentId}/unpublish`));
+        await takeActionAndRefresh(() => postToApi(`/resources/content/${resourceContentId}/unpublish`));
     }
 
     async function sendReview() {
-        await takeActionAndRefresh(() =>
-            postToApi(
-                isInTranslationWorkflow
-                    ? `/admin/resources/content/${resourceContentId}/send-translation-review`
-                    : `/admin/resources/content/${resourceContentId}/send-review`
-            )
-        );
+        await takeActionAndRefresh(() => postToApi(`/resources/content/${resourceContentId}/send-for-review`));
     }
 
     async function assignReview() {
@@ -251,7 +243,7 @@
 
     async function aquiferize() {
         await takeActionAndRefresh(() =>
-            postToApi(`/admin/resources/content/${resourceContentId}/aquiferize`, {
+            postToApi(`/resources/content/${resourceContentId}/aquiferize`, {
                 assignedUserId: assignToUserId,
             })
         );
@@ -259,7 +251,7 @@
 
     async function publish() {
         await takeActionAndRefresh(() =>
-            postToApi(`/admin/resources/content/${resourceContentId}/publish`, {
+            postToApi(`/resources/content/${resourceContentId}/publish`, {
                 createDraft: createDraft,
                 assignedUserId: assignToUserId,
             })
@@ -268,57 +260,42 @@
 
     async function assignUser() {
         await takeActionAndRefresh(() =>
-            postToApi(
-                isInTranslationWorkflow
-                    ? `/admin/resources/content/${resourceContentId}/assign-translator`
-                    : `/admin/resources/content/${resourceContentId}/assign-editor`,
-                {
-                    assignedUserId: assignToUserId,
-                }
-            )
-        );
-    }
-
-    async function createTranslation() {
-        await takeActionAndRefresh(() =>
-            postToApi('/admin/resources/content/create-translation', {
-                languageId: parseInt(newTranslationLanguageId!),
-                baseContentId: englishContentTranslation?.contentId,
-                useDraft: createTranslationFromDraft,
-            })
-        );
-    }
-
-    async function translate() {
-        await takeActionAndRefresh(() =>
-            postToApi(`/admin/resources/content/${resourceContentId}/assign-translator`, {
+            postToApi(`/resources/content/${resourceContentId}/assign-editor`, {
                 assignedUserId: assignToUserId,
             })
         );
     }
 
-    function currentWordCount(wordCounts: number[] | null | undefined): number | null {
-        if (wordCounts) {
+    async function createTranslation() {
+        await takeActionAndRefresh(() =>
+            postToApi(`/resources/content/${englishContentTranslation?.contentId}/create-translation`, {
+                languageId: parseInt(newTranslationLanguageId!),
+                useDraft: createTranslationFromDraft,
+            })
+        );
+    }
+
+    function calculateWordCount(wordCounts: number[]): number | null {
+        if (wordCounts.length) {
             return wordCounts.reduce((total, current) => total + current, 0);
         }
         return selectedVersion.wordCount;
     }
 
     async function putData() {
-        const selectedVersionValues = $updatedValues[selectedVersionContentId];
-        if (selectedVersionValues) {
-            await putToApi(`/admin/resources/content/summary/${resourceContentId}`, {
-                displayName: selectedVersionValues.displayName,
-                wordCount: currentWordCount(selectedVersionValues.wordCounts),
-                ...(mediaType === MediaTypeEnum.text ? { content: selectedVersionValues.content } : null),
-            });
-        }
+        const displayName = get(editableDisplayNameStore).updated;
+        const content = get(editableContentStore).updated;
+        await putToApi(`/resources/content/${resourceContentId}`, {
+            displayName,
+            wordCount: calculateWordCount(wordCountsByStep),
+            ...(mediaType === MediaTypeEnum.text ? { content } : null),
+        });
 
-        updateOriginal(selectedVersionContentId);
+        editableDisplayNameStore.setOriginalOnly(displayName);
+        editableContentStore.setOriginalOnly(content);
     }
 
     function setSelectedVersion(version: ResourceContentVersion | undefined) {
-        selectedVersionContentId = version!.id;
         selectedVersion = version!;
     }
 
@@ -440,10 +417,11 @@
             <div class="me-8 flex max-h-full w-4/12 flex-col">
                 <Overview
                     {resourceContent}
-                    contentVersionId={selectedVersionContentId}
+                    {editableDisplayNameStore}
+                    resourceContentVersion={selectedVersion}
                     canEdit={canMakeContentEdits && selectedVersion.isDraft}
                     isPublished={hasPublished}
-                    wordCount={currentWordCount($updatedValues[selectedVersionContentId]?.wordCounts)}
+                    wordCount={calculateWordCount(wordCountsByStep)}
                     on:saveTitle={() => save()}
                 />
                 <Process
@@ -465,7 +443,8 @@
                 {#each resourceContent.contentVersions as version (version.id)}
                     {#key version.id}
                         <Content
-                            contentVersionId={version.id}
+                            {editableContentStore}
+                            bind:wordCountsByStep
                             visible={selectedVersion === version}
                             canEdit={canMakeContentEdits && version.isDraft}
                             resourceContentVersion={version}
@@ -511,7 +490,7 @@
                     <div class="flex-grow" />
                     <button
                         class="btn btn-primary"
-                        on:click={isInTranslationWorkflow ? translate : aquiferize}
+                        on:click={isInTranslationWorkflow ? assignUser : aquiferize}
                         disabled={assignToUserId === null}>Assign</button
                     >
                     <button class="btn btn-outline btn-primary" on:click={() => aquiferizeModal.close()}>Cancel</button>

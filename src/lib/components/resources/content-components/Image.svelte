@@ -1,9 +1,7 @@
 <script lang="ts">
-    import type { ContentItem } from '$lib/types/resources';
+    import type { ImageContentItem } from '$lib/types/resources';
 
-    export let content: ContentItem | ContentItem[];
-    $: url = (content as ContentItem).url;
-    $: altText = (content as ContentItem).displayName;
+    export let content: ImageContentItem;
 </script>
 
-<img class="mx-auto h-full w-auto object-contain" src={url} alt={altText} />
+<img class="mx-auto h-full w-auto object-contain" src={content.url} alt={content.displayName} />
