@@ -66,12 +66,20 @@ export interface Tiptap {
     content: (Heading | Paragraph | BulletList)[];
 }
 
-export interface ContentItem {
-    stepNumber: number;
-    tiptap: string;
+export interface TiptapContentItem {
+    stepNumber?: number;
+    tiptap: object;
+}
+
+export interface VideoContentItem {
     url: string;
     thumbnailUrl: string;
     duration: number;
+    displayName: string;
+}
+
+export interface ImageContentItem {
+    url: string;
     displayName: string;
 }
 
@@ -122,7 +130,7 @@ export interface ResourceContentVersion {
     displayName: string;
     contentSize: number;
     assignedUser: ResourceContentAssignedUser | null;
-    content: ContentItem | ContentItem[];
+    content: VideoContentItem | ImageContentItem | TiptapContentItem[];
     isPublished: boolean;
     isDraft: boolean;
     wordCount: number | null;
