@@ -5,13 +5,12 @@
     import checkCircleO from 'svelte-awesome/icons/checkCircleO';
     import ban from 'svelte-awesome/icons/ban';
     import { createEventDispatcher, onDestroy } from 'svelte';
-    import type { ResourceContent, ResourceContentVersion } from '$lib/types/resources';
+    import type { ResourceContent } from '$lib/types/resources';
     import { Permission, userCan } from '$lib/stores/auth';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
 
     export let editableDisplayNameStore: ChangeTrackingStore<string>;
     export let resourceContent: ResourceContent;
-    export let resourceContentVersion: ResourceContentVersion;
     export let wordCount: number | null;
     export let isPublished: boolean;
     export let canEdit: boolean;
@@ -59,7 +58,7 @@
                                 on:blur={saveOnBlur}
                             />
                         {:else}
-                            <div class="text-right">{resourceContentVersion.displayName}</div>
+                            <div class="text-right">{resourceContent.displayName}</div>
                         {/if}
                     </div>
                 </div>

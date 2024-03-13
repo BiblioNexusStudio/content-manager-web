@@ -114,19 +114,9 @@ export interface ResourceContent {
     mediaType: MediaTypeEnum;
     status: ResourceContentStatusEnum;
     language: Language;
-    hasAudio: boolean;
     contentTranslations: ContentTranslation[];
-    contentVersions: ResourceContentVersion[];
     project: Project | null;
-}
-
-export interface Project {
-    id: number;
-    name: string;
-}
-
-export interface ResourceContentVersion {
-    id: number;
+    hasPublishedVersion: boolean;
     displayName: string;
     contentSize: number;
     assignedUser: ResourceContentAssignedUser | null;
@@ -134,4 +124,9 @@ export interface ResourceContentVersion {
     isPublished: boolean;
     isDraft: boolean;
     wordCount: number | null;
+}
+
+export interface Project {
+    id: number;
+    name: string;
 }

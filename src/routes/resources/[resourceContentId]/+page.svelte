@@ -8,7 +8,6 @@
     import { beforeNavigate, goto } from '$app/navigation';
     import {
         type ResourceContent,
-        type ResourceContentVersion,
         type ContentTranslation,
         MediaTypeEnum,
         type TiptapContentItem,
@@ -56,11 +55,6 @@
     let isAssignReviewModalOpen = false;
     let isInReview = false;
     let createDraft = false;
-    let draftVersion: ResourceContentVersion | undefined = undefined;
-    let publishedVersion: ResourceContentVersion | undefined = undefined;
-    let hasPublished = false;
-    let hasDraft = false;
-    let selectedVersion: ResourceContentVersion;
     let englishContentTranslation: ContentTranslation | undefined;
     let createTranslationFromDraft = false;
     let isInTranslationWorkflow = false;
@@ -91,18 +85,13 @@
     async function handleFetchedResource(resourceContentPromise: Promise<ResourceContent>) {
         const resourceContent = await resourceContentPromise;
         resetSaveState();
-        draftVersion = resourceContent.contentVersions.find((x) => x.isDraft);
-        hasDraft = draftVersion !== undefined;
+
         mediaType = resourceContent.mediaType;
 
-        publishedVersion = resourceContent.contentVersions.find((x) => x.isPublished);
-        hasPublished = publishedVersion !== undefined;
-
-        selectedVersion = draftVersion || publishedVersion || resourceContent.contentVersions[0]!;
         englishContentTranslation = resourceContent.contentTranslations.find((x) => x.languageId === 1);
 
-        currentUserIsAssigned = $userIsEqual(selectedVersion.assignedUser?.id);
-        const assignedUserIsInCompany = $userIsInCompany(selectedVersion.assignedUser?.companyId);
+        currentUserIsAssigned = $userIsEqual(resourceContent.assignedUser?.id);
+        const assignedUserIsInCompany = $userIsInCompany(resourceContent.assignedUser?.companyId);
 
         isInReview =
             resourceContent.status === ResourceContentStatusEnum.TranslationInReview ||
@@ -157,16 +146,16 @@
 
         canPublish =
             $userCan(Permission.PublishContent) &&
-            ((resourceContent.status === ResourceContentStatusEnum.New && !hasPublished) ||
+            ((resourceContent.status === ResourceContentStatusEnum.New && !resourceContent.hasPublishedVersion) ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationInReview);
 
-        canUnpublish = $userCan(Permission.PublishContent) && hasPublished;
+        canUnpublish = $userCan(Permission.PublishContent) && resourceContent.hasPublishedVersion;
         canCreateTranslation = $userCan(Permission.PublishContent);
-        if (!('url' in selectedVersion.content)) {
-            editableContentStore.setOriginalAndUpdated(selectedVersion.content);
+        if (!('url' in resourceContent.content)) {
+            editableContentStore.setOriginalAndUpdated(resourceContent.content);
         }
-        editableDisplayNameStore.setOriginalAndUpdated(selectedVersion.displayName);
+        editableDisplayNameStore.setOriginalAndUpdated(resourceContent.displayName);
     }
 
     let isTransacting = false;
@@ -303,15 +292,10 @@
         );
     }
 
-    function calculateWordCount(
-        selectedVersion: ResourceContentVersion,
-        wordCounts: number[],
-        alwaysUseDraft: boolean
-    ): number | null {
-        if (wordCounts.length && (selectedVersion.isDraft || alwaysUseDraft)) {
+    function calculateWordCount(wordCounts: number[]) {
+        if (wordCounts.length) {
             return wordCounts.reduce((total, current) => total + current, 0);
         }
-        return selectedVersion.wordCount;
     }
 
     async function putData() {
@@ -319,16 +303,12 @@
         const content = get(editableContentStore).updated;
         await putToApi(`/admin/resources/content/summary/${resourceContentId}`, {
             displayName,
-            wordCount: calculateWordCount(selectedVersion, wordCountsByStep, true),
+            wordCount: calculateWordCount(wordCountsByStep),
             ...(mediaType === MediaTypeEnum.text ? { content } : null),
         });
 
         editableDisplayNameStore.setOriginalOnly(displayName);
         editableContentStore.setOriginalOnly(content);
-    }
-
-    function setSelectedVersion(version: ResourceContentVersion | undefined) {
-        selectedVersion = version!;
     }
 
     function usersThatCanBeAssigned() {
@@ -365,23 +345,8 @@
                         {#if canAiSimplify && mediaType === MediaTypeEnum.text}
                             <button
                                 class="btn btn-primary"
-                                on:click={() =>
-                                    goto(`/resources/${resourceContentId}/simplify?v=${selectedVersion.id}`)}
-                                >AI Aquiferize</button
+                                on:click={() => goto(`/resources/${resourceContentId}/simplify`)}>AI Aquiferize</button
                             >
-                        {/if}
-                        {#if hasDraft && hasPublished}
-                            <div class="join ms-2">
-                                <button
-                                    class="btn {selectedVersion.isDraft ? 'btn-primary' : ''} join-item"
-                                    on:click={() => setSelectedVersion(draftVersion)}>Draft</button
-                                >
-                                <button
-                                    class="btn {selectedVersion.isPublished ? 'btn-primary' : ''} join-item"
-                                    class:btn-disabled={contentUpdated && !selectedVersion.isPublished}
-                                    on:click={() => setSelectedVersion(publishedVersion)}>Published</button
-                                >
-                            </div>
                         {/if}
                         {#if canAssign || canSendBack}
                             <button
@@ -446,15 +411,14 @@
                 <Overview
                     {resourceContent}
                     {editableDisplayNameStore}
-                    resourceContentVersion={selectedVersion}
-                    canEdit={canMakeContentEdits && selectedVersion.isDraft}
-                    isPublished={hasPublished}
-                    wordCount={calculateWordCount(selectedVersion, wordCountsByStep, false)}
+                    canEdit={canMakeContentEdits && resourceContent.isDraft}
+                    isPublished={resourceContent.hasPublishedVersion}
+                    wordCount={calculateWordCount(wordCountsByStep) || resourceContent.wordCount}
                     on:saveTitle={() => save()}
                 />
                 <Process
                     translationStatus={resourceContent.status}
-                    assignedUser={draftVersion?.assignedUser ?? null}
+                    assignedUser={resourceContent.assignedUser ?? null}
                     resourceContentStatuses={data.resourceContentStatuses}
                 />
                 <Translations
@@ -468,18 +432,12 @@
                 <BibleReferences bibleReferences={getSortedReferences(resourceContent)} />
             </div>
             <div class="flex h-[calc(100vh-160px)] w-8/12 flex-col">
-                {#each resourceContent.contentVersions as version (version.id)}
-                    {#key version.id}
-                        <Content
-                            {editableContentStore}
-                            bind:wordCountsByStep
-                            visible={selectedVersion === version}
-                            canEdit={canMakeContentEdits && version.isDraft}
-                            resourceContentVersion={version}
-                            mediaType={resourceContent.mediaType}
-                        />
-                    {/key}
-                {/each}
+                <Content
+                    {editableContentStore}
+                    bind:wordCountsByStep
+                    canEdit={canMakeContentEdits && resourceContent.isDraft}
+                    {resourceContent}
+                />
             </div>
         </div>
     </div>
@@ -493,7 +451,7 @@
     >
         <UserSelector
             users={data.users?.filter((u) => u.role === UserRole.Publisher) ?? []}
-            hideUser={selectedVersion.assignedUser}
+            hideUser={resourceContent.assignedUser}
             defaultLabel="Select User"
             bind:selectedUserId={assignToUserId}
         />
@@ -541,7 +499,7 @@
                     users={usersThatCanBeAssigned()}
                     defaultLabel="Select User"
                     bind:selectedUserId={assignToUserId}
-                    hideUser={selectedVersion.assignedUser}
+                    hideUser={resourceContent.assignedUser}
                 />
                 <div class="flex w-full flex-row space-x-2 pt-4">
                     <div class="flex-grow" />
