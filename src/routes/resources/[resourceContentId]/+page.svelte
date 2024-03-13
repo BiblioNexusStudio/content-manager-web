@@ -32,7 +32,7 @@
     import { createAutosaveStore } from '$lib/utils/auto-save-store';
     import { onDestroy } from 'svelte';
     import Modal from '$lib/components/Modal.svelte';
-    import BackButton from '$lib/components/BackButton.svelte';
+    import ExitButton from '$lib/components/ExitButton.svelte';
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -336,11 +336,8 @@
     <div class="p-8">
         <div class="mb-4 flex w-full items-center">
             <div class="mb-4 me-8 flex w-4/12 place-items-center">
-                <BackButton defaultPathIfNoHistory="/resources" />
-                <h1 class="relative w-full text-2xl font-bold">
-                    {resourceContent.parentResourceName} -
-                    {resourceContent.englishLabel}
-                </h1>
+                <ExitButton defaultPathIfNoHistory="/resources" />
+
                 {#if $showSavingFailed}
                     <span class="absolute font-bold text-error">Auto-save failed</span>
                 {/if}
