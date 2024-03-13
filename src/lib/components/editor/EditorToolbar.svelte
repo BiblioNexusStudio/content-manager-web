@@ -113,13 +113,13 @@
     {#if editor}
         {#each formattingOptions(editor) as option (option.name)}
             <button
-                class="btn btn-xs px-1 hover:bg-[#e6f7fc] {option.disabled && '!bg-white'} {option.isActive
+                class="btn btn-xs px-1 {option.disabled && '!bg-white'} {option.isActive
                     ? 'btn-primary'
-                    : 'btn-link'}"
+                    : 'btn-link hover:bg-[#e6f7fc]'}"
                 disabled={option.disabled}
                 on:click={option.onClick}
             >
-                <div class="scale-[85%]">
+                <div class="mt-[-1px] scale-[85%]">
                     <svelte:component this={option.icon} />
                 </div>
             </button>

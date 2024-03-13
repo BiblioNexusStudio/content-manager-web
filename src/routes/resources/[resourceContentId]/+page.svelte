@@ -74,7 +74,12 @@
     let wordCountsByStep: number[] = [];
 
     let contentUpdated = false;
-    editableContentStore.hasChanges.subscribe((hasChanges) => (contentUpdated = hasChanges));
+
+    const unsubscribeHasChanges = editableContentStore.hasChanges.subscribe(
+        (hasChanges) => (contentUpdated = hasChanges)
+    );
+
+    onDestroy(unsubscribeHasChanges);
 
     $: resourceContentId = data.resourceContentId;
     $: resourceContentPromise = data.resourceContent.promise;

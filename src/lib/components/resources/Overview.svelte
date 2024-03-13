@@ -21,7 +21,11 @@
 
     let displayNameUpdated = false;
 
-    onDestroy(editableDisplayNameStore.hasChanges.subscribe((hasChanges) => (displayNameUpdated = hasChanges)));
+    const unsubscribeHasChanges = editableDisplayNameStore.hasChanges.subscribe(
+        (hasChanges) => (displayNameUpdated = hasChanges)
+    );
+
+    onDestroy(unsubscribeHasChanges);
 
     function updateDisplayName(event: Event) {
         const target = event.currentTarget as HTMLInputElement;
