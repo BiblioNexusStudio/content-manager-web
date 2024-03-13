@@ -16,8 +16,10 @@ export const _searchParamsConfig = {
     query: ssp.string(''),
 };
 
-export const load: PageLoad = async ({ url, fetch }) => {
+export const load: PageLoad = async ({ parent, url, fetch }) => {
     const searchParams = searchParametersForLoad(url, _searchParamsConfig);
+
+    await parent();
 
     return {
         resourceContentData: getResourceContents(

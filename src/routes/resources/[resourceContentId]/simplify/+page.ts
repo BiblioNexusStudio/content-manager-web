@@ -7,6 +7,7 @@ import type { ResourceContent } from '$lib/types/resources';
 
 export const load: PageLoad = async ({ parent, params, fetch }) => {
     await parent();
+
     if (get(userCan)(Permission.AiSimplify)) {
         return {
             resourceContentId: params.resourceContentId,

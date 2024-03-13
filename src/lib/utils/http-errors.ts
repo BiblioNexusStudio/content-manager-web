@@ -25,10 +25,16 @@ export class FetchError extends Error {
     }
 }
 
-export class TokenError extends Error {
-    isTokenError = true;
-    name = 'TokenError' as const;
-    message = 'Failed to fetch token. May need to refresh or login again.';
+export class AuthUninitializedError extends Error {
+    isAuthUninitializedError = true;
+    name = 'AuthUninitializedError' as const;
+    message = 'Auth is uninitialized. This means you forgot to call `await parent()` in a `+page.ts` load function.';
+}
+
+export class TokenMissingError extends Error {
+    isTokenMissingError = true;
+    name = 'TokenMissingError' as const;
+    message = 'Auth token is missing.';
 }
 
 function isApiErrorWithStatus(error: unknown, status: number): error is ApiError {
