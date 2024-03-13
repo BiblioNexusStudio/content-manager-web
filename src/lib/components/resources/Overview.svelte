@@ -2,34 +2,42 @@
     import { Icon } from 'svelte-awesome';
     import PencilSquareIcon from '$lib/icons/PencilSquareIcon.svelte';
     import XSquareIcon from '$lib/icons/XSquareIcon.svelte';
-    import { originalValues, updatedValues, updateValues } from '$lib/stores/tiptapContent';
     import checkCircleO from 'svelte-awesome/icons/checkCircleO';
     import ban from 'svelte-awesome/icons/ban';
-    import { createEventDispatcher } from 'svelte';
-    import type { ResourceContent } from '$lib/types/resources';
+    import { createEventDispatcher, onDestroy } from 'svelte';
+    import type { ResourceContent, ResourceContentVersion } from '$lib/types/resources';
     import { Permission, userCan } from '$lib/stores/auth';
+    import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
 
-    export let contentVersionId: number;
+    export let editableDisplayNameStore: ChangeTrackingStore<string>;
     export let resourceContent: ResourceContent;
+    export let resourceContentVersion: ResourceContentVersion;
     export let wordCount: number | null;
     export let isPublished: boolean;
     export let canEdit: boolean;
     const dispatch = createEventDispatcher();
 
     let displayNameInput: HTMLInputElement;
-    $: displayNameText = $originalValues[contentVersionId]?.displayName;
-    $: displayNameUpdated =
-        $originalValues[contentVersionId]?.displayName !== $updatedValues[contentVersionId]?.displayName;
+
+    let displayNameUpdated = false;
+
+    const unsubscribeHasChanges = editableDisplayNameStore.hasChanges.subscribe(
+        (hasChanges) => (displayNameUpdated = hasChanges)
+    );
+
+    onDestroy(unsubscribeHasChanges);
 
     function updateDisplayName(event: Event) {
         const target = event.currentTarget as HTMLInputElement;
-        updateValues(contentVersionId, { displayName: target.value });
+        editableDisplayNameStore.setUpdated(target.value);
     }
 
     function saveOnBlur() {
-        if (displayNameUpdated) {
-            dispatch('saveTitle');
-        }
+        setTimeout(() => {
+            if (displayNameUpdated) {
+                dispatch('saveTitle');
+            }
+        }, 300);
     }
 </script>
 
@@ -43,15 +51,15 @@
                     <div class="grow">
                         {#if canEdit}
                             <input
-                                type="text"
                                 bind:this={displayNameInput}
-                                value={displayNameText}
-                                on:change={updateDisplayName}
+                                type="text"
+                                value={$editableDisplayNameStore.updated}
+                                on:input={updateDisplayName}
                                 class="input input-ghost h-6 w-full pl-0 text-right"
-                                on:blur={() => saveOnBlur()}
+                                on:blur={saveOnBlur}
                             />
                         {:else}
-                            <div class="text-right">{displayNameText}</div>
+                            <div class="text-right">{resourceContentVersion.displayName}</div>
                         {/if}
                     </div>
                 </div>
@@ -59,9 +67,12 @@
                     <button
                         class="h-6 w-6 p-0"
                         on:click={() => {
-                            if (displayNameUpdated)
-                                displayNameText = $originalValues[contentVersionId]?.displayName || '';
-                            else displayNameInput.focus();
+                            if (displayNameUpdated) {
+                                editableDisplayNameStore.resetToOriginal();
+                                displayNameInput.blur();
+                            } else {
+                                displayNameInput.focus();
+                            }
                         }}
                         ><label class="swap swap-rotate">
                             <input checked={!displayNameUpdated} type="checkbox" disabled={!displayNameUpdated} />

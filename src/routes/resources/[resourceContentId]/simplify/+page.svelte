@@ -2,10 +2,8 @@
 
 <script lang="ts">
     import type { PageData } from './$types';
-    import Content from '$lib/components/resources/Content.svelte';
-    import { type ContentItem, MediaTypeEnum, type ResourceContent } from '$lib/types/resources';
+    import type { TiptapContentItem, ResourceContent } from '$lib/types/resources';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
-    import { setOriginalValues, originalValues, updateValues, updateOriginal } from '$lib/stores/tiptapContent';
     import { postToApi } from '$lib/utils/http-service';
     import { generateHTML, generateJSON } from '@tiptap/html';
     import StarterKit from '@tiptap/starter-kit';
@@ -19,6 +17,7 @@
     import CharacterCount from '@tiptap/extension-character-count';
     import * as customMarks from '$lib/components/tiptap/customMarks';
     import TextDirection from 'tiptap-text-direction';
+    import TiptapRenderer from '$lib/components/editor/TiptapRenderer.svelte';
 
     export let data: PageData;
 
@@ -26,83 +25,65 @@
     let errorMessage: string | undefined = undefined;
     let prompt =
         'Take great care to make the text as easy to understand as possible. Bible references in the text should not be altered.';
-    let resourceContent: ResourceContent;
-    $: aquiferizedResourceContentVersion = {
-        id: 999999,
-        displayName: 'a',
-        contentSize: 1,
-        assignedUser: null,
-        content: [
-            {
-                stepNumber: 0,
-                tiptap: '',
-                thumbnailUrl: '',
-                duration: 0,
-                displayName: 'a',
-                url: '',
-            },
-        ] as ContentItem[],
-        isPublished: false,
-        isDraft: false,
-        wordCount: 0,
-    };
 
-    let versionPromise = getVersion(data.resourceContent.promise);
-    async function getVersion(resourceContentPromise: Promise<ResourceContent>) {
-        resourceContent = await resourceContentPromise;
-        resourceContent.contentVersions.push(aquiferizedResourceContentVersion);
+    let aquiferizedVersion: TiptapContentItem | undefined;
 
-        setOriginalValues(resourceContent);
-        return resourceContent.contentVersions.find((x) => x.id === +data.versionId!)!;
+    function originalTiptapContentFromResourceContent(resourceContent: ResourceContent) {
+        return (
+            (
+                resourceContent.contentVersions.find((v) => v.isDraft) ||
+                resourceContent.contentVersions.find((v) => v.isPublished) ||
+                resourceContent.contentVersions[0]
+            )?.content as TiptapContentItem[] | undefined
+        )?.[0];
     }
 
-    async function aquiferize() {
-        working = true;
+    async function aquiferize(originalTiptapContent: TiptapContentItem | undefined) {
+        if (originalTiptapContent) {
+            working = true;
 
-        const extensions = [
-            StarterKit,
-            Image,
-            Link.configure({
-                openOnClick: false,
-            }),
-            Underline,
-            Highlight,
-            Subscript,
-            Superscript,
-            TextStyle,
-            CharacterCount.configure({}),
-            customMarks.bibleReferenceMark,
-            customMarks.resourceReferenceMark,
-            TextDirection.configure({
-                types: ['heading', 'paragraph', 'orderedList', 'bulletList', 'listItem'],
-            }),
-        ];
-        const jsonContent = $originalValues[+data.versionId!]!.content![0]!.tiptap!;
+            const extensions = [
+                StarterKit,
+                Image,
+                Link.configure({
+                    openOnClick: false,
+                }),
+                Underline,
+                Highlight,
+                Subscript,
+                Superscript,
+                TextStyle,
+                CharacterCount.configure({}),
+                customMarks.bibleReferenceMark,
+                customMarks.resourceReferenceMark,
+                TextDirection.configure({
+                    types: ['heading', 'paragraph', 'orderedList', 'bulletList', 'listItem'],
+                }),
+            ];
 
-        const html = generateHTML(jsonContent, extensions);
+            const html = generateHTML(originalTiptapContent.tiptap, extensions);
 
-        const res = await postToApi<{ content: string; error: string | undefined }>(`/ai/simplify`, {
-            prompt: prompt,
-            content: html,
-        });
+            const res = await postToApi<{ content: string; error: string | undefined }>(`/ai/simplify`, {
+                prompt: prompt,
+                content: html,
+            });
 
-        console.log(res);
+            errorMessage = res?.error;
 
-        errorMessage = res?.error;
+            const aquiferizedJson = generateJSON(res?.content ?? '', extensions);
 
-        const aquiferizedJson = generateJSON(res?.content ?? '', extensions);
-        aquiferizedResourceContentVersion.content[0]!.tiptap = JSON.stringify(aquiferizedJson);
-        updateValues(999999, { content: [{ tiptap: aquiferizedJson }] });
-        updateOriginal(999999);
+            aquiferizedVersion = { tiptap: aquiferizedJson };
 
-        working = false;
+            working = false;
+        }
     }
 </script>
 
-{#await versionPromise}
+{#await data.resourceContent.promise}
     <CenteredSpinner />
-{:then version}
-    <div class="mx-4 my-4">
+{:then resourceContent}
+    {@const originalTiptapContent = originalTiptapContentFromResourceContent(resourceContent)}
+    <div class="flex h-full flex-col overflow-y-hidden px-4 py-4">
         <div class="grid grid-cols-2 gap-4 gap-y-8">
             <div class="col-span-1">
                 <p>
@@ -124,8 +105,9 @@
         </div>
 
         <div class="mt-8">
-            <button class="btn {working ? 'btn-disabled' : 'btn-primary'} min-w-[128px]" on:click={aquiferize}
-                >{working ? 'Working...' : 'Aquiferize'}</button
+            <button
+                class="btn {working ? 'btn-disabled' : 'btn-primary'} min-w-[128px]"
+                on:click={() => aquiferize(originalTiptapContent)}>{working ? 'Working...' : 'Aquiferize'}</button
             >
         </div>
 
@@ -135,25 +117,13 @@
             </div>
         {/if}
 
-        <div class="mt-2 grid h-fit grid-cols-2 gap-4 gap-y-8">
-            <div class="col-span-1 h-fit">
-                <Content
-                    contentVersionId={version.id}
-                    visible={true}
-                    canEdit={false}
-                    resourceContentVersion={version}
-                    mediaType={MediaTypeEnum.text}
-                />
+        <div class="mt-2 flex grow flex-row space-x-4">
+            <div class="flex grow flex-col">
+                <TiptapRenderer tiptapJson={originalTiptapContent} />
             </div>
-            <div class="col-span-1 h-fit">
-                {#key aquiferizedResourceContentVersion.content}
-                    <Content
-                        contentVersionId={aquiferizedResourceContentVersion.id}
-                        visible={true}
-                        canEdit={false}
-                        resourceContentVersion={aquiferizedResourceContentVersion}
-                        mediaType={MediaTypeEnum.text}
-                    />
+            <div class="flex grow flex-col">
+                {#key JSON.stringify(aquiferizedVersion)}
+                    <TiptapRenderer tiptapJson={aquiferizedVersion} />
                 {/key}
             </div>
         </div>

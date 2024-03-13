@@ -11,14 +11,8 @@
         type ResourceContentVersion,
         type ContentTranslation,
         MediaTypeEnum,
+        type TiptapContentItem,
     } from '$lib/types/resources';
-    import {
-        originalValues,
-        setOriginalValues,
-        updatedValues,
-        updateOriginal,
-        userStoppedEditing,
-    } from '$lib/stores/tiptapContent';
     import { postToApi, putToApi } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
@@ -33,6 +27,8 @@
     import { onDestroy } from 'svelte';
     import Modal from '$lib/components/Modal.svelte';
     import BackButton from '$lib/components/BackButton.svelte';
+    import createChangeTrackingStore from '$lib/utils/change-tracking-store';
+    import { get } from 'svelte/store';
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -62,7 +58,6 @@
     let hasPublished = false;
     let hasDraft = false;
     let selectedVersion: ResourceContentVersion;
-    let selectedVersionContentId: number;
     let englishContentTranslation: ContentTranslation | undefined;
     let createTranslationFromDraft = false;
     let isInTranslationWorkflow = false;
@@ -74,19 +69,25 @@
 
     const { save, resetSaveState, isSaving, showSavingFailed } = createAutosaveStore(putData);
 
+    let editableContentStore = createChangeTrackingStore<TiptapContentItem[]>([], () => save(), 3000);
+    let editableDisplayNameStore = createChangeTrackingStore<string>('');
+    let wordCountsByStep: number[] = [];
+
+    let contentUpdated = false;
+
+    const unsubscribeHasChanges = editableContentStore.hasChanges.subscribe(
+        (hasChanges) => (contentUpdated = hasChanges)
+    );
+
+    onDestroy(unsubscribeHasChanges);
+
     $: resourceContentId = data.resourceContentId;
     $: resourceContentPromise = data.resourceContent.promise;
     $: handleFetchedResource(data.resourceContent.promise);
 
-    $: contentUpdated =
-        JSON.stringify($originalValues[selectedVersionContentId]) !==
-        JSON.stringify($updatedValues[selectedVersionContentId]);
-    $: contentUpdated && $userStoppedEditing[selectedVersionContentId] && save();
-
     async function handleFetchedResource(resourceContentPromise: Promise<ResourceContent>) {
         const resourceContent = await resourceContentPromise;
         resetSaveState();
-        $userStoppedEditing[selectedVersionContentId] = false;
         draftVersion = resourceContent.contentVersions.find((x) => x.isDraft);
         hasDraft = draftVersion !== undefined;
         mediaType = resourceContent.mediaType;
@@ -159,8 +160,10 @@
 
         canUnpublish = $userCan(Permission.PublishContent) && hasPublished;
         canCreateTranslation = $userCan(Permission.PublishContent);
-        setOriginalValues(resourceContent);
-        selectedVersionContentId = selectedVersion.id;
+        if (!('url' in selectedVersion.content)) {
+            editableContentStore.setOriginalAndUpdated(selectedVersion.content);
+        }
+        editableDisplayNameStore.setOriginalAndUpdated(selectedVersion.displayName);
     }
 
     let isTransacting = false;
@@ -297,28 +300,31 @@
         );
     }
 
-    function currentWordCount(wordCounts: number[] | null | undefined): number | null {
-        if (wordCounts) {
+    function calculateWordCount(
+        selectedVersion: ResourceContentVersion,
+        wordCounts: number[],
+        alwaysUseDraft: boolean
+    ): number | null {
+        if (wordCounts.length && (selectedVersion.isDraft || alwaysUseDraft)) {
             return wordCounts.reduce((total, current) => total + current, 0);
         }
         return selectedVersion.wordCount;
     }
 
     async function putData() {
-        const selectedVersionValues = $updatedValues[selectedVersionContentId];
-        if (selectedVersionValues) {
-            await putToApi(`/admin/resources/content/summary/${resourceContentId}`, {
-                displayName: selectedVersionValues.displayName,
-                wordCount: currentWordCount(selectedVersionValues.wordCounts),
-                ...(mediaType === MediaTypeEnum.text ? { content: selectedVersionValues.content } : null),
-            });
-        }
+        const displayName = get(editableDisplayNameStore).updated;
+        const content = get(editableContentStore).updated;
+        await putToApi(`/admin/resources/content/summary/${resourceContentId}`, {
+            displayName,
+            wordCount: calculateWordCount(selectedVersion, wordCountsByStep, true),
+            ...(mediaType === MediaTypeEnum.text ? { content } : null),
+        });
 
-        updateOriginal(selectedVersionContentId);
+        editableDisplayNameStore.setOriginalOnly(displayName);
+        editableContentStore.setOriginalOnly(content);
     }
 
     function setSelectedVersion(version: ResourceContentVersion | undefined) {
-        selectedVersionContentId = version!.id;
         selectedVersion = version!;
     }
 
@@ -440,10 +446,11 @@
             <div class="me-8 flex max-h-full w-4/12 flex-col">
                 <Overview
                     {resourceContent}
-                    contentVersionId={selectedVersionContentId}
+                    {editableDisplayNameStore}
+                    resourceContentVersion={selectedVersion}
                     canEdit={canMakeContentEdits && selectedVersion.isDraft}
                     isPublished={hasPublished}
-                    wordCount={currentWordCount($updatedValues[selectedVersionContentId]?.wordCounts)}
+                    wordCount={calculateWordCount(selectedVersion, wordCountsByStep, false)}
                     on:saveTitle={() => save()}
                 />
                 <Process
@@ -461,11 +468,12 @@
                 <RelatedContent relatedContent={resourceContent.associatedResources} />
                 <BibleReferences bibleReferences={getSortedReferences(resourceContent)} />
             </div>
-            <div class="flex h-[85vh] w-8/12 flex-col">
+            <div class="flex h-[calc(100vh-160px)] w-8/12 flex-col">
                 {#each resourceContent.contentVersions as version (version.id)}
                     {#key version.id}
                         <Content
-                            contentVersionId={version.id}
+                            {editableContentStore}
+                            bind:wordCountsByStep
                             visible={selectedVersion === version}
                             canEdit={canMakeContentEdits && version.isDraft}
                             resourceContentVersion={version}
