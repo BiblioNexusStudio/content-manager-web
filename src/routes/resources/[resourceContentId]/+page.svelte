@@ -226,11 +226,17 @@
     }
 
     async function unpublish() {
-        await takeActionAndRefresh(() => postToApi(`/resources/content/${resourceContentId}/unpublish`));
+        await takeActionAndRefresh(() => postToApi(`/admin/resources/content/${resourceContentId}/unpublish`));
     }
 
     async function sendReview() {
-        await takeActionAndRefresh(() => postToApi(`/resources/content/${resourceContentId}/send-for-review`));
+        await takeActionAndRefresh(() =>
+            postToApi(
+                isInTranslationWorkflow
+                    ? `/admin/resources/content/${resourceContentId}/send-translation-review`
+                    : `/admin/resources/content/${resourceContentId}/send-review`
+            )
+        );
     }
 
     async function assignReview() {
@@ -243,7 +249,7 @@
 
     async function aquiferize() {
         await takeActionAndRefresh(() =>
-            postToApi(`/resources/content/${resourceContentId}/aquiferize`, {
+            postToApi(`/admin/resources/content/${resourceContentId}/aquiferize`, {
                 assignedUserId: assignToUserId,
             })
         );
@@ -251,7 +257,7 @@
 
     async function publish() {
         await takeActionAndRefresh(() =>
-            postToApi(`/resources/content/${resourceContentId}/publish`, {
+            postToApi(`/admin/resources/content/${resourceContentId}/publish`, {
                 createDraft: createDraft,
                 assignedUserId: assignToUserId,
             })
@@ -260,23 +266,41 @@
 
     async function assignUser() {
         await takeActionAndRefresh(() =>
-            postToApi(`/resources/content/${resourceContentId}/assign-editor`, {
-                assignedUserId: assignToUserId,
-            })
+            postToApi(
+                isInTranslationWorkflow
+                    ? `/admin/resources/content/${resourceContentId}/assign-translator`
+                    : `/admin/resources/content/${resourceContentId}/assign-editor`,
+                {
+                    assignedUserId: assignToUserId,
+                }
+            )
         );
     }
 
     async function createTranslation() {
         await takeActionAndRefresh(() =>
-            postToApi(`/resources/content/${englishContentTranslation?.contentId}/create-translation`, {
+            postToApi('/admin/resources/content/create-translation', {
                 languageId: parseInt(newTranslationLanguageId!),
+                baseContentId: englishContentTranslation?.contentId,
                 useDraft: createTranslationFromDraft,
             })
         );
     }
 
-    function calculateWordCount(wordCounts: number[]): number | null {
-        if (wordCounts.length) {
+    async function translate() {
+        await takeActionAndRefresh(() =>
+            postToApi(`/admin/resources/content/${resourceContentId}/assign-translator`, {
+                assignedUserId: assignToUserId,
+            })
+        );
+    }
+
+    function calculateWordCount(
+        selectedVersion: ResourceContentVersion,
+        wordCounts: number[],
+        alwaysUseDraft: boolean
+    ): number | null {
+        if (wordCounts.length && (selectedVersion.isDraft || alwaysUseDraft)) {
             return wordCounts.reduce((total, current) => total + current, 0);
         }
         return selectedVersion.wordCount;
@@ -285,9 +309,9 @@
     async function putData() {
         const displayName = get(editableDisplayNameStore).updated;
         const content = get(editableContentStore).updated;
-        await putToApi(`/resources/content/${resourceContentId}`, {
+        await putToApi(`/admin/resources/content/summary/${resourceContentId}`, {
             displayName,
-            wordCount: calculateWordCount(wordCountsByStep),
+            wordCount: calculateWordCount(selectedVersion, wordCountsByStep, true),
             ...(mediaType === MediaTypeEnum.text ? { content } : null),
         });
 
@@ -421,7 +445,7 @@
                     resourceContentVersion={selectedVersion}
                     canEdit={canMakeContentEdits && selectedVersion.isDraft}
                     isPublished={hasPublished}
-                    wordCount={calculateWordCount(wordCountsByStep)}
+                    wordCount={calculateWordCount(selectedVersion, wordCountsByStep, false)}
                     on:saveTitle={() => save()}
                 />
                 <Process
@@ -439,7 +463,7 @@
                 <RelatedContent relatedContent={resourceContent.associatedResources} />
                 <BibleReferences bibleReferences={getSortedReferences(resourceContent)} />
             </div>
-            <div class="flex h-[85vh] w-8/12 flex-col">
+            <div class="flex h-[calc(100vh-160px)] w-8/12 flex-col">
                 {#each resourceContent.contentVersions as version (version.id)}
                     {#key version.id}
                         <Content
@@ -490,7 +514,7 @@
                     <div class="flex-grow" />
                     <button
                         class="btn btn-primary"
-                        on:click={isInTranslationWorkflow ? assignUser : aquiferize}
+                        on:click={isInTranslationWorkflow ? translate : aquiferize}
                         disabled={assignToUserId === null}>Assign</button
                     >
                     <button class="btn btn-outline btn-primary" on:click={() => aquiferizeModal.close()}>Cancel</button>

@@ -2,9 +2,10 @@
     import { Icon } from 'svelte-awesome';
     import arrowCircleLeft from 'svelte-awesome/icons/arrowCircleLeft';
     import arrowCircleRight from 'svelte-awesome/icons/arrowCircleRight';
-    import Editor from '$lib/components/editor/Editor.svelte';
+    import SingleItemEditor from '$lib/components/editor/SingleItemEditor.svelte';
     import type { ResourceContentVersion, TiptapContentItem } from '$lib/types/resources';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
+    import TiptapRenderer from '$lib/components/editor/TiptapRenderer.svelte';
 
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let canEdit: boolean;
@@ -15,6 +16,7 @@
 
     $: numberOfSteps = $editableContentStore.original.length;
     $: stepNavigation = numberOfSteps > 1;
+    $: content = resourceContentVersion.content as TiptapContentItem[];
 
     const headings = [
         {
@@ -60,9 +62,9 @@
     }
 </script>
 
-<div>
+<div class="flex h-full flex-col space-y-4">
     {#if stepNavigation}
-        <div class="absolute top-[44px] z-50 w-[calc(100%-2rem)] bg-white pe-12 ps-4">
+        <div class="mx-12 bg-white">
             <div class="mt-2 flex items-center justify-between">
                 {#if currentStepNumber !== 1}
                     <button on:click={() => handleStep('backward')}>
@@ -81,11 +83,13 @@
         </div>
     {/if}
 
-    <Editor
-        {resourceContentVersion}
-        bind:wordCountsByStep
-        {editableContentStore}
-        contentIndex={currentStepNumber - 1}
-        {canEdit}
-    />
+    {#each new Array(numberOfSteps) as _, index (index)}
+        <div class="flex h-full flex-col {index === currentStepNumber - 1 ? '' : 'hidden'}">
+            {#if canEdit}
+                <SingleItemEditor bind:wordCountsByStep {editableContentStore} itemIndex={index} />
+            {:else}
+                <TiptapRenderer tiptapJson={content[index]} />
+            {/if}
+        </div>
+    {/each}
 </div>

@@ -4,7 +4,7 @@
     import XSquareIcon from '$lib/icons/XSquareIcon.svelte';
     import checkCircleO from 'svelte-awesome/icons/checkCircleO';
     import ban from 'svelte-awesome/icons/ban';
-    import { createEventDispatcher } from 'svelte';
+    import { createEventDispatcher, onDestroy } from 'svelte';
     import type { ResourceContent, ResourceContentVersion } from '$lib/types/resources';
     import { Permission, userCan } from '$lib/stores/auth';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
@@ -20,7 +20,8 @@
     let displayNameInput: HTMLInputElement;
 
     let displayNameUpdated = false;
-    editableDisplayNameStore.hasChanges.subscribe((hasChanges) => (displayNameUpdated = hasChanges));
+
+    onDestroy(editableDisplayNameStore.hasChanges.subscribe((hasChanges) => (displayNameUpdated = hasChanges)));
 
     function updateDisplayName(event: Event) {
         const target = event.currentTarget as HTMLInputElement;
@@ -28,9 +29,11 @@
     }
 
     function saveOnBlur() {
-        if (displayNameUpdated) {
-            dispatch('saveTitle');
-        }
+        setTimeout(() => {
+            if (displayNameUpdated) {
+                dispatch('saveTitle');
+            }
+        }, 300);
     }
 </script>
 
@@ -47,9 +50,9 @@
                                 bind:this={displayNameInput}
                                 type="text"
                                 value={$editableDisplayNameStore.updated}
-                                on:change={updateDisplayName}
+                                on:input={updateDisplayName}
                                 class="input input-ghost h-6 w-full pl-0 text-right"
-                                on:blur={() => saveOnBlur()}
+                                on:blur={saveOnBlur}
                             />
                         {:else}
                             <div class="text-right">{resourceContentVersion.displayName}</div>
@@ -62,6 +65,7 @@
                         on:click={() => {
                             if (displayNameUpdated) {
                                 editableDisplayNameStore.resetToOriginal();
+                                displayNameInput.blur();
                             } else {
                                 displayNameInput.focus();
                             }
