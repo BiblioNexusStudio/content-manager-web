@@ -26,9 +26,12 @@
     import { createAutosaveStore } from '$lib/utils/auto-save-store';
     import { onDestroy } from 'svelte';
     import Modal from '$lib/components/Modal.svelte';
-    import BackButton from '$lib/components/BackButton.svelte';
     import createChangeTrackingStore from '$lib/utils/change-tracking-store';
     import { get } from 'svelte/store';
+    import ExitButton from '$lib/components/ExitButton.svelte';
+    import CurrentTranslations from '$lib/components/resources/menus/CurrentTranslations.svelte';
+    import Related from '$lib/components/resources/menus/Related.svelte';
+    import References from '$lib/components/resources/menus/References.svelte';
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -340,21 +343,20 @@
     <CenteredSpinner />
 {:then resourceContent}
     <div class="p-8">
-        <div class="mb-4 flex w-full items-center">
-            <div class="mb-4 me-8 flex w-4/12 place-items-center">
-                <BackButton defaultPathIfNoHistory="/resources" />
-                <h1 class="relative w-full text-2xl font-bold">
-                    {resourceContent.parentResourceName} -
-                    {resourceContent.englishLabel}
-                </h1>
-                {#if $showSavingFailed}
-                    <span class="absolute font-bold text-error">Auto-save failed</span>
-                {/if}
+        <div class="mb-4 flex w-full items-center justify-between border-b-2 pb-2">
+            <div class="me-2 flex place-items-center">
+                <ExitButton defaultPathIfNoHistory="/resources" />
+                <CurrentTranslations numberOfTranslations={2} />
+                <Related />
+                <References />
             </div>
 
-            <div class="flex w-8/12">
-                <div class="flex w-full justify-between">
-                    <div class="mb-4 flex items-center">
+            <div class="flex">
+                <div class="flex w-full justify-end">
+                    <div class="me-2 flex items-center">
+                        {#if $showSavingFailed}
+                            <span class="font-bold text-error">Auto-save failed</span>
+                        {/if}
                         {#if $isSaving}
                             <Icon data={spinner} pulse class="text-[#0175a2]" />
                         {/if}
@@ -369,7 +371,7 @@
                             >
                         {/if}
                         {#if hasDraft && hasPublished}
-                            <div class="join mb-4 ms-4">
+                            <div class="join ms-2">
                                 <button
                                     class="btn {selectedVersion.isDraft ? 'btn-primary' : ''} join-item"
                                     on:click={() => setSelectedVersion(draftVersion)}>Draft</button
@@ -383,7 +385,7 @@
                         {/if}
                         {#if canAssign || canSendBack}
                             <button
-                                class="btn btn-primary mb-4 ms-4"
+                                class="btn btn-primary ms-2"
                                 disabled={isTransacting}
                                 on:click={openAssignUserModal}
                             >
@@ -396,7 +398,7 @@
                         {/if}
                         {#if canAssignReview}
                             <button
-                                class="btn btn-primary mb-4 ms-4"
+                                class="btn btn-primary ms-2"
                                 class:btn-disabled={isTransacting}
                                 on:click={openAssignReviewModal}
                                 >{isInReview ? 'Assign' : 'Review'}
@@ -404,23 +406,20 @@
                         {/if}
                         {#if canPublish}
                             <button
-                                class="btn btn-primary mb-4 ms-4"
+                                class="btn btn-primary ms-2"
                                 disabled={isTransacting}
                                 on:click={() => publishOrOpenModal(resourceContent.status)}
                                 >Publish
                             </button>
                         {/if}
                         {#if canUnpublish}
-                            <button
-                                class="btn btn-primary mb-4 ms-4"
-                                class:btn-disabled={isTransacting}
-                                on:click={unpublish}
+                            <button class="btn btn-primary ms-2" class:btn-disabled={isTransacting} on:click={unpublish}
                                 >Unpublish
                             </button>
                         {/if}
                         {#if canSendReview}
                             <button
-                                class="btn btn-primary mb-4 ms-4"
+                                class="btn btn-primary ms-2"
                                 class:btn-disabled={isTransacting}
                                 on:click={() => confirmSendReviewModal.showModal()}
                                 >Send to Review
@@ -428,7 +427,7 @@
                         {/if}
                         {#if canAquiferize}
                             <button
-                                class="btn btn-primary mb-4 ms-4"
+                                class="btn btn-primary ms-2"
                                 class:btn-disabled={isTransacting}
                                 on:click={openAquiferizeModal}
                                 >{#if isInTranslationWorkflow}
