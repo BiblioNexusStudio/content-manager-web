@@ -29,13 +29,7 @@
     let aquiferizedVersion: TiptapContentItem | undefined;
 
     function originalTiptapContentFromResourceContent(resourceContent: ResourceContent) {
-        return (
-            (
-                resourceContent.contentVersions.find((v) => v.isDraft) ||
-                resourceContent.contentVersions.find((v) => v.isPublished) ||
-                resourceContent.contentVersions[0]
-            )?.content as TiptapContentItem[] | undefined
-        )?.[0];
+        return (resourceContent.content as TiptapContentItem[] | undefined)?.[0];
     }
 
     async function aquiferize(originalTiptapContent: TiptapContentItem | undefined) {

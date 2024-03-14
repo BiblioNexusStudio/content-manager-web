@@ -3,20 +3,20 @@
     import arrowCircleLeft from 'svelte-awesome/icons/arrowCircleLeft';
     import arrowCircleRight from 'svelte-awesome/icons/arrowCircleRight';
     import SingleItemEditor from '$lib/components/editor/SingleItemEditor.svelte';
-    import type { ResourceContentVersion, TiptapContentItem } from '$lib/types/resources';
+    import type { ResourceContent, TiptapContentItem } from '$lib/types/resources';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
     import TiptapRenderer from '$lib/components/editor/TiptapRenderer.svelte';
 
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let canEdit: boolean;
     export let wordCountsByStep: number[];
-    export let resourceContentVersion: ResourceContentVersion;
+    export let resourceContent: ResourceContent;
 
     let currentStepNumber = 1;
 
     $: numberOfSteps = $editableContentStore.original.length;
     $: stepNavigation = numberOfSteps > 1;
-    $: content = resourceContentVersion.content as TiptapContentItem[];
+    $: content = resourceContent.content as TiptapContentItem[];
 
     const headings = [
         {
