@@ -8,27 +8,24 @@
         type ResourceContent,
         type TiptapContentItem,
         type VideoContentItem,
+        type Snapshot,
     } from '$lib/types/resources';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
 
-    export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
+    export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]> | undefined = undefined;
     export let resourceContent: ResourceContent;
     export let canEdit: boolean;
-    export let wordCountsByStep: number[];
+    export let wordCountsByStep: number[] | undefined = undefined;
+    export let snapshot: Snapshot | undefined = undefined;
 
-    $: imageContent = resourceContent.content as ImageContentItem;
-    $: videoContent = resourceContent.content as VideoContentItem;
+    $: imageContent = (snapshot?.content ?? resourceContent.content) as ImageContentItem;
+    $: videoContent = (snapshot?.content ?? resourceContent.content) as VideoContentItem;
 </script>
 
-<div class="flex h-full flex-col overflow-y-hidden rounded-lg border border-base-300 bg-base-200">
-    <div class="px-4 py-2 text-xl font-medium">Content</div>
-    <div class="h-full rounded-lg bg-white p-4">
-        {#if resourceContent.mediaType === MediaTypeEnum.image}
-            <Image content={imageContent} />
-        {:else if resourceContent.mediaType === MediaTypeEnum.video}
-            <Video content={videoContent} />
-        {:else if resourceContent.mediaType === MediaTypeEnum.text}
-            <Text {resourceContent} bind:wordCountsByStep {editableContentStore} {canEdit} />
-        {/if}
-    </div>
-</div>
+{#if resourceContent.mediaType === MediaTypeEnum.image}
+    <Image content={imageContent} />
+{:else if resourceContent.mediaType === MediaTypeEnum.video}
+    <Video content={videoContent} />
+{:else if resourceContent.mediaType === MediaTypeEnum.text}
+    <Text {snapshot} {resourceContent} bind:wordCountsByStep {editableContentStore} {canEdit} />
+{/if}

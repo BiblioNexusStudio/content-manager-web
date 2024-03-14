@@ -26,11 +26,6 @@
 
     onDestroy(unsubscribeHasChanges);
 
-    function updateDisplayName(event: Event) {
-        const target = event.currentTarget as HTMLInputElement;
-        editableDisplayNameStore.setUpdated(target.value);
-    }
-
     function saveOnBlur() {
         setTimeout(() => {
             if (displayNameUpdated) {
@@ -52,8 +47,7 @@
                             <input
                                 bind:this={displayNameInput}
                                 type="text"
-                                value={$editableDisplayNameStore.updated}
-                                on:input={updateDisplayName}
+                                bind:value={$editableDisplayNameStore}
                                 class="input input-ghost h-6 w-full pl-0 text-right"
                                 on:blur={saveOnBlur}
                             />

@@ -1,26 +1,22 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import Overview from '$lib/components/resources/Overview.svelte';
-    import Process from '$lib/components/resources/Process.svelte';
-    import RelatedContent from '$lib/components/resources/RelatedContent.svelte';
-    import BibleReferences from '$lib/components/resources/BibleReferences.svelte';
     import Content from '$lib/components/resources/Content.svelte';
     import { beforeNavigate, goto } from '$app/navigation';
     import {
         type ResourceContent,
         type ContentTranslation,
+        type BasicSnapshot,
+        type Snapshot,
         MediaTypeEnum,
         type TiptapContentItem,
     } from '$lib/types/resources';
-    import { postToApi, putToApi } from '$lib/utils/http-service';
+    import { getFromApi, postToApi, putToApi } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
-    import { getSortedReferences } from '$lib/utils/reference';
     import UserSelector from './UserSelector.svelte';
     import { Permission, userCan, userIsEqual, userIsInCompany } from '$lib/stores/auth';
     import spinner from 'svelte-awesome/icons/spinner';
     import { Icon } from 'svelte-awesome';
-    import Translations from '$lib/components/resources/Translations.svelte';
     import TranslationSelector from './TranslationSelector.svelte';
     import { createAutosaveStore } from '$lib/utils/auto-save-store';
     import { onDestroy } from 'svelte';
@@ -32,6 +28,8 @@
     import Related from '$lib/components/resources/menus/Related.svelte';
     import References from '$lib/components/resources/menus/References.svelte';
     import ContentArea from '$lib/components/resources/ContentArea.svelte';
+    import Select from '$lib/components/Select.svelte';
+    import { formatDate } from '$lib/utils/date-time';
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -52,14 +50,16 @@
     let canUnpublish = false;
     let canSendReview = false;
     let canAssignReview = false;
-    let canCreateTranslation = false;
+    let _canCreateTranslation = false;
     let isAssignReviewModalOpen = false;
     let isInReview = false;
     let createDraft = false;
     let englishContentTranslation: ContentTranslation | undefined;
     let createTranslationFromDraft = false;
     let isInTranslationWorkflow = false;
+    let isLoadingSnapshot = false;
     let mediaType: MediaTypeEnum | undefined;
+    let selectedSnapshotId: number | null = null;
 
     let canAiSimplify = $userCan(Permission.AiSimplify);
 
@@ -67,21 +67,18 @@
 
     const { save, resetSaveState, isSaving, showSavingFailed } = createAutosaveStore(putData);
 
-    let editableContentStore = createChangeTrackingStore<TiptapContentItem[]>([], () => save(), 3000);
-    let editableDisplayNameStore = createChangeTrackingStore<string>('');
+    let editableContentStore = createChangeTrackingStore<TiptapContentItem[]>([], {
+        onChange: save,
+        debounceDelay: 3000,
+    });
+    let editableDisplayNameStore = createChangeTrackingStore<string>('', { onChange: save, debounceDelay: 3000 });
     let wordCountsByStep: number[] = [];
-
-    let contentUpdated = false;
-
-    const unsubscribeHasChanges = editableContentStore.hasChanges.subscribe(
-        (hasChanges) => (contentUpdated = hasChanges)
-    );
-
-    onDestroy(unsubscribeHasChanges);
+    let cachedSnapshots: Record<number, Snapshot> = {};
 
     $: resourceContentId = data.resourceContentId;
     $: resourceContentPromise = data.resourceContent.promise;
     $: handleFetchedResource(data.resourceContent.promise);
+    $: loadSnapshot(selectedSnapshotId);
 
     async function handleFetchedResource(resourceContentPromise: Promise<ResourceContent>) {
         const resourceContent = await resourceContentPromise;
@@ -152,11 +149,11 @@
                 resourceContent.status === ResourceContentStatusEnum.TranslationInReview);
 
         canUnpublish = $userCan(Permission.PublishContent) && resourceContent.hasPublishedVersion;
-        canCreateTranslation = $userCan(Permission.PublishContent);
+        _canCreateTranslation = $userCan(Permission.PublishContent);
         if (!('url' in resourceContent.content)) {
-            editableContentStore.setOriginalAndUpdated(resourceContent.content);
+            editableContentStore.setOriginalAndCurrent(resourceContent.content);
         }
-        editableDisplayNameStore.setOriginalAndUpdated(resourceContent.displayName);
+        editableDisplayNameStore.setOriginalAndCurrent(resourceContent.displayName);
     }
 
     let isTransacting = false;
@@ -165,7 +162,7 @@
         // beforeNavigate runs synchronously, but we can work around the limitation by always canceling the
         // navigation up front, and then conditionally doing a `goto` if the save is successful.
         // See https://github.com/sveltejs/kit/issues/4421#issuecomment-1129879937
-        if (contentUpdated) {
+        if (get(editableContentStore.hasChanges) || get(editableDisplayNameStore.hasChanges)) {
             cancel();
             if (!(await save(true))) {
                 autoSaveErrorModal.showModal();
@@ -202,15 +199,15 @@
         isAssignReviewModalOpen = true;
     }
 
-    function openAddTranslationModal() {
-        createTranslationFromDraft = false;
-        newTranslationLanguageId = null;
-        addTranslationModal.showModal();
-    }
+    // function openAddTranslationModal() {
+    //     createTranslationFromDraft = false;
+    //     newTranslationLanguageId = null;
+    //     addTranslationModal.showModal();
+    // }
 
     async function takeActionAndRefresh(action: () => Promise<unknown>) {
         isTransacting = true;
-        if (contentUpdated) {
+        if (get(editableDisplayNameStore.hasChanges) || get(editableContentStore.hasChanges)) {
             await putData();
         }
         try {
@@ -299,9 +296,25 @@
         }
     }
 
+    async function loadSnapshot(snapshotId: number | null) {
+        if (!snapshotId) return;
+
+        if (!cachedSnapshots[snapshotId]) {
+            try {
+                isLoadingSnapshot = true;
+                const snapshot = await getFromApi<Snapshot>(`/resources/content/snapshots/${snapshotId}`);
+                if (snapshot) {
+                    cachedSnapshots[snapshotId] = snapshot;
+                }
+            } finally {
+                isLoadingSnapshot = false;
+            }
+        }
+    }
+
     async function putData() {
-        const displayName = get(editableDisplayNameStore).updated;
-        const content = get(editableContentStore).updated;
+        const displayName = get(editableDisplayNameStore);
+        const content = get(editableContentStore);
         await putToApi(`/admin/resources/content/summary/${resourceContentId}`, {
             displayName,
             wordCount: calculateWordCount(wordCountsByStep),
@@ -317,6 +330,14 @@
             return data.users;
         }
         return data.users?.filter((u) => $userIsInCompany(u.company.id)) ?? null;
+    }
+
+    function calculateSnapshotName(snapshot: BasicSnapshot) {
+        if (snapshot.status === 'New') {
+            return `${formatDate(snapshot.created)} Original`;
+        } else {
+            return `${formatDate(snapshot.created)} ${snapshot.assignedUserName ?? ''} ${snapshot.status}`;
+        }
     }
 </script>
 
@@ -409,38 +430,54 @@
         </div>
 
         <ContentArea {resourceContent} resourceContentStatuses={data.resourceContentStatuses} />
-        <div class="flex">
-            <div class="me-8 flex max-h-full w-4/12 flex-col">
-                <Overview
-                    {resourceContent}
-                    {editableDisplayNameStore}
-                    canEdit={canMakeContentEdits && resourceContent.isDraft}
-                    isPublished={resourceContent.hasPublishedVersion}
-                    wordCount={calculateWordCount(wordCountsByStep) || resourceContent.wordCount}
-                    on:saveTitle={() => save()}
-                />
-                <Process
-                    translationStatus={resourceContent.status}
-                    assignedUser={resourceContent.assignedUser ?? null}
-                    resourceContentStatuses={data.resourceContentStatuses}
-                />
-                <Translations
-                    languages={data.languages}
-                    translations={resourceContent.contentTranslations}
-                    englishTranslation={englishContentTranslation}
-                    {canCreateTranslation}
-                    openModal={openAddTranslationModal}
-                />
-                <RelatedContent relatedContent={resourceContent.associatedResources} />
-                <BibleReferences bibleReferences={getSortedReferences(resourceContent)} />
+
+        <div class="flex h-[calc(100vh-160px)] flex-row space-x-4">
+            <div class="flex h-full flex-1 flex-col space-y-4 rounded-md bg-base-200 p-4">
+                {#if canMakeContentEdits && resourceContent.isDraft}
+                    <input bind:value={$editableDisplayNameStore} class="input input-bordered w-72" type="text" />
+                {:else}
+                    <div class="mb-12 text-lg">{$editableDisplayNameStore}</div>
+                {/if}
+                <div class="h-full max-w-4xl">
+                    <Content
+                        {editableContentStore}
+                        bind:wordCountsByStep
+                        canEdit={canMakeContentEdits && resourceContent.isDraft}
+                        {resourceContent}
+                    />
+                </div>
+                {#if mediaType === MediaTypeEnum.text}
+                    <div class="text-sm text-gray-500">
+                        Word count: {calculateWordCount(wordCountsByStep) || resourceContent.wordCount}
+                    </div>
+                {/if}
             </div>
-            <div class="flex h-[calc(100vh-160px)] w-8/12 flex-col">
-                <Content
-                    {editableContentStore}
-                    bind:wordCountsByStep
-                    canEdit={canMakeContentEdits && resourceContent.isDraft}
-                    {resourceContent}
+            <div class="flex h-full flex-1 flex-col space-y-4 rounded-md border border-base-300 p-4">
+                <Select
+                    bind:value={selectedSnapshotId}
+                    class="select select-bordered select-sm"
+                    isNumber={true}
+                    options={resourceContent.snapshots.map((s) => ({
+                        value: s.id,
+                        label: calculateSnapshotName(s),
+                    }))}
                 />
+                {#if selectedSnapshotId}
+                    {@const selectedSnapshot = cachedSnapshots[selectedSnapshotId]}
+                    {#if selectedSnapshot}
+                        <div class="text-lg">{selectedSnapshot.displayName}</div>
+                        <Content snapshot={selectedSnapshot} canEdit={false} {resourceContent} />
+                        {#if mediaType === MediaTypeEnum.text}
+                            <div class="text-sm text-gray-500">
+                                Word count: {selectedSnapshot.wordCount}
+                            </div>
+                        {/if}
+                    {:else if isLoadingSnapshot}
+                        <CenteredSpinner />
+                    {:else}
+                        Error fetching...
+                    {/if}
+                {/if}
             </div>
         </div>
     </div>

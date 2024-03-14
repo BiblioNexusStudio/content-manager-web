@@ -3,20 +3,21 @@
     import arrowCircleLeft from 'svelte-awesome/icons/arrowCircleLeft';
     import arrowCircleRight from 'svelte-awesome/icons/arrowCircleRight';
     import SingleItemEditor from '$lib/components/editor/SingleItemEditor.svelte';
-    import type { ResourceContent, TiptapContentItem } from '$lib/types/resources';
+    import type { ResourceContent, Snapshot, TiptapContentItem } from '$lib/types/resources';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
     import TiptapRenderer from '$lib/components/editor/TiptapRenderer.svelte';
 
-    export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
+    export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]> | undefined;
     export let canEdit: boolean;
-    export let wordCountsByStep: number[];
+    export let wordCountsByStep: number[] | undefined;
     export let resourceContent: ResourceContent;
+    export let snapshot: Snapshot | undefined;
 
     let currentStepNumber = 1;
 
-    $: numberOfSteps = $editableContentStore.original.length;
+    $: content = (snapshot?.content ?? resourceContent.content) as TiptapContentItem[];
+    $: numberOfSteps = content.length;
     $: stepNavigation = numberOfSteps > 1;
-    $: content = resourceContent.content as TiptapContentItem[];
 
     const headings = [
         {
@@ -64,7 +65,7 @@
 
 <div class="flex h-full flex-col space-y-4">
     {#if stepNavigation}
-        <div class="mx-12 bg-white">
+        <div class="mx-12">
             <div class="mt-2 flex items-center justify-between">
                 {#if currentStepNumber !== 1}
                     <button on:click={() => handleStep('backward')}>
@@ -85,7 +86,7 @@
 
     {#each new Array(numberOfSteps) as _, index (index)}
         <div class="flex h-full flex-col {index === currentStepNumber - 1 ? '' : 'hidden'}">
-            {#if canEdit}
+            {#if canEdit && wordCountsByStep && editableContentStore}
                 <SingleItemEditor bind:wordCountsByStep {editableContentStore} itemIndex={index} />
             {:else}
                 <TiptapRenderer tiptapJson={content[index]} />
