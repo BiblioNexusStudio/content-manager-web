@@ -6,11 +6,18 @@ import type { Language, ResourceContentStatus, ResourceType, User, CurrentUser }
 import { initAuth0, Permission, setCurrentUser, userCan } from '$lib/stores/auth';
 import { sortByKey } from '$lib/utils/sorting';
 import { get } from 'svelte/store';
+import { error } from '@sveltejs/kit';
 
 export const ssr = false;
 
 export const load: LayoutLoad = async ({ url, fetch }) => {
-    await initAuth0(url);
+    const isAuthenticated = await initAuth0(url);
+
+    // this is not actually shown anywhere, since if the user is not authenticated then they'll be logged out.
+    // it's only here to prevent logout loops if we were to call the fetches below.
+    if (!isAuthenticated) {
+        throw error(401, 'Unauthenticated');
+    }
 
     const [languages, resourceTypes, resourceContentStatuses, currentUser] = await Promise.all([
         getFromApi<Language[]>('/languages', fetch),

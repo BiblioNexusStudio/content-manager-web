@@ -1,5 +1,5 @@
 import config from '$lib/config';
-import { auth0Client } from '$lib/stores/auth';
+import { auth0Client, logout } from '$lib/stores/auth';
 import type { ExtendType } from '$lib/types/base';
 import { FetchError, ApiError, AuthUninitializedError, TokenMissingError } from './http-errors';
 
@@ -115,10 +115,22 @@ async function authTokenHeader(): Promise<string | undefined> {
     if (!auth0Client) {
         throw new AuthUninitializedError();
     }
-    const token = await auth0Client.getTokenSilently();
+
+    let token = undefined;
+
+    try {
+        token = await auth0Client.getTokenSilently();
+    } catch {
+        // if the user is no longer logged in, take them through the login process
+        await logout(new URL(window.location.toString()));
+        return token;
+    }
+
+    // if for some reason the token couldn't be retrieved and there was no Auth0 error, throw our own error
     if (!token) {
         throw new TokenMissingError();
     }
+
     return `Bearer ${token}`;
 }
 
