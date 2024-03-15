@@ -30,8 +30,6 @@
     import ContentArea from '$lib/components/resources/ContentArea.svelte';
     import Select from '$lib/components/Select.svelte';
     import { formatDate } from '$lib/utils/date-time';
-    import HistoryIcon from '$lib/icons/HistoryIcon.svelte';
-    import Tooltip from '$lib/components/Tooltip.svelte';
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -453,33 +451,40 @@
             resourceContentStatuses={data.resourceContentStatuses}
         />
 
-        <div class="h-[calc(100vh-160px)]">
+        <div class="h-[calc(100vh-250px)]">
             <div class="float-left h-full transition-[width] {selectedSnapshotId === null ? 'w-full' : 'w-1/2 pe-3'}">
-                <div class="flex h-full flex-col space-y-4 rounded-md bg-base-200 p-4">
-                    {#if canMakeContentEdits && resourceContent.isDraft}
-                        <input bind:value={$editableDisplayNameStore} class="input input-bordered w-72" type="text" />
-                    {:else}
-                        <div class="mb-12 text-lg">{$editableDisplayNameStore}</div>
-                    {/if}
-                    <div class="h-full max-w-4xl">
-                        <Content
-                            bind:selectedStepNumber
-                            {editableContentStore}
-                            bind:wordCountsByStep
-                            canEdit={canMakeContentEdits && resourceContent.isDraft}
-                            {resourceContent}
-                        />
-                    </div>
-                    {#if mediaType === MediaTypeEnum.text}
-                        <div class="text-sm text-gray-500">
-                            Word count: {calculateWordCount(wordCountsByStep) || resourceContent.wordCount}
+                <div class="h-full rounded-md bg-base-200 p-4">
+                    <div class="mx-auto flex h-full w-full max-w-4xl flex-col space-y-4">
+                        {#if canMakeContentEdits && resourceContent.isDraft}
+                            <input
+                                bind:value={$editableDisplayNameStore}
+                                class="input input-bordered w-full max-w-[18rem]"
+                                type="text"
+                            />
+                        {:else}
+                            <div class="mb-12 text-lg">{$editableDisplayNameStore}</div>
+                        {/if}
+                        <div class="h-full w-full">
+                            <Content
+                                bind:selectedStepNumber
+                                {editableContentStore}
+                                bind:wordCountsByStep
+                                canEdit={canMakeContentEdits && resourceContent.isDraft}
+                                {resourceContent}
+                            />
                         </div>
-                    {/if}
+                        {#if mediaType === MediaTypeEnum.text}
+                            <div class="text-sm text-gray-500">
+                                Word count: {calculateWordCount(wordCountsByStep) || resourceContent.wordCount}
+                            </div>
+                        {/if}
+                    </div>
                 </div>
             </div>
+
             <div
-                class="float-right h-full transition-[width] {selectedSnapshotId === null
-                    ? 'w-0 overflow-hidden'
+                class="float-right h-full overflow-hidden transition-[width] {selectedSnapshotId === null
+                    ? 'w-0'
                     : 'w-1/2 ps-3'}"
             >
                 <div class="flex h-full w-full flex-col space-y-4 rounded-md border border-base-300 p-4">

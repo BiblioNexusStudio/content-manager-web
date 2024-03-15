@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ as translate } from 'svelte-i18n';
-    import { statusColorMap, type ResourceContentStatus } from '$lib/types/base';
+    import { statusColorMap, type ResourceContentStatus, ResourceContentStatusEnum } from '$lib/types/base';
     import { MediaTypeEnum, type ResourceContent } from '$lib/types/resources';
     import { Icon } from 'svelte-awesome';
     import checkCircleO from 'svelte-awesome/icons/checkCircleO';
@@ -71,6 +71,8 @@
             <div class="flex text-xl">
                 Assigned: {resourceContent.assignedUser.name}
             </div>
+        {:else if resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress || resourceContent.status === ResourceContentStatusEnum.TranslationInProgress}
+            <div class="flex text-xl">Assigned: External User</div>
         {/if}
     </div>
 </div>
