@@ -1,7 +1,7 @@
 import config from '$lib/config';
-import { auth0Client } from '$lib/stores/auth';
+import { auth0Client, logout } from '$lib/stores/auth';
 import type { ExtendType } from '$lib/types/base';
-import { FetchError, ApiError, TokenError } from './http-errors';
+import { FetchError, ApiError, AuthUninitializedError, TokenMissingError } from './http-errors';
 
 const API_KEY = config.PUBLIC_AQUIFER_API_KEY;
 const BASE_URL = config.PUBLIC_AQUIFER_API_URL;
@@ -39,11 +39,7 @@ async function rawApiFetch(path: string, injectedFetch: typeof window.fetch | nu
     }
 
     if (!fetchOptions.headers['Authorization']) {
-        const authToken = await authTokenHeader();
-        if (!authToken) {
-            throw new TokenError();
-        }
-        fetchOptions.headers['Authorization'] = authToken;
+        fetchOptions.headers['Authorization'] = (await authTokenHeader()) as string;
     }
 
     if (options.body) {
@@ -116,33 +112,26 @@ export async function putToApi<T = never>(path: string, body: RequestBody | unde
 }
 
 async function authTokenHeader(): Promise<string | undefined> {
-    // Wait for the auth client to be initialized and a valid token (prevents race conditions)
-    const token = await waitForValidValue(async () => await auth0Client?.getTokenSilently(), true, 500);
-    if (token) {
-        return `Bearer ${token}`;
+    if (!auth0Client) {
+        throw new AuthUninitializedError();
     }
-}
 
-// Wait for a truthy (not null, not undefined, not false) value to be returned by `fn` or returns the most recent
-// value if the timeout is reached.
-async function waitForValidValue<T>(
-    fn: () => Promise<T | undefined>,
-    ignoreErrors: boolean,
-    maxTimeout: number
-): Promise<T | undefined> {
-    const startTime = Date.now();
-    let value: T | undefined = undefined;
-    while (!value && Date.now() - startTime < maxTimeout) {
-        try {
-            value = await fn();
-        } catch (error) {
-            if (!ignoreErrors) {
-                throw error;
-            }
-        }
-        await new Promise((resolve) => setTimeout(resolve, 10));
+    let token = undefined;
+
+    try {
+        token = await auth0Client.getTokenSilently();
+    } catch {
+        // if the user is no longer logged in, take them through the login process
+        await logout(new URL(window.location.toString()));
+        return token;
     }
-    return value;
+
+    // if for some reason the token couldn't be retrieved and there was no Auth0 error, throw our own error
+    if (!token) {
+        throw new TokenMissingError();
+    }
+
+    return `Bearer ${token}`;
 }
 
 function pathPrefixedWithSlash(path: string) {

@@ -3,7 +3,7 @@ import config from '$lib/config';
 import { browser } from '$app/environment';
 import { isAuthenticatedStore, profile } from './stores/auth';
 import { get } from 'svelte/store';
-import type { ApiError, FetchError, TokenError } from './utils/http-errors';
+import type { ApiError, AuthUninitializedError, FetchError, TokenMissingError } from './utils/http-errors';
 
 const appInsights = new ApplicationInsights({
     config: {
@@ -25,15 +25,14 @@ const additionalProperties = {
 export const log = {
     exception: (uncastError: unknown) => {
         if (uncastError && typeof uncastError === 'object' && 'message' in uncastError) {
-            const error = uncastError as Error | FetchError | ApiError | TokenError;
+            const error = uncastError as Error | FetchError | ApiError | TokenMissingError | AuthUninitializedError;
 
             let logToAppInsights = true;
 
-            if ('isFetchError' in error) {
-                if (error.message.includes('Failed to fetch') || error.message.includes('Load failed')) {
-                    logToAppInsights = false;
-                }
-            } else if ('isTokenError' in error) {
+            if (
+                'isFetchError' in error &&
+                (error.message.includes('Failed to fetch') || error.message.includes('Load failed'))
+            ) {
                 logToAppInsights = false;
             }
 
