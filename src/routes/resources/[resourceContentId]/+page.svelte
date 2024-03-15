@@ -408,15 +408,7 @@
             </div>
         </div>
 
-        <ContentArea
-            englishLabel={resourceContent.englishLabel}
-            languageDisplay={resourceContent.language.englishDisplay}
-            parentResourceName={resourceContent.parentResourceName}
-            translationStatus={resourceContent.status}
-            resourceContentStatuses={data.resourceContentStatuses}
-            published={resourceContent.hasPublishedVersion}
-            assignedUser={resourceContent.assignedUser ?? null}
-        />
+        <ContentArea {resourceContent} resourceContentStatuses={data.resourceContentStatuses} />
         <div class="flex">
             <div class="me-8 flex max-h-full w-4/12 flex-col">
                 <Overview
