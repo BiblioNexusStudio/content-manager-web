@@ -27,6 +27,20 @@ export enum ResourceContentStatusEnum {
     OnHold = 'OnHold',
 }
 
+export const statusColorMap: Record<ResourceContentStatusEnum, string> = {
+    [ResourceContentStatusEnum.None]: '#6e7580',
+    [ResourceContentStatusEnum.New]: '#6e7580',
+    [ResourceContentStatusEnum.AquiferizeInProgress]: '#00a3e0',
+    [ResourceContentStatusEnum.Complete]: '#19b26b',
+    [ResourceContentStatusEnum.AquiferizeReviewPending]: '#f79008',
+    [ResourceContentStatusEnum.AquiferizeInReview]: '#6172f3',
+    [ResourceContentStatusEnum.TranslationNotStarted]: '#6e7580',
+    [ResourceContentStatusEnum.TranslationInProgress]: '#00a3e0',
+    [ResourceContentStatusEnum.TranslationReviewPending]: '#f79008',
+    [ResourceContentStatusEnum.TranslationInReview]: '#6172f3',
+    [ResourceContentStatusEnum.OnHold]: '#6e7580',
+};
+
 export interface Language {
     id: number;
     iso6393Code: string;
