@@ -31,6 +31,7 @@
     import CurrentTranslations from '$lib/components/resources/menus/CurrentTranslations.svelte';
     import Related from '$lib/components/resources/menus/Related.svelte';
     import References from '$lib/components/resources/menus/References.svelte';
+    import ContentArea from '$lib/components/resources/ContentArea.svelte';
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -406,6 +407,16 @@
                 </div>
             </div>
         </div>
+
+        <ContentArea
+            englishLabel={resourceContent.englishLabel}
+            languageDisplay={resourceContent.language.englishDisplay}
+            parentResourceName={resourceContent.parentResourceName}
+            translationStatus={resourceContent.status}
+            resourceContentStatuses={data.resourceContentStatuses}
+            published={resourceContent.hasPublishedVersion}
+            assignedUser={resourceContent.assignedUser ?? null}
+        />
         <div class="flex">
             <div class="me-8 flex max-h-full w-4/12 flex-col">
                 <Overview
