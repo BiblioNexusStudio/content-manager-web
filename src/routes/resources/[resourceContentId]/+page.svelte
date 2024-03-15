@@ -30,6 +30,8 @@
     import ContentArea from '$lib/components/resources/ContentArea.svelte';
     import Select from '$lib/components/Select.svelte';
     import { formatDate } from '$lib/utils/date-time';
+    import HistoryIcon from '$lib/icons/HistoryIcon.svelte';
+    import Tooltip from '$lib/components/Tooltip.svelte';
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -60,6 +62,8 @@
     let isLoadingSnapshot = false;
     let mediaType: MediaTypeEnum | undefined;
     let selectedSnapshotId: number | null = null;
+    let selectedStepNumber: number | undefined;
+    let isEnglish = false;
 
     let canAiSimplify = $userCan(Permission.AiSimplify);
 
@@ -74,6 +78,7 @@
     let editableDisplayNameStore = createChangeTrackingStore<string>('', { onChange: save, debounceDelay: 3000 });
     let wordCountsByStep: number[] = [];
     let cachedSnapshots: Record<number, Snapshot> = {};
+    let firstSnapshotId: number | null = null;
 
     $: resourceContentId = data.resourceContentId;
     $: resourceContentPromise = data.resourceContent.promise;
@@ -85,6 +90,8 @@
         resetSaveState();
 
         mediaType = resourceContent.mediaType;
+        firstSnapshotId = resourceContent.snapshots[resourceContent.snapshots.length - 1]?.id ?? null;
+        isEnglish = resourceContent.language.iso6393Code.toLowerCase() === 'eng';
 
         englishContentTranslation = resourceContent.contentTranslations.find((x) => x.languageId === 1);
 
@@ -332,11 +339,21 @@
         return data.users?.filter((u) => $userIsInCompany(u.company.id)) ?? null;
     }
 
-    function calculateSnapshotName(snapshot: BasicSnapshot) {
-        if (snapshot.status === 'New') {
-            return `${formatDate(snapshot.created)} Original`;
+    function calculateSnapshotName(snapshot: BasicSnapshot, isFirst: boolean) {
+        if (isFirst && isEnglish) {
+            return `${formatDate(snapshot.created)}`;
+        } else if (isFirst) {
+            return `${formatDate(snapshot.created)} English Source`;
         } else {
             return `${formatDate(snapshot.created)} ${snapshot.assignedUserName ?? ''} ${snapshot.status}`;
+        }
+    }
+
+    function toggleHistoryPane() {
+        if (selectedSnapshotId === null) {
+            selectedSnapshotId = firstSnapshotId;
+        } else {
+            selectedSnapshotId = null;
         }
     }
 </script>
@@ -345,7 +362,7 @@
     <CenteredSpinner />
 {:then resourceContent}
     <div class="p-8">
-        <div class="mb-4 flex w-full items-center justify-between border-b-2 pb-2">
+        <div class="flex w-full items-center justify-between border-b-2 pb-2">
             <div class="me-2 flex place-items-center">
                 <ExitButton defaultPathIfNoHistory="/resources" />
                 <CurrentTranslations numberOfTranslations={2} />
@@ -429,55 +446,74 @@
             </div>
         </div>
 
-        <ContentArea {resourceContent} resourceContentStatuses={data.resourceContentStatuses} />
+        <ContentArea
+            {resourceContent}
+            {selectedSnapshotId}
+            onToggleHistoryPane={toggleHistoryPane}
+            resourceContentStatuses={data.resourceContentStatuses}
+        />
 
-        <div class="flex h-[calc(100vh-160px)] flex-row space-x-4">
-            <div class="flex h-full flex-1 flex-col space-y-4 rounded-md bg-base-200 p-4">
-                {#if canMakeContentEdits && resourceContent.isDraft}
-                    <input bind:value={$editableDisplayNameStore} class="input input-bordered w-72" type="text" />
-                {:else}
-                    <div class="mb-12 text-lg">{$editableDisplayNameStore}</div>
-                {/if}
-                <div class="h-full max-w-4xl">
-                    <Content
-                        {editableContentStore}
-                        bind:wordCountsByStep
-                        canEdit={canMakeContentEdits && resourceContent.isDraft}
-                        {resourceContent}
-                    />
-                </div>
-                {#if mediaType === MediaTypeEnum.text}
-                    <div class="text-sm text-gray-500">
-                        Word count: {calculateWordCount(wordCountsByStep) || resourceContent.wordCount}
-                    </div>
-                {/if}
-            </div>
-            <div class="flex h-full flex-1 flex-col space-y-4 rounded-md border border-base-300 p-4">
-                <Select
-                    bind:value={selectedSnapshotId}
-                    class="select select-bordered select-sm"
-                    isNumber={true}
-                    options={resourceContent.snapshots.map((s) => ({
-                        value: s.id,
-                        label: calculateSnapshotName(s),
-                    }))}
-                />
-                {#if selectedSnapshotId}
-                    {@const selectedSnapshot = cachedSnapshots[selectedSnapshotId]}
-                    {#if selectedSnapshot}
-                        <div class="text-lg">{selectedSnapshot.displayName}</div>
-                        <Content snapshot={selectedSnapshot} canEdit={false} {resourceContent} />
-                        {#if mediaType === MediaTypeEnum.text}
-                            <div class="text-sm text-gray-500">
-                                Word count: {selectedSnapshot.wordCount}
-                            </div>
-                        {/if}
-                    {:else if isLoadingSnapshot}
-                        <CenteredSpinner />
+        <div class="h-[calc(100vh-160px)]">
+            <div class="float-left h-full transition-[width] {selectedSnapshotId === null ? 'w-full' : 'w-1/2 pe-3'}">
+                <div class="flex h-full flex-col space-y-4 rounded-md bg-base-200 p-4">
+                    {#if canMakeContentEdits && resourceContent.isDraft}
+                        <input bind:value={$editableDisplayNameStore} class="input input-bordered w-72" type="text" />
                     {:else}
-                        Error fetching...
+                        <div class="mb-12 text-lg">{$editableDisplayNameStore}</div>
                     {/if}
-                {/if}
+                    <div class="h-full max-w-4xl">
+                        <Content
+                            bind:selectedStepNumber
+                            {editableContentStore}
+                            bind:wordCountsByStep
+                            canEdit={canMakeContentEdits && resourceContent.isDraft}
+                            {resourceContent}
+                        />
+                    </div>
+                    {#if mediaType === MediaTypeEnum.text}
+                        <div class="text-sm text-gray-500">
+                            Word count: {calculateWordCount(wordCountsByStep) || resourceContent.wordCount}
+                        </div>
+                    {/if}
+                </div>
+            </div>
+            <div
+                class="float-right h-full transition-[width] {selectedSnapshotId === null
+                    ? 'w-0 overflow-hidden'
+                    : 'w-1/2 ps-3'}"
+            >
+                <div class="flex h-full w-full flex-col space-y-4 rounded-md border border-base-300 p-4">
+                    <Select
+                        bind:value={selectedSnapshotId}
+                        class="select select-bordered select-sm"
+                        isNumber={true}
+                        options={resourceContent.snapshots.reverse().map((s, i) => ({
+                            value: s.id,
+                            label: calculateSnapshotName(s, i === 0),
+                        }))}
+                    />
+                    {#if selectedSnapshotId}
+                        {@const selectedSnapshot = cachedSnapshots[selectedSnapshotId]}
+                        {#if selectedSnapshot}
+                            <div class="text-lg">{selectedSnapshot.displayName}</div>
+                            <Content
+                                bind:selectedStepNumber
+                                snapshot={selectedSnapshot}
+                                canEdit={false}
+                                {resourceContent}
+                            />
+                            {#if mediaType === MediaTypeEnum.text}
+                                <div class="text-sm text-gray-500">
+                                    Word count: {selectedSnapshot.wordCount}
+                                </div>
+                            {/if}
+                        {:else if isLoadingSnapshot}
+                            <CenteredSpinner />
+                        {:else}
+                            Error fetching...
+                        {/if}
+                    {/if}
+                </div>
             </div>
         </div>
     </div>

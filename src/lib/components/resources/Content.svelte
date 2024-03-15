@@ -17,6 +17,7 @@
     export let canEdit: boolean;
     export let wordCountsByStep: number[] | undefined = undefined;
     export let snapshot: Snapshot | undefined = undefined;
+    export let selectedStepNumber: number | undefined;
 
     $: imageContent = (snapshot?.content ?? resourceContent.content) as ImageContentItem;
     $: videoContent = (snapshot?.content ?? resourceContent.content) as VideoContentItem;
@@ -27,5 +28,5 @@
 {:else if resourceContent.mediaType === MediaTypeEnum.video}
     <Video content={videoContent} />
 {:else if resourceContent.mediaType === MediaTypeEnum.text}
-    <Text {snapshot} {resourceContent} bind:wordCountsByStep {editableContentStore} {canEdit} />
+    <Text bind:selectedStepNumber {snapshot} {resourceContent} bind:wordCountsByStep {editableContentStore} {canEdit} />
 {/if}
