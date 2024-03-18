@@ -88,7 +88,8 @@
         resetSaveState();
 
         mediaType = resourceContent.mediaType;
-        firstSnapshotId = resourceContent.snapshots[resourceContent.snapshots.length - 1]?.id ?? null;
+        resourceContent.snapshots.reverse();
+        firstSnapshotId = resourceContent.snapshots[0]?.id ?? null;
         isEnglish = resourceContent.language.iso6393Code.toLowerCase() === 'eng';
 
         englishContentTranslation = resourceContent.contentTranslations.find((x) => x.languageId === 1);
@@ -492,9 +493,9 @@
                         bind:value={selectedSnapshotId}
                         class="select select-bordered select-sm"
                         isNumber={true}
-                        options={resourceContent.snapshots.reverse().map((s, i) => ({
+                        options={resourceContent.snapshots.map((s, i) => ({
                             value: s.id,
-                            label: calculateSnapshotName(s, i === 0),
+                            label: calculateSnapshotName(s, i === resourceContent.snapshots.length - 1),
                         }))}
                     />
                     {#if selectedSnapshotId}
