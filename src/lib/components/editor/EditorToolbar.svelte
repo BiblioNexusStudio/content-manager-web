@@ -10,6 +10,7 @@
     import Heading3Icon from '$lib/icons/Heading3Icon.svelte';
     import UndoIcon from '$lib/icons/UndoIcon.svelte';
     import RedoIcon from '$lib/icons/RedoIcon.svelte';
+    import CommentIcon from '$lib/icons/CommentIcon.svelte';
 
     export let editor: Editor | undefined;
 
@@ -104,6 +105,17 @@
                 isActive: editor.isActive('heading', { level: 3 }),
                 disabled: false,
                 icon: Heading3Icon,
+            },
+            {
+                name: 'comment',
+                onClick: () => {
+                    editor.chain().focus().wrapIn;
+
+                    editor.chain().focus().setComments({ threadId: 3 }).run();
+                },
+                isActive: editor.isActive('comments'),
+                disabled: editor.isActive('comments'),
+                icon: CommentIcon,
             },
         ];
     }

@@ -23,7 +23,7 @@
     import Translations from '$lib/components/resources/Translations.svelte';
     import TranslationSelector from './TranslationSelector.svelte';
     import { createAutosaveStore } from '$lib/utils/auto-save-store';
-    import { onDestroy } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import Modal from '$lib/components/Modal.svelte';
     import createChangeTrackingStore from '$lib/utils/change-tracking-store';
     import { get } from 'svelte/store';
@@ -76,6 +76,19 @@
     const unsubscribeHasChanges = editableContentStore.hasChanges.subscribe(
         (hasChanges) => (contentUpdated = hasChanges)
     );
+
+    onMount(() => {
+        window.onInlineCommentClick = (threadId: number) => {
+            console.log(data.commentThreads);
+            const thread = data.commentThreads.find((x) => x.threadId === threadId);
+
+            console.log(thread?.comments);
+        };
+    });
+
+    onDestroy(() => {
+        window.onInlineCommentClick = undefined;
+    });
 
     onDestroy(unsubscribeHasChanges);
 
@@ -620,4 +633,6 @@
             </p>
         </div>
     </dialog>
+
+    <div class="absolute left-[605px] top-[475.5px] bg-red-500">Hello World</div>
 {/await}

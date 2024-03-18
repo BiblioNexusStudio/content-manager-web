@@ -11,6 +11,7 @@
     import StarterKit from '@tiptap/starter-kit';
     import Underline from '@tiptap/extension-underline';
     import * as customMarks from '$lib/components/tiptap/customMarks';
+    import { commentsMark } from '$lib/components/tiptap/commentsMark';
     import TextDirection from 'tiptap-text-direction';
     import type { TiptapContentItem } from '$lib/types/resources';
 
@@ -37,6 +38,7 @@
                 Superscript,
                 TextStyle,
                 CharacterCount.configure({}),
+                commentsMark,
                 customMarks.bibleReferenceMark,
                 customMarks.resourceReferenceMark,
                 TextDirection.configure({
