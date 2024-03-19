@@ -1,81 +1,99 @@
 import { writable, derived, type Readable, type Updater } from 'svelte/store';
 
-interface ChangeTrackingStoreValue<T> {
-    original: T;
-    updated: T;
+export interface ChangeTrackingStore<T> {
+    subscribe: (run: (value: T) => void) => () => void;
+    hasChanges: Readable<boolean>;
+    setOriginalAndCurrent: (value: T) => void;
+    setOriginalOnly: (value: T) => void;
+    resetToOriginal: () => void;
+    updateOriginalAndCurrent: (updater: Updater<T>) => void;
+    update: (updater: Updater<T>) => void;
+    set: (value: T) => void;
 }
 
-export interface ChangeTrackingStore<T> {
-    subscribe: (run: (value: ChangeTrackingStoreValue<T>) => void) => () => void;
-    hasChanges: Readable<boolean>;
-    setOriginalOnly: (value: T) => void;
-    setOriginalAndUpdated: (value: T) => void;
-    setUpdated: (value: T) => void;
-    resetToOriginal: () => void;
-    updateOriginalAndUpdated: (updater: Updater<T>) => void;
-    updateUpdated: (updater: Updater<T>) => void;
+interface OnChangeOptions {
+    onChange: () => void;
+    debounceDelay: number;
+}
+
+interface StoreValue<T> {
+    original: T;
+    current: T;
 }
 
 export default function createChangeTrackingStore<T>(
     initialValue: T,
-    onChangeDebounced?: () => void,
-    debounceDelay = 500
+    onChangeOptions: OnChangeOptions | undefined = undefined
 ): ChangeTrackingStore<T> {
-    const store = writable<ChangeTrackingStoreValue<T>>({ original: initialValue, updated: initialValue });
+    const store = writable<StoreValue<T>>({
+        original: JSON.parse(JSON.stringify(initialValue)),
+        current: initialValue,
+    });
 
-    const hasChanges = derived(store, ($store) => JSON.stringify($store.original) !== JSON.stringify($store.updated));
+    const hasChanges = derived(store, ($store) => jsonIsDifferent($store.original, $store.current));
 
     let debounceTimeout: NodeJS.Timeout | null = null;
 
+    function setOriginalAndCurrent(value: T) {
+        store.update(() => ({ original: JSON.parse(JSON.stringify(value)), current: value }));
+    }
+
     function setOriginalOnly(value: T) {
-        store.update(($store) => ({ ...$store, original: value }));
+        store.update(($store) => ({ ...$store, original: JSON.parse(JSON.stringify(value)) }));
     }
 
-    function setOriginalAndUpdated(value: T) {
-        store.set({ original: value, updated: value });
-    }
-
-    function updateOriginalAndUpdated(updater: Updater<T>) {
-        store.update(({ original, updated }) => ({ original: updater(original), updated: updater(updated) }));
-    }
-
-    function updateUpdated(updater: Updater<T>) {
-        store.update(({ updated, ...rest }) => {
-            handleDebounce();
-            return { ...rest, updated: updater(updated) };
-        });
-    }
-
-    function setUpdated(value: T) {
+    function updateOriginalAndCurrent(updater: Updater<T>) {
         store.update(($store) => {
-            handleDebounce();
-            return { ...$store, updated: value };
+            const newValue = updater($store.current);
+            return { original: JSON.parse(JSON.stringify(newValue)), current: newValue };
         });
     }
 
-    function handleDebounce() {
-        if (onChangeDebounced) {
+    function update(updater: Updater<T>) {
+        store.update(($store) => {
+            const newValue = updater($store.current);
+            handleDebounce(jsonIsDifferent($store.original, newValue));
+            return { ...$store, current: newValue };
+        });
+    }
+
+    function handleDebounce(changeDetected: boolean) {
+        if (onChangeOptions) {
             if (debounceTimeout) {
                 clearTimeout(debounceTimeout);
             }
 
-            debounceTimeout = setTimeout(() => {
-                onChangeDebounced();
-            }, debounceDelay);
+            if (changeDetected) {
+                debounceTimeout = setTimeout(() => {
+                    onChangeOptions.onChange();
+                }, onChangeOptions.debounceDelay);
+            }
         }
     }
+
     function resetToOriginal() {
-        store.update(($store) => ({ ...$store, updated: $store.original }));
+        store.update(($store) => ({ ...$store, current: $store.original }));
+    }
+
+    function set(value: T) {
+        store.update(($store) => {
+            handleDebounce(jsonIsDifferent($store.original, value));
+            return { ...$store, current: value };
+        });
     }
 
     return {
-        subscribe: store.subscribe,
+        subscribe: (run: (value: T) => void) => store.subscribe(($store) => run($store.current)),
         hasChanges,
+        setOriginalAndCurrent,
         setOriginalOnly,
-        setOriginalAndUpdated,
-        setUpdated,
         resetToOriginal,
-        updateOriginalAndUpdated,
-        updateUpdated,
+        updateOriginalAndCurrent,
+        update,
+        set,
     };
+}
+
+function jsonIsDifferent<T>(original: T, current: T) {
+    return JSON.stringify(original) !== JSON.stringify(current);
 }

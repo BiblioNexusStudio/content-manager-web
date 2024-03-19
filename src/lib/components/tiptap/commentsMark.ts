@@ -1,4 +1,4 @@
-﻿import { getMarkAttributes, Mark, type SingleCommands } from '@tiptap/core';
+﻿import { Mark, type SingleCommands } from '@tiptap/core';
 import type { EditorState } from '@tiptap/pm/state';
 
 declare module '@tiptap/core' {
@@ -9,10 +9,6 @@ declare module '@tiptap/core' {
         };
     }
 }
-
-const onClick = (threadId: number) => {
-    alert('hi ' + threadId);
-};
 
 export const commentsMark = Mark.create({
     name: 'comments',

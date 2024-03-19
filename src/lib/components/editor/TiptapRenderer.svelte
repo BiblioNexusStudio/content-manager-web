@@ -22,6 +22,14 @@
 
     let element: HTMLDivElement | undefined;
 
+    $: updateEditor(tiptapJson);
+
+    function updateEditor(tiptapJson: TiptapContentItem | undefined) {
+        if (tiptapJson && editor) {
+            editor.commands.setContent(tiptapJson.tiptap);
+        }
+    }
+
     onMount(async () => {
         editor = new Editor({
             element,
@@ -47,7 +55,7 @@
             ],
             editorProps: {
                 attributes: {
-                    class: 'prose prose-sm sm:prose-base focus:outline-none text-black mx-4 max-w-none',
+                    class: 'prose prose-sm sm:prose-base focus:outline-none text-black m-4 max-w-none',
                 },
             },
             content: tiptapJson?.tiptap,
@@ -72,7 +80,7 @@
 </script>
 
 <div class="relative grow">
-    <div class="absolute bottom-0 left-0 right-0 top-0 overflow-y-scroll">
+    <div class="absolute bottom-0 left-0 right-0 top-0 overflow-y-scroll rounded-md border border-base-300 bg-white">
         <div bind:this={element} role="presentation" />
     </div>
 </div>
