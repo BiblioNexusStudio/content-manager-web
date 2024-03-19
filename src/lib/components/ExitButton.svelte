@@ -8,4 +8,4 @@
     }
 </script>
 
-<button class="btn btn-outline btn-primary" on:click={goBack}>Exit</button>
+<button class="btn btn-outline btn-primary border-2 font-extrabold" on:click={goBack}>Exit</button>

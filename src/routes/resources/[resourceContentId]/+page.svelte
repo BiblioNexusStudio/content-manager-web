@@ -327,9 +327,15 @@
         <div class="mb-4 flex w-full items-center justify-between border-b-2 pb-2">
             <div class="me-2 flex place-items-center">
                 <ExitButton defaultPathIfNoHistory="/resources" />
-                <CurrentTranslations numberOfTranslations={2} />
-                <Related />
-                <References />
+                <CurrentTranslations
+                    languages={data.languages}
+                    translations={resourceContent.contentTranslations}
+                    englishTranslation={englishContentTranslation}
+                    {canCreateTranslation}
+                    openModal={openAddTranslationModal}
+                />
+                <Related relatedContent={resourceContent.associatedResources} />
+                <References bibleReferences={getSortedReferences(resourceContent)} />
             </div>
 
             <div class="flex">
