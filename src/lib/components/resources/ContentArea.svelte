@@ -33,23 +33,21 @@
             </div>
             <div class="relative flex items-center">
                 {#if resourceContent.hasPublishedVersion}
-                    <div class="group flex items-center">
+                    <Tooltip
+                        position={{ left: '1.5rem', top: '-0.25rem' }}
+                        class="border-[#17b26a] text-[#17b26a]"
+                        text="Published"
+                    >
                         <Icon data={checkCircleO} style="height: 20px; width: auto; color: #17b26a;" />
-                        <div
-                            class="absolute bottom-2 left-4 ms-1 hidden whitespace-nowrap rounded-xl border-2 border-[#17b26a] px-2 text-sm font-bold text-[#17b26a] group-hover:block"
-                        >
-                            Published
-                        </div>
-                    </div>
+                    </Tooltip>
                 {:else}
-                    <div class="group flex items-center">
+                    <Tooltip
+                        position={{ left: '1.5rem', top: '-0.25rem' }}
+                        class="border-[#485467] text-[#485467]"
+                        text="Not Published"
+                    >
                         <Icon data={ban} style="height: 20px; width: auto; color: #485467;" />
-                        <div
-                            class="absolute bottom-2 left-4 ms-1 hidden whitespace-nowrap rounded-xl border-2 border-[#485467] px-2 text-sm font-bold text-[#485467] group-hover:block"
-                        >
-                            Not Published
-                        </div>
-                    </div>
+                    </Tooltip>
                 {/if}
             </div>
         </div>
@@ -57,8 +55,8 @@
     <div class="flex flex-col items-end space-y-2">
         {#if resourceContent.mediaType === MediaTypeEnum.text}
             <Tooltip
-                position={{ right: '3rem', top: '0rem' }}
-                class="rounded-md bg-[#e6f7fc] p-2"
+                position={{ right: '3rem', top: '0.25rem' }}
+                class="border-[#485467] text-[#485467]"
                 text={selectedSnapshotId === null ? 'Show Versions' : 'Hide Versions'}
             >
                 <button
