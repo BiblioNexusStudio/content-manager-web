@@ -488,37 +488,39 @@
                     ? 'w-0'
                     : 'w-1/2 ps-3'}"
             >
-                <div class="flex h-full w-full flex-col space-y-4 rounded-md border border-base-300 p-4">
-                    <Select
-                        bind:value={selectedSnapshotId}
-                        class="select select-bordered select-sm"
-                        isNumber={true}
-                        options={resourceContent.snapshots.map((s, i) => ({
-                            value: s.id,
-                            label: calculateSnapshotName(s, i === resourceContent.snapshots.length - 1),
-                        }))}
-                    />
-                    {#if selectedSnapshotId}
-                        {@const selectedSnapshot = cachedSnapshots[selectedSnapshotId]}
-                        {#if selectedSnapshot}
-                            <div class="text-lg">{selectedSnapshot.displayName}</div>
-                            <Content
-                                bind:selectedStepNumber
-                                snapshot={selectedSnapshot}
-                                canEdit={false}
-                                {resourceContent}
-                            />
-                            {#if mediaType === MediaTypeEnum.text}
-                                <div class="text-sm text-gray-500">
-                                    Word count: {selectedSnapshot.wordCount}
-                                </div>
+                <div class="flex h-full w-full flex-col rounded-md border border-base-300 p-4">
+                    <div class="mx-auto flex h-full w-full max-w-4xl flex-col space-y-4">
+                        <Select
+                            bind:value={selectedSnapshotId}
+                            class="select select-bordered select-sm"
+                            isNumber={true}
+                            options={resourceContent.snapshots.map((s, i) => ({
+                                value: s.id,
+                                label: calculateSnapshotName(s, i === resourceContent.snapshots.length - 1),
+                            }))}
+                        />
+                        {#if selectedSnapshotId}
+                            {@const selectedSnapshot = cachedSnapshots[selectedSnapshotId]}
+                            {#if selectedSnapshot}
+                                <div class="text-lg">{selectedSnapshot.displayName}</div>
+                                <Content
+                                    bind:selectedStepNumber
+                                    snapshot={selectedSnapshot}
+                                    canEdit={false}
+                                    {resourceContent}
+                                />
+                                {#if mediaType === MediaTypeEnum.text}
+                                    <div class="text-sm text-gray-500">
+                                        Word count: {selectedSnapshot.wordCount}
+                                    </div>
+                                {/if}
+                            {:else if isLoadingSnapshot}
+                                <CenteredSpinner />
+                            {:else}
+                                Error fetching...
                             {/if}
-                        {:else if isLoadingSnapshot}
-                            <CenteredSpinner />
-                        {:else}
-                            Error fetching...
                         {/if}
-                    {/if}
+                    </div>
                 </div>
             </div>
         </div>
