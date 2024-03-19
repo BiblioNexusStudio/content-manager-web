@@ -9,7 +9,7 @@ declare global {
     }
 
     declare interface Window {
-        onInlineCommentClick: ((threadId: number) => void) | undefined;
+        onInlineCommentClick: ((threadId: number, spanId: string) => void) | undefined;
     }
 }
 

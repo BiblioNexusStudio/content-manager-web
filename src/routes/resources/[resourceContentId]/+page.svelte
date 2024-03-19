@@ -19,7 +19,7 @@
     import { Icon } from 'svelte-awesome';
     import TranslationSelector from './TranslationSelector.svelte';
     import { createAutosaveStore } from '$lib/utils/auto-save-store';
-    import { onDestroy, onMount } from 'svelte';
+    import { onDestroy } from 'svelte';
     import Modal from '$lib/components/Modal.svelte';
     import createChangeTrackingStore from '$lib/utils/change-tracking-store';
     import { get } from 'svelte/store';
@@ -29,6 +29,7 @@
     import References from '$lib/components/resources/menus/References.svelte';
     import ContentArea from '$lib/components/resources/ContentArea.svelte';
     import Select from '$lib/components/Select.svelte';
+    import InlineComment from '$lib/components/comments/InlineComment.svelte';
     import { formatDate } from '$lib/utils/date-time';
 
     let errorModal: HTMLDialogElement;
@@ -77,19 +78,6 @@
     let wordCountsByStep: number[] = [];
     let cachedSnapshots: Record<number, Snapshot> = {};
     let firstSnapshotId: number | null = null;
-
-    onMount(() => {
-        window.onInlineCommentClick = (threadId: number) => {
-            console.log(data.commentThreads);
-            const thread = data.commentThreads.find((x) => x.threadId === threadId);
-
-            console.log(thread?.comments);
-        };
-    });
-
-    onDestroy(() => {
-        window.onInlineCommentClick = undefined;
-    });
 
     $: resourceContentId = data.resourceContentId;
     $: resourceContentPromise = data.resourceContent.promise;
@@ -713,5 +701,5 @@
         </div>
     </dialog>
 
-    <div class="absolute left-[605px] top-[475.5px] bg-red-500">Hello World</div>
+    <InlineComment threads={data.commentThreads} />
 {/await}

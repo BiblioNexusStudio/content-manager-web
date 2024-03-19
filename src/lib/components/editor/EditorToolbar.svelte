@@ -109,9 +109,9 @@
             {
                 name: 'comment',
                 onClick: () => {
-                    editor.chain().focus().wrapIn;
-
-                    editor.chain().focus().setComments({ threadId: 3 }).run();
+                    // Create a temporary comment mark so that we can create a span with id.
+                    // After the comment is created will replace with valid thread id.
+                    editor.chain().focus().setComments({ threadId: -1 }).run();
                 },
                 isActive: editor.isActive('comments'),
                 disabled: editor.isActive('comments'),

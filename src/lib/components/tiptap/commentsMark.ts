@@ -1,4 +1,5 @@
 ﻿import { Mark, type SingleCommands } from '@tiptap/core';
+import { v4 as uuid } from 'uuid';
 import type { EditorState } from '@tiptap/pm/state';
 
 declare module '@tiptap/core' {
@@ -46,17 +47,17 @@ export const commentsMark = Mark.create({
         ];
     },
     renderHTML({ HTMLAttributes }) {
-        console.log(this);
         const threadId = HTMLAttributes.comments.threadId;
+        const spanId = `thread-${uuid()}`;
 
         return [
             'span',
             {
-                id: `thread-span-${threadId}`,
+                id: spanId,
                 'data-bnType': 'comments',
                 'data-threadId': HTMLAttributes.comments.threadId,
                 class: 'bg-primary/40',
-                onClick: `onInlineCommentClick(${threadId})`,
+                onClick: `onInlineCommentClick(${threadId}, '${spanId}')`,
             },
             0,
         ];
