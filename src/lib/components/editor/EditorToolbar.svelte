@@ -113,7 +113,7 @@
     {#if editor}
         {#each formattingOptions(editor) as option (option.name)}
             <button
-                class="btn btn-xs px-1 {option.disabled && '!bg-white'} {option.isActive
+                class="btn btn-xs px-1 {option.disabled && '!bg-base-200'} {option.isActive
                     ? 'btn-primary'
                     : 'btn-link hover:bg-[#e6f7fc]'}"
                 disabled={option.disabled}
