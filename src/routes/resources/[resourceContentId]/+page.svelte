@@ -514,6 +514,8 @@
                                 <div class="text-lg">{selectedSnapshot.displayName}</div>
                                 <Content
                                     bind:selectedStepNumber
+                                    isComparingToCurrent={true}
+                                    {editableContentStore}
                                     snapshot={selectedSnapshot}
                                     canEdit={false}
                                     {resourceContent}
