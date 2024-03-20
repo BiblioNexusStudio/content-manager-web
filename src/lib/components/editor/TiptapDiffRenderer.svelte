@@ -24,6 +24,9 @@
         }
     }
 
+    // Unfortunately because of the text direction plugin we have, we can't just use the built-in `generateHtml`
+    // that Tiptap provides. Instead this will spin up an editor and force a render to make sure the text direction
+    // tags get added to the content.
     async function getHtmlWithTextDirection(tiptapJson: TiptapContentItem): Promise<string> {
         let transactionCount = 0;
         return new Promise((resolve) => {
@@ -54,11 +57,11 @@
             const currentHtml = await getHtmlWithTextDirection(currentTiptapJsonForDiffing);
             currentTiptapJsonString = JSON.stringify(currentTiptapJsonForDiffing.tiptap);
 
-            // Terminate the previous worker if it exists
             if (diffWorker) {
                 diffWorker.terminate();
             }
 
+            // Spin up a web worker since the HTML diffing is CPU intensive and causes UI stutters if on the main thread.
             diffWorker = new HtmlDiffWorker();
             diffWorker.onmessage = (event) => {
                 diffedHtml = event.data;
