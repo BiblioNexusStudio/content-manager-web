@@ -15,6 +15,7 @@
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import UserSelector from './UserSelector.svelte';
     import { Permission, userCan, userIsEqual, userIsInCompany } from '$lib/stores/auth';
+    import { commentThreads } from '$lib/stores/comments';
     import spinner from 'svelte-awesome/icons/spinner';
     import { Icon } from 'svelte-awesome';
     import TranslationSelector from './TranslationSelector.svelte';
@@ -161,6 +162,12 @@
             editableContentStore.setOriginalAndCurrent(resourceContent.content);
         }
         editableDisplayNameStore.setOriginalAndCurrent(resourceContent.displayName);
+
+        data.commentThreads.push({
+            id: -1,
+            comments: [],
+        });
+        $commentThreads = data.commentThreads;
     }
 
     let isTransacting = false;
@@ -703,5 +710,5 @@
         </div>
     </dialog>
 
-    <InlineComment threads={data.commentThreads} />
+    <InlineComment />
 {/await}

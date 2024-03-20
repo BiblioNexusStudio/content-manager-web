@@ -1,5 +1,6 @@
 ﻿<script lang="ts">
-    import type { Editor } from '@tiptap/core';
+    import { type Editor, getMarkAttributes } from '@tiptap/core';
+    import { createNewThreadCallback } from '$lib/stores/comments';
     import BoldIcon from '$lib/icons/BoldIcon.svelte';
     import ItalicsIcon from '$lib/icons/ItalicsIcon.svelte';
     import UnderlineIcon from '$lib/icons/UnderlineIcon.svelte';
@@ -112,9 +113,27 @@
                     // Create a temporary comment mark so that we can create a span with id.
                     // After the comment is created will replace with valid thread id.
                     editor.chain().focus().setComments({ threadId: -1 }).run();
+                    let selectionRange = { from: editor.state.selection.from, to: editor.state.selection.to };
+
+                    let tempSpan = document.getElementById('thread-temp');
+                    tempSpan?.click();
+
+                    $createNewThreadCallback = (created: boolean) => {
+                        editor.chain().setTextSelection(selectionRange).focus().unsetComments().run();
+                        if (created) {
+                            editor.chain().focus().setComments({ threadId: 1 }).run();
+                        }
+
+                        $createNewThreadCallback = () => {
+                            return;
+                        };
+                    };
                 },
                 isActive: editor.isActive('comments'),
-                disabled: editor.isActive('comments'),
+                disabled:
+                    editor.isActive('comments') ||
+                    editor.state.selection.empty ||
+                    getMarkAttributes(editor.state, 'comments')?.comments,
                 icon: CommentIcon,
             },
         ];

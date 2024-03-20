@@ -48,7 +48,7 @@ export const commentsMark = Mark.create({
     },
     renderHTML({ HTMLAttributes }) {
         const threadId = HTMLAttributes.comments.threadId;
-        const spanId = `thread-${uuid()}`;
+        const spanId = `thread-${threadId === -1 ? 'temp' : uuid()}`;
 
         return [
             'span',
@@ -57,7 +57,7 @@ export const commentsMark = Mark.create({
                 'data-bnType': 'comments',
                 'data-threadId': HTMLAttributes.comments.threadId,
                 class: 'bg-primary/40',
-                onClick: `onInlineCommentClick(${threadId}, '${spanId}')`,
+                onClick: `onInlineCommentClick(event, ${threadId}, '${spanId}')`,
             },
             0,
         ];

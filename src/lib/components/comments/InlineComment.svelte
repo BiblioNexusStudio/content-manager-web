@@ -1,31 +1,33 @@
 ﻿<script lang="ts">
     import CheckLongIcon from '$lib/icons/CheckLongIcon.svelte';
     import { onDestroy, onMount } from 'svelte';
+    import { activeThreadId, activeThread, createNewThreadCallback } from '$lib/stores/comments';
 
     let span: HTMLElement | null;
-    export let threads: { threadId: number; comments: { name: string; time: string; comment: string }[] }[] = [];
-    let activeThreadId = 0;
-
     let windowInnerWidth = 0;
     let windowInnerHeight = 0;
     let parentDiv: HTMLDivElement | undefined;
     let show = false;
     let isReplying = false;
 
-    $: activeThread = threads.find((x) => x.threadId === activeThreadId);
+    $: currentCommentValue = activeThreadId && '';
     $: rect = (windowInnerWidth || windowInnerHeight) && span?.getBoundingClientRect();
+    $: isNewThread = $activeThreadId === -1;
 
     onMount(() => {
         document.addEventListener('click', onAnyClick);
 
-        window.onInlineCommentClick = (threadId: number, spanId: string) => {
+        window.onInlineCommentClick = (e: MouseEvent, threadId: number, spanId: string) => {
             if (isReplying) return;
 
             span = document.getElementById(spanId);
-            activeThreadId = threadId;
-            console.log('inline comment click');
+            $activeThreadId = threadId;
+
+            // isNewThread isn't refreshed yet
+            if ($activeThreadId === -1) isReplying = true;
 
             show = true;
+            e.stopPropagation();
         };
     });
 
@@ -34,35 +36,45 @@
         window.onInlineCommentClick = undefined;
     });
 
-    const onReplyClick = () => {
+    const onReplyClick = (e: MouseEvent) => {
         isReplying = true;
+        e.stopPropagation();
     };
 
-    const onCancelClick = () => {
+    const onCancelClick = (e: MouseEvent) => {
+        if (isNewThread) {
+            show = false;
+            $createNewThreadCallback(false);
+        }
+
         isReplying = false;
+
+        e.stopPropagation();
     };
 
-    const onCommentClick = () => {
+    const onCommentClick = (e: MouseEvent) => {
         isReplying = false;
+        $createNewThreadCallback(true);
+        e.stopPropagation();
     };
 
     const onAnyClick = (e: MouseEvent) => {
         console.log('anyClick fired');
         if (!parentDiv) return;
 
-        show = parentDiv.contains(e.target as Node) || span?.contains(e.target as Node) || isReplying;
+        show = parentDiv.contains(e.target as Node) || isReplying;
     };
 </script>
 
 <svelte:window bind:innerWidth={windowInnerWidth} bind:innerHeight={windowInnerHeight} />
 
-{#if show && rect && activeThread}
+{#if show && rect && $activeThread}
     <div
         bind:this={parentDiv}
-        class="absolute z-50 flex w-[300px] flex-col overflow-y-scroll rounded-lg border-2 bg-white"
+        class="absolute z-50 flex w-[300px] flex-col overflow-y-scroll rounded-lg border-2 bg-white shadow"
         style="left: {rect.left}px; top:{rect.bottom}px; max-height: {innerHeight - rect.bottom - 10}px;"
     >
-        {#each activeThread.comments as comment, i (i)}
+        {#each $activeThread.comments as comment, i (i)}
             <div class="mx-2 my-2 flex flex-col">
                 <div class="flex place-items-center justify-between">
                     <div class="flex flex-col">
@@ -77,13 +89,23 @@
                     {comment.comment}
                 </div>
             </div>
-            {#if i !== activeThread.comments.length - 1}
+            {#if i !== $activeThread.comments.length - 1}
                 <div class="divider mx-2 my-1" />
             {/if}
         {/each}
         {#if isReplying}
             <div class="flex flex-col">
-                <div class="mx-2"><textarea class="textarea textarea-bordered w-full resize-none"></textarea></div>
+                <div class="mx-2">
+                    {#if isNewThread}
+                        <div class="my-2">Create comment</div>
+                    {:else}
+                        <div class="divider mx-2 my-1" />
+                    {/if}
+                    <textarea
+                        bind:value={currentCommentValue}
+                        class="textarea textarea-bordered my-2 w-full resize-none shadow"
+                    ></textarea>
+                </div>
                 <div class="flex justify-end">
                     <button class="btn btn-link text-primary !no-underline" on:click={onCancelClick}>Cancel</button>
                     <button class="btn btn-link text-primary !no-underline" on:click={onCommentClick}>Comment</button>

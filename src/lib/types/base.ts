@@ -97,3 +97,14 @@ export interface Company {
     id: number;
     name: string;
 }
+
+export interface CommentThread {
+    id: number;
+    comments: Comment[];
+}
+
+export interface Comment {
+    name: string;
+    time: string;
+    comment: string;
+}
