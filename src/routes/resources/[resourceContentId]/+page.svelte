@@ -328,8 +328,10 @@
             <div class="me-2 flex place-items-center">
                 <ExitButton defaultPathIfNoHistory="/resources" />
                 <CurrentTranslations
+                    currentResourceId={resourceContentId}
                     languages={data.languages}
                     translations={resourceContent.contentTranslations}
+                    project={resourceContent.project}
                     englishTranslation={englishContentTranslation}
                     {canCreateTranslation}
                     openModal={openAddTranslationModal}

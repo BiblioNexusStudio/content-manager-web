@@ -24,7 +24,7 @@
 
 <div class="dropdown ms-1">
     <button class="btn btn-ghost ms-2 whitespace-nowrap px-1 hover:bg-[#e6f6fc]"> Related Content </button>
-    <div class="menu dropdown-content z-[1] mt-4 max-h-72 w-auto rounded-box bg-base-100 px-8 pt-4 shadow">
+    <div class="menu dropdown-content z-[1] mt-4 max-h-72 w-auto rounded-box border bg-base-100 px-8 pt-4 shadow">
         <div class="flex flex-col">
             {#each relatedContent as resource, i (i)}
                 <div class="mb-4 flex">

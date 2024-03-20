@@ -102,6 +102,7 @@ export interface ContentTranslation {
     status: string;
     hasDraft: boolean;
     hasPublished: boolean;
+    resourceContentStatus: ResourceContentStatusEnum;
 }
 
 export interface ResourceContent {
