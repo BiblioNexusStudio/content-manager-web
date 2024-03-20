@@ -66,7 +66,7 @@
             {#if project}
                 <div class="mb-4 flex items-center justify-between px-4">
                     <span class="text-lg font-bold">Project:</span><span
-                        class="btn-link ms-8 w-72 truncate text-lg font-bold no-underline"
+                        class="btn-link ms-8 flex w-72 justify-end truncate text-lg font-bold no-underline"
                         ><a href={`/projects/${project.id}`}>{project.name}</a></span
                     >
                 </div>
