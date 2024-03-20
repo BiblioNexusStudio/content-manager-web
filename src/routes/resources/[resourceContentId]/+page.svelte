@@ -32,6 +32,7 @@
     import Select from '$lib/components/Select.svelte';
     import InlineComment from '$lib/components/comments/InlineComment.svelte';
     import { formatDate } from '$lib/utils/date-time';
+    import { getSortedReferences } from '$lib/utils/reference';
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -213,11 +214,11 @@
         isAssignReviewModalOpen = true;
     }
 
-    // function openAddTranslationModal() {
-    //     createTranslationFromDraft = false;
-    //     newTranslationLanguageId = null;
-    //     addTranslationModal.showModal();
-    // }
+    function openAddTranslationModal() {
+        createTranslationFromDraft = false;
+        newTranslationLanguageId = null;
+        addTranslationModal.showModal();
+    }
 
     async function takeActionAndRefresh(action: () => Promise<unknown>) {
         isTransacting = true;
@@ -372,9 +373,17 @@
         <div class="flex w-full items-center justify-between border-b-2 pb-2">
             <div class="me-2 flex place-items-center">
                 <ExitButton defaultPathIfNoHistory="/resources" />
-                <CurrentTranslations numberOfTranslations={2} />
-                <Related />
-                <References />
+                <CurrentTranslations
+                    currentResourceId={resourceContentId}
+                    languages={data.languages}
+                    translations={resourceContent.contentTranslations}
+                    project={resourceContent.project}
+                    englishTranslation={englishContentTranslation}
+                    canCreateTranslation={_canCreateTranslation}
+                    openModal={openAddTranslationModal}
+                />
+                <Related relatedContent={resourceContent.associatedResources} />
+                <References bibleReferences={getSortedReferences(resourceContent)} />
             </div>
 
             <div class="flex">

@@ -1,10 +1,11 @@
 <script lang="ts">
     import { _ as translate } from 'svelte-i18n';
-    import { statusColorMap, type ResourceContentStatus, ResourceContentStatusEnum } from '$lib/types/base';
+    import { type ResourceContentStatus, ResourceContentStatusEnum } from '$lib/types/base';
     import { MediaTypeEnum, type ResourceContent } from '$lib/types/resources';
     import { Icon } from 'svelte-awesome';
     import checkCircleO from 'svelte-awesome/icons/checkCircleO';
     import ban from 'svelte-awesome/icons/ban';
+    import StatusColor from './StatusColor.svelte';
     import Tooltip from '../Tooltip.svelte';
     import HistoryIcon from '$lib/icons/HistoryIcon.svelte';
 
@@ -12,8 +13,6 @@
     export let selectedSnapshotId: number | null;
     export let onToggleHistoryPane: () => void;
     export let resourceContentStatuses: ResourceContentStatus[];
-
-    $: statusColor = statusColorMap[resourceContent.status];
 </script>
 
 <div class="my-6 flex w-full justify-between">
@@ -27,7 +26,7 @@
                 {resourceContent.language.englishDisplay}
             </div>
             <div class="me-4 flex items-center">
-                <div class="status-color me-1 h-4 w-4 rounded-full" style="background-color: {statusColor};"></div>
+                <StatusColor status={resourceContent.status} />
                 {resourceContentStatuses.find((x) => x.status === resourceContent.status)?.displayName ??
                     $translate('page.resources.table.statuses.none.value')}
             </div>
