@@ -6,6 +6,7 @@
     import CenteredSpinner from '../CenteredSpinner.svelte';
     import { debounce } from '$lib/utils/debounce';
     import { extensions } from '../tiptap/extensions';
+    import { log } from '$lib/logger';
 
     export let tiptapJson: TiptapContentItem | undefined;
     export let currentTiptapJsonForDiffing: TiptapContentItem | undefined;
@@ -44,7 +45,7 @@
                 },
                 onCreate: ({ editor }) => {
                     editor.commands.setContent(editor.getJSON());
-                    editor.commands.setTextDirection('auto');
+                    editor.commands.unsetTextDirection();
                 },
             });
         });
@@ -72,7 +73,11 @@
                 // Spin up a web worker since the HTML diffing is CPU intensive and causes UI stutters if on the main thread.
                 diffWorker = new HtmlDiffWorker();
                 diffWorker.onmessage = (event) => {
-                    diffedHtml = event.data;
+                    if (event.data.success) {
+                        diffedHtml = event.data.success;
+                    } else if (event.data.error) {
+                        log.exception(event.data.error);
+                    }
                 };
 
                 diffWorker.postMessage({ baseHtml: baseHtmlWithTextDirection, currentHtml });

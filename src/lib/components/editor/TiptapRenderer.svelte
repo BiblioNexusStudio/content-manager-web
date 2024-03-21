@@ -41,7 +41,7 @@
                 // Need to call this here because the formatting of editor.getJSON has the possibility of being different
                 // from what's in the database.
                 onCreate?.(editor.getJSON(), editor.storage.characterCount.words());
-                editor.commands.setTextDirection('auto');
+                editor.commands.unsetTextDirection();
             },
         });
     });
