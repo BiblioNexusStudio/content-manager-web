@@ -164,11 +164,12 @@
         }
         editableDisplayNameStore.setOriginalAndCurrent(resourceContent.displayName);
 
-        data.commentThreads.push({
+        resourceContent.commentThreads.push({
             id: -1,
+            resolved: false,
             comments: [],
         });
-        $commentThreads = data.commentThreads;
+        $commentThreads = resourceContent.commentThreads;
     }
 
     let isTransacting = false;

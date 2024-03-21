@@ -118,10 +118,10 @@
                     let tempSpan = document.getElementById('thread-temp');
                     tempSpan?.click();
 
-                    $createNewThreadCallback = (created: boolean) => {
+                    $createNewThreadCallback = (created: boolean, threadId: number) => {
                         editor.chain().setTextSelection(selectionRange).focus().unsetComments().run();
                         if (created) {
-                            editor.chain().focus().setComments({ threadId: 1 }).run();
+                            editor.chain().focus().setComments({ threadId: threadId }).run();
                         }
 
                         $createNewThreadCallback = () => {

@@ -72,7 +72,7 @@ export const commentsMark = Mark.create({
             unsetComments:
                 () =>
                 ({ commands }: { commands: SingleCommands }) => {
-                    return commands.unsetMark(this.name);
+                    return commands.unsetMark(this.name, { extendEmptyMarkRange: true });
                 },
         };
     },

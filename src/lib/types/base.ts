@@ -100,11 +100,13 @@ export interface Company {
 
 export interface CommentThread {
     id: number;
+    resolved: boolean;
     comments: Comment[];
 }
 
 export interface Comment {
-    name: string;
-    time: string;
+    id: number;
     comment: string;
+    dateTime: string;
+    user: BasicUser;
 }
