@@ -13,8 +13,8 @@
 <div class="flex w-full flex-col">
     <div class="flex h-4 w-full flex-row">
         <div class="h-4 bg-primary bg-opacity-30" style={`width: ${inProgressWidth}%`}></div>
-        <div class="h-4 bg-primary bg-opacity-60" style={`width: ${inReviewWidth}%`}></div>
-        <div class="h-4 bg-primary" style={`width: ${completeWidth}%`}></div>
+        <div class="h-4 bg-primary" style={`width: ${inReviewWidth}%`}></div>
+        <div class="h-4 bg-neutral" style={`width: ${completeWidth}%`}></div>
     </div>
 
     {#if showLegend}
@@ -24,11 +24,11 @@
                 <div>In Progress</div>
             </div>
             <div class="flex flex-row space-x-1">
-                <div class="h-4 w-5 bg-primary bg-opacity-60" />
+                <div class="h-4 w-5 bg-primary" />
                 <div>In Review</div>
             </div>
             <div class="flex flex-row space-x-1">
-                <div class="h-4 w-5 bg-primary" />
+                <div class="h-4 w-5 bg-neutral" />
                 <div>Complete</div>
             </div>
         </div>
