@@ -29,7 +29,7 @@
             {#each relatedContent as resource, i (i)}
                 <div class="mb-4 me-2 flex">
                     <div class="flex items-center">
-                        <Icon data={getIcon(resource.mediaTypes[0])} scale={3} />
+                        <Icon data={getIcon(resource.mediaTypes[0])} scale={2} />
                     </div>
                     <div class="ms-4 flex flex-col">
                         {#if resource.contentId}
