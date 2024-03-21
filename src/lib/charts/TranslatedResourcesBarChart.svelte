@@ -58,7 +58,7 @@
             translatedData?.find((x) => x.label === group![0]?.language)?.data.push(total);
         }
 
-        if (!languagesToColors) {
+        if (!languagesToColors || Object.keys(languagesToColors).length !== Object.keys(translatedData).length) {
             languagesToColors = generateColors(translatedData);
         }
 
