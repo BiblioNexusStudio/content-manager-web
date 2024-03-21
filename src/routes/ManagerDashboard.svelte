@@ -87,7 +87,7 @@
                 ]}
             />
         {/if}
-        <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-scroll">
+        <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-auto">
             <table class="table table-pin-rows">
                 {#if $searchParams.tab === Tab.myWork}
                     <thead>

@@ -35,7 +35,7 @@
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Editor Dashboard</h1>
         <h2 class="pt-4 text-lg font-bold">Work Assigned to You ({resourceContents.length})</h2>
-        <div bind:this={scrollingDiv} class="my-4 max-h-full flex-grow overflow-y-scroll">
+        <div bind:this={scrollingDiv} class="my-4 max-h-full flex-grow overflow-y-auto">
             <table class="table table-pin-rows">
                 <thead>
                     <tr class="bg-base-200">
