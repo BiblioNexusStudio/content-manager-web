@@ -52,7 +52,7 @@
 </script>
 
 <div class="relative grow">
-    <div class="absolute bottom-0 left-0 right-0 top-0 overflow-y-scroll rounded-md border border-base-300 bg-white">
+    <div class="absolute bottom-0 left-0 right-0 top-0 overflow-y-auto rounded-md border border-base-300 bg-white">
         <div bind:this={element} role="presentation" />
     </div>
 </div>

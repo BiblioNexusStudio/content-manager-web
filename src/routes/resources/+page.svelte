@@ -115,7 +115,7 @@
 {:then bibles}
     <div class="flex h-[95vh] flex-col pt-0 lg:h-screen lg:pt-4">
         <div class="mx-4 text-3xl">{$translate('page.resources.header.value')}</div>
-        <div class="flex flex-row space-x-2 overflow-x-scroll px-4 py-2">
+        <div class="flex flex-row space-x-2 overflow-x-auto px-4 py-2">
             <Select
                 bind:value={languageId}
                 isNumber={true}
