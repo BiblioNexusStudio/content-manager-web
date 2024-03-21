@@ -11,10 +11,10 @@
 
     let editor: Editor | undefined = undefined;
 
-    let tiptapJson = $editableContentStore.original[itemIndex];
+    let tiptapJson = $editableContentStore[itemIndex];
 
     function onChange(tiptapJson: object, wordCount: number) {
-        editableContentStore.updateUpdated((contents) => {
+        editableContentStore.update((contents) => {
             if (contents[itemIndex]) {
                 contents[itemIndex]!.tiptap = tiptapJson;
             }
@@ -24,7 +24,7 @@
     }
 
     function onCreate(tiptapJson: object, wordCount: number) {
-        editableContentStore.updateOriginalAndUpdated((contents) => {
+        editableContentStore.updateOriginalAndCurrent((contents) => {
             if (contents[itemIndex]) {
                 contents[itemIndex]!.tiptap = tiptapJson;
             }
@@ -35,9 +35,7 @@
 </script>
 
 <div class="flex h-full flex-col space-y-4">
-    <div class="mx-4">
-        <EditorToolbar {editor} />
-    </div>
+    <EditorToolbar {editor} />
 
     <TiptapRenderer {tiptapJson} {onChange} {onCreate} bind:editor />
 </div>

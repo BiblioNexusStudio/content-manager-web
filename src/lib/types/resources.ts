@@ -83,6 +83,8 @@ export interface ImageContentItem {
     displayName: string;
 }
 
+type Content = ImageContentItem | VideoContentItem | TiptapContentItem[];
+
 export interface AssociatedResource {
     contentId: number | null;
     mediaTypes: MediaTypeEnum[];
@@ -102,6 +104,7 @@ export interface ContentTranslation {
     status: string;
     hasDraft: boolean;
     hasPublished: boolean;
+    resourceContentStatus: ResourceContentStatusEnum;
 }
 
 export interface ResourceContent {
@@ -120,10 +123,28 @@ export interface ResourceContent {
     displayName: string;
     contentSize: number;
     assignedUser: ResourceContentAssignedUser | null;
-    content: VideoContentItem | ImageContentItem | TiptapContentItem[];
+    content: Content;
     isPublished: boolean;
     isDraft: boolean;
     wordCount: number | null;
+    snapshots: BasicSnapshot[];
+}
+
+export interface BasicSnapshot {
+    id: number;
+    created: string;
+    assignedUserName: string | null;
+    status: string;
+}
+
+export interface Snapshot {
+    id: number;
+    displayName: string;
+    wordCount: number | null;
+    content: Content;
+    created: string;
+    assignedUserName: string | null;
+    status: string;
 }
 
 export interface Project {
