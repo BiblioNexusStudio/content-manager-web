@@ -30,6 +30,7 @@ jobs:
               with:
                   environment: dev
                   api-token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_DEV }}
+                  html-diff-ts-deploy-key: ${{ secrets.HTML_DIFF_TS_DEPLOY_KEY }}
                   override-output-url: ${{ vars.URL_DEV }}
 
     # Unlike the pre-merge QA deploy, this will deploy to the main QA environment.
@@ -49,6 +50,7 @@ jobs:
               with:
                   environment: qa
                   api-token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_QA }}
+                  html-diff-ts-deploy-key: ${{ secrets.HTML_DIFF_TS_DEPLOY_KEY }}
                   override-output-url: ${{ vars.URL_QA }}
 
     deploy_to_prod:
@@ -66,6 +68,7 @@ jobs:
               with:
                   environment: prod
                   api-token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD }}
+                  html-diff-ts-deploy-key: ${{ secrets.HTML_DIFF_TS_DEPLOY_KEY }}
                   override-output-url: ${{ vars.URL_PROD }}
 
     create_release:
