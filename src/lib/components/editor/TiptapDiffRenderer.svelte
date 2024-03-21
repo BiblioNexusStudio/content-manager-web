@@ -11,15 +11,17 @@
     export let currentTiptapJsonForDiffing: TiptapContentItem | undefined;
 
     $: calculateBaseHtmlWithTextDirection(tiptapJson);
-    $: debouncedGenerateDiffHtml(currentTiptapJsonForDiffing);
+    $: debouncedGenerateDiffHtml(currentTiptapJsonForDiffing, baseHtmlWithTextDirection);
 
     let diffWorker: Worker | null = null;
     let diffedHtml: string | undefined;
     let currentTiptapJsonString: string | undefined;
+    let previousBaseHtmlWithTextDirection: string | undefined;
     let baseHtmlWithTextDirection: string | undefined;
 
     async function calculateBaseHtmlWithTextDirection(tiptapJson: TiptapContentItem | undefined) {
         if (tiptapJson) {
+            diffedHtml = undefined;
             baseHtmlWithTextDirection = await getHtmlWithTextDirection(tiptapJson);
         }
     }
@@ -48,28 +50,36 @@
         });
     }
 
-    const debouncedGenerateDiffHtml = debounce(async (currentTiptapJsonForDiffing: TiptapContentItem | undefined) => {
-        if (
-            currentTiptapJsonForDiffing &&
-            baseHtmlWithTextDirection &&
-            currentTiptapJsonString !== JSON.stringify(currentTiptapJsonForDiffing.tiptap)
-        ) {
-            const currentHtml = await getHtmlWithTextDirection(currentTiptapJsonForDiffing);
-            currentTiptapJsonString = JSON.stringify(currentTiptapJsonForDiffing.tiptap);
+    const debouncedGenerateDiffHtml = debounce(
+        async (
+            currentTiptapJsonForDiffing: TiptapContentItem | undefined,
+            baseHtmlWithTextDirection: string | undefined
+        ) => {
+            if (
+                currentTiptapJsonForDiffing &&
+                baseHtmlWithTextDirection &&
+                (currentTiptapJsonString !== JSON.stringify(currentTiptapJsonForDiffing.tiptap) ||
+                    previousBaseHtmlWithTextDirection !== baseHtmlWithTextDirection)
+            ) {
+                const currentHtml = await getHtmlWithTextDirection(currentTiptapJsonForDiffing);
+                currentTiptapJsonString = JSON.stringify(currentTiptapJsonForDiffing.tiptap);
+                previousBaseHtmlWithTextDirection = baseHtmlWithTextDirection;
 
-            if (diffWorker) {
-                diffWorker.terminate();
+                if (diffWorker) {
+                    diffWorker.terminate();
+                }
+
+                // Spin up a web worker since the HTML diffing is CPU intensive and causes UI stutters if on the main thread.
+                diffWorker = new HtmlDiffWorker();
+                diffWorker.onmessage = (event) => {
+                    diffedHtml = event.data;
+                };
+
+                diffWorker.postMessage({ baseHtml: baseHtmlWithTextDirection, currentHtml });
             }
-
-            // Spin up a web worker since the HTML diffing is CPU intensive and causes UI stutters if on the main thread.
-            diffWorker = new HtmlDiffWorker();
-            diffWorker.onmessage = (event) => {
-                diffedHtml = event.data;
-            };
-
-            diffWorker.postMessage({ baseHtml: baseHtmlWithTextDirection, currentHtml });
-        }
-    }, 750);
+        },
+        750
+    );
 
     onDestroy(() => diffWorker && diffWorker.terminate());
 </script>
