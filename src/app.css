@@ -5,3 +5,11 @@
 :root .prose {
     --tw-prose-links: var(--tw-prose-links-override);
 }
+
+:root .prose ins {
+    @apply text-success;
+}
+
+:root .prose del {
+    @apply text-error;
+}

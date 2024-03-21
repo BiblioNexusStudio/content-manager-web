@@ -12,12 +12,13 @@
     } from '$lib/types/resources';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
 
-    export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]> | undefined = undefined;
+    export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let resourceContent: ResourceContent;
     export let canEdit: boolean;
     export let wordCountsByStep: number[] | undefined = undefined;
     export let snapshot: Snapshot | undefined = undefined;
     export let selectedStepNumber: number | undefined;
+    export let isComparingToCurrent = false;
 
     $: imageContent = (snapshot?.content ?? resourceContent.content) as ImageContentItem;
     $: videoContent = (snapshot?.content ?? resourceContent.content) as VideoContentItem;
@@ -28,5 +29,13 @@
 {:else if resourceContent.mediaType === MediaTypeEnum.video}
     <Video content={videoContent} />
 {:else if resourceContent.mediaType === MediaTypeEnum.text}
-    <Text bind:selectedStepNumber {snapshot} {resourceContent} bind:wordCountsByStep {editableContentStore} {canEdit} />
+    <Text
+        {isComparingToCurrent}
+        bind:selectedStepNumber
+        {snapshot}
+        {resourceContent}
+        bind:wordCountsByStep
+        {editableContentStore}
+        {canEdit}
+    />
 {/if}

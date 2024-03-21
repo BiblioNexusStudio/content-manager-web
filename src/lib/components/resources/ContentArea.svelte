@@ -52,7 +52,7 @@
         </div>
     </div>
     <div class="flex flex-col items-end space-y-2">
-        {#if resourceContent.mediaType === MediaTypeEnum.text}
+        {#if resourceContent.snapshots.length > 0 && resourceContent.mediaType === MediaTypeEnum.text}
             <Tooltip
                 position={{ right: '3rem', top: '0.25rem' }}
                 class="border-[#485467] text-[#485467]"
