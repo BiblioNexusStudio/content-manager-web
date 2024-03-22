@@ -118,15 +118,22 @@
                     let tempSpan = document.getElementById('thread-temp');
                     tempSpan?.click();
 
-                    $createNewThreadCallback = (created: boolean, threadId: number) => {
+                    $createNewThreadCallback = (created: boolean, threadId: number, hasError: boolean) => {
                         editor.chain().setTextSelection(selectionRange).focus().unsetComments().run();
                         if (created) {
-                            editor.chain().focus().setComments({ threadId: threadId }).run();
+                            editor
+                                .chain()
+                                .focus()
+                                .setComments({ threadId: threadId })
+                                .setTextSelection(selectionRange.from)
+                                .run();
                         }
 
-                        $createNewThreadCallback = () => {
-                            return;
-                        };
+                        if (!hasError) {
+                            $createNewThreadCallback = () => {
+                                return;
+                            };
+                        }
                     };
                 },
                 isActive: editor.isActive('comments'),

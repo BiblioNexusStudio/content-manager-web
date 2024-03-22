@@ -1,15 +1,14 @@
 ﻿import { derived, type Writable, writable } from 'svelte/store';
-import type { CommentThread } from '$lib/types/base';
+import type { CommentThreadsResponse, CommentMark } from '$lib/types/comments';
 
-export const commentThreads: Writable<CommentThread[]> = writable([]);
+export const commentThreads: Writable<CommentThreadsResponse | null> = writable(null);
 export const activeThreadId: Writable<number | null> = writable(null);
-export const createNewThreadCallback: Writable<(created: boolean, threadId: number) => void> = writable(() => {
-    return;
-});
-export const removeCommentMarks: Writable<(threadId: number) => void> = writable(() => {
-    return;
-});
+export const commentMarks: Writable<CommentMark[]> = writable([]);
+export const createNewThreadCallback: Writable<(created: boolean, threadId: number, hasError: boolean) => void> =
+    writable(() => {
+        return;
+    });
 
 export const activeThread = derived([commentThreads, activeThreadId], ([$commentThreads, $activeThreadId]) => {
-    return $commentThreads?.find((x) => x.id === $activeThreadId);
+    return $commentThreads?.threads.find((x) => x.id === $activeThreadId);
 });

@@ -97,16 +97,3 @@ export interface Company {
     id: number;
     name: string;
 }
-
-export interface CommentThread {
-    id: number;
-    resolved: boolean;
-    comments: Comment[];
-}
-
-export interface Comment {
-    id: number;
-    comment: string;
-    dateTime: string;
-    user: BasicUser;
-}

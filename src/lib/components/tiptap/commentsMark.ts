@@ -1,6 +1,7 @@
 ﻿import { Mark, type SingleCommands } from '@tiptap/core';
 import { v4 as uuid } from 'uuid';
 import type { EditorState } from '@tiptap/pm/state';
+import { commentMarks } from '$lib/stores/comments';
 
 declare module '@tiptap/core' {
     interface Commands<ReturnType> {
@@ -50,13 +51,24 @@ export const commentsMark = Mark.create({
         const threadId = HTMLAttributes.comments.threadId;
         const spanId = `thread-${threadId === -1 ? 'temp' : uuid()}`;
 
+        commentMarks.update((x) => {
+            x.push({
+                threadId: parseInt(threadId),
+                editor: this.editor,
+            });
+            return x;
+        });
+
+        //console.log(this.editor);
+        //console.log(mark.type);
+
         return [
             'span',
             {
                 id: spanId,
                 'data-bnType': 'comments',
                 'data-threadId': HTMLAttributes.comments.threadId,
-                class: 'bg-primary/40',
+                class: 'bg-primary/40 rounded',
                 onClick: `onInlineCommentClick(event, ${threadId}, '${spanId}')`,
             },
             0,

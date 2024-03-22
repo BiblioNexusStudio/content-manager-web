@@ -164,7 +164,7 @@
         }
         editableDisplayNameStore.setOriginalAndCurrent(resourceContent.displayName);
 
-        resourceContent.commentThreads.push({
+        resourceContent.commentThreads.threads.push({
             id: -1,
             resolved: false,
             comments: [],

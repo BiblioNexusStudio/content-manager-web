@@ -1,4 +1,5 @@
-import type { CommentThread, Language, ResourceContentStatusEnum } from './base';
+import type { Language, ResourceContentStatusEnum } from './base';
+import type { CommentThreadsResponse } from '$lib/types/comments';
 
 export enum ResourceTypeEnum {
     cbbterTranslationGuide = 'Translation Guide (SRV)',
@@ -128,7 +129,7 @@ export interface ResourceContent {
     isDraft: boolean;
     wordCount: number | null;
     snapshots: BasicSnapshot[];
-    commentThreads: CommentThread[];
+    commentThreads: CommentThreadsResponse;
 }
 
 export interface BasicSnapshot {
