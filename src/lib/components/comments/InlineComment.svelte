@@ -11,7 +11,7 @@
     import { currentUser } from '$lib/stores/auth';
     import { formatUtcToLocalTimeAndDate } from '$lib/utils/date-time';
     import { patchToApi, postToApi } from '$lib/utils/http-service';
-    import type { CreateThreadResponse } from '$lib/types/comments';
+    import type { CreateThreadResponse, Comment } from '$lib/types/comments';
     import { log } from '$lib/logger';
 
     let span: HTMLElement | null;
@@ -23,12 +23,14 @@
     let isCommenting = false;
     let isSendingComment = false;
     let wasSavingCommentError = false;
+    let editingCommentId = 0;
 
     $: currentCommentValue = activeThreadId && '';
     $: commentSpanRect = (windowInnerWidth || windowInnerHeight) && span?.getBoundingClientRect();
     $: heightAtBottom = (commentSpanRect && windowInnerHeight - commentSpanRect.bottom - 10) ?? 0;
     $: isNewThread = $activeThreadId === -1;
     $: activeThread = $activeThreadStore;
+    $: console.log($commentMarks);
 
     onMount(() => {
         document.addEventListener('click', onAnyClick);
@@ -57,7 +59,6 @@
     onDestroy(() => {
         document.removeEventListener('click', onAnyClick);
         window.onInlineCommentClick = undefined;
-        $commentMarks = [];
     });
 
     const scrollParentDivToBottom = () => {
@@ -74,6 +75,14 @@
         commentTextArea?.focus();
     };
 
+    const onEditClick = (e: MouseEvent, comment: Comment) => {
+        e.stopPropagation();
+        isCommenting = true;
+        editingCommentId = comment.id;
+        currentCommentValue = comment.comment;
+        activeThread = activeThread;
+    };
+
     const onCancelClick = (e: MouseEvent) => {
         e.stopPropagation();
 
@@ -84,6 +93,7 @@
 
         currentCommentValue = '';
         isCommenting = false;
+        editingCommentId = 0;
     };
 
     const onResolveClick = async (e: MouseEvent) => {
@@ -184,6 +194,32 @@
         }
     };
 
+    const onEditCommentClick = async (e: MouseEvent, comment: Comment) => {
+        e.stopPropagation();
+
+        isSendingComment = true;
+        try {
+            await patchToApi(`/comments/${comment.id}`, {
+                comment: currentCommentValue,
+            });
+
+            comment.comment = currentCommentValue;
+
+            // force rerender in #each
+            activeThread = $activeThreadStore;
+
+            isSendingComment = false;
+            isCommenting = false;
+            currentCommentValue = '';
+            editingCommentId = 0;
+        } catch (error) {
+            wasSavingCommentError = true;
+            log.exception(error);
+        } finally {
+            isSendingComment = false;
+        }
+    };
+
     const onAnyClick = (e: MouseEvent) => {
         if (!parentDiv) return;
 
@@ -215,25 +251,60 @@
                         </div>
                     {/if}
                 </div>
-                <div class="mt-2">
-                    {comment.comment}
-                </div>
+                {#if editingCommentId === comment.id}
+                    <textarea
+                        class="textarea textarea-bordered my-2 w-full resize-none shadow"
+                        bind:value={currentCommentValue}
+                    ></textarea>
+                    {#if wasSavingCommentError}
+                        <div class="me-4 flex justify-end text-error">Error editing comment.</div>
+                    {/if}
+                    <div class="flex justify-end">
+                        {#if isSendingComment}
+                            <div class="loading loading-dots my-3 me-4 text-primary"></div>
+                        {:else}
+                            <button class="btn btn-link text-primary !no-underline" on:click={onCancelClick}
+                                >Cancel</button
+                            >
+                            <button
+                                class="btn btn-link text-primary !no-underline"
+                                on:click={(e) => onEditCommentClick(e, comment)}>Save</button
+                            >
+                        {/if}
+                    </div>
+                {:else}
+                    <div class="mt-2">
+                        {comment.comment}
+                    </div>
+                {/if}
             </div>
             {#if i !== activeThread.comments.length - 1}
-                {#if comment.user.id === $currentUser?.id}
+                {#if comment.user.id === $currentUser?.id && !editingCommentId}
                     <div class="flex justify-end">
-                        <button class="btn btn-link text-primary !no-underline">Edit</button>
+                        <button
+                            class="btn btn-link no-animation text-primary !no-underline"
+                            on:click={(e) => onEditClick(e, comment)}>Edit</button
+                        >
                     </div>
                 {/if}
                 <div class="divider mx-2 my-0" />
-            {:else}
+            {:else if !editingCommentId}
                 <div class="flex justify-end">
-                    <button class="btn btn-link text-primary !no-underline">Edit</button>
-                    <button class="btn btn-link text-primary !no-underline" on:click={onReplyClick}>Reply</button>
+                    {#if comment.user.id === $currentUser?.id}
+                        <button
+                            class="btn btn-link no-animation text-primary !no-underline"
+                            on:click={(e) => onEditClick(e, comment)}>Edit</button
+                        >
+                    {/if}
+                    <button class="btn btn-link no-animation text-primary !no-underline" on:click={onReplyClick}
+                        >Reply</button
+                    >
                 </div>
+            {:else}
+                <div class="h-3" />
             {/if}
         {/each}
-        {#if isCommenting}
+        {#if isCommenting && !editingCommentId}
             <div class="flex flex-col">
                 <div class="mx-2">
                     {#if isNewThread}

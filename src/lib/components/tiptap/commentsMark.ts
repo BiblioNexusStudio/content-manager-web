@@ -52,15 +52,18 @@ export const commentsMark = Mark.create({
         const spanId = `thread-${threadId === -1 ? 'temp' : uuid()}`;
 
         commentMarks.update((x) => {
-            x.push({
-                threadId: parseInt(threadId),
-                editor: this.editor,
-            });
+            const existing = x.find((x) => x.threadId === threadId);
+            if (existing) {
+                existing.editor = this.editor;
+            } else {
+                x.push({
+                    threadId: parseInt(threadId),
+                    editor: this.editor,
+                });
+            }
+
             return x;
         });
-
-        //console.log(this.editor);
-        //console.log(mark.type);
 
         return [
             'span',

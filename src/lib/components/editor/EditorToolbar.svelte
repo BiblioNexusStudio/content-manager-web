@@ -110,6 +110,8 @@
             {
                 name: 'comment',
                 onClick: () => {
+                    console.log(editor.state.selection);
+
                     // Create a temporary comment mark so that we can create a span with id.
                     // After the comment is created will replace with valid thread id.
                     editor.chain().focus().setComments({ threadId: -1 }).run();
