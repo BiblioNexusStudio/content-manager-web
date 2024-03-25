@@ -64,6 +64,7 @@
     let mediaType: MediaTypeEnum | undefined;
     let selectedSnapshotId: number | null = null;
     let selectedStepNumber: number | undefined;
+    let isShowingDiffs = false;
     let isEnglish = false;
 
     let canAiSimplify = $userCan(Permission.AiSimplify);
@@ -520,9 +521,24 @@
                         {#if selectedSnapshotId}
                             {@const selectedSnapshot = cachedSnapshots[selectedSnapshotId]}
                             {#if selectedSnapshot}
-                                <div class="text-lg">{selectedSnapshot.displayName}</div>
+                                <div class="flex w-full flex-row items-center">
+                                    <div class="text-lg">{selectedSnapshot.displayName}</div>
+                                    <div class="grow"></div>
+                                    <div class="text-lg">
+                                        <label class="label cursor-pointer py-0">
+                                            <input
+                                                type="checkbox"
+                                                bind:checked={isShowingDiffs}
+                                                class="checkbox no-animation checkbox-sm me-2"
+                                            />
+                                            <span class="label-text text-xs">Differences</span>
+                                        </label>
+                                    </div>
+                                </div>
                                 <Content
                                     bind:selectedStepNumber
+                                    isComparingToCurrent={isShowingDiffs}
+                                    {editableContentStore}
                                     snapshot={selectedSnapshot}
                                     canEdit={false}
                                     {resourceContent}

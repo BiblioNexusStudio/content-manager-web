@@ -107,7 +107,7 @@
             </div>
         {/if}
         <div class="flex flex-row space-x-4 overflow-y-hidden">
-            <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-scroll">
+            <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-auto">
                 <table class="table table-pin-rows">
                     {#if $searchParams.tab === Tab.myWork}
                         <thead>
@@ -240,7 +240,7 @@
                     {/if}
                 </table>
             </div>
-            <div class="my-4 flex flex-1 flex-col space-y-2 overflow-y-scroll">
+            <div class="my-4 flex flex-1 flex-col space-y-2 overflow-y-auto">
                 <div class="rounded-lg border border-secondary p-2">
                     <TotalResourcesAreaChart
                         selectedLanguages={[]}

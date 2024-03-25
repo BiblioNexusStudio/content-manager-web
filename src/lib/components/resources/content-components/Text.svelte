@@ -7,12 +7,14 @@
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
     import TiptapRenderer from '$lib/components/editor/TiptapRenderer.svelte';
     import { onMount } from 'svelte';
+    import TiptapDiffRenderer from '$lib/components/editor/TiptapDiffRenderer.svelte';
 
-    export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]> | undefined;
+    export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let canEdit: boolean;
     export let wordCountsByStep: number[] | undefined;
     export let resourceContent: ResourceContent;
     export let snapshot: Snapshot | undefined;
+    export let isComparingToCurrent: boolean;
     export let selectedStepNumber: number | undefined;
 
     onMount(() => (selectedStepNumber ||= 1));
@@ -91,6 +93,11 @@
             <div class="flex h-full flex-col {index === selectedStepNumber - 1 ? '' : 'hidden'}">
                 {#if canEdit && wordCountsByStep && editableContentStore}
                     <SingleItemEditor bind:wordCountsByStep {editableContentStore} itemIndex={index} />
+                {:else if isComparingToCurrent}
+                    <TiptapDiffRenderer
+                        currentTiptapJsonForDiffing={$editableContentStore[index]}
+                        tiptapJson={content[index]}
+                    />
                 {:else}
                     <TiptapRenderer tiptapJson={content[index]} />
                 {/if}

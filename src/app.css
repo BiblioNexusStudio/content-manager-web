@@ -5,3 +5,15 @@
 :root .prose {
     --tw-prose-links: var(--tw-prose-links-override);
 }
+
+:root .prose.prose ins {
+    @apply text-success;
+}
+
+:root .prose.prose del {
+    @apply text-error;
+}
+
+:root .prose .diffmod {
+    @apply text-warning;
+}

@@ -44,7 +44,7 @@
             </div>
         </div>
         <div class="flex flex-row space-x-4 overflow-y-hidden">
-            <div class="my-4 max-h-full flex-[2] overflow-y-scroll rounded border-2">
+            <div class="my-4 max-h-full flex-[2] overflow-y-auto rounded border-2">
                 <table class="table table-pin-rows">
                     <thead>
                         <tr class="bg-base-200">
