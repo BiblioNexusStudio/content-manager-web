@@ -13,9 +13,12 @@
     import { patchToApi, postToApi } from '$lib/utils/http-service';
     import type { CreateThreadResponse, Comment } from '$lib/types/comments';
     import { log } from '$lib/logger';
+    import CommentButton from '$lib/components/comments/CommentButton.svelte';
+    import CommentTextArea from '$lib/components/comments/CommentTextArea.svelte';
+    import Tooltip from '$lib/components/Tooltip.svelte';
 
     let span: HTMLElement | null;
-    let commentTextArea: HTMLTextAreaElement | null;
+    let focusTextArea: () => void;
     let windowInnerWidth = 0;
     let windowInnerHeight = 0;
     let parentDiv: HTMLDivElement | undefined;
@@ -49,7 +52,7 @@
                 isCommenting = true;
 
                 // Need to come back to this. Something else seems to steal focus, await tick() doesn't work
-                setTimeout(() => commentTextArea?.focus(), 50);
+                setTimeout(focusTextArea, 50);
             }
 
             e.stopPropagation();
@@ -72,15 +75,17 @@
         isCommenting = true;
         await tick();
         scrollParentDivToBottom();
-        commentTextArea?.focus();
+        focusTextArea();
     };
 
-    const onEditClick = (e: MouseEvent, comment: Comment) => {
+    const onEditClick = async (e: MouseEvent, comment: Comment) => {
         e.stopPropagation();
         isCommenting = true;
         editingCommentId = comment.id;
         currentCommentValue = comment.comment;
         activeThread = activeThread;
+        await tick();
+        focusTextArea();
     };
 
     const onCancelClick = (e: MouseEvent) => {
@@ -91,9 +96,7 @@
             $createNewThreadCallback(false, 0, false);
         }
 
-        currentCommentValue = '';
-        isCommenting = false;
-        editingCommentId = 0;
+        resetFields();
     };
 
     const onResolveClick = async (e: MouseEvent) => {
@@ -112,8 +115,7 @@
                 commentMark[0]?.editor?.chain().focus().unsetComments().run();
             }
 
-            currentCommentValue = '';
-            isCommenting = false;
+            resetFields();
             show = false;
         }
     };
@@ -181,21 +183,20 @@
             activeThread = $activeThreadStore;
             console.log(activeThread);
 
-            isSendingComment = false;
-            isCommenting = false;
-            currentCommentValue = '';
             scrollParentDivToBottom();
         } catch (error) {
             $createNewThreadCallback(false, $activeThreadId ?? -1, true);
             wasSavingCommentError = true;
             log.exception(error);
         } finally {
-            isSendingComment = false;
+            resetFields();
         }
     };
 
     const onEditCommentClick = async (e: MouseEvent, comment: Comment) => {
         e.stopPropagation();
+
+        console.log(currentCommentValue);
 
         isSendingComment = true;
         try {
@@ -207,16 +208,11 @@
 
             // force rerender in #each
             activeThread = $activeThreadStore;
-
-            isSendingComment = false;
-            isCommenting = false;
-            currentCommentValue = '';
-            editingCommentId = 0;
         } catch (error) {
             wasSavingCommentError = true;
             log.exception(error);
         } finally {
-            isSendingComment = false;
+            resetFields();
         }
     };
 
@@ -224,6 +220,13 @@
         if (!parentDiv) return;
 
         show = parentDiv.contains(e.target as Node) || isCommenting;
+    };
+
+    const resetFields = () => {
+        isSendingComment = false;
+        isCommenting = false;
+        currentCommentValue = '';
+        editingCommentId = 0;
     };
 </script>
 
@@ -245,17 +248,18 @@
                         <div class="font-semibold">{comment.user.name}</div>
                         <div class="text-xs">{formatUtcToLocalTimeAndDate(comment.dateTime)}</div>
                     </div>
-                    {#if i === 0}
-                        <div class="me-1 text-primary">
-                            <button on:click={onResolveClick}><CheckLongIcon /></button>
-                        </div>
+                    {#if i === 0 && !isCommenting}
+                        <Tooltip position={{ right: '2rem' }} class="border-primary text-primary" text="Resolve Thread">
+                            <button class="me-1 text-primary" on:click={onResolveClick}><CheckLongIcon /></button>
+                        </Tooltip>
                     {/if}
                 </div>
                 {#if editingCommentId === comment.id}
-                    <textarea
-                        class="textarea textarea-bordered my-2 w-full resize-none shadow"
+                    <CommentTextArea
+                        bind:focus={focusTextArea}
+                        disabled={isSendingComment}
                         bind:value={currentCommentValue}
-                    ></textarea>
+                    ></CommentTextArea>
                     {#if wasSavingCommentError}
                         <div class="me-4 flex justify-end text-error">Error editing comment.</div>
                     {/if}
@@ -263,13 +267,8 @@
                         {#if isSendingComment}
                             <div class="loading loading-dots my-3 me-4 text-primary"></div>
                         {:else}
-                            <button class="btn btn-link text-primary !no-underline" on:click={onCancelClick}
-                                >Cancel</button
-                            >
-                            <button
-                                class="btn btn-link text-primary !no-underline"
-                                on:click={(e) => onEditCommentClick(e, comment)}>Save</button
-                            >
+                            <CommentButton on:click={onCancelClick}>Cancel</CommentButton>
+                            <CommentButton on:click={(e) => onEditCommentClick(e, comment)}>Save</CommentButton>
                         {/if}
                     </div>
                 {:else}
@@ -279,26 +278,18 @@
                 {/if}
             </div>
             {#if i !== activeThread.comments.length - 1}
-                {#if comment.user.id === $currentUser?.id && !editingCommentId}
+                {#if comment.user.id === $currentUser?.id && !isCommenting}
                     <div class="flex justify-end">
-                        <button
-                            class="btn btn-link no-animation text-primary !no-underline"
-                            on:click={(e) => onEditClick(e, comment)}>Edit</button
-                        >
+                        <CommentButton on:click={(e) => onEditClick(e, comment)}>Edit</CommentButton>
                     </div>
                 {/if}
                 <div class="divider mx-2 my-0" />
-            {:else if !editingCommentId}
+            {:else if !isCommenting}
                 <div class="flex justify-end">
                     {#if comment.user.id === $currentUser?.id}
-                        <button
-                            class="btn btn-link no-animation text-primary !no-underline"
-                            on:click={(e) => onEditClick(e, comment)}>Edit</button
-                        >
+                        <CommentButton on:click={(e) => onEditClick(e, comment)}>Edit</CommentButton>
                     {/if}
-                    <button class="btn btn-link no-animation text-primary !no-underline" on:click={onReplyClick}
-                        >Reply</button
-                    >
+                    <CommentButton on:click={onReplyClick}>Reply</CommentButton>
                 </div>
             {:else}
                 <div class="h-3" />
@@ -312,12 +303,11 @@
                     {:else}
                         <div class="divider mx-2 my-1" />
                     {/if}
-                    <textarea
-                        bind:this={commentTextArea}
-                        bind:value={currentCommentValue}
+                    <CommentTextArea
+                        bind:focus={focusTextArea}
                         disabled={isSendingComment}
-                        class="textarea textarea-bordered my-2 w-full resize-none shadow"
-                    ></textarea>
+                        bind:value={currentCommentValue}
+                    ></CommentTextArea>
                 </div>
                 {#if wasSavingCommentError}
                     <div class="me-4 flex justify-end text-error">Error saving new comment.</div>
@@ -326,10 +316,8 @@
                     {#if isSendingComment}
                         <div class="loading loading-dots my-3 me-4 text-primary"></div>
                     {:else}
-                        <button class="btn btn-link text-primary !no-underline" on:click={onCancelClick}>Cancel</button>
-                        <button class="btn btn-link text-primary !no-underline" on:click={onCommentClick}
-                            >Comment</button
-                        >
+                        <CommentButton on:click={onCancelClick}>Cancel</CommentButton>
+                        <CommentButton on:click={onCommentClick}>Comment</CommentButton>
                     {/if}
                 </div>
             </div>
