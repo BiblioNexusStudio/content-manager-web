@@ -478,11 +478,11 @@
                         {#if canMakeContentEdits && resourceContent.isDraft}
                             <input
                                 bind:value={$editableDisplayNameStore}
-                                class="input input-bordered w-full max-w-[18rem]"
+                                class="input input-bordered h-8 w-full max-w-[18rem] leading-8"
                                 type="text"
                             />
                         {:else}
-                            <div class="mb-12 text-lg">{$editableDisplayNameStore}</div>
+                            <div class="mb-2 text-lg">{$editableDisplayNameStore}</div>
                         {/if}
                         <div class="h-full w-full">
                             <Content
@@ -490,6 +490,7 @@
                                 {editableContentStore}
                                 bind:wordCountsByStep
                                 canEdit={canMakeContentEdits && resourceContent.isDraft}
+                                canComment={resourceContent.isDraft}
                                 {resourceContent}
                             />
                         </div>
@@ -521,7 +522,7 @@
                         {#if selectedSnapshotId}
                             {@const selectedSnapshot = cachedSnapshots[selectedSnapshotId]}
                             {#if selectedSnapshot}
-                                <div class="flex w-full flex-row items-center">
+                                <div class="flex h-6 w-full flex-row items-center">
                                     <div class="text-lg">{selectedSnapshot.displayName}</div>
                                     <div class="grow"></div>
                                     <div class="text-lg">
@@ -540,7 +541,6 @@
                                     isComparingToCurrent={isShowingDiffs}
                                     {editableContentStore}
                                     snapshot={selectedSnapshot}
-                                    canEdit={false}
                                     {resourceContent}
                                 />
                                 {#if mediaType === MediaTypeEnum.text}

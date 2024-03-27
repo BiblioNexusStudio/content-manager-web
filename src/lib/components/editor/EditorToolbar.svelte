@@ -14,6 +14,48 @@
     import CommentIcon from '$lib/icons/CommentIcon.svelte';
 
     export let editor: Editor | undefined;
+    export let canEdit: boolean;
+
+    function getCommentOptions(editor: Editor) {
+        return {
+            name: 'comment',
+            onClick: () => {
+                console.log(editor.state.selection);
+
+                // Create a temporary comment mark so that we can create a span with id.
+                // After the comment is created will replace with valid thread id.
+                editor.chain().focus().setComments({ threadId: -1 }).run();
+                let selectionRange = { from: editor.state.selection.from, to: editor.state.selection.to };
+
+                let tempSpan = document.getElementById('thread-temp');
+                tempSpan?.click();
+
+                $createNewThreadCallback = (created: boolean, threadId: number, hasError: boolean) => {
+                    editor.chain().setTextSelection(selectionRange).focus().unsetComments().run();
+                    if (created) {
+                        editor
+                            .chain()
+                            .focus()
+                            .setComments({ threadId: threadId })
+                            .setTextSelection(selectionRange.from)
+                            .run();
+                    }
+
+                    if (!hasError) {
+                        $createNewThreadCallback = () => {
+                            return;
+                        };
+                    }
+                };
+            },
+            isActive: editor.isActive('comments'),
+            disabled:
+                editor.isActive('comments') ||
+                editor.state.selection.empty ||
+                getMarkAttributes(editor.state, 'comments')?.comments,
+            icon: CommentIcon,
+        };
+    }
 
     function formattingOptions(editor: Editor) {
         return [
@@ -107,62 +149,39 @@
                 disabled: false,
                 icon: Heading3Icon,
             },
-            {
-                name: 'comment',
-                onClick: () => {
-                    console.log(editor.state.selection);
-
-                    // Create a temporary comment mark so that we can create a span with id.
-                    // After the comment is created will replace with valid thread id.
-                    editor.chain().focus().setComments({ threadId: -1 }).run();
-                    let selectionRange = { from: editor.state.selection.from, to: editor.state.selection.to };
-
-                    let tempSpan = document.getElementById('thread-temp');
-                    tempSpan?.click();
-
-                    $createNewThreadCallback = (created: boolean, threadId: number, hasError: boolean) => {
-                        editor.chain().setTextSelection(selectionRange).focus().unsetComments().run();
-                        if (created) {
-                            editor
-                                .chain()
-                                .focus()
-                                .setComments({ threadId: threadId })
-                                .setTextSelection(selectionRange.from)
-                                .run();
-                        }
-
-                        if (!hasError) {
-                            $createNewThreadCallback = () => {
-                                return;
-                            };
-                        }
-                    };
-                },
-                isActive: editor.isActive('comments'),
-                disabled:
-                    editor.isActive('comments') ||
-                    editor.state.selection.empty ||
-                    getMarkAttributes(editor.state, 'comments')?.comments,
-                icon: CommentIcon,
-            },
         ];
     }
 </script>
 
-<div class="flex space-x-2">
+<div class="flex h-6 space-x-2">
     {#if editor}
-        {#each formattingOptions(editor) as option (option.name)}
-            <button
-                class="btn btn-xs px-1 {option.disabled && '!bg-base-200'} {option.isActive
-                    ? 'btn-primary'
-                    : 'btn-link hover:bg-[#e6f7fc]'}"
-                disabled={option.disabled}
-                on:click={option.onClick}
-            >
-                <div class="mt-[-1px] scale-[85%]">
-                    <svelte:component this={option.icon} />
-                </div>
-            </button>
-        {/each}
+        {@const commentOptions = getCommentOptions(editor)}
+        {#if canEdit}
+            {#each formattingOptions(editor) as option (option.name)}
+                <button
+                    class="btn btn-xs px-1 {option.disabled && '!bg-base-200'} {option.isActive
+                        ? 'btn-primary'
+                        : 'btn-link hover:bg-[#e6f7fc]'}"
+                    disabled={option.disabled}
+                    on:click={option.onClick}
+                >
+                    <div class="mt-[-1px] scale-[85%]">
+                        <svelte:component this={option.icon} />
+                    </div>
+                </button>
+            {/each}
+            <div class="divider divider-horizontal w-0" />
+        {/if}
+        <button
+            class="btn btn-xs px-1 {commentOptions.disabled && '!bg-base-200'} {commentOptions.isActive
+                ? 'btn-primary'
+                : 'btn-link hover:bg-[#e6f7fc]'}"
+            disabled={commentOptions.disabled}
+            on:click={commentOptions.onClick}
+        >
+            <div class="mt-[-1px] scale-[85%]">
+                <svelte:component this={commentOptions.icon} />
+            </div>
+        </button>
     {/if}
 </div>

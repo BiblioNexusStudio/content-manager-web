@@ -8,6 +8,7 @@
     export let onChange: ((tiptapJson: object, wordCount: number) => void) | undefined = undefined;
     export let onCreate: ((tiptapJson: object, wordCount: number) => void) | undefined = undefined;
     export let editor: Editor | undefined = undefined;
+    export let canEdit: boolean;
 
     let element: HTMLDivElement | undefined;
 
@@ -22,7 +23,7 @@
     onMount(async () => {
         editor = new Editor({
             element,
-            editable: !!onChange,
+            editable: canEdit,
             extensions: extensions(),
             editorProps: {
                 attributes: {

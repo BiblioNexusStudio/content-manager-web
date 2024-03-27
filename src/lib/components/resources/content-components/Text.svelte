@@ -11,6 +11,7 @@
 
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let canEdit: boolean;
+    export let canComment: boolean;
     export let wordCountsByStep: number[] | undefined;
     export let resourceContent: ResourceContent;
     export let snapshot: Snapshot | undefined;
@@ -91,15 +92,15 @@
 
         {#each new Array(numberOfSteps) as _, index (index)}
             <div class="flex h-full flex-col {index === selectedStepNumber - 1 ? '' : 'hidden'}">
-                {#if canEdit && wordCountsByStep && editableContentStore}
-                    <SingleItemEditor bind:wordCountsByStep {editableContentStore} itemIndex={index} />
+                {#if (canEdit || canComment) && wordCountsByStep && editableContentStore}
+                    <SingleItemEditor bind:wordCountsByStep {editableContentStore} itemIndex={index} {canEdit} />
                 {:else if isComparingToCurrent}
                     <TiptapDiffRenderer
                         currentTiptapJsonForDiffing={$editableContentStore[index]}
                         tiptapJson={content[index]}
                     />
                 {:else}
-                    <TiptapRenderer tiptapJson={content[index]} />
+                    <TiptapRenderer tiptapJson={content[index]} canEdit={false} />
                 {/if}
             </div>
         {/each}

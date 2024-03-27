@@ -113,11 +113,11 @@
 
         <div class="mt-2 flex grow flex-row space-x-4">
             <div class="flex grow flex-col">
-                <TiptapRenderer tiptapJson={originalTiptapContent} />
+                <TiptapRenderer tiptapJson={originalTiptapContent} canEdit={false} />
             </div>
             <div class="flex grow flex-col">
                 {#key JSON.stringify(aquiferizedVersion)}
-                    <TiptapRenderer tiptapJson={aquiferizedVersion} />
+                    <TiptapRenderer tiptapJson={aquiferizedVersion} canEdit={false} />
                 {/key}
             </div>
         </div>

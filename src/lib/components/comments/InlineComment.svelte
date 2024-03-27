@@ -249,7 +249,11 @@
                         <div class="text-xs">{formatUtcToLocalTimeAndDate(comment.dateTime)}</div>
                     </div>
                     {#if i === 0 && !isCommenting}
-                        <Tooltip position={{ right: '2rem' }} class="border-primary text-primary" text="Resolve Thread">
+                        <Tooltip
+                            position={{ right: '2rem' }}
+                            class="border-primary text-primary"
+                            text="Mark Resolved and Hide"
+                        >
                             <button class="me-1 text-primary" on:click={onResolveClick}><CheckLongIcon /></button>
                         </Tooltip>
                     {/if}

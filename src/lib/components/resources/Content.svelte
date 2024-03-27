@@ -14,7 +14,8 @@
 
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let resourceContent: ResourceContent;
-    export let canEdit: boolean;
+    export let canEdit = false;
+    export let canComment = false;
     export let wordCountsByStep: number[] | undefined = undefined;
     export let snapshot: Snapshot | undefined = undefined;
     export let selectedStepNumber: number | undefined;
@@ -37,5 +38,6 @@
         bind:wordCountsByStep
         {editableContentStore}
         {canEdit}
+        {canComment}
     />
 {/if}
