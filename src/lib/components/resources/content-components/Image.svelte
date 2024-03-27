@@ -4,4 +4,6 @@
     export let content: ImageContentItem;
 </script>
 
-<img class="mx-auto h-full w-auto object-contain" src={content.url} alt={content.displayName} />
+<div class="relative h-full w-full">
+    <img class="absolute h-full w-full object-contain" src={content.url} alt={content.displayName} />
+</div>
