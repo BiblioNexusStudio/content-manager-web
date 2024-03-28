@@ -26,6 +26,7 @@
     let isSendingComment = false;
     let wasSavingCommentError = false;
     let editingCommentId = 0;
+    let previousCommentValue = '';
 
     $: currentCommentValue = activeThreadId && '';
     $: commentSpanRect = (windowInnerWidth || windowInnerHeight) && span?.getBoundingClientRect();
@@ -76,6 +77,7 @@
         e.stopPropagation();
         isCommenting = true;
         editingCommentId = comment.id;
+        previousCommentValue = comment.comment;
         currentCommentValue = comment.comment;
         activeThread = activeThread;
         parentHeight = 0;
@@ -204,6 +206,7 @@
         isSendingComment = false;
         isCommenting = false;
         currentCommentValue = '';
+        previousCommentValue = '';
         editingCommentId = 0;
         parentHeight = 0;
     };
@@ -249,7 +252,11 @@
                                 <div class="loading loading-dots my-3 me-4 text-primary"></div>
                             {:else}
                                 <CommentButton on:click={onCancelClick}>Cancel</CommentButton>
-                                <CommentButton on:click={(e) => onEditCommentClick(e, comment)}>Save</CommentButton>
+                                <CommentButton
+                                    disabled={currentCommentValue === '' ||
+                                        currentCommentValue === previousCommentValue}
+                                    on:click={(e) => onEditCommentClick(e, comment)}>Save</CommentButton
+                                >
                             {/if}
                         </div>
                     {:else}
@@ -294,7 +301,9 @@
                             <div class="loading loading-dots my-3 me-4 text-primary"></div>
                         {:else}
                             <CommentButton on:click={onCancelClick}>Cancel</CommentButton>
-                            <CommentButton on:click={onNewCommentClick}>Comment</CommentButton>
+                            <CommentButton disabled={currentCommentValue === ''} on:click={onNewCommentClick}
+                                >Comment</CommentButton
+                            >
                         {/if}
                     </div>
                 </div>
