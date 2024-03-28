@@ -5,10 +5,11 @@ export const commentThreads: Writable<CommentThreadsResponse | null> = writable(
 export const activeThreadId: Writable<number | null> = writable(null);
 export const commentMarks: Writable<CommentMark[]> = writable([]);
 
-export const createNewThread: Writable<(created: boolean, threadId: number, hasError: boolean) => void> =
-    writable(() => {
+export const createNewThread: Writable<(created: boolean, threadId: number, hasError: boolean) => void> = writable(
+    () => {
         return;
-    });
+    }
+);
 
 export const activeThread = derived([commentThreads, activeThreadId], ([$commentThreads, $activeThreadId]) => {
     return $commentThreads?.threads.find((x) => x.id === $activeThreadId);

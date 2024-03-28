@@ -168,6 +168,8 @@
         editableDisplayNameStore.setOriginalAndCurrent(resourceContent.displayName);
 
         if (resourceContent.commentThreads) {
+            // Add a dummy thread for a new comment span to live on. If a comment is added, then create the thread
+            // with the new threadId from the server.
             resourceContent.commentThreads.threads.push({
                 id: -1,
                 resolved: false,
