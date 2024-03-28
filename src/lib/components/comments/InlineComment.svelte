@@ -134,20 +134,13 @@
                     comment: currentCommentValue,
                 });
 
-                if (!res) {
-                    $createNewThreadCallback(false, $activeThreadId ?? -1, true);
-                    wasSavingCommentError = true;
-                    log.exception(new Error('Comment thread failed to create'));
-                    return;
-                }
-
                 $commentThreads?.threads.push({
-                    id: res.threadId,
+                    id: res!.threadId,
                     resolved: false,
                     comments: [],
                 });
                 $commentThreads = $commentThreads;
-                $activeThreadId = res.threadId;
+                $activeThreadId = res!.threadId;
                 $createNewThreadCallback(true, $activeThreadId, false);
                 show = false;
 
@@ -158,16 +151,10 @@
                     threadId: $activeThreadId,
                     comment: currentCommentValue,
                 });
-
-                if (!res) {
-                    wasSavingCommentError = true;
-                    log.exception(new Error('Comment failed to create'));
-                    return;
-                }
             }
 
             $activeThreadStore?.comments.push({
-                id: res.commentId,
+                id: res!.commentId,
                 comment: currentCommentValue,
                 user: {
                     id: $currentUser!.id,
