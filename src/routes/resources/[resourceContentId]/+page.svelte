@@ -15,7 +15,7 @@
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import UserSelector from './UserSelector.svelte';
     import { Permission, userCan, userIsEqual, userIsInCompany } from '$lib/stores/auth';
-    import { commentThreads } from '$lib/stores/comments';
+    import { commentThreads, removeAllInlineThreads } from '$lib/stores/comments';
     import spinner from 'svelte-awesome/icons/spinner';
     import { Icon } from 'svelte-awesome';
     import TranslationSelector from './TranslationSelector.svelte';
@@ -86,6 +86,7 @@
     $: resourceContentPromise = data.resourceContent.promise;
     $: handleFetchedResource(data.resourceContent.promise);
     $: loadSnapshot(selectedSnapshotId);
+    $: hasUnresolvedThreads = $commentThreads?.threads.some((x) => !x.resolved && x.id !== -1) || false;
 
     async function handleFetchedResource(resourceContentPromise: Promise<ResourceContent>) {
         const resourceContent = await resourceContentPromise;
@@ -165,12 +166,16 @@
         }
         editableDisplayNameStore.setOriginalAndCurrent(resourceContent.displayName);
 
-        resourceContent.commentThreads.threads.push({
-            id: -1,
-            resolved: false,
-            comments: [],
-        });
-        $commentThreads = resourceContent.commentThreads;
+        if (resourceContent.commentThreads) {
+            resourceContent.commentThreads.threads.push({
+                id: -1,
+                resolved: false,
+                comments: [],
+            });
+            $commentThreads = resourceContent.commentThreads;
+        } else {
+            $commentThreads = null;
+        }
     }
 
     let isTransacting = false;
@@ -199,7 +204,9 @@
     function publishOrOpenModal(status: ResourceContentStatusEnum) {
         assignToUserId = null;
         createDraft = false;
-        if (status === ResourceContentStatusEnum.New) {
+        console.log($commentThreads);
+        console.log(hasUnresolvedThreads);
+        if (status === ResourceContentStatusEnum.New || hasUnresolvedThreads) {
             publishModal.showModal();
         } else {
             publish();
@@ -242,6 +249,7 @@
     }
 
     async function sendReview() {
+        $removeAllInlineThreads();
         await takeActionAndRefresh(() =>
             postToApi(
                 isInTranslationWorkflow
@@ -268,6 +276,7 @@
     }
 
     async function publish() {
+        $removeAllInlineThreads();
         await takeActionAndRefresh(() =>
             postToApi(`/admin/resources/content/${resourceContentId}/publish`, {
                 createDraft: createDraft,
@@ -634,26 +643,35 @@
 
     <dialog bind:this={publishModal} class="modal">
         <div class="modal-box">
-            <h3 class="w-full pb-4 text-center text-xl font-bold">Choose Publish Option</h3>
+            <h3 class="w-full pb-4 text-center text-xl font-bold">
+                {hasUnresolvedThreads && resourceContent.status !== ResourceContentStatusEnum.New
+                    ? 'Confirm Publish'
+                    : 'Choose Publish Option'}
+            </h3>
             <div class="flex flex-col">
-                <div class="form-control">
-                    <label class="label cursor-pointer justify-start space-x-2">
-                        <input type="checkbox" bind:checked={createDraft} class="checkbox" />
-                        <span class="label-text">Aquiferization Needed</span>
-                    </label>
-                </div>
-                <!-- svelte-ignore a11y-label-has-associated-control -->
-                <label class="form-control">
-                    <div class="label">
-                        <span class="label-text">Aquiferization Assignment (optional)</span>
+                {#if hasUnresolvedThreads && resourceContent.status !== ResourceContentStatusEnum.New}
+                    <p class="py-4 text-lg text-warning">This resource has unresolved comments.</p>
+                {/if}
+                {#if resourceContent.status === ResourceContentStatusEnum.New}
+                    <div class="form-control">
+                        <label class="label cursor-pointer justify-start space-x-2">
+                            <input type="checkbox" bind:checked={createDraft} class="checkbox" />
+                            <span class="label-text">Aquiferization Needed</span>
+                        </label>
                     </div>
-                    <UserSelector
-                        users={usersThatCanBeAssigned()}
-                        defaultLabel="Unassigned"
-                        disabled={!createDraft}
-                        bind:selectedUserId={assignToUserId}
-                    />
-                </label>
+                    <!-- svelte-ignore a11y-label-has-associated-control -->
+                    <label class="form-control">
+                        <div class="label">
+                            <span class="label-text">Aquiferization Assignment (optional)</span>
+                        </div>
+                        <UserSelector
+                            users={usersThatCanBeAssigned()}
+                            defaultLabel="Unassigned"
+                            disabled={!createDraft}
+                            bind:selectedUserId={assignToUserId}
+                        />
+                    </label>
+                {/if}
                 <div class="flex w-full flex-row space-x-2 pt-4">
                     <div class="flex-grow" />
                     <button class="btn btn-primary" on:click={publish} disabled={isTransacting}>Publish</button>
@@ -702,6 +720,9 @@
     <dialog bind:this={confirmSendReviewModal} class="modal">
         <div class="modal-box">
             <h3 class="text-xl font-bold">Confirm Send to Review</h3>
+            {#if hasUnresolvedThreads}
+                <p class="pt-4 text-lg text-warning">This resource has unresolved comments.</p>
+            {/if}
             <p class="py-4 text-lg">Have you completed your editing? Your assignment will be removed.</p>
             <div class="modal-action pt-4">
                 <form method="dialog">

@@ -4,7 +4,7 @@
 </script>
 
 <div class="tooltip-container relative flex items-center">
-    <div class="peer">
+    <div class="peer flex items-center">
         <slot />
     </div>
 

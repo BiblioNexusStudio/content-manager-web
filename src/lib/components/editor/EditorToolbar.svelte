@@ -12,6 +12,7 @@
     import UndoIcon from '$lib/icons/UndoIcon.svelte';
     import RedoIcon from '$lib/icons/RedoIcon.svelte';
     import CommentIcon from '$lib/icons/CommentIcon.svelte';
+    import Tooltip from '$lib/components/Tooltip.svelte';
 
     export let editor: Editor | undefined;
     export let canEdit: boolean;
@@ -20,8 +21,6 @@
         return {
             name: 'comment',
             onClick: () => {
-                console.log(editor.state.selection);
-
                 // Create a temporary comment mark so that we can create a span with id.
                 // After the comment is created will replace with valid thread id.
                 editor.chain().focus().setComments({ threadId: -1 }).run();
@@ -172,16 +171,18 @@
             {/each}
             <div class="divider divider-horizontal w-0" />
         {/if}
-        <button
-            class="btn btn-xs px-1 {commentOptions.disabled && '!bg-base-200'} {commentOptions.isActive
-                ? 'btn-primary'
-                : 'btn-link hover:bg-[#e6f7fc]'}"
-            disabled={commentOptions.disabled}
-            on:click={commentOptions.onClick}
-        >
-            <div class="mt-[-1px] scale-[85%]">
-                <svelte:component this={commentOptions.icon} />
-            </div>
-        </button>
+        <Tooltip position={{ right: '2rem' }} class="flex border-primary align-middle text-primary" text="Add Comment">
+            <button
+                class="btn btn-xs px-1 {commentOptions.disabled && '!bg-base-200'} {commentOptions.isActive
+                    ? 'btn-primary'
+                    : 'btn-link hover:bg-[#e6f7fc]'}"
+                disabled={commentOptions.disabled}
+                on:click={commentOptions.onClick}
+            >
+                <div class="mt-[-1px] scale-[85%]">
+                    <svelte:component this={commentOptions.icon} />
+                </div>
+            </button>
+        </Tooltip>
     {/if}
 </div>

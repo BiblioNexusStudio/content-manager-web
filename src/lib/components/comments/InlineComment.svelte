@@ -33,7 +33,6 @@
     $: heightAtBottom = (commentSpanRect && windowInnerHeight - commentSpanRect.bottom - 10) ?? 0;
     $: isNewThread = $activeThreadId === -1;
     $: activeThread = $activeThreadStore;
-    $: console.log($commentMarks);
 
     onMount(() => {
         document.addEventListener('click', onAnyClick);
@@ -50,9 +49,8 @@
             // isNewThread isn't refreshed yet
             if ($activeThreadId === -1) {
                 isCommenting = true;
-
-                // Need to come back to this. Something else seems to steal focus, await tick() doesn't work
-                setTimeout(focusTextArea, 50);
+                await tick();
+                focusTextArea();
             }
 
             e.stopPropagation();
@@ -96,27 +94,31 @@
             $createNewThreadCallback(false, 0, false);
         }
 
-        resetFields();
+        resetEditingFields();
     };
 
     const onResolveClick = async (e: MouseEvent) => {
         e.stopPropagation();
         if ($activeThreadId) {
-            try {
-                await patchToApi(`/comments/threads/${$activeThreadId}/resolve`);
-            } catch (error) {
-                // Practically, I don't think the user cares that the PATCH failed, so don't alert them
-                log.exception(error);
-            }
-
-            console.log($commentMarks);
             const commentMark = $commentMarks.filter((x) => x.threadId === $activeThreadId);
             if (commentMark.length > 0) {
                 commentMark[0]?.editor?.chain().focus().unsetComments().run();
             }
 
-            resetFields();
+            resetEditingFields();
             show = false;
+
+            try {
+                await patchToApi(`/comments/threads/${$activeThreadId}/resolve`);
+                const threadToResolve = $commentThreads?.threads.find((x) => x.id === $activeThreadId);
+                if (threadToResolve) {
+                    threadToResolve.resolved = true;
+                    $commentThreads = $commentThreads; // Hi, I'm Svelte, and I can't update my derived stores properly.
+                }
+            } catch (error) {
+                // Practically, I don't think the user cares that the PATCH failed, so don't alert them
+                log.exception(error);
+            }
         }
     };
 
@@ -134,8 +136,6 @@
                     comment: currentCommentValue,
                 });
 
-                console.log(res);
-
                 if (!res) {
                     $createNewThreadCallback(false, $activeThreadId ?? -1, true);
                     wasSavingCommentError = true;
@@ -148,6 +148,7 @@
                     resolved: false,
                     comments: [],
                 });
+                $commentThreads = $commentThreads;
                 $activeThreadId = res.threadId;
                 $createNewThreadCallback(true, $activeThreadId, false);
                 show = false;
@@ -177,11 +178,8 @@
                 dateTime: new Date().toISOString(),
             });
 
-            console.log($activeThreadStore);
-
             // force rerender in #each
             activeThread = $activeThreadStore;
-            console.log(activeThread);
 
             scrollParentDivToBottom();
         } catch (error) {
@@ -189,14 +187,12 @@
             wasSavingCommentError = true;
             log.exception(error);
         } finally {
-            resetFields();
+            resetEditingFields();
         }
     };
 
     const onEditCommentClick = async (e: MouseEvent, comment: Comment) => {
         e.stopPropagation();
-
-        console.log(currentCommentValue);
 
         isSendingComment = true;
         try {
@@ -212,7 +208,7 @@
             wasSavingCommentError = true;
             log.exception(error);
         } finally {
-            resetFields();
+            resetEditingFields();
         }
     };
 
@@ -222,7 +218,7 @@
         show = parentDiv.contains(e.target as Node) || isCommenting;
     };
 
-    const resetFields = () => {
+    const resetEditingFields = () => {
         isSendingComment = false;
         isCommenting = false;
         currentCommentValue = '';
