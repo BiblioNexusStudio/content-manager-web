@@ -15,7 +15,7 @@
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import UserSelector from './UserSelector.svelte';
     import { Permission, userCan, userIsEqual, userIsInCompany } from '$lib/stores/auth';
-    import { commentThreads, removeAllInlineThreads } from '$lib/stores/comments';
+    import { type CommentStores, createCommentStores } from '$lib/stores/comments';
     import spinner from 'svelte-awesome/icons/spinner';
     import { Icon } from 'svelte-awesome';
     import TranslationSelector from './TranslationSelector.svelte';
@@ -23,7 +23,7 @@
     import { onDestroy } from 'svelte';
     import Modal from '$lib/components/Modal.svelte';
     import createChangeTrackingStore from '$lib/utils/change-tracking-store';
-    import { get } from 'svelte/store';
+    import { get, type Readable, type Writable } from 'svelte/store';
     import ExitButton from '$lib/components/ExitButton.svelte';
     import CurrentTranslations from '$lib/components/resources/menus/CurrentTranslations.svelte';
     import Related from '$lib/components/resources/menus/Related.svelte';
@@ -34,6 +34,11 @@
     import { formatDate } from '$lib/utils/date-time';
     import { getSortedReferences } from '$lib/utils/reference';
     import LicenseInfoButton from './LicenseInfoButton.svelte';
+    import type { CommentThreadsResponse } from '$lib/types/comments';
+
+    let commentStores: CommentStores;
+    let commentThreads: Writable<CommentThreadsResponse | null>;
+    let removeAllInlineThreads: Readable<() => void>;
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -166,6 +171,10 @@
             editableContentStore.setOriginalAndCurrent(resourceContent.content);
         }
         editableDisplayNameStore.setOriginalAndCurrent(resourceContent.displayName);
+
+        commentStores = createCommentStores();
+        commentThreads = commentStores.commentThreads;
+        removeAllInlineThreads = commentStores.removeAllInlineThreads;
 
         if (resourceContent.commentThreads) {
             // Add a dummy thread for a new comment span to live on. If a comment is added, then create the thread
@@ -502,6 +511,7 @@
                                 canEdit={canMakeContentEdits && resourceContent.isDraft}
                                 canComment={resourceContent.isDraft}
                                 {resourceContent}
+                                {commentStores}
                             />
                         </div>
                         <div class="flex flex-row items-center space-x-2">
@@ -557,6 +567,7 @@
                                     {editableContentStore}
                                     snapshot={selectedSnapshot}
                                     {resourceContent}
+                                    {commentStores}
                                 />
                                 {#if mediaType === MediaTypeEnum.text}
                                     <div class="flex h-10 flex-row items-center text-sm text-gray-500">
@@ -763,5 +774,5 @@
         </div>
     </dialog>
 
-    <InlineComment />
+    <InlineComment {commentStores} />
 {/await}

@@ -18,6 +18,7 @@
     import * as customMarks from '$lib/components/tiptap/customMarks';
     import TextDirection from 'tiptap-text-direction';
     import TiptapRenderer from '$lib/components/editor/TiptapRenderer.svelte';
+    import { createCommentStores } from '$lib/stores/comments';
 
     export let data: PageData;
 
@@ -27,6 +28,8 @@
         'Take great care to make the text as easy to understand as possible. Bible references in the text should not be altered.';
 
     let aquiferizedVersion: TiptapContentItem | undefined;
+
+    const commentStores = createCommentStores();
 
     function originalTiptapContentFromResourceContent(resourceContent: ResourceContent) {
         return (resourceContent.content as TiptapContentItem[] | undefined)?.[0];
@@ -113,11 +116,16 @@
 
         <div class="mt-2 flex grow flex-row space-x-4">
             <div class="flex grow flex-col">
-                <TiptapRenderer tiptapJson={originalTiptapContent} canEdit={false} canComment={false} />
+                <TiptapRenderer tiptapJson={originalTiptapContent} canEdit={false} canComment={false} {commentStores} />
             </div>
             <div class="flex grow flex-col">
                 {#key JSON.stringify(aquiferizedVersion)}
-                    <TiptapRenderer tiptapJson={aquiferizedVersion} canEdit={false} canComment={false} />
+                    <TiptapRenderer
+                        tiptapJson={aquiferizedVersion}
+                        canEdit={false}
+                        canComment={false}
+                        {commentStores}
+                    />
                 {/key}
             </div>
         </div>

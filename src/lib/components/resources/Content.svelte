@@ -11,6 +11,7 @@
         type Snapshot,
     } from '$lib/types/resources';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
+    import type { CommentStores } from '$lib/stores/comments';
 
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let resourceContent: ResourceContent;
@@ -20,6 +21,7 @@
     export let snapshot: Snapshot | undefined = undefined;
     export let selectedStepNumber: number | undefined;
     export let isComparingToCurrent = false;
+    export let commentStores: CommentStores;
 
     $: imageContent = (snapshot?.content ?? resourceContent.content) as ImageContentItem;
     $: videoContent = (snapshot?.content ?? resourceContent.content) as VideoContentItem;
@@ -39,5 +41,6 @@
         {editableContentStore}
         {canEdit}
         {canComment}
+        {commentStores}
     />
 {/if}

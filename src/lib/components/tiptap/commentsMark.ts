@@ -1,10 +1,11 @@
 ﻿import { Mark, type SingleCommands } from '@tiptap/core';
 import { v4 as uuid } from 'uuid';
 import type { EditorState } from '@tiptap/pm/state';
-import { commentMarks } from '$lib/stores/comments';
+import type { CommentStores } from '$lib/stores/comments';
 
 export interface CommentsMarkOptions {
     render: boolean;
+    commentStores: CommentStores;
 }
 
 declare module '@tiptap/core' {
@@ -21,9 +22,6 @@ export const commentsMark = Mark.create<CommentsMarkOptions>({
     priority: 1001,
     keepOnSplit: false,
     excludes: '',
-    addOptions() {
-        return { render: false };
-    },
     addAttributes() {
         return {
             comments: {
@@ -55,11 +53,20 @@ export const commentsMark = Mark.create<CommentsMarkOptions>({
         ];
     },
     renderHTML({ HTMLAttributes }) {
-        if (!this.options.render) return ['span', 0];
+        if (!this.options.render) {
+            return [
+                'span',
+                {
+                    class: 'ignore-diff',
+                },
+                0,
+            ];
+        }
 
         const threadId = HTMLAttributes.comments.threadId;
         const spanId = `thread-${threadId === -1 ? 'temp' : uuid()}`;
 
+        const { commentMarks } = this.options.commentStores;
         commentMarks.update((x) => {
             const existing = x.find((x) => x.threadId === threadId);
             if (existing) {

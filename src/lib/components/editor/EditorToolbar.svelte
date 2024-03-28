@@ -1,6 +1,5 @@
 ﻿<script lang="ts">
     import { type Editor, getMarkAttributes } from '@tiptap/core';
-    import { createNewThread } from '$lib/stores/comments';
     import BoldIcon from '$lib/icons/BoldIcon.svelte';
     import ItalicsIcon from '$lib/icons/ItalicsIcon.svelte';
     import UnderlineIcon from '$lib/icons/UnderlineIcon.svelte';
@@ -13,10 +12,14 @@
     import RedoIcon from '$lib/icons/RedoIcon.svelte';
     import CommentIcon from '$lib/icons/CommentIcon.svelte';
     import Tooltip from '$lib/components/Tooltip.svelte';
+    import type { CommentStores } from '$lib/stores/comments';
 
     export let editor: Editor | undefined;
+    export let commentStores: CommentStores;
     export let canEdit: boolean;
+
     let isCommentBoxOpen = false;
+    const { createNewThread } = commentStores;
 
     function getCommentOptions(editor: Editor) {
         return {

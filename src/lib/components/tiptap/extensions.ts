@@ -10,8 +10,9 @@ import Underline from '@tiptap/extension-underline';
 import * as customMarks from '$lib/components/tiptap/customMarks';
 import { commentsMark } from '$lib/components/tiptap/commentsMark';
 import TextDirection from 'tiptap-text-direction';
+import type { CommentStores } from '$lib/stores/comments';
 
-export function extensions(canComment: boolean) {
+export function extensions(canComment: boolean, commentStores: CommentStores) {
     return [
         StarterKit.configure({}),
         Image.configure({}),
@@ -26,7 +27,7 @@ export function extensions(canComment: boolean) {
         CharacterCount.configure({}),
         customMarks.bibleReferenceMark.configure({}),
         customMarks.resourceReferenceMark.configure({}),
-        commentsMark.configure({ render: canComment }),
+        commentsMark.configure({ render: canComment, commentStores: commentStores }),
         TextDirection.configure({
             types: ['heading', 'paragraph', 'orderedList', 'bulletList', 'listItem'],
         }),

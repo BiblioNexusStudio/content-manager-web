@@ -1,13 +1,6 @@
 ﻿<script lang="ts">
     import CheckLongIcon from '$lib/icons/CheckLongIcon.svelte';
     import { onDestroy, onMount, tick } from 'svelte';
-    import {
-        commentThreads,
-        activeThreadId,
-        activeThread as activeThreadStore,
-        createNewThread,
-        commentMarks,
-    } from '$lib/stores/comments';
     import { currentUser } from '$lib/stores/auth';
     import { formatUtcToLocalTimeAndDate } from '$lib/utils/date-time';
     import { patchToApi, postToApi } from '$lib/utils/http-service';
@@ -16,6 +9,16 @@
     import CommentButton from '$lib/components/comments/CommentButton.svelte';
     import CommentTextArea from '$lib/components/comments/CommentTextArea.svelte';
     import Tooltip from '$lib/components/Tooltip.svelte';
+    import type { CommentStores } from '$lib/stores/comments';
+
+    export let commentStores: CommentStores;
+    const {
+        commentThreads,
+        activeThreadId,
+        activeThread: activeThreadStore,
+        createNewThread,
+        commentMarks,
+    } = commentStores;
 
     let span: HTMLElement | null;
     let windowInnerWidth = 0;
@@ -96,9 +99,9 @@
     const onResolveClick = async (e: MouseEvent) => {
         e.stopPropagation();
         if ($activeThreadId) {
-            const commentMark = $commentMarks.filter((x) => x.threadId === $activeThreadId);
-            if (commentMark.length > 0) {
-                commentMark[0]?.editor?.chain().focus().unsetComments().run();
+            const commentMark = $commentMarks.find((x) => x.threadId === $activeThreadId);
+            if (commentMark) {
+                commentMark.editor?.chain().focus().unsetComments().run();
             }
 
             resetEditingFields();

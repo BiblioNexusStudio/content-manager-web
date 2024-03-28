@@ -7,9 +7,11 @@
     import { debounce } from '$lib/utils/debounce';
     import { extensions } from '../tiptap/extensions';
     import { log } from '$lib/logger';
+    import type { CommentStores } from '$lib/stores/comments';
 
     export let tiptapJson: TiptapContentItem | undefined;
     export let currentTiptapJsonForDiffing: TiptapContentItem | undefined;
+    export let commentStores: CommentStores;
 
     $: calculateBaseHtmlWithTextDirection(tiptapJson);
     $: debouncedGenerateDiffHtml(currentTiptapJsonForDiffing, baseHtmlWithTextDirection);
@@ -35,7 +37,7 @@
         return new Promise((resolve) => {
             new Editor({
                 editable: false,
-                extensions: extensions(false),
+                extensions: extensions(false, commentStores),
                 content: tiptapJson.tiptap,
                 onTransaction: ({ editor }) => {
                     if (transactionCount > 1) {

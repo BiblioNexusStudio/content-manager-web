@@ -3,6 +3,7 @@
     import { Editor } from '@tiptap/core';
     import type { TiptapContentItem } from '$lib/types/resources';
     import { extensions } from '../tiptap/extensions';
+    import type { CommentStores } from '$lib/stores/comments';
 
     export let tiptapJson: TiptapContentItem | undefined;
     export let onChange: ((tiptapJson: object, wordCount: number) => void) | undefined = undefined;
@@ -10,6 +11,7 @@
     export let editor: Editor | undefined = undefined;
     export let canEdit: boolean;
     export let canComment: boolean;
+    export let commentStores: CommentStores;
 
     let element: HTMLDivElement | undefined;
 
@@ -25,7 +27,7 @@
         editor = new Editor({
             element,
             editable: canEdit,
-            extensions: extensions(canComment),
+            extensions: extensions(canComment, commentStores),
             editorProps: {
                 attributes: {
                     class: 'prose prose-sm sm:prose-base focus:outline-none text-black m-4 max-w-none',
