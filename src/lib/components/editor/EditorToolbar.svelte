@@ -16,11 +16,14 @@
 
     export let editor: Editor | undefined;
     export let canEdit: boolean;
+    let isCommentBoxOpen = false;
 
     function getCommentOptions(editor: Editor) {
         return {
             name: 'comment',
             onClick: () => {
+                isCommentBoxOpen = true;
+
                 // Create a temporary comment mark so that we can create a span with id.
                 // After the comment is created will replace with valid thread id.
                 editor.chain().focus().setComments({ threadId: -1 }).run();
@@ -30,6 +33,7 @@
                 tempSpan?.click();
 
                 $createNewThread = (created: boolean, threadId: number, hasError: boolean) => {
+                    isCommentBoxOpen = false;
                     editor.chain().setTextSelection(selectionRange).focus().unsetComments().run();
                     if (created) {
                         editor
@@ -49,6 +53,7 @@
             },
             isActive: editor.isActive('comments'),
             disabled:
+                isCommentBoxOpen ||
                 editor.isActive('comments') ||
                 editor.state.selection.empty ||
                 getMarkAttributes(editor.state, 'comments')?.comments,
