@@ -9,6 +9,7 @@
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let wordCountsByStep: number[];
     export let canEdit: boolean;
+    export let canComment: boolean;
 
     let editor: Editor | undefined = undefined;
 
@@ -38,5 +39,5 @@
 <div class="flex h-full flex-col space-y-4">
     <EditorToolbar {editor} {canEdit} />
 
-    <TiptapRenderer {tiptapJson} {canEdit} {onChange} {onCreate} bind:editor />
+    <TiptapRenderer {tiptapJson} {canEdit} {canComment} {onChange} {onCreate} bind:editor />
 </div>

@@ -3,6 +3,10 @@ import { v4 as uuid } from 'uuid';
 import type { EditorState } from '@tiptap/pm/state';
 import { commentMarks } from '$lib/stores/comments';
 
+export interface CommentsMarkOptions {
+    render: boolean;
+}
+
 declare module '@tiptap/core' {
     interface Commands<ReturnType> {
         comments: {
@@ -12,11 +16,14 @@ declare module '@tiptap/core' {
     }
 }
 
-export const commentsMark = Mark.create({
+export const commentsMark = Mark.create<CommentsMarkOptions>({
     name: 'comments',
     priority: 1001,
     keepOnSplit: false,
     excludes: '',
+    addOptions() {
+        return { render: false };
+    },
     addAttributes() {
         return {
             comments: {
@@ -48,6 +55,8 @@ export const commentsMark = Mark.create({
         ];
     },
     renderHTML({ HTMLAttributes }) {
+        if (!this.options.render) return ['span', 0];
+
         const threadId = HTMLAttributes.comments.threadId;
         const spanId = `thread-${threadId === -1 ? 'temp' : uuid()}`;
 

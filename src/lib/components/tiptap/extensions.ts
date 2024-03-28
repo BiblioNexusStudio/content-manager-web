@@ -11,7 +11,7 @@ import * as customMarks from '$lib/components/tiptap/customMarks';
 import { commentsMark } from '$lib/components/tiptap/commentsMark';
 import TextDirection from 'tiptap-text-direction';
 
-export function extensions() {
+export function extensions(canComment: boolean) {
     return [
         StarterKit.configure({}),
         Image.configure({}),
@@ -26,7 +26,7 @@ export function extensions() {
         CharacterCount.configure({}),
         customMarks.bibleReferenceMark.configure({}),
         customMarks.resourceReferenceMark.configure({}),
-        commentsMark,
+        commentsMark.configure({ render: canComment }),
         TextDirection.configure({
             types: ['heading', 'paragraph', 'orderedList', 'bulletList', 'listItem'],
         }),

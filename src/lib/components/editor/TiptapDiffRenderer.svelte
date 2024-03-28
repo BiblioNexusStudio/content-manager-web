@@ -35,7 +35,7 @@
         return new Promise((resolve) => {
             new Editor({
                 editable: false,
-                extensions: extensions(),
+                extensions: extensions(false),
                 content: tiptapJson.tiptap,
                 onTransaction: ({ editor }) => {
                     if (transactionCount > 1) {

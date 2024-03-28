@@ -93,14 +93,20 @@
         {#each new Array(numberOfSteps) as _, index (index)}
             <div class="flex h-full flex-col {index === selectedStepNumber - 1 ? '' : 'hidden'}">
                 {#if (canEdit || canComment) && wordCountsByStep && editableContentStore}
-                    <SingleItemEditor bind:wordCountsByStep {editableContentStore} itemIndex={index} {canEdit} />
+                    <SingleItemEditor
+                        bind:wordCountsByStep
+                        {editableContentStore}
+                        itemIndex={index}
+                        {canEdit}
+                        {canComment}
+                    />
                 {:else if isComparingToCurrent}
                     <TiptapDiffRenderer
                         currentTiptapJsonForDiffing={$editableContentStore[index]}
                         tiptapJson={content[index]}
                     />
                 {:else}
-                    <TiptapRenderer tiptapJson={content[index]} canEdit={false} />
+                    <TiptapRenderer tiptapJson={content[index]} canEdit={false} canComment={false} />
                 {/if}
             </div>
         {/each}

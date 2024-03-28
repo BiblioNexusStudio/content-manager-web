@@ -9,6 +9,7 @@
     export let onCreate: ((tiptapJson: object, wordCount: number) => void) | undefined = undefined;
     export let editor: Editor | undefined = undefined;
     export let canEdit: boolean;
+    export let canComment: boolean;
 
     let element: HTMLDivElement | undefined;
 
@@ -24,7 +25,7 @@
         editor = new Editor({
             element,
             editable: canEdit,
-            extensions: extensions(),
+            extensions: extensions(canComment),
             editorProps: {
                 attributes: {
                     class: 'prose prose-sm sm:prose-base focus:outline-none text-black m-4 max-w-none',
