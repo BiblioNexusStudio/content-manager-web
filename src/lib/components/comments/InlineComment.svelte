@@ -30,7 +30,6 @@
 
     $: currentCommentValue = activeThreadId && '';
     $: commentSpanRect = (windowInnerWidth || windowInnerHeight) && span?.getBoundingClientRect();
-    $: console.log(commentSpanRect);
     $: heightAtBottom = (commentSpanRect && windowInnerHeight - commentSpanRect.bottom - 10) ?? 0;
     $: parentHeight = parentDiv?.getBoundingClientRect()?.height ?? 0;
     $: isNewThread = $activeThreadId === -1;
