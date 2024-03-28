@@ -35,8 +35,6 @@
     $: activeThread = $activeThreadStore;
 
     onMount(() => {
-        document.addEventListener('click', onAnyClick);
-
         window.onInlineCommentClick = async (e: MouseEvent, threadId: number, spanId: string) => {
             if (isCommenting) return;
 
@@ -226,7 +224,7 @@
     };
 </script>
 
-<svelte:window bind:innerWidth={windowInnerWidth} bind:innerHeight={windowInnerHeight} />
+<svelte:window bind:innerWidth={windowInnerWidth} bind:innerHeight={windowInnerHeight} on:click={onAnyClick} />
 
 {#if show && commentSpanRect && activeThread}
     <div
