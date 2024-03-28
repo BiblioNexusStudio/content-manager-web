@@ -114,6 +114,7 @@ export interface ResourceContent {
     verseReferences: VerseReference[];
     associatedResources: AssociatedResource[];
     parentResourceName: string;
+    parentResourceLicenseInfo: ParentResourceLicenseInfo | null;
     resourceContentId: number;
     mediaType: MediaTypeEnum;
     status: ResourceContentStatusEnum;
@@ -130,6 +131,22 @@ export interface ResourceContent {
     wordCount: number | null;
     snapshots: BasicSnapshot[];
     commentThreads: CommentThreadsResponse;
+}
+
+export interface ParentResourceLicenseInfo {
+    title: string;
+    copyright: {
+        dates?: string | null;
+        holder: { name: string; url?: string | null };
+    };
+    licenses: Record<string, SingleLicenseInfo>[];
+    showAdaptationNoticeForEnglish: boolean;
+    showAdaptationNoticeForNonEnglish: boolean;
+}
+
+export interface SingleLicenseInfo {
+    name: string;
+    url?: string | null;
 }
 
 export interface BasicSnapshot {
