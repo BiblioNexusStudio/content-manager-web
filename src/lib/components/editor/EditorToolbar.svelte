@@ -171,7 +171,11 @@
             {/each}
             <div class="divider divider-horizontal w-0" />
         {/if}
-        <Tooltip position={{ right: '2rem' }} class="flex border-primary align-middle text-primary" text="Add Comment">
+        <Tooltip
+            position={{ left: '2rem', bottom: '0.2rem' }}
+            class="flex border-primary align-middle text-primary"
+            text="Add Comment"
+        >
             <button
                 class="btn btn-xs px-1 {commentOptions.disabled && '!bg-base-200'} {commentOptions.isActive
                     ? 'btn-primary'
