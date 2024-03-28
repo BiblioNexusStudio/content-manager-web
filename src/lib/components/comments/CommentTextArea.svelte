@@ -1,10 +1,12 @@
 ﻿<script lang="ts">
-    export const focus = () => {
-        // Doesn't consistently work without the timeout. The element is there, so something is stealing focus.
+    import { onMount } from 'svelte';
+
+    onMount(() => {
+        // Something steals focus with create comment, so need a slight delay.
         setTimeout(() => {
-            element.focus();
+            element?.focus();
         }, 100);
-    };
+    });
 
     export let value: string;
     export let disabled: boolean;
