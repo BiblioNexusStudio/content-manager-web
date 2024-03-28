@@ -1,6 +1,6 @@
 ﻿<script lang="ts">
     import { type Editor, getMarkAttributes } from '@tiptap/core';
-    import { createNewThreadCallback } from '$lib/stores/comments';
+    import { createNewThread } from '$lib/stores/comments';
     import BoldIcon from '$lib/icons/BoldIcon.svelte';
     import ItalicsIcon from '$lib/icons/ItalicsIcon.svelte';
     import UnderlineIcon from '$lib/icons/UnderlineIcon.svelte';
@@ -29,7 +29,7 @@
                 let tempSpan = document.getElementById('thread-temp');
                 tempSpan?.click();
 
-                $createNewThreadCallback = (created: boolean, threadId: number, hasError: boolean) => {
+                $createNewThread = (created: boolean, threadId: number, hasError: boolean) => {
                     editor.chain().setTextSelection(selectionRange).focus().unsetComments().run();
                     if (created) {
                         editor
@@ -41,7 +41,7 @@
                     }
 
                     if (!hasError) {
-                        $createNewThreadCallback = () => {
+                        $createNewThread = () => {
                             return;
                         };
                     }

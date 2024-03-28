@@ -5,7 +5,7 @@
         commentThreads,
         activeThreadId,
         activeThread as activeThreadStore,
-        createNewThreadCallback,
+        createNewThread,
         commentMarks,
     } from '$lib/stores/comments';
     import { currentUser } from '$lib/stores/auth';
@@ -89,7 +89,7 @@
 
         if (isNewThread) {
             show = false;
-            $createNewThreadCallback(false, 0, false);
+            $createNewThread(false, 0, false);
         }
 
         resetEditingFields();
@@ -141,7 +141,7 @@
                 });
                 $commentThreads = $commentThreads;
                 $activeThreadId = res!.threadId;
-                $createNewThreadCallback(true, $activeThreadId, false);
+                $createNewThread(true, $activeThreadId, false);
                 show = false;
 
                 // Make sure activeThreadStore is refreshed
@@ -168,7 +168,7 @@
 
             scrollParentDivToBottom();
         } catch (error) {
-            $createNewThreadCallback(false, $activeThreadId ?? -1, true);
+            $createNewThread(false, $activeThreadId ?? -1, true);
             wasSavingCommentError = true;
             log.exception(error);
         } finally {

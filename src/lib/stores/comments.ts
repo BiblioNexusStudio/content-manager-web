@@ -5,7 +5,7 @@ export const commentThreads: Writable<CommentThreadsResponse | null> = writable(
 export const activeThreadId: Writable<number | null> = writable(null);
 export const commentMarks: Writable<CommentMark[]> = writable([]);
 
-export const createNewThreadCallback: Writable<(created: boolean, threadId: number, hasError: boolean) => void> =
+export const createNewThread: Writable<(created: boolean, threadId: number, hasError: boolean) => void> =
     writable(() => {
         return;
     });
