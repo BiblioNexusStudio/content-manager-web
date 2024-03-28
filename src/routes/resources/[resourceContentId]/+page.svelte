@@ -31,6 +31,7 @@
     import Select from '$lib/components/Select.svelte';
     import { formatDate } from '$lib/utils/date-time';
     import { getSortedReferences } from '$lib/utils/reference';
+    import LicenseInfoButton from './LicenseInfoButton.svelte';
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -475,7 +476,7 @@
                         {:else}
                             <div class="mb-12 text-lg">{$editableDisplayNameStore}</div>
                         {/if}
-                        <div class="h-full w-full">
+                        <div class="w-full flex-grow">
                             <Content
                                 bind:selectedStepNumber
                                 {editableContentStore}
@@ -484,11 +485,16 @@
                                 {resourceContent}
                             />
                         </div>
-                        {#if mediaType === MediaTypeEnum.text}
-                            <div class="text-sm text-gray-500">
-                                Word count: {calculateWordCount(wordCountsByStep) || resourceContent.wordCount}
-                            </div>
-                        {/if}
+                        <div class="flex flex-row items-center space-x-2">
+                            {#if resourceContent.parentResourceLicenseInfo}
+                                <LicenseInfoButton {resourceContent} />
+                            {/if}
+                            {#if mediaType === MediaTypeEnum.text}
+                                <div class="text-sm text-gray-500">
+                                    Word count: {calculateWordCount(wordCountsByStep) || resourceContent.wordCount}
+                                </div>
+                            {/if}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -535,7 +541,7 @@
                                     {resourceContent}
                                 />
                                 {#if mediaType === MediaTypeEnum.text}
-                                    <div class="text-sm text-gray-500">
+                                    <div class="flex h-10 flex-row items-center text-sm text-gray-500">
                                         Word count: {selectedSnapshot.wordCount}
                                     </div>
                                 {/if}
