@@ -120,7 +120,7 @@
         }
     };
 
-    const onCommentClick = async (e: MouseEvent) => {
+    const onNewCommentClick = async (e: MouseEvent) => {
         e.stopPropagation();
 
         isSendingComment = true;
@@ -315,7 +315,7 @@
                         <div class="loading loading-dots my-3 me-4 text-primary"></div>
                     {:else}
                         <CommentButton on:click={onCancelClick}>Cancel</CommentButton>
-                        <CommentButton on:click={onCommentClick}>Comment</CommentButton>
+                        <CommentButton on:click={onNewCommentClick}>Comment</CommentButton>
                     {/if}
                 </div>
             </div>
