@@ -1,6 +1,9 @@
 ﻿<script lang="ts">
     export const focus = () => {
-        element.focus();
+        // Doesn't consistently work without the timeout. The element is there, so something is stealing focus.
+        setTimeout(() => {
+            element.focus();
+        }, 100);
     };
 
     export let value: string;
