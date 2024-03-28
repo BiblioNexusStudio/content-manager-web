@@ -204,8 +204,6 @@
     function publishOrOpenModal(status: ResourceContentStatusEnum) {
         assignToUserId = null;
         createDraft = false;
-        console.log($commentThreads);
-        console.log(hasUnresolvedThreads);
         if (status === ResourceContentStatusEnum.New || hasUnresolvedThreads) {
             publishModal.showModal();
         } else {
