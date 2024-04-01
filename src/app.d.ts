@@ -7,6 +7,10 @@ declare global {
         // interface PageData {}
         // interface Platform {}
     }
+
+    declare interface Window {
+        onInlineCommentClick: ((e: MouseEvent, threadId: number, spanId: string) => void) | undefined;
+    }
 }
 
 export {};
