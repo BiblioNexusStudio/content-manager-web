@@ -35,7 +35,7 @@
             console.log(responses[key]);
         }
 
-        const response = responses.map((x) => x.content).join('');
+        const response = responses.map((x) => x!.content).join('');
         console.log(response);
 
         editor.commands.setContent(response);
