@@ -74,6 +74,7 @@
     let isEnglish = false;
 
     let canAiSimplify = $userCan(Permission.AiSimplify);
+    let canAiTranslate = false;
 
     export let data: PageData;
 
@@ -166,6 +167,12 @@
                 resourceContent.status === ResourceContentStatusEnum.TranslationInReview);
 
         canUnpublish = $userCan(Permission.PublishContent) && resourceContent.hasPublishedVersion;
+
+        canAiTranslate =
+            $userCan(Permission.AiTranslate) &&
+            resourceContent.status === ResourceContentStatusEnum.TranslationInProgress &&
+            mediaType === MediaTypeEnum.text;
+
         _canCreateTranslation = $userCan(Permission.PublishContent);
         if (!('url' in resourceContent.content)) {
             editableContentStore.setOriginalAndCurrent(resourceContent.content);
@@ -510,6 +517,7 @@
                                 bind:wordCountsByStep
                                 canEdit={canMakeContentEdits && resourceContent.isDraft}
                                 canComment={resourceContent.isDraft}
+                                {canAiTranslate}
                                 {resourceContent}
                                 {commentStores}
                             />

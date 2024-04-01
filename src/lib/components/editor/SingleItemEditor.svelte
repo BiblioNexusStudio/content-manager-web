@@ -1,6 +1,6 @@
 ﻿<script lang="ts">
     import EditorToolbar from './EditorToolbar.svelte';
-    import type { TiptapContentItem } from '$lib/types/resources';
+    import type { ResourceContent, TiptapContentItem } from '$lib/types/resources';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
     import TiptapRenderer from './TiptapRenderer.svelte';
     import type { Editor } from '@tiptap/core';
@@ -11,6 +11,8 @@
     export let wordCountsByStep: number[];
     export let canEdit: boolean;
     export let canComment: boolean;
+    export let canAiTranslate: boolean;
+    export let resourceContent: ResourceContent;
     export let commentStores: CommentStores;
 
     let editor: Editor | undefined = undefined;
@@ -39,7 +41,7 @@
 </script>
 
 <div class="flex h-full flex-col space-y-4">
-    <EditorToolbar {editor} {canEdit} {commentStores} />
+    <EditorToolbar {editor} {canEdit} {canAiTranslate} {commentStores} {resourceContent} />
 
     <TiptapRenderer {tiptapJson} {canEdit} {canComment} {onChange} {onCreate} {commentStores} bind:editor />
 </div>
