@@ -203,7 +203,7 @@
                 </button>
             </Tooltip>
         </div>
-        {#if canAiTranslate}
+        {#if canAiTranslate && canEdit}
             <div class="mt-[-1px] scale-[85%]">
                 <AiTranslateToolbarButton {editor} {resourceContent} bind:isLoading />
             </div>
