@@ -246,17 +246,14 @@
         addTranslationModal.showModal();
     }
 
-    async function takeActionAndCallback<T>(
-        action: () => Promise<unknown>,
-        callback: (response: T) => Promise<unknown>
-    ) {
+    async function takeActionAndCallback<T>(action: () => Promise<T>, callback: (response: T) => Promise<void>) {
         isTransacting = true;
         if (get(editableDisplayNameStore.hasChanges) || get(editableContentStore.hasChanges)) {
             await putData();
         }
         try {
             const response = await action();
-            await callback(response as T);
+            await callback(response);
         } catch (error) {
             errorModal.showModal();
             isTransacting = false;
@@ -324,14 +321,14 @@
     }
 
     async function createTranslation() {
-        await takeActionAndCallback(
+        await takeActionAndCallback<{ resourceContentId: number } | null>(
             () =>
-                postToApi('/admin/resources/content/create-translation', {
+                postToApi<{ resourceContentId: number }>('/admin/resources/content/create-translation', {
                     languageId: parseInt(newTranslationLanguageId!),
                     baseContentId: englishContentTranslation?.contentId,
                     useDraft: createTranslationFromDraft,
                 }),
-            (response: { resourceContentId: number }) => goto(`/resources/${response.resourceContentId}`)
+            (response) => goto(`/resources/${response?.resourceContentId}`)
         );
     }
 

@@ -31,7 +31,6 @@
 
         const responses = (await Promise.all(promises)) as unknown as { content: string }[];
         const response = responses.map((x) => x!.content).join('');
-        console.log(response);
 
         editor.commands.setContent(response);
         editor.setEditable(true);
