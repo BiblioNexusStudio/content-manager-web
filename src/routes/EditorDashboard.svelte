@@ -5,7 +5,7 @@
     import type { ResourceAssignedToSelf } from './+page';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
     import { createListSorter } from '$lib/utils/sorting';
-    import LinkedTableRow from '$lib/components/LinkedTableRow.svelte';
+    import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
 
     const SORT_KEYS = {
         days: 'days',
@@ -55,15 +55,13 @@
                 </thead>
                 <tbody>
                     {#each sortData(resourceContents, $searchParams.sort) as resource (resource.id)}
-                        <LinkedTableRow
-                            href={`/resources/${resource.id}`}
-                            cellValues={[
-                                resource.englishLabel,
-                                resource.parentResourceName,
-                                resource.daysSinceAssignment,
-                                resource.wordCount ?? '',
-                            ]}
-                        />
+                        {@const href = `/resources/${resource.id}`}
+                        <tr class="hover">
+                            <LinkedTableCell {href}>{resource.englishLabel}</LinkedTableCell>
+                            <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
+                            <LinkedTableCell {href}>{resource.daysSinceAssignment}</LinkedTableCell>
+                            <LinkedTableCell {href}>{resource.wordCount ?? ''}</LinkedTableCell>
+                        </tr>
                     {:else}
                         <tr>
                             <td colspan="99" class="text-center">Your work is all done!</td>

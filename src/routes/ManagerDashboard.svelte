@@ -5,8 +5,13 @@
     import type { ResourceAssignedToOwnCompany, ResourceAssignedToSelf } from './+page';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
     import { createListSorter } from '$lib/utils/sorting';
-    import LinkedTableRow from '$lib/components/LinkedTableRow.svelte';
     import Select from '$lib/components/Select.svelte';
+    import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
+    import TableCell from '$lib/components/TableCell.svelte';
+    import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
+    import UserSelector from './resources/[resourceContentId]/UserSelector.svelte';
+    import Modal from '$lib/components/Modal.svelte';
+    import { postToApi } from '$lib/utils/http-service';
 
     export let data: PageData;
 
@@ -49,6 +54,75 @@
         assignedUserId: ssp.number(0),
     });
 
+    let selectedReviewContentIds: number[] = [];
+    let selectedInProgressContentIds: number[] = [];
+    let assignToUserId: number | null = null;
+    let isAssignContentModalOpen = false;
+    let isErrorModalOpen = false;
+    let isAssigning = false;
+
+    $: $searchParams.tab && resetSelection();
+
+    function toggleResourceSelection(contentId: number, status: ResourceContentStatusEnum | null = null) {
+        return () => {
+            if (
+                status === null ||
+                status === ResourceContentStatusEnum.AquiferizeInProgress ||
+                status === ResourceContentStatusEnum.TranslationInProgress
+            ) {
+                const index = selectedInProgressContentIds.indexOf(contentId);
+                if (index !== -1) {
+                    selectedInProgressContentIds.splice(index, 1);
+                    selectedInProgressContentIds = selectedInProgressContentIds;
+                } else {
+                    selectedInProgressContentIds.push(contentId);
+                    selectedInProgressContentIds = selectedInProgressContentIds;
+                }
+            } else {
+                const index = selectedReviewContentIds.indexOf(contentId);
+                if (index !== -1) {
+                    selectedReviewContentIds.splice(index, 1);
+                    selectedReviewContentIds = selectedReviewContentIds;
+                } else {
+                    selectedReviewContentIds.push(contentId);
+                    selectedReviewContentIds = selectedReviewContentIds;
+                }
+            }
+        };
+    }
+
+    function resetSelection() {
+        selectedReviewContentIds = [];
+        selectedInProgressContentIds = [];
+    }
+
+    async function assignContent() {
+        isAssigning = true;
+        const inProgessAssignments =
+            selectedInProgressContentIds.length > 0
+                ? postToApi<null>('/resources/content/assign-editor', {
+                      assignedUserId: assignToUserId,
+                      contentIds: selectedInProgressContentIds,
+                  })
+                : Promise.resolve(null);
+        const inReviewAssignments =
+            selectedReviewContentIds.length > 0
+                ? postToApi<null>('/resources/content/assign-review', {
+                      assignedUserId: assignToUserId,
+                      contentIds: selectedReviewContentIds,
+                  })
+                : Promise.resolve(null);
+
+        try {
+            await Promise.all([inProgessAssignments, inReviewAssignments]);
+            isAssigning = false;
+            window.location.reload();
+        } catch {
+            isErrorModalOpen = true;
+            isAssigning = false;
+        }
+    }
+
     $: manageContentsPromise = data.managerDashboard!.manageResourceContent.promise;
     $: assignedContentsPromise = data.managerDashboard!.assignedResourceContent.promise;
 
@@ -63,17 +137,27 @@
 {:then [assignedContents, manageContents]}
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Manager Dashboard</h1>
-        <div role="tablist" class="tabs tabs-bordered w-fit pt-4">
+        <div class="flex flex-row items-center pt-4">
+            <div role="tablist" class="tabs tabs-bordered w-fit">
+                <button
+                    on:click={() => ($searchParams.tab = Tab.myWork)}
+                    role="tab"
+                    class="tab {$searchParams.tab === Tab.myWork && 'tab-active'}"
+                    >My Work ({assignedContents.length})</button
+                >
+                <button
+                    on:click={() => ($searchParams.tab = Tab.manage)}
+                    role="tab"
+                    class="tab {$searchParams.tab === Tab.manage && 'tab-active'}"
+                    >Manage ({manageContents.length})</button
+                >
+            </div>
+            <div class="grow"></div>
             <button
-                on:click={() => ($searchParams.tab = Tab.myWork)}
-                role="tab"
-                class="tab {$searchParams.tab === Tab.myWork && 'tab-active'}"
-                >My Work ({assignedContents.length})</button
-            >
-            <button
-                on:click={() => ($searchParams.tab = Tab.manage)}
-                role="tab"
-                class="tab {$searchParams.tab === Tab.manage && 'tab-active'}">Manage ({manageContents.length})</button
+                class="btn btn-primary btn-sm"
+                on:click={() => (isAssignContentModalOpen = true)}
+                disabled={selectedReviewContentIds.length === 0 && selectedInProgressContentIds.length === 0}
+                >Assign</button
             >
         </div>
         {#if $searchParams.tab === Tab.manage}
@@ -92,6 +176,7 @@
                 {#if $searchParams.tab === Tab.myWork}
                     <thead>
                         <tr class="bg-base-200">
+                            <th></th>
                             <th>Title</th>
                             <th>Resource</th>
                             <th>Language</th>
@@ -110,20 +195,28 @@
                     </thead>
                     <tbody>
                         {#each sortAssignedData(assignedContents, $searchParams.sort) as resource (resource.id)}
-                            <LinkedTableRow
-                                href={`/resources/${resource.id}`}
-                                cellValues={[
-                                    resource.englishLabel,
-                                    resource.parentResourceName,
-                                    resource.languageEnglishDisplay,
-                                    resource.projectName ?? '',
-                                    [
-                                        resource.daysUntilProjectDeadline ?? '',
-                                        (resource.daysUntilProjectDeadline ?? 0) < 0 ? 'text-red-500' : '',
-                                    ],
-                                    resource.wordCount ?? '',
-                                ]}
-                            />
+                            {@const href = `/resources/${resource.id}`}
+                            <tr class="hover">
+                                <TableCell class="w-4"
+                                    ><input
+                                        checked={selectedReviewContentIds.includes(resource.id) ||
+                                            selectedInProgressContentIds.includes(resource.id)}
+                                        on:change={toggleResourceSelection(resource.id, resource.statusValue)}
+                                        type="checkbox"
+                                        class="checkbox checkbox-sm"
+                                    /></TableCell
+                                >
+                                <LinkedTableCell {href}>{resource.englishLabel}</LinkedTableCell>
+                                <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
+                                <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
+                                <LinkedTableCell {href}>{resource.projectName ?? ''}</LinkedTableCell>
+                                <LinkedTableCell
+                                    {href}
+                                    class={(resource.daysUntilProjectDeadline ?? 0) < 0 ? 'text-error' : ''}
+                                    >{resource.daysUntilProjectDeadline ?? ''}</LinkedTableCell
+                                >
+                                <LinkedTableCell {href}>{resource.wordCount ?? ''}</LinkedTableCell>
+                            </tr>
                         {:else}
                             <tr>
                                 <td colspan="99" class="text-center">Your work is all done!</td>
@@ -133,6 +226,7 @@
                 {:else if $searchParams.tab === Tab.manage}
                     <thead>
                         <tr class="bg-base-200">
+                            <th></th>
                             <th>Title</th>
                             <th>Resource</th>
                             <th>Language</th>
@@ -152,21 +246,29 @@
                     </thead>
                     <tbody>
                         {#each sortAndFilterManageData(manageContents, $searchParams) as resource (resource.id)}
-                            <LinkedTableRow
-                                href={`/resources/${resource.id}`}
-                                cellValues={[
-                                    resource.englishLabel,
-                                    resource.parentResourceName,
-                                    resource.languageEnglishDisplay,
-                                    resource.projectName ?? '',
-                                    resource.assignedUser.name,
-                                    [
-                                        resource.daysUntilProjectDeadline ?? '',
-                                        (resource.daysUntilProjectDeadline ?? 0) < 0 ? 'text-error' : '',
-                                    ],
-                                    resource.wordCount ?? '',
-                                ]}
-                            />
+                            {@const href = `/resources/${resource.id}`}
+                            <tr class="hover">
+                                <TableCell class="w-4"
+                                    ><input
+                                        checked={selectedReviewContentIds.includes(resource.id) ||
+                                            selectedInProgressContentIds.includes(resource.id)}
+                                        on:change={toggleResourceSelection(resource.id)}
+                                        type="checkbox"
+                                        class="checkbox checkbox-sm"
+                                    /></TableCell
+                                >
+                                <LinkedTableCell {href}>{resource.englishLabel}</LinkedTableCell>
+                                <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
+                                <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
+                                <LinkedTableCell {href}>{resource.projectName ?? ''}</LinkedTableCell>
+                                <LinkedTableCell {href}>{resource.assignedUser.name}</LinkedTableCell>
+                                <LinkedTableCell
+                                    {href}
+                                    class={(resource.daysUntilProjectDeadline ?? 0) < 0 ? 'text-error' : ''}
+                                    >{resource.daysUntilProjectDeadline ?? ''}</LinkedTableCell
+                                >
+                                <LinkedTableCell {href}>{resource.wordCount ?? ''}</LinkedTableCell>
+                            </tr>
                         {:else}
                             <tr>
                                 <td colspan="99" class="text-center"
@@ -182,3 +284,20 @@
         </div>
     </div>
 {/await}
+
+<Modal
+    isTransacting={isAssigning}
+    primaryButtonText={'Assign'}
+    primaryButtonOnClick={assignContent}
+    primaryButtonDisabled={!assignToUserId}
+    bind:open={isAssignContentModalOpen}
+    header={selectedReviewContentIds.length > 0 ? 'Choose a publisher' : 'Choose a user'}
+>
+    <UserSelector
+        users={data.users?.filter((u) => selectedReviewContentIds.length === 0 || u.role === UserRole.Publisher) ?? []}
+        defaultLabel="Select User"
+        bind:selectedUserId={assignToUserId}
+    />
+</Modal>
+
+<Modal header="Error" bind:open={isErrorModalOpen} isError={true} description="Error while assigning content." />

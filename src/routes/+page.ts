@@ -2,6 +2,7 @@ import type { PageLoad } from './$types';
 import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
 import { Permission, userCan } from '$lib/stores/auth';
 import { get } from 'svelte/store';
+import type { ResourceContentStatusEnum } from '$lib/types/base';
 
 export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
@@ -89,7 +90,8 @@ export interface ResourceAssignedToSelf {
     parentResourceName: string;
     daysSinceAssignment: number;
     wordCount: number | null;
-    status: string;
+    statusDisplayName: string;
+    statusValue: ResourceContentStatusEnum;
     projectName: string | null;
     daysUntilProjectDeadline: number | null;
 }
