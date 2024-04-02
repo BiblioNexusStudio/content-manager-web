@@ -11,6 +11,7 @@
     export let editor: Editor | undefined = undefined;
     export let canEdit: boolean;
     export let canComment: boolean;
+    export let isLoading = false;
     export let commentStores: CommentStores;
 
     let element: HTMLDivElement | undefined;
@@ -57,6 +58,11 @@
 
 <div class="relative grow">
     <div class="absolute bottom-0 left-0 right-0 top-0 overflow-y-auto rounded-md border border-base-300 bg-white">
-        <div bind:this={element} role="presentation" />
+        {#if isLoading}
+            <div class="absolute h-full w-full">
+                <div class="loading loading-infinity loading-lg absolute left-1/2 top-1/2 text-primary" />
+            </div>
+        {/if}
+        <div bind:this={element} role="presentation" class:blur-sm={isLoading} />
     </div>
 </div>

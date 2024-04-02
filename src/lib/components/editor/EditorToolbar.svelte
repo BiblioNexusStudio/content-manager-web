@@ -1,5 +1,6 @@
 ﻿<script lang="ts">
     import { type Editor, getMarkAttributes } from '@tiptap/core';
+    import AiTranslateToolbarButton from '$lib/components/editor/AiTranslateToolbarButton.svelte';
     import BoldIcon from '$lib/icons/BoldIcon.svelte';
     import ItalicsIcon from '$lib/icons/ItalicsIcon.svelte';
     import UnderlineIcon from '$lib/icons/UnderlineIcon.svelte';
@@ -13,10 +14,14 @@
     import CommentIcon from '$lib/icons/CommentIcon.svelte';
     import Tooltip from '$lib/components/Tooltip.svelte';
     import type { CommentStores } from '$lib/stores/comments';
+    import type { ResourceContent } from '$lib/types/resources';
 
     export let editor: Editor | undefined;
     export let commentStores: CommentStores;
     export let canEdit: boolean;
+    export let canAiTranslate: boolean;
+    export let resourceContent: ResourceContent;
+    export let isLoading: boolean;
 
     let isCommentBoxOpen = false;
     const { createNewThread } = commentStores;
@@ -160,41 +165,48 @@
     }
 </script>
 
-<div class="flex h-6 space-x-2">
+<div class="min-h-6 flex flex-wrap justify-between">
     {#if editor}
         {@const commentOptions = getCommentOptions(editor)}
-        {#if canEdit}
-            {#each formattingOptions(editor) as option (option.name)}
+        <div class="flex space-x-2">
+            {#if canEdit}
+                {#each formattingOptions(editor) as option (option.name)}
+                    <button
+                        class="btn btn-xs px-1 {option.disabled && '!bg-base-200'} {option.isActive
+                            ? 'btn-primary'
+                            : 'btn-link hover:bg-[#e6f7fc]'}"
+                        disabled={option.disabled}
+                        on:click={option.onClick}
+                    >
+                        <div class="mt-[-1px] scale-[85%]">
+                            <svelte:component this={option.icon} />
+                        </div>
+                    </button>
+                {/each}
+                <div class="divider divider-horizontal w-0" />
+            {/if}
+            <Tooltip
+                position={{ left: '2rem', bottom: '0.2rem' }}
+                class="flex border-primary align-middle text-primary"
+                text="Add Comment"
+            >
                 <button
-                    class="btn btn-xs px-1 {option.disabled && '!bg-base-200'} {option.isActive
+                    class="btn btn-xs px-1 {commentOptions.disabled && '!bg-base-200'} {commentOptions.isActive
                         ? 'btn-primary'
                         : 'btn-link hover:bg-[#e6f7fc]'}"
-                    disabled={option.disabled}
-                    on:click={option.onClick}
+                    disabled={commentOptions.disabled}
+                    on:click={commentOptions.onClick}
                 >
                     <div class="mt-[-1px] scale-[85%]">
-                        <svelte:component this={option.icon} />
+                        <svelte:component this={commentOptions.icon} />
                     </div>
                 </button>
-            {/each}
-            <div class="divider divider-horizontal w-0" />
+            </Tooltip>
+        </div>
+        {#if canAiTranslate && canEdit}
+            <div class="mt-[-1px] scale-[85%]">
+                <AiTranslateToolbarButton {editor} {resourceContent} bind:isLoading />
+            </div>
         {/if}
-        <Tooltip
-            position={{ left: '2rem', bottom: '0.2rem' }}
-            class="flex border-primary align-middle text-primary"
-            text="Add Comment"
-        >
-            <button
-                class="btn btn-xs px-1 {commentOptions.disabled && '!bg-base-200'} {commentOptions.isActive
-                    ? 'btn-primary'
-                    : 'btn-link hover:bg-[#e6f7fc]'}"
-                disabled={commentOptions.disabled}
-                on:click={commentOptions.onClick}
-            >
-                <div class="mt-[-1px] scale-[85%]">
-                    <svelte:component this={commentOptions.icon} />
-                </div>
-            </button>
-        </Tooltip>
     {/if}
 </div>

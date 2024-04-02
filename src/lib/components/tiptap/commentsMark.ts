@@ -5,7 +5,7 @@ import type { CommentStores } from '$lib/stores/comments';
 
 export interface CommentsMarkOptions {
     render: boolean;
-    commentStores: CommentStores;
+    commentStores: CommentStores | undefined;
 }
 
 declare module '@tiptap/core' {
@@ -53,7 +53,7 @@ export const commentsMark = Mark.create<CommentsMarkOptions>({
         ];
     },
     renderHTML({ HTMLAttributes }) {
-        if (!this.options.render) {
+        if (!this.options.render || !this.options.commentStores) {
             return [
                 'span',
                 {

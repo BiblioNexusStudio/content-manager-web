@@ -12,7 +12,7 @@ import { commentsMark } from '$lib/components/tiptap/commentsMark';
 import TextDirection from 'tiptap-text-direction';
 import type { CommentStores } from '$lib/stores/comments';
 
-export function extensions(canComment: boolean, commentStores: CommentStores) {
+export function extensions(canComment: boolean, commentStores: CommentStores | undefined) {
     return [
         StarterKit.configure({}),
         Image.configure({}),

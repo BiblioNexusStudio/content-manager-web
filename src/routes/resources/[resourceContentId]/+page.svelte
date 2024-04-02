@@ -74,6 +74,7 @@
     let isEnglish = false;
 
     let canAiSimplify = $userCan(Permission.AiSimplify);
+    let canAiTranslate = false;
 
     export let data: PageData;
 
@@ -166,6 +167,12 @@
                 resourceContent.status === ResourceContentStatusEnum.TranslationInReview);
 
         canUnpublish = $userCan(Permission.PublishContent) && resourceContent.hasPublishedVersion;
+
+        canAiTranslate =
+            $userCan(Permission.AiTranslate) &&
+            resourceContent.status === ResourceContentStatusEnum.TranslationInProgress &&
+            mediaType === MediaTypeEnum.text;
+
         _canCreateTranslation = $userCan(Permission.PublishContent);
         if (!('url' in resourceContent.content)) {
             editableContentStore.setOriginalAndCurrent(resourceContent.content);
@@ -239,19 +246,24 @@
         addTranslationModal.showModal();
     }
 
-    async function takeActionAndRefresh(action: () => Promise<unknown>) {
+    async function takeActionAndCallback<T>(action: () => Promise<T>, callback: (response: T) => Promise<void>) {
         isTransacting = true;
         if (get(editableDisplayNameStore.hasChanges) || get(editableContentStore.hasChanges)) {
             await putData();
         }
         try {
-            await action();
-            window.location.reload(); // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
+            const response = await action();
+            await callback(response);
         } catch (error) {
             errorModal.showModal();
             isTransacting = false;
             throw error;
         }
+    }
+
+    async function takeActionAndRefresh(action: () => Promise<unknown>) {
+        // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
+        await takeActionAndCallback(action, async () => window.location.reload());
     }
 
     async function unpublish() {
@@ -309,12 +321,14 @@
     }
 
     async function createTranslation() {
-        await takeActionAndRefresh(() =>
-            postToApi('/admin/resources/content/create-translation', {
-                languageId: parseInt(newTranslationLanguageId!),
-                baseContentId: englishContentTranslation?.contentId,
-                useDraft: createTranslationFromDraft,
-            })
+        await takeActionAndCallback<{ resourceContentId: number } | null>(
+            () =>
+                postToApi<{ resourceContentId: number }>('/admin/resources/content/create-translation', {
+                    languageId: parseInt(newTranslationLanguageId!),
+                    baseContentId: englishContentTranslation?.contentId,
+                    useDraft: createTranslationFromDraft,
+                }),
+            (response) => goto(`/resources/${response?.resourceContentId}`)
         );
     }
 
@@ -510,6 +524,7 @@
                                 bind:wordCountsByStep
                                 canEdit={canMakeContentEdits && resourceContent.isDraft}
                                 canComment={resourceContent.isDraft}
+                                {canAiTranslate}
                                 {resourceContent}
                                 {commentStores}
                             />
@@ -621,7 +636,7 @@
                     <button
                         class="btn btn-primary"
                         on:click={isInTranslationWorkflow ? translate : aquiferize}
-                        disabled={assignToUserId === null}>Assign</button
+                        disabled={assignToUserId === null || isTransacting}>Assign</button
                     >
                     <button class="btn btn-outline btn-primary" on:click={() => aquiferizeModal.close()}>Cancel</button>
                 </div>
