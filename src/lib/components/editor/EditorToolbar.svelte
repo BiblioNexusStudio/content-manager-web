@@ -21,6 +21,7 @@
     export let canEdit: boolean;
     export let canAiTranslate: boolean;
     export let resourceContent: ResourceContent;
+    export let isLoading: boolean;
 
     let isCommentBoxOpen = false;
     const { createNewThread } = commentStores;
@@ -204,7 +205,7 @@
         </div>
         {#if canAiTranslate}
             <div class="mt-[-1px] scale-[85%]">
-                <AiTranslateToolbarButton {editor} {resourceContent} />
+                <AiTranslateToolbarButton {editor} {resourceContent} bind:isLoading />
             </div>
         {/if}
     {/if}

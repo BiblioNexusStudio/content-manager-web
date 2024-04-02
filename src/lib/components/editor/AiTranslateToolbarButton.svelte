@@ -5,46 +5,43 @@
 
     export let editor: Editor;
     export let resourceContent: ResourceContent;
-
-    let working = false;
+    export let isLoading: boolean;
 
     const onClick = async () => {
-        working = true;
+        isLoading = true;
         editor.setEditable(false);
 
         let html = editor.getHTML();
         let regex = /(<h\d\s|<p\s)/;
         let splits = html.split(regex);
-        let chunks: { order: number; content: string }[] = [];
+        let chunks: string[] = [];
         for (let i = 1; i < splits.length; i = i + 2) {
-            chunks.push({ order: i, content: splits[i]! + splits[i + 1]! });
+            chunks.push(splits[i]! + splits[i + 1]!);
         }
 
         const promises = [];
         for (const key in chunks) {
             const promise = postToApi('/ai/translate', {
                 languageName: resourceContent.language.englishDisplay,
-                content: chunks[key]!.content,
+                content: chunks[key],
             });
 
             promises.push(promise);
         }
 
-        const responses = await Promise.all(promises);
-        for (const key in responses) {
-            console.log(responses[key]);
-        }
-
+        const responses = (await Promise.all(promises)) as unknown as { content: string }[];
         const response = responses.map((x) => x!.content).join('');
         console.log(response);
 
         editor.commands.setContent(response);
         editor.setEditable(true);
-        working = false;
+        isLoading = false;
     };
 </script>
 
 <div class="divider divider-horizontal w-0" />
-<button class="btn btn-link !no-animation btn-xs !bg-base-200 !no-underline" on:click={onClick} disabled={working}
-    >{#if working}<div class="loading loading-spinner loading-xs" />{:else}Translate with AI{/if}</button
+<button
+    class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
+    on:click={onClick}
+    disabled={isLoading}>Translate with AI</button
 >

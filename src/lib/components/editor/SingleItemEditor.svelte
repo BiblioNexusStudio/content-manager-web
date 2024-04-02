@@ -16,8 +16,8 @@
     export let commentStores: CommentStores;
 
     let editor: Editor | undefined = undefined;
-
     let tiptapJson = $editableContentStore[itemIndex];
+    let isLoading: boolean;
 
     function onChange(tiptapJson: object, wordCount: number) {
         editableContentStore.update((contents) => {
@@ -41,7 +41,16 @@
 </script>
 
 <div class="flex h-full flex-col space-y-4">
-    <EditorToolbar {editor} {canEdit} {canAiTranslate} {commentStores} {resourceContent} />
+    <EditorToolbar {editor} {canEdit} {canAiTranslate} {commentStores} {resourceContent} bind:isLoading />
 
-    <TiptapRenderer {tiptapJson} {canEdit} {canComment} {onChange} {onCreate} {commentStores} bind:editor />
+    <TiptapRenderer
+        {tiptapJson}
+        {canEdit}
+        {canComment}
+        {onChange}
+        {onCreate}
+        {commentStores}
+        bind:isLoading
+        bind:editor
+    />
 </div>
