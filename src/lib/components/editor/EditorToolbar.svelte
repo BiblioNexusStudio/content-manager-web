@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-    import type { Editor } from '@tiptap/core';
+    import { type Editor, getMarkAttributes } from '@tiptap/core';
     import BoldIcon from '$lib/icons/BoldIcon.svelte';
     import ItalicsIcon from '$lib/icons/ItalicsIcon.svelte';
     import UnderlineIcon from '$lib/icons/UnderlineIcon.svelte';
@@ -10,8 +10,59 @@
     import Heading3Icon from '$lib/icons/Heading3Icon.svelte';
     import UndoIcon from '$lib/icons/UndoIcon.svelte';
     import RedoIcon from '$lib/icons/RedoIcon.svelte';
+    import CommentIcon from '$lib/icons/CommentIcon.svelte';
+    import Tooltip from '$lib/components/Tooltip.svelte';
+    import type { CommentStores } from '$lib/stores/comments';
 
     export let editor: Editor | undefined;
+    export let commentStores: CommentStores;
+    export let canEdit: boolean;
+
+    let isCommentBoxOpen = false;
+    const { createNewThread } = commentStores;
+
+    function getCommentOptions(editor: Editor) {
+        return {
+            name: 'comment',
+            onClick: () => {
+                isCommentBoxOpen = true;
+
+                // Create a temporary comment mark so that we can create a span with id.
+                // After the comment is created will replace with valid thread id.
+                editor.chain().focus().setComments({ threadId: -1 }).run();
+                let selectionRange = { from: editor.state.selection.from, to: editor.state.selection.to };
+
+                let tempSpan = document.getElementById('thread-temp');
+                tempSpan?.click();
+
+                $createNewThread = (created: boolean, threadId: number, hasError: boolean) => {
+                    isCommentBoxOpen = false;
+                    editor.chain().setTextSelection(selectionRange).focus().unsetComments().run();
+                    if (created) {
+                        editor
+                            .chain()
+                            .focus()
+                            .setComments({ threadId: threadId })
+                            .setTextSelection(selectionRange.from)
+                            .run();
+                    }
+
+                    if (!hasError) {
+                        $createNewThread = () => {
+                            return;
+                        };
+                    }
+                };
+            },
+            isActive: editor.isActive('comments'),
+            disabled:
+                isCommentBoxOpen ||
+                editor.isActive('comments') ||
+                editor.state.selection.empty ||
+                getMarkAttributes(editor.state, 'comments')?.comments,
+            icon: CommentIcon,
+        };
+    }
 
     function formattingOptions(editor: Editor) {
         return [
@@ -109,20 +160,41 @@
     }
 </script>
 
-<div class="flex space-x-2">
+<div class="flex h-6 space-x-2">
     {#if editor}
-        {#each formattingOptions(editor) as option (option.name)}
+        {@const commentOptions = getCommentOptions(editor)}
+        {#if canEdit}
+            {#each formattingOptions(editor) as option (option.name)}
+                <button
+                    class="btn btn-xs px-1 {option.disabled && '!bg-base-200'} {option.isActive
+                        ? 'btn-primary'
+                        : 'btn-link hover:bg-[#e6f7fc]'}"
+                    disabled={option.disabled}
+                    on:click={option.onClick}
+                >
+                    <div class="mt-[-1px] scale-[85%]">
+                        <svelte:component this={option.icon} />
+                    </div>
+                </button>
+            {/each}
+            <div class="divider divider-horizontal w-0" />
+        {/if}
+        <Tooltip
+            position={{ left: '2rem', bottom: '0.2rem' }}
+            class="flex border-primary align-middle text-primary"
+            text="Add Comment"
+        >
             <button
-                class="btn btn-xs px-1 {option.disabled && '!bg-base-200'} {option.isActive
+                class="btn btn-xs px-1 {commentOptions.disabled && '!bg-base-200'} {commentOptions.isActive
                     ? 'btn-primary'
                     : 'btn-link hover:bg-[#e6f7fc]'}"
-                disabled={option.disabled}
-                on:click={option.onClick}
+                disabled={commentOptions.disabled}
+                on:click={commentOptions.onClick}
             >
                 <div class="mt-[-1px] scale-[85%]">
-                    <svelte:component this={option.icon} />
+                    <svelte:component this={commentOptions.icon} />
                 </div>
             </button>
-        {/each}
+        </Tooltip>
     {/if}
 </div>

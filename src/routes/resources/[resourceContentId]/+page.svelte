@@ -15,6 +15,7 @@
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import UserSelector from './UserSelector.svelte';
     import { Permission, userCan, userIsEqual, userIsInCompany } from '$lib/stores/auth';
+    import { type CommentStores, createCommentStores } from '$lib/stores/comments';
     import spinner from 'svelte-awesome/icons/spinner';
     import { Icon } from 'svelte-awesome';
     import TranslationSelector from './TranslationSelector.svelte';
@@ -22,16 +23,22 @@
     import { onDestroy } from 'svelte';
     import Modal from '$lib/components/Modal.svelte';
     import createChangeTrackingStore from '$lib/utils/change-tracking-store';
-    import { get } from 'svelte/store';
+    import { get, type Readable, type Writable } from 'svelte/store';
     import ExitButton from '$lib/components/ExitButton.svelte';
     import CurrentTranslations from '$lib/components/resources/menus/CurrentTranslations.svelte';
     import Related from '$lib/components/resources/menus/Related.svelte';
     import References from '$lib/components/resources/menus/References.svelte';
     import ContentArea from '$lib/components/resources/ContentArea.svelte';
     import Select from '$lib/components/Select.svelte';
+    import InlineComment from '$lib/components/comments/InlineComment.svelte';
     import { formatDate } from '$lib/utils/date-time';
     import { getSortedReferences } from '$lib/utils/reference';
     import LicenseInfoButton from './LicenseInfoButton.svelte';
+    import type { CommentThreadsResponse } from '$lib/types/comments';
+
+    let commentStores: CommentStores;
+    let commentThreads: Writable<CommentThreadsResponse | null>;
+    let removeAllInlineThreads: Readable<() => void>;
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -85,6 +92,7 @@
     $: resourceContentPromise = data.resourceContent.promise;
     $: handleFetchedResource(data.resourceContent.promise);
     $: loadSnapshot(selectedSnapshotId);
+    $: hasUnresolvedThreads = $commentThreads?.threads.some((x) => !x.resolved && x.id !== -1) || false;
 
     async function handleFetchedResource(resourceContentPromise: Promise<ResourceContent>) {
         const resourceContent = await resourceContentPromise;
@@ -163,6 +171,23 @@
             editableContentStore.setOriginalAndCurrent(resourceContent.content);
         }
         editableDisplayNameStore.setOriginalAndCurrent(resourceContent.displayName);
+
+        commentStores = createCommentStores();
+        commentThreads = commentStores.commentThreads;
+        removeAllInlineThreads = commentStores.removeAllInlineThreads;
+
+        if (resourceContent.commentThreads) {
+            // Add a dummy thread for a new comment span to live on. If a comment is added, then create the thread
+            // with the new threadId from the server.
+            resourceContent.commentThreads.threads.push({
+                id: -1,
+                resolved: false,
+                comments: [],
+            });
+            $commentThreads = resourceContent.commentThreads;
+        } else {
+            $commentThreads = null;
+        }
     }
 
     let isTransacting = false;
@@ -191,7 +216,7 @@
     function publishOrOpenModal(status: ResourceContentStatusEnum) {
         assignToUserId = null;
         createDraft = false;
-        if (status === ResourceContentStatusEnum.New) {
+        if (status === ResourceContentStatusEnum.New || hasUnresolvedThreads) {
             publishModal.showModal();
         } else {
             publish();
@@ -234,6 +259,7 @@
     }
 
     async function sendReview() {
+        $removeAllInlineThreads();
         await takeActionAndRefresh(() =>
             postToApi(
                 isInTranslationWorkflow
@@ -260,6 +286,7 @@
     }
 
     async function publish() {
+        $removeAllInlineThreads();
         await takeActionAndRefresh(() =>
             postToApi(`/admin/resources/content/${resourceContentId}/publish`, {
                 createDraft: createDraft,
@@ -470,11 +497,11 @@
                         {#if canMakeContentEdits && resourceContent.isDraft}
                             <input
                                 bind:value={$editableDisplayNameStore}
-                                class="input input-bordered w-full max-w-[18rem]"
+                                class="input input-bordered h-8 w-full max-w-[18rem] leading-8"
                                 type="text"
                             />
                         {:else}
-                            <div class="mb-12 text-lg">{$editableDisplayNameStore}</div>
+                            <div class="mb-2 text-lg">{$editableDisplayNameStore}</div>
                         {/if}
                         <div class="w-full flex-grow">
                             <Content
@@ -482,7 +509,9 @@
                                 {editableContentStore}
                                 bind:wordCountsByStep
                                 canEdit={canMakeContentEdits && resourceContent.isDraft}
+                                canComment={resourceContent.isDraft}
                                 {resourceContent}
+                                {commentStores}
                             />
                         </div>
                         <div class="flex flex-row items-center space-x-2">
@@ -518,7 +547,7 @@
                         {#if selectedSnapshotId}
                             {@const selectedSnapshot = cachedSnapshots[selectedSnapshotId]}
                             {#if selectedSnapshot}
-                                <div class="flex w-full flex-row items-center">
+                                <div class="flex h-6 w-full flex-row items-center">
                                     <div class="text-lg">{selectedSnapshot.displayName}</div>
                                     <div class="grow"></div>
                                     <div class="text-lg">
@@ -537,8 +566,8 @@
                                     isComparingToCurrent={isShowingDiffs}
                                     {editableContentStore}
                                     snapshot={selectedSnapshot}
-                                    canEdit={false}
                                     {resourceContent}
+                                    {commentStores}
                                 />
                                 {#if mediaType === MediaTypeEnum.text}
                                     <div class="flex h-10 flex-row items-center text-sm text-gray-500">
@@ -631,26 +660,35 @@
 
     <dialog bind:this={publishModal} class="modal">
         <div class="modal-box">
-            <h3 class="w-full pb-4 text-center text-xl font-bold">Choose Publish Option</h3>
+            <h3 class="w-full pb-4 text-center text-xl font-bold">
+                {hasUnresolvedThreads && resourceContent.status !== ResourceContentStatusEnum.New
+                    ? 'Confirm Publish'
+                    : 'Choose Publish Option'}
+            </h3>
             <div class="flex flex-col">
-                <div class="form-control">
-                    <label class="label cursor-pointer justify-start space-x-2">
-                        <input type="checkbox" bind:checked={createDraft} class="checkbox" />
-                        <span class="label-text">Aquiferization Needed</span>
-                    </label>
-                </div>
-                <!-- svelte-ignore a11y-label-has-associated-control -->
-                <label class="form-control">
-                    <div class="label">
-                        <span class="label-text">Aquiferization Assignment (optional)</span>
+                {#if hasUnresolvedThreads && resourceContent.status !== ResourceContentStatusEnum.New}
+                    <p class="py-4 text-lg text-warning">This resource has unresolved comments.</p>
+                {/if}
+                {#if resourceContent.status === ResourceContentStatusEnum.New}
+                    <div class="form-control">
+                        <label class="label cursor-pointer justify-start space-x-2">
+                            <input type="checkbox" bind:checked={createDraft} class="checkbox" />
+                            <span class="label-text">Aquiferization Needed</span>
+                        </label>
                     </div>
-                    <UserSelector
-                        users={usersThatCanBeAssigned()}
-                        defaultLabel="Unassigned"
-                        disabled={!createDraft}
-                        bind:selectedUserId={assignToUserId}
-                    />
-                </label>
+                    <!-- svelte-ignore a11y-label-has-associated-control -->
+                    <label class="form-control">
+                        <div class="label">
+                            <span class="label-text">Aquiferization Assignment (optional)</span>
+                        </div>
+                        <UserSelector
+                            users={usersThatCanBeAssigned()}
+                            defaultLabel="Unassigned"
+                            disabled={!createDraft}
+                            bind:selectedUserId={assignToUserId}
+                        />
+                    </label>
+                {/if}
                 <div class="flex w-full flex-row space-x-2 pt-4">
                     <div class="flex-grow" />
                     <button class="btn btn-primary" on:click={publish} disabled={isTransacting}>Publish</button>
@@ -699,6 +737,9 @@
     <dialog bind:this={confirmSendReviewModal} class="modal">
         <div class="modal-box">
             <h3 class="text-xl font-bold">Confirm Send to Review</h3>
+            {#if hasUnresolvedThreads}
+                <p class="pt-4 text-lg text-warning">This resource has unresolved comments.</p>
+            {/if}
             <p class="py-4 text-lg">Have you completed your editing? Your assignment will be removed.</p>
             <div class="modal-action pt-4">
                 <form method="dialog">
@@ -732,4 +773,6 @@
             </p>
         </div>
     </dialog>
+
+    <InlineComment {commentStores} />
 {/await}

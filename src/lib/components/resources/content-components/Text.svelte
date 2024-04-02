@@ -8,14 +8,17 @@
     import TiptapRenderer from '$lib/components/editor/TiptapRenderer.svelte';
     import { onMount } from 'svelte';
     import TiptapDiffRenderer from '$lib/components/editor/TiptapDiffRenderer.svelte';
+    import type { CommentStores } from '$lib/stores/comments';
 
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let canEdit: boolean;
+    export let canComment: boolean;
     export let wordCountsByStep: number[] | undefined;
     export let resourceContent: ResourceContent;
     export let snapshot: Snapshot | undefined;
     export let isComparingToCurrent: boolean;
     export let selectedStepNumber: number | undefined;
+    export let commentStores: CommentStores;
 
     onMount(() => (selectedStepNumber ||= 1));
 
@@ -91,15 +94,23 @@
 
         {#each new Array(numberOfSteps) as _, index (index)}
             <div class="flex h-full flex-col {index === selectedStepNumber - 1 ? '' : 'hidden'}">
-                {#if canEdit && wordCountsByStep && editableContentStore}
-                    <SingleItemEditor bind:wordCountsByStep {editableContentStore} itemIndex={index} />
+                {#if (canEdit || canComment) && wordCountsByStep && editableContentStore}
+                    <SingleItemEditor
+                        bind:wordCountsByStep
+                        {editableContentStore}
+                        itemIndex={index}
+                        {canEdit}
+                        {canComment}
+                        {commentStores}
+                    />
                 {:else if isComparingToCurrent}
                     <TiptapDiffRenderer
                         currentTiptapJsonForDiffing={$editableContentStore[index]}
                         tiptapJson={content[index]}
+                        {commentStores}
                     />
                 {:else}
-                    <TiptapRenderer tiptapJson={content[index]} />
+                    <TiptapRenderer tiptapJson={content[index]} canEdit={false} canComment={false} {commentStores} />
                 {/if}
             </div>
         {/each}
