@@ -13,6 +13,7 @@
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let canEdit: boolean;
     export let canComment: boolean;
+    export let canAiTranslate: boolean;
     export let wordCountsByStep: number[] | undefined;
     export let resourceContent: ResourceContent;
     export let snapshot: Snapshot | undefined;
@@ -101,7 +102,9 @@
                         itemIndex={index}
                         {canEdit}
                         {canComment}
+                        {canAiTranslate}
                         {commentStores}
+                        {resourceContent}
                     />
                 {:else if isComparingToCurrent}
                     <TiptapDiffRenderer
