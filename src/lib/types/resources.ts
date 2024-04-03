@@ -131,6 +131,7 @@ export interface ResourceContent {
     wordCount: number | null;
     snapshots: BasicSnapshot[];
     commentThreads: CommentThreadsResponse;
+    hadMachineTranslation: boolean | null;
 }
 
 export interface ParentResourceLicenseInfo {

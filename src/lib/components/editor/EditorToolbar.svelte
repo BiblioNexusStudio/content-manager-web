@@ -23,6 +23,7 @@
     export let resourceContent: ResourceContent;
     export let isLoading: boolean;
 
+    let hadMachineTranslation = false;
     let isCommentBoxOpen = false;
     const { createNewThread } = commentStores;
 
@@ -203,9 +204,9 @@
                 </button>
             </Tooltip>
         </div>
-        {#if canAiTranslate && canEdit}
+        {#if canAiTranslate && canEdit && !hadMachineTranslation}
             <div class="mt-[-1px] scale-[85%]">
-                <AiTranslateToolbarButton {editor} {resourceContent} bind:isLoading />
+                <AiTranslateToolbarButton {editor} {resourceContent} bind:hadMachineTranslation bind:isLoading />
             </div>
         {/if}
     {/if}
