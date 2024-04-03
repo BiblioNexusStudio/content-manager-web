@@ -1,11 +1,12 @@
 ﻿<script lang="ts">
     import type { Editor } from '@tiptap/core';
+    import { patchToApi, postToApi } from '$lib/utils/http-service';
     import type { ResourceContent } from '$lib/types/resources';
-    import { postToApi } from '$lib/utils/http-service';
 
     export let editor: Editor;
     export let resourceContent: ResourceContent;
     export let isLoading: boolean;
+    export let hadMachineTranslation = false;
 
     const onClick = async () => {
         isLoading = true;
@@ -35,7 +36,15 @@
         editor.commands.setContent(response);
         editor.setEditable(true);
         isLoading = false;
+        hadMachineTranslation = true;
+        await patchData();
     };
+
+    async function patchData() {
+        await patchToApi(`/resources/content/${resourceContent.resourceContentId}`, {
+            hadMachineTranslation,
+        });
+    }
 </script>
 
 <div class="divider divider-horizontal w-0" />

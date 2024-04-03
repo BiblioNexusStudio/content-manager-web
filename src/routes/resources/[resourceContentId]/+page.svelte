@@ -10,7 +10,7 @@
         MediaTypeEnum,
         type TiptapContentItem,
     } from '$lib/types/resources';
-    import { getFromApi, postToApi, putToApi } from '$lib/utils/http-service';
+    import { getFromApi, postToApi, patchToApi } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import UserSelector from './UserSelector.svelte';
@@ -78,7 +78,7 @@
 
     export let data: PageData;
 
-    const { save, resetSaveState, isSaving, showSavingFailed } = createAutosaveStore(putData);
+    const { save, resetSaveState, isSaving, showSavingFailed } = createAutosaveStore(patchData);
 
     let editableContentStore = createChangeTrackingStore<TiptapContentItem[]>([], {
         onChange: save,
@@ -169,6 +169,7 @@
         canUnpublish = $userCan(Permission.PublishContent) && resourceContent.hasPublishedVersion;
 
         canAiTranslate =
+            !resourceContent.hadMachineTranslation &&
             $userCan(Permission.AiTranslate) &&
             resourceContent.status === ResourceContentStatusEnum.TranslationInProgress &&
             mediaType === MediaTypeEnum.text;
@@ -249,7 +250,7 @@
     async function takeActionAndCallback<T>(action: () => Promise<T>, callback: (response: T) => Promise<void>) {
         isTransacting = true;
         if (get(editableDisplayNameStore.hasChanges) || get(editableContentStore.hasChanges)) {
-            await putData();
+            await patchData();
         }
         try {
             const response = await action();
@@ -362,10 +363,10 @@
         }
     }
 
-    async function putData() {
+    async function patchData() {
         const displayName = get(editableDisplayNameStore);
         const content = get(editableContentStore);
-        await putToApi(`/admin/resources/content/summary/${resourceContentId}`, {
+        await patchToApi(`/resources/content/${resourceContentId}`, {
             displayName,
             wordCount: calculateWordCount(wordCountsByStep),
             ...(mediaType === MediaTypeEnum.text ? { content } : null),
