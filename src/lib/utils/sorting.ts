@@ -33,7 +33,15 @@ export function createListSorter<T>(mapping: { [sortKey: string]: keyof T }): (l
     };
 }
 
-export function sortByKey<T>(items: T[] | null, key: keyof T): T[] | null {
+export function sortByKey<T>(items: T[] | null, key: keyof T, direction: 'asc' | 'desc' = 'asc'): T[] | null {
     if (!items) return null;
-    return items.sort((a, b) => (a[key] > b[key] ? 1 : -1));
+    return items.sort((a, b) => {
+        if (a[key] > b[key]) {
+            return direction === 'asc' ? 1 : -1;
+        } else if (a[key] < b[key]) {
+            return direction === 'asc' ? -1 : 1;
+        } else {
+            return 0;
+        }
+    });
 }

@@ -3,7 +3,7 @@
     import arrowCircleLeft from 'svelte-awesome/icons/arrowCircleLeft';
     import arrowCircleRight from 'svelte-awesome/icons/arrowCircleRight';
     import SingleItemEditor from '$lib/components/editor/SingleItemEditor.svelte';
-    import type { ResourceContent, Snapshot, TiptapContentItem } from '$lib/types/resources';
+    import type { ResourceContent, Snapshot, Version, TiptapContentItem } from '$lib/types/resources';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
     import TiptapRenderer from '$lib/components/editor/TiptapRenderer.svelte';
     import { onMount } from 'svelte';
@@ -16,14 +16,14 @@
     export let canAiTranslate: boolean;
     export let wordCountsByStep: number[] | undefined;
     export let resourceContent: ResourceContent;
-    export let snapshot: Snapshot | undefined;
+    export let snapshotOrVersion: Snapshot | Version | undefined;
     export let isComparingToCurrent: boolean;
     export let selectedStepNumber: number | undefined;
     export let commentStores: CommentStores;
 
     onMount(() => (selectedStepNumber ||= 1));
 
-    $: content = (snapshot?.content ?? resourceContent.content) as TiptapContentItem[];
+    $: content = (snapshotOrVersion?.content ?? resourceContent.content) as TiptapContentItem[];
     $: numberOfSteps = content.length;
     $: stepNavigation = numberOfSteps > 1;
 
