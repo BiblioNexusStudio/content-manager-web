@@ -7,7 +7,7 @@
         "build": "vite build",
         "preview": "vite preview",
         "test": "vitest",
-        "lint:unused-translations": "( eslint --max-warnings 0 --rule \"svelte-translate-check/unused-translations:error\" \"src/lib/i18n/locales/*.json\" || rm -f tmp/all-translate-calls.txt ) || exit 1",
+        "lint:unused-translations": "(eslint --max-warnings 0 --rule \"svelte-translate-check/unused-translations:error\" \"src/lib/i18n/locales/*.json\" ; ESLINT_STATUS=$? ; rm -f tmp/all-translate-calls.txt ; exit $ESLINT_STATUS)",
         "lint": "yarn format && eslint --max-warnings 0 --fix . && yarn lint:unused-translations && npx svelte-check",
         "lint:ci": "prettier --check \"**/*.{json,js,ts,css,html,svelte,cjs}\" && eslint --max-warnings 0 . && yarn lint:unused-translations && yarn svelte-check",
         "format": "prettier --write \"**/*.{json,js,ts,css,html,svelte,cjs}\"",
