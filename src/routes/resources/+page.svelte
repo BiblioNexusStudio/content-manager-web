@@ -9,8 +9,8 @@
     import { enterKeyHandler } from '$lib/utils/enter-key-action';
     import Select from '$lib/components/Select.svelte';
     import { numbersRangeToString, parseStartAndEndFromSingleOrRangeString } from '$lib/utils/number-list-parser';
-    import LinkedTableRow from '$lib/components/LinkedTableRow.svelte';
     import type { Bible } from '$lib/types/base';
+    import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
 
     export let data: PageData;
 
@@ -199,17 +199,15 @@
                     </thead>
                     <tbody>
                         {#if resourceContentsOrNull}
-                            {#each resourceContentsOrNull.resourceContents as resourceContent (resourceContent.id)}
-                                <LinkedTableRow
-                                    href={`/resources/${resourceContent.id}`}
-                                    cellValues={[
-                                        resourceContent.englishLabel,
-                                        resourceContent.parentResourceName,
-                                        resourceContent.languageEnglishDisplay,
-                                        resourceContent.status,
-                                        resourceContent.isPublished ? 'Yes' : 'No',
-                                    ]}
-                                />
+                            {#each resourceContentsOrNull.resourceContents as resource (resource.id)}
+                                {@const href = `/resources/${resource.id}`}
+                                <tr class="hover">
+                                    <LinkedTableCell {href}>{resource.englishLabel}</LinkedTableCell>
+                                    <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
+                                    <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
+                                    <LinkedTableCell {href}>{resource.status}</LinkedTableCell>
+                                    <LinkedTableCell {href}>{resource.isPublished ? 'Yes' : 'No'}</LinkedTableCell>
+                                </tr>
                             {:else}
                                 <tr>
                                     <td colspan="99" class="text-center">No results found.</td>
