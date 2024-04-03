@@ -10,7 +10,8 @@
     import HistoryIcon from '$lib/icons/HistoryIcon.svelte';
 
     export let resourceContent: ResourceContent;
-    export let selectedSnapshotId: number | null;
+    export let sidebarHistoryAvailable: boolean;
+    export let historySidebarOpen: boolean;
     export let onToggleHistoryPane: () => void;
     export let resourceContentStatuses: ResourceContentStatus[];
 </script>
@@ -52,14 +53,14 @@
         </div>
     </div>
     <div class="flex flex-col items-end space-y-2">
-        {#if resourceContent.snapshots.length > 0 && resourceContent.mediaType === MediaTypeEnum.text}
+        {#if sidebarHistoryAvailable && resourceContent.mediaType === MediaTypeEnum.text}
             <Tooltip
                 position={{ right: '3rem', top: '0.25rem' }}
                 class="border-[#485467] text-[#485467]"
-                text={selectedSnapshotId === null ? 'Show Versions' : 'Hide Versions'}
+                text={historySidebarOpen ? 'Hide Versions' : 'Show Versions'}
             >
                 <button
-                    class="btn btn-ghost btn-sm {selectedSnapshotId !== null && 'bg-[#e6f7fc]'}"
+                    class="btn btn-ghost btn-sm {historySidebarOpen && 'bg-[#e6f7fc]'}"
                     on:click={onToggleHistoryPane}><HistoryIcon /></button
                 >
             </Tooltip>

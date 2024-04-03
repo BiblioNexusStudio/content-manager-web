@@ -6,11 +6,11 @@
     --tw-prose-links: var(--tw-prose-links-override);
 }
 
-:root .prose.prose ins {
+:root .prose.prose.prose ins {
     @apply text-success;
 }
 
-:root .prose.prose del {
+:root .prose.prose.prose del {
     @apply text-error;
 }
 

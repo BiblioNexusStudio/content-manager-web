@@ -9,6 +9,7 @@
         type TiptapContentItem,
         type VideoContentItem,
         type Snapshot,
+        type Version,
     } from '$lib/types/resources';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
     import type { CommentStores } from '$lib/stores/comments';
@@ -19,13 +20,13 @@
     export let canComment = false;
     export let canAiTranslate = false;
     export let wordCountsByStep: number[] | undefined = undefined;
-    export let snapshot: Snapshot | undefined = undefined;
+    export let snapshotOrVersion: Snapshot | Version | undefined = undefined;
     export let selectedStepNumber: number | undefined;
     export let isComparingToCurrent = false;
     export let commentStores: CommentStores;
 
-    $: imageContent = (snapshot?.content ?? resourceContent.content) as ImageContentItem;
-    $: videoContent = (snapshot?.content ?? resourceContent.content) as VideoContentItem;
+    $: imageContent = (snapshotOrVersion?.content ?? resourceContent.content) as ImageContentItem;
+    $: videoContent = (snapshotOrVersion?.content ?? resourceContent.content) as VideoContentItem;
 </script>
 
 {#if resourceContent.mediaType === MediaTypeEnum.image}
@@ -36,7 +37,7 @@
     <Text
         {isComparingToCurrent}
         bind:selectedStepNumber
-        {snapshot}
+        {snapshotOrVersion}
         {resourceContent}
         bind:wordCountsByStep
         {editableContentStore}

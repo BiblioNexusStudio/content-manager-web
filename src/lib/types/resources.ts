@@ -130,6 +130,7 @@ export interface ResourceContent {
     isDraft: boolean;
     wordCount: number | null;
     snapshots: BasicSnapshot[];
+    versions: BasicVersion[];
     commentThreads: CommentThreadsResponse;
     hadMachineTranslation: boolean | null;
 }
@@ -157,6 +158,13 @@ export interface BasicSnapshot {
     status: string;
 }
 
+export interface BasicVersion {
+    id: number;
+    created: string;
+    version: number;
+    isPublished: boolean;
+}
+
 export interface Snapshot {
     id: number;
     displayName: string;
@@ -165,6 +173,16 @@ export interface Snapshot {
     created: string;
     assignedUserName: string | null;
     status: string;
+}
+
+export interface Version {
+    id: number;
+    displayName: string;
+    wordCount: number | null;
+    content: Content;
+    created: string;
+    isPublished: boolean;
+    version: number;
 }
 
 export interface Project {

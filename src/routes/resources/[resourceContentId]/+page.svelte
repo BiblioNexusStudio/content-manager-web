@@ -5,12 +5,10 @@
     import {
         type ResourceContent,
         type ContentTranslation,
-        type BasicSnapshot,
-        type Snapshot,
         MediaTypeEnum,
         type TiptapContentItem,
     } from '$lib/types/resources';
-    import { getFromApi, postToApi, patchToApi } from '$lib/utils/http-service';
+    import { postToApi, patchToApi } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import UserSelector from './UserSelector.svelte';
@@ -31,10 +29,10 @@
     import ContentArea from '$lib/components/resources/ContentArea.svelte';
     import Select from '$lib/components/Select.svelte';
     import InlineComment from '$lib/components/comments/InlineComment.svelte';
-    import { formatDate } from '$lib/utils/date-time';
     import { getSortedReferences } from '$lib/utils/reference';
     import LicenseInfoButton from './LicenseInfoButton.svelte';
     import type { CommentThreadsResponse } from '$lib/types/comments';
+    import { createSidebarContentStore } from './sidebar-content-store';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
@@ -66,12 +64,9 @@
     let englishContentTranslation: ContentTranslation | undefined;
     let createTranslationFromDraft = false;
     let isInTranslationWorkflow = false;
-    let isLoadingSnapshot = false;
     let mediaType: MediaTypeEnum | undefined;
-    let selectedSnapshotId: number | null = null;
     let selectedStepNumber: number | undefined;
     let isShowingDiffs = false;
-    let isEnglish = false;
 
     let canAiSimplify = $userCan(Permission.AiSimplify);
     let canAiTranslate = false;
@@ -86,13 +81,11 @@
     });
     let editableDisplayNameStore = createChangeTrackingStore<string>('', { onChange: save, debounceDelay: 3000 });
     let wordCountsByStep: number[] = [];
-    let cachedSnapshots: Record<number, Snapshot> = {};
-    let firstSnapshotId: number | null = null;
+    let sidebarContentStore: ReturnType<typeof createSidebarContentStore>;
 
     $: resourceContentId = data.resourceContentId;
     $: resourceContentPromise = data.resourceContent.promise;
     $: handleFetchedResource(data.resourceContent.promise);
-    $: loadSnapshot(selectedSnapshotId);
     $: hasUnresolvedThreads = $commentThreads?.threads.some((x) => !x.resolved && x.id !== -1) || false;
 
     async function handleFetchedResource(resourceContentPromise: Promise<ResourceContent>) {
@@ -100,9 +93,7 @@
         resetSaveState();
 
         mediaType = resourceContent.mediaType;
-        resourceContent.snapshots.reverse();
-        firstSnapshotId = resourceContent.snapshots[0]?.id ?? null;
-        isEnglish = resourceContent.language.iso6393Code.toLowerCase() === 'eng';
+        sidebarContentStore = createSidebarContentStore(resourceContent);
 
         englishContentTranslation = resourceContent.contentTranslations.find((x) => x.languageId === 1);
 
@@ -347,22 +338,6 @@
         }
     }
 
-    async function loadSnapshot(snapshotId: number | null) {
-        if (!snapshotId) return;
-
-        if (!cachedSnapshots[snapshotId]) {
-            try {
-                isLoadingSnapshot = true;
-                const snapshot = await getFromApi<Snapshot>(`/resources/content/snapshots/${snapshotId}`);
-                if (snapshot) {
-                    cachedSnapshots[snapshotId] = snapshot;
-                }
-            } finally {
-                isLoadingSnapshot = false;
-            }
-        }
-    }
-
     async function patchData() {
         const displayName = get(editableDisplayNameStore);
         const content = get(editableContentStore);
@@ -381,24 +356,6 @@
             return data.users;
         }
         return data.users?.filter((u) => $userIsInCompany(u.company.id)) ?? null;
-    }
-
-    function calculateSnapshotName(snapshot: BasicSnapshot, isFirst: boolean) {
-        if (isFirst && isEnglish) {
-            return `${formatDate(snapshot.created)}`;
-        } else if (isFirst) {
-            return `${formatDate(snapshot.created)} English Source`;
-        } else {
-            return `${formatDate(snapshot.created)} ${snapshot.assignedUserName ?? ''} ${snapshot.status}`;
-        }
-    }
-
-    function toggleHistoryPane() {
-        if (selectedSnapshotId === null) {
-            selectedSnapshotId = firstSnapshotId;
-        } else {
-            selectedSnapshotId = null;
-        }
     }
 </script>
 
@@ -500,13 +457,14 @@
 
         <ContentArea
             {resourceContent}
-            {selectedSnapshotId}
-            onToggleHistoryPane={toggleHistoryPane}
+            historySidebarOpen={$sidebarContentStore.isOpen}
+            sidebarHistoryAvailable={sidebarContentStore.allSnapshotAndPublishedVersionOptions.length > 0}
+            onToggleHistoryPane={sidebarContentStore.toggleViewing}
             resourceContentStatuses={data.resourceContentStatuses}
         />
 
         <div class="h-[calc(100vh-250px)]">
-            <div class="float-left h-full transition-[width] {selectedSnapshotId === null ? 'w-full' : 'w-1/2 pe-3'}">
+            <div class="float-left h-full transition-[width] {!$sidebarContentStore.isOpen ? 'w-full' : 'w-1/2 pe-3'}">
                 <div class="h-full rounded-md bg-base-200 p-4">
                     <div class="mx-auto flex h-full w-full max-w-4xl flex-col space-y-4">
                         {#if canMakeContentEdits && resourceContent.isDraft}
@@ -545,26 +503,24 @@
             </div>
 
             <div
-                class="float-right h-full overflow-hidden transition-[width] {selectedSnapshotId === null
-                    ? 'w-0'
-                    : 'w-1/2 ps-3'}"
+                class="float-right h-full overflow-hidden transition-[width]
+                {!$sidebarContentStore.isOpen ? 'w-0' : 'w-1/2 ps-3'}"
             >
                 <div class="flex h-full w-full flex-col rounded-md border border-base-300 p-4">
                     <div class="mx-auto flex h-full w-full max-w-4xl flex-col space-y-4">
                         <Select
-                            bind:value={selectedSnapshotId}
+                            value={$sidebarContentStore.selected?.idForSelection ?? null}
+                            onChange={sidebarContentStore.selectSnapshotOrVersion}
                             class="select select-bordered select-sm"
-                            isNumber={true}
-                            options={resourceContent.snapshots.map((s, i) => ({
-                                value: s.id,
-                                label: calculateSnapshotName(s, i === resourceContent.snapshots.length - 1),
+                            options={sidebarContentStore.allSnapshotAndPublishedVersionOptions.map((s) => ({
+                                value: s.value,
+                                label: s.label,
                             }))}
                         />
-                        {#if selectedSnapshotId}
-                            {@const selectedSnapshot = cachedSnapshots[selectedSnapshotId]}
-                            {#if selectedSnapshot}
+                        {#if $sidebarContentStore.isOpen}
+                            {#if $sidebarContentStore.selected}
                                 <div class="flex h-6 w-full flex-row items-center">
-                                    <div class="text-lg">{selectedSnapshot.displayName}</div>
+                                    <div class="text-lg">{$sidebarContentStore.selected.displayName}</div>
                                     <div class="grow"></div>
                                     <div class="text-lg">
                                         <label class="label cursor-pointer py-0">
@@ -581,16 +537,16 @@
                                     bind:selectedStepNumber
                                     isComparingToCurrent={isShowingDiffs}
                                     {editableContentStore}
-                                    snapshot={selectedSnapshot}
+                                    snapshotOrVersion={$sidebarContentStore.selected}
                                     {resourceContent}
                                     {commentStores}
                                 />
                                 {#if mediaType === MediaTypeEnum.text}
                                     <div class="flex h-10 flex-row items-center text-sm text-gray-500">
-                                        Word count: {selectedSnapshot.wordCount}
+                                        Word count: {$sidebarContentStore.selected.wordCount}
                                     </div>
                                 {/if}
-                            {:else if isLoadingSnapshot}
+                            {:else if $sidebarContentStore.isLoading}
                                 <CenteredSpinner />
                             {:else}
                                 Error fetching...
