@@ -17,7 +17,7 @@ export function createSidebarContentStore(resourceContent: ResourceContent) {
     const store = writable<Store>({ isLoading: false, selected: null, isOpen: false });
 
     const publishedVersions = resourceContent.versions.filter(({ isPublished }) => isPublished);
-    const firstSnapshot = resourceContent.snapshots[0];
+    const firstSnapshot = resourceContent.snapshots[resourceContent.snapshots.length - 1];
     const allSnapshotAndPublishedVersionOptions = (
         sortByKey(
             (resourceContent.snapshots as (BasicSnapshot | BasicVersion)[]).concat(publishedVersions),
