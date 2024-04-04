@@ -24,8 +24,11 @@
 
     async function calculateBaseHtmlWithTextDirection(tiptapJson: TiptapContentItem | undefined) {
         if (tiptapJson) {
-            diffedHtml = undefined;
+            const original = baseHtmlWithTextDirection;
             baseHtmlWithTextDirection = await getHtmlWithTextDirection(tiptapJson);
+            if (original !== baseHtmlWithTextDirection) {
+                diffedHtml = undefined;
+            }
         }
     }
 
