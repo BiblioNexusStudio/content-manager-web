@@ -572,10 +572,8 @@
                 class="h-full overflow-hidden transition-[width]
                 {!$isCommentsSidebarOpen ? 'w-0' : 'w-1/5 ps-3'}"
             >
-                <div class="flex h-full w-full flex-col rounded-md border border-base-300 p-4">
-                    <div class="mx-auto flex h-full w-full max-w-4xl flex-col space-y-4">
-                        <CommentsSidebar {commentStores} />
-                    </div>
+                <div class="flex h-full w-full flex-col rounded-md border border-base-300">
+                    <CommentsSidebar {commentStores} />
                 </div>
             </div>
         </div>

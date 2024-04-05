@@ -19,6 +19,7 @@
     export let resourceContentStatuses: ResourceContentStatus[];
 
     const commentsSidebarOpen = commentStores.isSidebarOpen;
+    const commentThreads = commentStores.commentThreads;
 </script>
 
 <div class="my-6 flex w-full justify-between">
@@ -73,7 +74,7 @@
                     </button>
                 </Tooltip>
             {/if}
-            {#if true}
+            {#if $commentThreads?.threads.length}
                 <Tooltip
                     position={{ right: '3rem', top: '0.25rem' }}
                     class="border-[#485467] text-[#485467]"

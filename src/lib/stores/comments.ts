@@ -5,16 +5,11 @@ export type CommentStores = ReturnType<typeof createCommentStores>;
 
 export function createCommentStores() {
     const commentThreads: Writable<CommentThreadsResponse | null> = writable(null);
-    const activeThreadId: Writable<number | null> = writable(null);
     const commentMarks: Writable<CommentMark[]> = writable([]);
     const isSidebarOpen: Writable<boolean> = writable(false);
 
     const createNewThread: Writable<(created: boolean, threadId: number, hasError: boolean) => void> = writable(() => {
         return;
-    });
-
-    const activeThread = derived([commentThreads, activeThreadId], ([$commentThreads, $activeThreadId]) => {
-        return $commentThreads?.threads.find((x) => x.id === $activeThreadId);
     });
 
     const removeAllInlineThreads: Readable<() => void> = derived([commentMarks], ([$commentMarks]) => {
@@ -28,10 +23,8 @@ export function createCommentStores() {
 
     return {
         commentThreads,
-        activeThreadId,
         commentMarks,
         createNewThread,
-        activeThread,
         removeAllInlineThreads,
         isSidebarOpen,
     };
