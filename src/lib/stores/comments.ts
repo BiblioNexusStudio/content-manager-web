@@ -7,6 +7,7 @@ export function createCommentStores() {
     const commentThreads: Writable<CommentThreadsResponse | null> = writable(null);
     const activeThreadId: Writable<number | null> = writable(null);
     const commentMarks: Writable<CommentMark[]> = writable([]);
+    const isSidebarOpen: Writable<boolean> = writable(false);
 
     const createNewThread: Writable<(created: boolean, threadId: number, hasError: boolean) => void> = writable(() => {
         return;
@@ -25,5 +26,13 @@ export function createCommentStores() {
         };
     });
 
-    return { commentThreads, activeThreadId, commentMarks, createNewThread, activeThread, removeAllInlineThreads };
+    return {
+        commentThreads,
+        activeThreadId,
+        commentMarks,
+        createNewThread,
+        activeThread,
+        removeAllInlineThreads,
+        isSidebarOpen,
+    };
 }

@@ -33,10 +33,12 @@
     import LicenseInfoButton from './LicenseInfoButton.svelte';
     import type { CommentThreadsResponse } from '$lib/types/comments';
     import { createSidebarContentStore } from './sidebar-content-store';
+    import CommentsSidebar from '$lib/components/comments/CommentsSidebar.svelte';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
     let removeAllInlineThreads: Readable<() => void>;
+    let isCommentsSidebarOpen: Writable<boolean>;
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -174,6 +176,7 @@
         commentStores = createCommentStores();
         commentThreads = commentStores.commentThreads;
         removeAllInlineThreads = commentStores.removeAllInlineThreads;
+        isCommentsSidebarOpen = commentStores.isSidebarOpen;
 
         if (resourceContent.commentThreads) {
             // Add a dummy thread for a new comment span to live on. If a comment is added, then create the thread
@@ -461,10 +464,19 @@
             sidebarHistoryAvailable={sidebarContentStore.allSnapshotAndPublishedVersionOptions.length > 0}
             onToggleHistoryPane={sidebarContentStore.toggleViewing}
             resourceContentStatuses={data.resourceContentStatuses}
+            {commentStores}
         />
 
-        <div class="h-[calc(100vh-250px)]">
-            <div class="float-left h-full transition-[width] {!$sidebarContentStore.isOpen ? 'w-full' : 'w-1/2 pe-3'}">
+        <div class="flex h-[calc(100vh-250px)]">
+            <div
+                class="h-full transition-[width] {!$sidebarContentStore.isOpen && !$isCommentsSidebarOpen
+                    ? 'w-full'
+                    : $sidebarContentStore.isOpen && !$isCommentsSidebarOpen
+                    ? 'w-1/2 pe-3'
+                    : !$sidebarContentStore.isOpen && $isCommentsSidebarOpen
+                    ? 'w-4/5 pe-3'
+                    : 'w-2/5 pe-3'}"
+            >
                 <div class="h-full rounded-md bg-base-200 p-4">
                     <div class="mx-auto flex h-full w-full max-w-4xl flex-col space-y-4">
                         {#if canMakeContentEdits && resourceContent.isDraft}
@@ -503,8 +515,8 @@
             </div>
 
             <div
-                class="float-right h-full overflow-hidden transition-[width]
-                {!$sidebarContentStore.isOpen ? 'w-0' : 'w-1/2 ps-3'}"
+                class="h-full overflow-hidden transition-[width]
+                {!$sidebarContentStore.isOpen ? 'w-0' : $isCommentsSidebarOpen ? 'w-2/5 ps-3' : 'w-1/2 ps-3'}"
             >
                 <div class="flex h-full w-full flex-col rounded-md border border-base-300 p-4">
                     <div class="mx-auto flex h-full w-full max-w-4xl flex-col space-y-4">
@@ -552,6 +564,17 @@
                                 Error fetching...
                             {/if}
                         {/if}
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="h-full overflow-hidden transition-[width]
+                {!$isCommentsSidebarOpen ? 'w-0' : 'w-1/5 ps-3'}"
+            >
+                <div class="flex h-full w-full flex-col rounded-md border border-base-300 p-4">
+                    <div class="mx-auto flex h-full w-full max-w-4xl flex-col space-y-4">
+                        <CommentsSidebar {commentStores} />
                     </div>
                 </div>
             </div>

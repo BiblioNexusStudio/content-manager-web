@@ -211,6 +211,7 @@
         previousCommentValue = '';
         editingCommentId = 0;
         parentHeight = 0;
+        $commentThreads = $commentThreads;
     };
 </script>
 

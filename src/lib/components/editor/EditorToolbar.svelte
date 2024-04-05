@@ -66,7 +66,7 @@
                 editor.isActive('comments') ||
                 editor.state.selection.empty ||
                 getMarkAttributes(editor.state, 'comments')?.comments,
-            hidden: true,
+            hidden: false,
             icon: CommentIcon,
         };
     }

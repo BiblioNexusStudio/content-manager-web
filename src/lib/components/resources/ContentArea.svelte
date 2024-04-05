@@ -8,12 +8,17 @@
     import StatusColor from './StatusColor.svelte';
     import Tooltip from '../Tooltip.svelte';
     import HistoryIcon from '$lib/icons/HistoryIcon.svelte';
+    import CommentSidebarIcon from '$lib/icons/CommentSidebarIcon.svelte';
+    import type { CommentStores } from '$lib/stores/comments';
 
     export let resourceContent: ResourceContent;
     export let sidebarHistoryAvailable: boolean;
     export let historySidebarOpen: boolean;
     export let onToggleHistoryPane: () => void;
+    export let commentStores: CommentStores;
     export let resourceContentStatuses: ResourceContentStatus[];
+
+    const commentsSidebarOpen = commentStores.isSidebarOpen;
 </script>
 
 <div class="my-6 flex w-full justify-between">
@@ -53,18 +58,36 @@
         </div>
     </div>
     <div class="flex flex-col items-end space-y-2">
-        {#if sidebarHistoryAvailable && resourceContent.mediaType === MediaTypeEnum.text}
-            <Tooltip
-                position={{ right: '3rem', top: '0.25rem' }}
-                class="border-[#485467] text-[#485467]"
-                text={historySidebarOpen ? 'Hide Versions' : 'Show Versions'}
-            >
-                <button
-                    class="btn btn-ghost btn-sm {historySidebarOpen && 'bg-[#e6f7fc]'}"
-                    on:click={onToggleHistoryPane}><HistoryIcon /></button
+        <div class="flex">
+            {#if sidebarHistoryAvailable && resourceContent.mediaType === MediaTypeEnum.text}
+                <Tooltip
+                    position={{ right: '3rem', top: '0.25rem' }}
+                    class="border-[#485467] text-[#485467]"
+                    text={historySidebarOpen ? 'Hide Versions' : 'Show Versions'}
                 >
-            </Tooltip>
-        {/if}
+                    <button
+                        class="btn btn-ghost btn-sm {historySidebarOpen && 'bg-[#e6f7fc]'}"
+                        on:click={onToggleHistoryPane}
+                    >
+                        <HistoryIcon />
+                    </button>
+                </Tooltip>
+            {/if}
+            {#if true}
+                <Tooltip
+                    position={{ right: '3rem', top: '0.25rem' }}
+                    class="border-[#485467] text-[#485467]"
+                    text={$commentsSidebarOpen ? 'Hide Comments' : 'Show Comments'}
+                >
+                    <button
+                        class="btn btn-ghost btn-sm {$commentsSidebarOpen && 'bg-[#e6f7fc]'}"
+                        on:click={() => ($commentsSidebarOpen = !$commentsSidebarOpen)}
+                    >
+                        <CommentSidebarIcon />
+                    </button>
+                </Tooltip>
+            {/if}
+        </div>
         {#if resourceContent.assignedUser}
             <div class="flex text-xl">
                 Assigned: {resourceContent.assignedUser.name}
