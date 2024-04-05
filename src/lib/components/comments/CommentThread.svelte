@@ -11,7 +11,7 @@
     import { currentUser } from '$lib/stores/auth';
     import type { CommentStores } from '$lib/stores/comments';
 
-    export let showParent: boolean = true;
+    export let showParent = true;
     export let parentDiv: HTMLDivElement | undefined = undefined;
     export let parentHeight = 0;
     export let isCommenting = false;
