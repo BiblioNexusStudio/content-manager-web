@@ -8,7 +8,6 @@
     let englishLicensesForAdaptation = englishLicenses.filter(({ name }) => name.toLowerCase() !== 'public domain');
     let container: HTMLDivElement;
     let show = false;
-    $: console.log(show);
 
     const handleClick = (e: MouseEvent) => {
         if (!container.contains(e.target as Node)) {
