@@ -2581,7 +2581,7 @@ eslint-config-prettier@^8.5.0:
 
 "eslint-plugin-svelte-translate-check@https://github.com/BiblioNexusStudio/eslint-plugin-svelte-translate-check":
   version "1.0.0"
-  resolved "https://github.com/BiblioNexusStudio/eslint-plugin-svelte-translate-check#02ae88c9ac79604d502e2e54319b0dc5344dead3"
+  resolved "https://github.com/BiblioNexusStudio/eslint-plugin-svelte-translate-check#1952c2c18d99e4c9b578802f4e0004295beba848"
 
 eslint-plugin-svelte@^2.30.0:
   version "2.33.0"
