@@ -183,7 +183,7 @@
                     <div class="font-semibold">{comment.user.name}</div>
                     <div class="text-xs">{formatUtcToLocalTimeAndDate(comment.dateTime)}</div>
                 </div>
-                {#if i === 0 && !isCommenting}
+                {#if i === 0 && !isCommenting && !activeThread.resolved}
                     <Tooltip
                         position={{ right: '2rem' }}
                         class="border-primary text-primary"
