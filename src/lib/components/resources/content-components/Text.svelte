@@ -116,7 +116,7 @@
                 {:else}
                     <div class="flex h-full flex-col">
                         {#if !isShowingSnapshotOrVersion}
-                            <div class="h-9" />
+                            <div class="h-[2.625rem]" />
                         {/if}
                         <TiptapRenderer
                             tiptapJson={content[index]}
