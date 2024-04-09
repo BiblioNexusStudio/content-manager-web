@@ -26,6 +26,7 @@
     $: content = (snapshotOrVersion?.content ?? resourceContent.content) as TiptapContentItem[];
     $: numberOfSteps = content.length;
     $: stepNavigation = numberOfSteps > 1;
+    $: isShowingSnapshotOrVersion = !!snapshotOrVersion?.content;
 
     const headings = [
         {
@@ -113,7 +114,17 @@
                         {commentStores}
                     />
                 {:else}
-                    <TiptapRenderer tiptapJson={content[index]} canEdit={false} canComment={false} {commentStores} />
+                    <div class="flex h-full flex-col">
+                        {#if !isShowingSnapshotOrVersion}
+                            <div class="h-9" />
+                        {/if}
+                        <TiptapRenderer
+                            tiptapJson={content[index]}
+                            canEdit={false}
+                            canComment={false}
+                            {commentStores}
+                        />
+                    </div>
                 {/if}
             </div>
         {/each}
