@@ -466,22 +466,14 @@
         <div class="h-[calc(100vh-250px)]">
             <div class="float-left h-full transition-[width] {!$sidebarContentStore.isOpen ? 'w-full' : 'w-1/2 pe-3'}">
                 <div class="h-full rounded-md bg-base-200 p-4">
-                    <div class="mx-auto flex h-full w-full max-w-4xl flex-col space-y-4">
+                    <div class="mx-auto flex h-full w-full max-w-4xl flex-col space-y-[0.9375rem]">
                         <div class="flex flex-row items-center">
-                            {#if canMakeContentEdits && resourceContent.isDraft}
-                                <input
-                                    bind:value={$editableDisplayNameStore}
-                                    class="input input-bordered h-8 w-full max-w-[18rem] leading-8"
-                                    type="text"
-                                />
-                            {:else}
-                                <input
-                                    class="input input-bordered h-8 w-full max-w-[18rem] leading-8"
-                                    type="text"
-                                    value={$editableDisplayNameStore}
-                                    readonly
-                                />
-                            {/if}
+                            <input
+                                bind:value={$editableDisplayNameStore}
+                                class="input input-bordered h-8 w-full max-w-[18rem] leading-8"
+                                type="text"
+                                readonly={!canMakeContentEdits || !resourceContent.isDraft}
+                            />
                             {#if resourceContent.isDraft}
                                 <div class="grow" />
                                 <div class="font-bold">Draft</div>
