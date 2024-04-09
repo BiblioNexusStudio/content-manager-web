@@ -10,7 +10,7 @@
 
     export let open: boolean;
     export let header: string;
-    export let companies: Company[] | Company | undefined;
+    export let companies: Company[] | undefined;
     export let roles: UserRole[];
 
     let dialog: HTMLDialogElement;
@@ -29,26 +29,19 @@
 
     $: dialog ? (open ? dialog.showModal() : dialog.close()) : null;
 
-    $: companySelect = companies
-        ? companies instanceof Array
-            ? companies
-            : [companies]
-        : [{ id: -1, name: 'You are not part of a company' }];
-
     $: canSave = !!firstName && !!lastName && !!email && !!companyId && !!role;
+    $: onlyCreateUserInCompany && (companyId = $currentUser!.company.id);
 
-    function getCompanies() {
+    function buildOptions(companies: Company[]) {
         let companyOptions = [
-            ...companySelect.filter((c) => c.name !== 'N/A').map((c) => ({ value: c.id, label: c.name })),
+            ...companies.filter((c) => c.name !== 'N/A').map((c) => ({ value: c.id, label: c.name })),
         ];
         if (onlyCreateUserInCompany) {
             // Users page is checked for permissions to even get here, and people should always
             // be connected to a company
-            companyOptions = [companyOptions.find((c) => c.value == $currentUser!.company.id)!];
-            companyId = companyOptions[0]!.value;
-            return companyOptions;
+            return [companyOptions.find((c) => c.value === $currentUser!.company.id)!];
         } else {
-            return [...[{ value: null, label: 'Select Company' }], ...companyOptions];
+            return [{ value: null, label: 'Select Company' }, ...companyOptions];
         }
     }
 
@@ -192,13 +185,15 @@
             </div>
             <div class="flex flex-col p-2">
                 <div class="text-md">Company <span class="text-error">*</span></div>
-                <Select
-                    class="select select-bordered w-full"
-                    options={getCompanies()}
-                    isNumber={true}
-                    bind:value={companyId}
-                    disabled={onlyCreateUserInCompany}
-                />
+                {#if companies}
+                    <Select
+                        class="select select-bordered w-full"
+                        options={buildOptions(companies)}
+                        isNumber={true}
+                        bind:value={companyId}
+                        disabled={onlyCreateUserInCompany}
+                    />
+                {/if}
             </div>
             <div class="flex flex-col border-b p-2 pb-4">
                 <div class="text-md">
