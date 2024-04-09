@@ -53,6 +53,7 @@ export const commentsMark = Mark.create<CommentsMarkOptions>({
         ];
     },
     renderHTML({ HTMLAttributes }) {
+        console.log('renderHTML is running!!!');
         if (!this.options.render || !this.options.commentStores) {
             return [
                 'span',

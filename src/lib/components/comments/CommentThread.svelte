@@ -134,7 +134,6 @@
             scrollParentDivToBottom();
             resetEditingFields();
         } catch (error) {
-            console.log('there was an error');
             $createNewThread(false, threadId ?? -1, true);
             wasSavingCommentError = true;
             isSendingComment = false;

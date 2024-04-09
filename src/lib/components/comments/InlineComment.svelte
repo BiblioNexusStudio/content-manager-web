@@ -5,6 +5,8 @@
 
     export let commentStores: CommentStores;
 
+    const { sidebarParentDivs } = commentStores;
+
     let span: HTMLElement | null;
     let windowInnerWidth = 0;
     let windowInnerHeight = 0;
@@ -12,6 +14,7 @@
     let show = false;
     let isCommenting: boolean;
     let threadId: number;
+    let bubblingClick = false;
 
     $: commentSpanRect = (windowInnerWidth || windowInnerHeight) && span?.getBoundingClientRect();
     $: heightAtBottom = (commentSpanRect && windowInnerHeight - commentSpanRect.bottom - 10) ?? 0;
@@ -21,8 +24,6 @@
         window.onInlineCommentClick = async (e: MouseEvent, selectedThreadId: number, spanId: string) => {
             if (isCommenting) return;
 
-            console.log(selectedThreadId);
-
             span = document.getElementById(spanId);
             threadId = selectedThreadId;
 
@@ -31,7 +32,12 @@
                 isCommenting = true;
             }
 
-            e.stopPropagation();
+            const sidebarDiv = $sidebarParentDivs.find((x) => x.threadId === threadId);
+            if (sidebarDiv) {
+                sidebarDiv.click();
+            }
+
+            bubblingClick = true;
         };
     });
 
@@ -41,6 +47,11 @@
     });
 
     const onAnyClick = (e: MouseEvent) => {
+        if (bubblingClick) {
+            bubblingClick = false;
+            return;
+        }
+
         if (!parentDiv) return;
 
         show = parentDiv.contains(e.target as Node) || isCommenting;
