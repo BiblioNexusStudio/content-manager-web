@@ -29,15 +29,13 @@
     $: activeThread = $commentThreads?.threads.find((x) => x.id === threadId);
     $: isNewThread = threadId === -1;
 
-    const onReplyClick = async (e: MouseEvent) => {
-        e.stopPropagation();
+    const onReplyClick = async () => {
         isCommenting = true;
         await tick();
         scrollParentDivToBottom();
     };
 
-    const onEditClick = async (e: MouseEvent, comment: Comment) => {
-        e.stopPropagation();
+    const onEditClick = async (comment: Comment) => {
         isCommenting = true;
         editingCommentId = comment.id;
         previousCommentValue = comment.comment;
@@ -46,9 +44,7 @@
         parentHeight = 0;
     };
 
-    const onCancelClick = (e: MouseEvent) => {
-        e.stopPropagation();
-
+    const onCancelClick = () => {
         if (isNewThread) {
             showParent = false;
             $createNewThread(false, 0, false);
@@ -57,11 +53,22 @@
         resetEditingFields();
     };
 
-    const onResolveClick = async (e: MouseEvent) => {
-        e.stopPropagation();
+    const onResolveClick = async () => {
         const commentMark = $commentMarks.find((x) => x.threadId === threadId);
         if (commentMark) {
-            commentMark.editor?.chain().focus().unsetComments().run();
+            const span = document.getElementById(commentMark.spanId) as HTMLSpanElement;
+            const range = document.createRange();
+            range.selectNodeContents(span);
+
+            const selection = window.getSelection();
+            selection!.removeAllRanges();
+            selection!.addRange(range);
+
+            span.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            setTimeout(() => {
+                commentMark.editor?.chain().focus().unsetComments().run();
+            }, 100);
         }
 
         resetEditingFields();
@@ -80,9 +87,7 @@
         }
     };
 
-    const onNewCommentClick = async (e: MouseEvent) => {
-        e.stopPropagation();
-
+    const onNewCommentClick = async () => {
         isSendingComment = true;
         let res: CreateThreadResponse | null;
 
@@ -138,8 +143,6 @@
     };
 
     const onEditCommentClick = async (e: MouseEvent, comment: Comment) => {
-        e.stopPropagation();
-
         isSendingComment = true;
         try {
             await patchToApi(`/comments/${comment.id}`, {
@@ -216,16 +219,16 @@
             {/if}
         </div>
         {#if i !== activeThread.comments.length - 1}
-            {#if comment.user.id === $currentUser?.id && !isCommenting}
+            {#if comment.user.id === $currentUser?.id && !isCommenting && !activeThread.resolved}
                 <div class="flex justify-end">
-                    <CommentButton on:click={(e) => onEditClick(e, comment)}>Edit</CommentButton>
+                    <CommentButton on:click={() => onEditClick(comment)}>Edit</CommentButton>
                 </div>
             {/if}
             <div class="divider mx-2 my-0" />
-        {:else if !isCommenting}
+        {:else if !isCommenting && !activeThread.resolved}
             <div class="flex justify-end">
                 {#if comment.user.id === $currentUser?.id}
-                    <CommentButton on:click={(e) => onEditClick(e, comment)}>Edit</CommentButton>
+                    <CommentButton on:click={() => onEditClick(comment)}>Edit</CommentButton>
                 {/if}
                 <CommentButton on:click={onReplyClick}>Reply</CommentButton>
             </div>
