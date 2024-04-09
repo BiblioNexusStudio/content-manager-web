@@ -486,7 +486,12 @@
                                 type="text"
                             />
                         {:else}
-                            <div class="mb-2 text-lg">{$editableDisplayNameStore}</div>
+                            <input
+                                class="input input-bordered h-8 w-full max-w-[18rem] leading-8"
+                                type="text"
+                                value={$editableDisplayNameStore}
+                                readonly
+                            />
                         {/if}
                         <div class="w-full flex-grow">
                             <Content

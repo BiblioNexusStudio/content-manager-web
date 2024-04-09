@@ -4,15 +4,22 @@
     import { _ as translate } from 'svelte-i18n';
     import NewUserModal from '$lib/components/users/NewUserModal.svelte';
     import type { User } from '$lib/types/base';
+    import { Permission, userCan } from '$lib/stores/auth';
+    import Select from '$lib/components/Select.svelte';
 
     export let data: PageData;
 
     $: allDataPromise = Promise.all([data.userData!.promise, data.companies!.promise]);
-    let searchInputVal: string | undefined;
 
-    $: searchVal = searchInputVal;
-    const filterUsers = (users: User[], sortVal?: string) => {
-        return sortVal ? users.filter((u) => u.name.toLowerCase().includes(sortVal!.toLowerCase())) : users;
+    let filterBySearch: string | null = null;
+    let filterByCompanyId: number | null = null;
+
+    const filterUsers = (users: User[], search: string | null, companyId: number | null) => {
+        return users.filter(
+            (u) =>
+                (companyId === null || u.company.id === companyId) &&
+                (search === null || u.name.toLowerCase().includes(search.toLowerCase()))
+        );
     };
     $: isModalOpen = false;
 
@@ -35,7 +42,7 @@
                         <button class="btn btn-primary me-4" on:click={openModal}>Add User</button>
                     </div>
                     <input
-                        bind:value={searchInputVal}
+                        bind:value={filterBySearch}
                         type="search"
                         class="min-h-12 w-full rounded-md border-[1px] py-2 ps-5 text-sm text-gray-900 focus:outline-none"
                         placeholder={$translate('page.resources.searchBox.value')}
@@ -43,6 +50,17 @@
                 </div>
             </div>
         </div>
+        {#if $userCan(Permission.ReadAllUsers)}
+            <Select
+                class="select select-bordered max-w-xs"
+                options={[
+                    { value: null, label: 'Select Company' },
+                    ...companies.map((c) => ({ value: c.id, label: c.name })),
+                ]}
+                isNumber={true}
+                bind:value={filterByCompanyId}
+            />
+        {/if}
         <div class="flex flex-row space-x-4 overflow-y-hidden">
             <div class="my-4 max-h-full flex-[2] overflow-y-auto rounded border-2">
                 <table class="table table-pin-rows">
@@ -56,7 +74,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each filterUsers(userData, searchVal) as user (user.email)}
+                        {#each filterUsers(userData, filterBySearch, filterByCompanyId) as user (user.email)}
                             <tr>
                                 <td class="p-5">{user.name}</td>
                                 <td class="p-5">{user.email}</td>

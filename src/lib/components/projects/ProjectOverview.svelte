@@ -61,17 +61,21 @@
         </ViewTabSlot>
         {#if $project?.projectPlatform === ProjectConstants.AQUIFER && $users}
             <ViewTabSlot title="Company Lead">
-                <Select
-                    class="select select-bordered w-full max-w-[50%]"
-                    options={[
-                        ...($users || [])
-                            .filter((u) => u.role === UserRole.Publisher || u.role === UserRole.Manager)
-                            .map((u) => ({ value: u.id, label: u.name })),
-                    ]}
-                    isNumber={true}
-                    value={companyLeadUserId}
-                    onChange={handleCompanyLeadSelectChange}
-                />
+                {#if $project?.started === null}
+                    <Select
+                        class="select select-bordered w-full max-w-[50%]"
+                        options={[
+                            ...($users || [])
+                                .filter((u) => u.role === UserRole.Publisher || u.role === UserRole.Manager)
+                                .map((u) => ({ value: u.id, label: u.name })),
+                        ]}
+                        isNumber={true}
+                        value={companyLeadUserId}
+                        onChange={handleCompanyLeadSelectChange}
+                    />
+                {:else}
+                    {$project.companyLead}
+                {/if}
             </ViewTabSlot>
         {/if}
     </div>
