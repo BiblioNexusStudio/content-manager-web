@@ -23,8 +23,6 @@
         } else {
             $sidebarParentDivs.push({ threadId: thread.id, div: parentDiv, click: () => focusParent(true) });
         }
-
-        parentDiv.onclick = () => focusParent(false);
     });
 
     const focusParent = (fromInlineClick: boolean) => {
@@ -76,6 +74,12 @@
 
 <svelte:window on:click={onAnyClick} />
 
-<div bind:this={parentDiv} class="rounded-md border-2 {thread.resolved && 'bg-gray-100'}">
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<div
+    bind:this={parentDiv}
+    class="rounded-md border-2 {thread.resolved && 'bg-gray-100'}"
+    on:click={() => focusParent(false)}
+>
     <CommentThread {commentStores} threadId={thread.id} />
 </div>
