@@ -27,4 +27,5 @@ export interface CreateThreadResponse {
 export interface CommentMark {
     editor: Editor | undefined;
     threadId: number;
+    spanId: string;
 }

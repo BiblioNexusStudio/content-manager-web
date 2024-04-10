@@ -9,7 +9,7 @@ declare global {
     }
 
     declare interface Window {
-        onInlineCommentClick: ((e: MouseEvent, threadId: number, spanId: string) => void) | undefined;
+        onInlineCommentClick: ((threadId: number, spanId: string) => void) | undefined;
     }
 }
 

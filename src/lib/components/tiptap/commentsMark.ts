@@ -71,10 +71,12 @@ export const commentsMark = Mark.create<CommentsMarkOptions>({
             const existing = x.find((x) => x.threadId === threadId);
             if (existing) {
                 existing.editor = this.editor;
+                existing.spanId = spanId;
             } else {
                 x.push({
                     threadId: parseInt(threadId),
                     editor: this.editor,
+                    spanId,
                 });
             }
 
@@ -87,8 +89,8 @@ export const commentsMark = Mark.create<CommentsMarkOptions>({
                 id: spanId,
                 'data-bnType': 'comments',
                 'data-threadId': HTMLAttributes.comments.threadId,
-                class: 'bg-primary/40 rounded',
-                onClick: `onInlineCommentClick(event, ${threadId}, '${spanId}')`,
+                class: 'bg-primary/20 rounded inline-comment-span',
+                onClick: `onInlineCommentClick(${threadId}, '${spanId}')`,
             },
             0,
         ];
