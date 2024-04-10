@@ -76,6 +76,6 @@
 
 <svelte:window on:click={onAnyClick} />
 
-<div bind:this={parentDiv} class="rounded-md border-2" class:bg-gray-100={thread.resolved}>
+<div bind:this={parentDiv} class="rounded-md border-2 {thread.resolved && 'bg-gray-100'}">
     <CommentThread {commentStores} threadId={thread.id} />
 </div>
