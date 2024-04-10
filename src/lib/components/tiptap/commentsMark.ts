@@ -90,7 +90,7 @@ export const commentsMark = Mark.create<CommentsMarkOptions>({
                 'data-bnType': 'comments',
                 'data-threadId': HTMLAttributes.comments.threadId,
                 class: 'bg-primary/20 rounded inline-comment-span',
-                onClick: `onInlineCommentClick(event, ${threadId}, '${spanId}')`,
+                onClick: `onInlineCommentClick(${threadId}, '${spanId}')`,
             },
             0,
         ];

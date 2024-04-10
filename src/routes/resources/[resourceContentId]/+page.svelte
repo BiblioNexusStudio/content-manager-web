@@ -38,7 +38,6 @@
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
     let removeAllInlineThreads: Readable<() => void>;
-    let isCommentsSidebarOpen: Writable<boolean>;
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -69,6 +68,7 @@
     let mediaType: MediaTypeEnum | undefined;
     let selectedStepNumber: number | undefined;
     let isShowingDiffs = false;
+    let isShowingCommentsSidebar = false;
 
     let canAiSimplify = $userCan(Permission.AiSimplify);
     let canAiTranslate = false;
@@ -176,7 +176,6 @@
         commentStores = createCommentStores();
         commentThreads = commentStores.commentThreads;
         removeAllInlineThreads = commentStores.removeAllInlineThreads;
-        isCommentsSidebarOpen = commentStores.isSidebarOpen;
 
         if (resourceContent.commentThreads) {
             // Add a dummy thread for a new comment span to live on. If a comment is added, then create the thread
@@ -465,15 +464,16 @@
             onToggleHistoryPane={sidebarContentStore.toggleViewing}
             resourceContentStatuses={data.resourceContentStatuses}
             {commentStores}
+            bind:commentsSidebarOpen={isShowingCommentsSidebar}
         />
 
         <div class="flex h-[calc(100vh-250px)]">
             <div
-                class="h-full transition-[width] {!$sidebarContentStore.isOpen && !$isCommentsSidebarOpen
+                class="h-full transition-[width] {!$sidebarContentStore.isOpen && !isShowingCommentsSidebar
                     ? 'w-full'
-                    : $sidebarContentStore.isOpen && !$isCommentsSidebarOpen
+                    : $sidebarContentStore.isOpen && !isShowingCommentsSidebar
                     ? 'w-1/2 pe-3'
-                    : !$sidebarContentStore.isOpen && $isCommentsSidebarOpen
+                    : !$sidebarContentStore.isOpen && isShowingCommentsSidebar
                     ? 'w-4/5 pe-3'
                     : 'w-2/5 pe-3'}"
             >
@@ -488,7 +488,7 @@
                             />
                             {#if resourceContent.isDraft}
                                 <div class="grow" />
-                                <div class="font-bold">Draft</div>
+                                <div class="me-2 font-semibold text-gray-700">Draft</div>
                             {/if}
                         </div>
                         <div class="w-full flex-grow">
@@ -519,7 +519,7 @@
 
             <div
                 class="h-full overflow-hidden transition-[width]
-                {!$sidebarContentStore.isOpen ? 'w-0' : $isCommentsSidebarOpen ? 'w-2/5 ps-3' : 'w-1/2 ps-3'}"
+                {!$sidebarContentStore.isOpen ? 'w-0' : isShowingCommentsSidebar ? 'w-2/5 ps-3' : 'w-1/2 ps-3'}"
             >
                 <div class="flex h-full w-full flex-col rounded-md border border-base-300 p-4">
                     <div class="mx-auto flex h-full w-full max-w-4xl flex-col space-y-4">
@@ -573,7 +573,7 @@
 
             <div
                 class="h-full overflow-hidden transition-[width]
-                {!$isCommentsSidebarOpen ? 'w-0' : 'w-1/5 ps-3'}"
+                {!isShowingCommentsSidebar ? 'w-0' : 'w-1/5 ps-3'}"
             >
                 <div class="flex h-full w-full flex-col rounded-md border border-base-300">
                     <CommentsSidebar {commentStores} />

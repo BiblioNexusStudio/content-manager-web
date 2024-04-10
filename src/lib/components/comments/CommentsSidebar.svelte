@@ -1,22 +1,23 @@
 ﻿<script lang="ts">
     import type { CommentStores } from '$lib/stores/comments';
     import SidebarComment from '$lib/components/comments/SidebarComment.svelte';
+    import type { CommentThread } from '$lib/types/comments';
 
     export let commentStores: CommentStores;
 
     const { commentThreads, commentMarks } = commentStores;
 
-    $: orderedThreads = ($commentMarks && $commentThreads?.threads && getOrderedThreads()) ?? [];
+    $: orderedThreads = ($commentMarks && getOrderedThreads($commentThreads?.threads ?? [])) ?? [];
     $: unresolvedThreads = orderedThreads.filter((x) => !x.resolved) ?? [];
     $: resolvedThreads = orderedThreads.filter((x) => x.resolved) ?? [];
     $: commentCount = orderedThreads.reduce((count, thread) => {
         return count + thread.comments.length;
     }, 0);
 
-    const getOrderedThreads = () => {
+    const getOrderedThreads = (threads: CommentThread[]) => {
         // The purpose of this is to get the comment spans as they appear in the editor
         // and then order the threads in the sidebar in the same way.
-        const mainThreads = $commentThreads?.threads.filter((x) => x.id !== -1) ?? [];
+        const mainThreads = threads.filter((x) => x.id !== -1) ?? [];
         const foundSpanThreadIds: number[] = [];
         const inlineSpans = document.getElementsByClassName('inline-comment-span');
         for (let i = 0; i < inlineSpans.length; i++) {

@@ -6,7 +6,6 @@ export type CommentStores = ReturnType<typeof createCommentStores>;
 export function createCommentStores() {
     const commentThreads: Writable<CommentThreadsResponse | null> = writable(null);
     const commentMarks: Writable<CommentMark[]> = writable([]);
-    const isSidebarOpen: Writable<boolean> = writable(false);
     const sidebarParentDivs: Writable<{ threadId: number; div: HTMLDivElement; click: () => void }[]> = writable([]);
 
     const createNewThread: Writable<(created: boolean, threadId: number, hasError: boolean) => void> = writable(() => {
@@ -27,7 +26,6 @@ export function createCommentStores() {
         commentMarks,
         createNewThread,
         removeAllInlineThreads,
-        isSidebarOpen,
         sidebarParentDivs,
     };
 }

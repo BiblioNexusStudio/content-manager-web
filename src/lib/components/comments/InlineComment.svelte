@@ -21,7 +21,7 @@
     $: parentHeight = parentDiv?.getBoundingClientRect()?.height ?? 0;
 
     onMount(() => {
-        window.onInlineCommentClick = async (e: MouseEvent, selectedThreadId: number, spanId: string) => {
+        window.onInlineCommentClick = async (selectedThreadId: number, spanId: string) => {
             if (isCommenting) return;
 
             span = document.getElementById(spanId);
@@ -61,7 +61,7 @@
 <svelte:window bind:innerWidth={windowInnerWidth} bind:innerHeight={windowInnerHeight} on:click={onAnyClick} />
 
 {#if show && commentSpanRect}
-    {#key parentHeight}
+    {#key commentSpanRect}
         <div
             bind:this={parentDiv}
             class="absolute z-50 flex w-[300px] flex-col overflow-y-auto rounded-lg border-2 bg-white shadow"

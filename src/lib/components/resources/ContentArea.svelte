@@ -16,9 +16,9 @@
     export let historySidebarOpen: boolean;
     export let onToggleHistoryPane: () => void;
     export let commentStores: CommentStores;
+    export let commentsSidebarOpen: boolean;
     export let resourceContentStatuses: ResourceContentStatus[];
 
-    const commentsSidebarOpen = commentStores.isSidebarOpen;
     const commentThreads = commentStores.commentThreads;
 </script>
 
@@ -78,11 +78,11 @@
                 <Tooltip
                     position={{ right: '3rem', top: '0.25rem' }}
                     class="border-[#485467] text-[#485467]"
-                    text={$commentsSidebarOpen ? 'Hide Comments' : 'Show Comments'}
+                    text={commentsSidebarOpen ? 'Hide Comments' : 'Show Comments'}
                 >
                     <button
-                        class="btn btn-ghost btn-sm {$commentsSidebarOpen && 'bg-[#e6f7fc]'}"
-                        on:click={() => ($commentsSidebarOpen = !$commentsSidebarOpen)}
+                        class="btn btn-ghost btn-sm {commentsSidebarOpen && 'bg-[#e6f7fc]'}"
+                        on:click={() => (commentsSidebarOpen = !commentsSidebarOpen)}
                     >
                         <CommentSidebarIcon />
                     </button>
