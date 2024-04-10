@@ -167,7 +167,7 @@
     }
 </script>
 
-<div class="min-h-6 flex flex-wrap justify-between">
+<div class="min-h-6 flex flex-wrap items-center justify-between">
     {#if editor}
         {@const commentOptions = getCommentOptions(editor)}
         <div class="flex space-x-2">
