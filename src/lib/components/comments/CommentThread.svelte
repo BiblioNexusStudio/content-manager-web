@@ -13,7 +13,6 @@
 
     export let showParent = true;
     export let parentDiv: HTMLDivElement | undefined = undefined;
-    export let parentHeight = 0;
     export let isCommenting = false;
     export let threadId: number;
 
@@ -41,7 +40,6 @@
         previousCommentValue = comment.comment;
         currentCommentValue = comment.comment;
         activeThread = activeThread;
-        parentHeight = 0;
     };
 
     const onCancelClick = () => {
@@ -172,7 +170,6 @@
         currentCommentValue = '';
         previousCommentValue = '';
         editingCommentId = 0;
-        parentHeight = 0;
         $commentThreads = $commentThreads;
     };
 </script>
