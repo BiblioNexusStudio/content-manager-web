@@ -15,10 +15,11 @@
     import Superscript from '@tiptap/extension-superscript';
     import TextStyle from '@tiptap/extension-text-style';
     import CharacterCount from '@tiptap/extension-character-count';
-    import * as customMarks from '$lib/components/tiptap/customMarks';
     import TextDirection from 'tiptap-text-direction';
     import TiptapRenderer from '$lib/components/editor/TiptapRenderer.svelte';
     import { createCommentStores } from '$lib/stores/comments';
+    import { bibleReferenceMark } from '$lib/components/tiptap/bibleReferenceMark';
+    import { resourceReferenceMark } from '$lib/components/tiptap/resourceReferenceMark';
 
     export let data: PageData;
 
@@ -51,8 +52,8 @@
                 Superscript,
                 TextStyle,
                 CharacterCount.configure({}),
-                customMarks.bibleReferenceMark,
-                customMarks.resourceReferenceMark,
+                bibleReferenceMark,
+                resourceReferenceMark,
                 TextDirection.configure({
                     types: ['heading', 'paragraph', 'orderedList', 'bulletList', 'listItem'],
                 }),

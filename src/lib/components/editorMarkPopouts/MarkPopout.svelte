@@ -1,6 +1,6 @@
 ﻿<script lang="ts">
     export let markSpan: HTMLElement | null;
-    export let container: HTMLDivElement | undefined;
+    export let container: HTMLDivElement | undefined = undefined;
     export let show = false;
 
     let windowInnerWidth = 0;

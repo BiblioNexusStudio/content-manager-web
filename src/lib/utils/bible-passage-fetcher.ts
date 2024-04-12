@@ -1,39 +1,36 @@
 import { log } from '$lib/logger';
-import type { Language } from '$lib/types/base';
 import { getFromApi } from '$lib/utils/http-service';
 
-type BookCode = string;
+type BookId = number;
 
-const bookJsonCache: Record<BookCode, BookJson> = {};
+const bookJsonCache: Record<BookId, BookJson> = {};
 
 interface BookJson {
     chapters: { number: string; verses: { number: string; text: string }[] }[];
 }
 
 export interface Verse {
-    chapterNumber: string;
-    verseNumber: string;
+    chapterNumber: number;
+    verseNumber: number;
     text: string;
 }
 
-export async function fetchBiblePassage(
-    languages: Language[],
-    bookCode: string,
-    startChapter: number,
-    startVerse: number,
-    endChapter: number,
-    endVerse: number
-): Promise<Verse[] | null> {
+export async function fetchBiblePassage(startVerseId: string, endVerseId: string): Promise<Verse[]> {
+    const start = parseVerseId(startVerseId);
+    const end = parseVerseId(endVerseId);
+
     let bookJson: BookJson | null = null;
-    if (bookJsonCache[bookCode]) {
-        bookJson = bookJsonCache[bookCode]!;
+    if (bookJsonCache[start.bookId]) {
+        bookJson = bookJsonCache[start.bookId]!;
     } else {
-        const englishLanguageId = languages.find((l) => l.iso6393Code.toLowerCase() === 'eng')?.id;
+        const englishLanguageId = 1;
         if (englishLanguageId) {
             try {
-                bookJson = await getFromApi<BookJson>(`/bibles/language/${englishLanguageId}/book/${bookCode}/text`);
+                bookJson = await getFromApi<BookJson>(
+                    `/bibles/language/${englishLanguageId}/book/${start.bookId}/text`
+                );
                 if (bookJson) {
-                    bookJsonCache[bookCode] = bookJson;
+                    bookJsonCache[start.bookId] = bookJson;
                 }
             } catch (error) {
                 log.exception(error);
@@ -42,30 +39,30 @@ export async function fetchBiblePassage(
     }
 
     if (!bookJson) {
-        return null;
+        return [];
     }
 
     const verses: Verse[] = [];
 
-    for (let chapter = startChapter; chapter <= endChapter; chapter++) {
+    for (let chapter = start.chapter; chapter <= end.chapter; chapter++) {
         const chapterData = bookJson.chapters.find((c) => c.number === chapter.toString());
         if (chapterData) {
             let startVerseIndex = 0;
             let endVerseIndex = chapterData.verses.length - 1;
 
-            if (chapter === startChapter) {
-                startVerseIndex = chapterData.verses.findIndex((v) => v.number === startVerse.toString());
+            if (chapter === start.chapter) {
+                startVerseIndex = chapterData.verses.findIndex((v) => v.number === start.verse.toString());
             }
-            if (chapter === endChapter) {
-                endVerseIndex = chapterData.verses.findIndex((v) => v.number === endVerse.toString());
+            if (chapter === end.chapter) {
+                endVerseIndex = chapterData.verses.findIndex((v) => v.number === end.verse.toString());
             }
 
             for (let i = startVerseIndex; i <= endVerseIndex; i++) {
                 const verse = chapterData.verses[i];
                 if (verse) {
                     verses.push({
-                        chapterNumber: chapter.toString(),
-                        verseNumber: verse.number,
+                        chapterNumber: chapter,
+                        verseNumber: Number(verse.number),
                         text: verse.text,
                     });
                 }
@@ -75,3 +72,11 @@ export async function fetchBiblePassage(
 
     return verses;
 }
+
+const parseVerseId = (verseId: string) => {
+    return {
+        bookId: Number(verseId.substring(1, 4)),
+        chapter: Number(verseId.substring(4, 7)),
+        verse: Number(verseId.substring(7, 10)),
+    };
+};

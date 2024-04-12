@@ -7,7 +7,8 @@ import Superscript from '@tiptap/extension-superscript';
 import TextStyle from '@tiptap/extension-text-style';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
-import * as customMarks from '$lib/components/tiptap/customMarks';
+import { bibleReferenceMark } from '$lib/components/tiptap/bibleReferenceMark';
+import { resourceReferenceMark } from '$lib/components/tiptap/resourceReferenceMark';
 import { commentsMark } from '$lib/components/tiptap/commentsMark';
 import TextDirection from 'tiptap-text-direction';
 import type { CommentStores } from '$lib/stores/comments';
@@ -25,8 +26,8 @@ export function extensions(canComment: boolean, commentStores: CommentStores | u
         Superscript.configure({}),
         TextStyle.configure({}),
         CharacterCount.configure({}),
-        customMarks.bibleReferenceMark.configure({}),
-        customMarks.resourceReferenceMark.configure({}),
+        bibleReferenceMark.configure({}),
+        resourceReferenceMark.configure({}),
         commentsMark.configure({ render: canComment, commentStores: commentStores }),
         TextDirection.configure({
             types: ['heading', 'paragraph', 'orderedList', 'bulletList', 'listItem'],

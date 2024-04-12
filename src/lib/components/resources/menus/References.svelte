@@ -1,27 +1,8 @@
 <script lang="ts">
     import type { PassageReference, VerseReference } from '$lib/types/resources';
-    import { instanceOfPassageReference } from '$lib/utils/reference';
+    import { generateVerseFromReference } from '$lib/utils/reference';
     import EmptyMessage from '../EmptyMessage.svelte';
     export let bibleReferences: (PassageReference | VerseReference)[];
-
-    function generateVerseFromReference(reference: PassageReference | VerseReference): string {
-        let label = '';
-        if (instanceOfPassageReference(reference)) {
-            if (reference.startBook === reference.endBook) {
-                if (reference.startChapter === reference.endChapter) {
-                    label = `${reference.startBook} ${reference.startChapter}:${reference.startVerse}-${reference.endVerse}`;
-                } else {
-                    label = `${reference.startBook} ${reference.startChapter}:${reference.startVerse}-${reference.endChapter}:${reference.endVerse}`;
-                }
-            } else {
-                label = `${reference.startBook} ${reference.startChapter}:${reference.startVerse} - ${reference.endBook} ${reference.endChapter}:${reference.endVerse}`;
-            }
-        } else {
-            label = `${reference.book} ${reference.chapter}:${reference.verse}`;
-        }
-
-        return label;
-    }
 </script>
 
 <div class="dropdown ms-1">
