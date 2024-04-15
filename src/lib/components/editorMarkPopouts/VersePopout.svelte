@@ -2,86 +2,104 @@
     import { onMount } from 'svelte';
     import MarkPopout from '$lib/components/editorMarkPopouts/MarkPopout.svelte';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
-    import { fetchBiblePassage, type Verse } from '$lib/utils/bible-passage-fetcher';
-    import { type BibleBooksResponse, fetchBibleBooks } from '$lib/utils/bible-book-fetcher';
+    import { fetchBiblePassages, type BookPassage } from '$lib/utils/bible-passage-fetcher';
     import { generateVerseFromReference } from '$lib/utils/reference';
 
     let markSpan: HTMLElement | null;
     let show = false;
+    let container: HTMLDivElement | undefined;
     let bubblingClick = false;
-    let fetchPromises: Promise<{ verses: Verse[]; book: BibleBooksResponse | null }>;
+    let passages: BookPassage[] | undefined;
     let verseDisplayName = '';
+    let singleChapter = true;
+    let singleBook = true;
 
-    const fetch = async (bookId: number, startVerse: string, endVerse: string) => {
-        const passagePromise = fetchBiblePassage(startVerse, endVerse);
-        const booksPromise = fetchBibleBooks(bookId);
+    const fetch = async (startVerse: string, endVerse: string) => {
+        const bookPassages = await fetchBiblePassages(startVerse, endVerse);
 
-        const promises = await Promise.all([passagePromise, booksPromise]);
-        const response = {
-            verses: promises[0],
-            book: promises[1],
-        };
-
-        if (response.verses.length == 1) {
-            const verse = response.verses[0];
+        if (
+            bookPassages.length === 1 &&
+            bookPassages[0]?.chapters.length === 1 &&
+            bookPassages[0]?.chapters[0]?.verses.length === 1
+        ) {
             verseDisplayName = generateVerseFromReference({
                 verseId: 0,
-                book: response.book!.name,
-                chapter: verse!.chapterNumber,
-                verse: verse!.verseNumber,
+                book: bookPassages[0].book.name,
+                chapter: bookPassages[0].chapters[0].number,
+                verse: bookPassages[0].chapters[0].verses[0]!.number,
             });
-        } else if (response.verses.length > 1) {
-            const startVerse = response.verses[0];
-            const endVerse = response.verses.at(-1);
+        } else {
+            const passageStart = bookPassages[0]!;
+            const passageEnd = bookPassages.at(-1)!;
+
             verseDisplayName = generateVerseFromReference({
                 startVerseId: 0,
-                startBook: response.book!.name,
-                startChapter: startVerse!.chapterNumber,
-                startVerse: startVerse!.verseNumber,
+                startBook: passageStart.book.name,
+                startChapter: passageStart.chapters[0]!.number,
+                startVerse: passageStart.chapters[0]!.verses[0]!.number,
                 endVerseId: 0,
-                endBook: response.book!.name,
-                endChapter: endVerse!.chapterNumber,
-                endVerse: endVerse!.verseNumber,
+                endBook: passageEnd.book.name,
+                endChapter: passageEnd.chapters.at(-1)!.number,
+                endVerse: passageEnd.chapters.at(-1)!.verses.at(-1)!.number,
             });
         }
 
-        return response;
+        singleBook = bookPassages.length === 1;
+        singleChapter = singleBook && bookPassages[0]!.chapters.length === 1;
+
+        return bookPassages;
     };
 
     onMount(() => {
-        window.onBibleReferenceClick = (spanId, startVerse, endVerse) => {
-            const bookId = Number(startVerse.substring(1, 4));
-            fetchPromises = fetch(bookId, startVerse, endVerse);
-
-            markSpan = document.getElementById(spanId);
-            show = true;
+        window.onBibleReferenceClick = async (spanId, startVerse, endVerse) => {
             bubblingClick = true;
+            passages = undefined;
+            show = true;
+            markSpan = document.getElementById(spanId);
+
+            passages = await fetch(startVerse, endVerse);
         };
     });
 
-    const onAnyClick = () => {
+    const onAnyClick = (e: MouseEvent) => {
         if (bubblingClick) {
             bubblingClick = false;
             return;
         }
 
-        show = false;
+        if (container) {
+            show = container.contains(e.target as Node);
+        }
     };
 </script>
 
 <svelte:window on:click={onAnyClick} />
 
-<MarkPopout bind:show bind:markSpan>
-    <div class="overflow-y-auto">
-        <div class="m-4 flex min-h-[64px] flex-col justify-center space-y-2">
-            {#await fetchPromises}
-                <CenteredSpinner />
-            {:then promise}
+{#if passages}
+    <MarkPopout bind:show bind:markSpan bind:container>
+        <div class="overflow-y-auto">
+            <div class="m-4 flex flex-col justify-center space-y-2">
                 <div class="mb-2 font-semibold">{verseDisplayName}</div>
-                {#each promise.verses as verse (verse)}
-                    <div><sup class="font-bold">{verse.verseNumber}</sup> {verse.text}</div>
+                {#each passages as passage (passage)}
+                    {#if !singleBook}
+                        <div class="font-semibold">{passage.book.name}</div>
+                    {/if}
+                    {#each passage.chapters as chapter (chapter)}
+                        {#if !singleChapter}
+                            <div class="font-semibold">Chapter {chapter.number}</div>
+                        {/if}
+                        {#each chapter.verses as verse (verse)}
+                            <div><sup class="font-bold">{verse.number}</sup> {verse.text}</div>
+                        {/each}
+                    {/each}
                 {/each}
-            {/await}
+            </div>
         </div>
-    </div>
-</MarkPopout>
+    </MarkPopout>
+{:else}
+    <MarkPopout bind:show bind:markSpan bind:container>
+        <div class="m-4 flex flex-col justify-center space-y-2">
+            <CenteredSpinner />
+        </div>
+    </MarkPopout>
+{/if}
