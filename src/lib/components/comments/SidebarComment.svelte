@@ -14,6 +14,8 @@
 
     let parentDiv: HTMLDivElement;
     let bubbledClick = false;
+    let focused = false;
+    let isCommenting: boolean;
 
     onMount(() => {
         const existing = $sidebarParentDivs.find((x) => x.threadId === thread.id);
@@ -27,11 +29,18 @@
 
     const focusParent = (fromInlineClick: boolean) => {
         bubbledClick = true;
-        parentDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (!focused) {
+            if (isCommenting) {
+                parentDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            } else {
+                parentDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
 
         for (let i = 0; i < $sidebarParentDivs.length; i++) {
             const currentParentDiv = $sidebarParentDivs[i]?.div;
             if (!thread.resolved && currentParentDiv === parentDiv) {
+                focused = true;
                 parentDiv.classList.add(borderClass);
                 highlightCommentSpan(fromInlineClick);
             } else {
@@ -59,6 +68,8 @@
             return;
         }
 
+        focused = false;
+
         if (parentDiv) {
             parentDiv.classList.remove(borderClass);
         }
@@ -81,5 +92,5 @@
     class="rounded-md border-2 {thread.resolved && 'bg-gray-100'}"
     on:click={() => focusParent(false)}
 >
-    <CommentThread {commentStores} threadId={thread.id} />
+    <CommentThread {commentStores} threadId={thread.id} bind:isCommenting />
 </div>

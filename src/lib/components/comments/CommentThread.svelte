@@ -160,7 +160,7 @@
 
     const scrollParentDivToBottom = () => {
         if (parentDiv) {
-            parentDiv.scrollTop = parentDiv.scrollHeight;
+            parentDiv.scrollTo({ top: parentDiv.scrollHeight, behavior: 'smooth' });
         }
     };
 
@@ -209,7 +209,7 @@
                     {/if}
                 </div>
             {:else}
-                <div class="mt-2">
+                <div class="mt-2 whitespace-pre-wrap">
                     {comment.comment}
                 </div>
             {/if}
