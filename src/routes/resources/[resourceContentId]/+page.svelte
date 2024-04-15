@@ -29,6 +29,7 @@
     import ContentArea from '$lib/components/resources/ContentArea.svelte';
     import Select from '$lib/components/Select.svelte';
     import InlineComment from '$lib/components/comments/InlineComment.svelte';
+    import VersePopout from '$lib/components/editorMarkPopouts/VersePopout.svelte';
     import { getSortedReferences } from '$lib/utils/reference';
     import LicenseInfoButton from './LicenseInfoButton.svelte';
     import type { CommentThreadsResponse } from '$lib/types/comments';
@@ -771,4 +772,5 @@
     </dialog>
 
     <InlineComment {commentStores} />
+    <VersePopout />
 {/await}

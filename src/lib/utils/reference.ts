@@ -21,3 +21,22 @@ export function getSortedReferences(resourceContent: ResourceContent) {
         }
     });
 }
+
+export function generateVerseFromReference(reference: PassageReference | VerseReference): string {
+    let label: string;
+    if (instanceOfPassageReference(reference)) {
+        if (reference.startBook === reference.endBook) {
+            if (reference.startChapter === reference.endChapter) {
+                label = `${reference.startBook} ${reference.startChapter}:${reference.startVerse}-${reference.endVerse}`;
+            } else {
+                label = `${reference.startBook} ${reference.startChapter}:${reference.startVerse}-${reference.endChapter}:${reference.endVerse}`;
+            }
+        } else {
+            label = `${reference.startBook} ${reference.startChapter}:${reference.startVerse} - ${reference.endBook} ${reference.endChapter}:${reference.endVerse}`;
+        }
+    } else {
+        label = `${reference.book} ${reference.chapter}:${reference.verse}`;
+    }
+
+    return label;
+}
