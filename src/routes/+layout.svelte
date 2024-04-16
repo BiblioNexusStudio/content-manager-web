@@ -61,13 +61,21 @@
         event.preventDefault();
         log.exception(event.reason);
     }
+
+    function onInteraction(e: MouseEvent) {
+        const element = e.target as HTMLElement;
+        if (element.dataset.appInsightsEventName) {
+            console.log(element.dataset.appInsightsEventName);
+            log.trackEvent(element.dataset.appInsightsEventName);
+        }
+    }
 </script>
 
 <svelte:head>
     <title>Aquifer Admin</title>
 </svelte:head>
 
-<svelte:window on:error={onError} on:unhandledrejection={onRejection} />
+<svelte:window on:error={onError} on:unhandledrejection={onRejection} on:click={onInteraction} />
 
 {#if $sideBarHiddenOnPage}
     <slot />
