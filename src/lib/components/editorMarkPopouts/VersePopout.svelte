@@ -13,9 +13,15 @@
     let verseDisplayName = '';
     let singleChapter = true;
     let singleBook = true;
+    let failedFetch = false;
 
     const fetch = async (startVerse: string, endVerse: string) => {
         const bookPassages = await fetchBiblePassages(startVerse, endVerse);
+
+        if (!bookPassages || bookPassages.length === 0) {
+            failedFetch = true;
+            return;
+        }
 
         if (
             bookPassages.length === 1 &&
@@ -99,7 +105,11 @@
 {:else}
     <MarkPopout bind:show bind:markSpan bind:container>
         <div class="m-4 flex flex-col justify-center space-y-2">
-            <CenteredSpinner />
+            {#if failedFetch}
+                Not Available
+            {:else}
+                <CenteredSpinner />
+            {/if}
         </div>
     </MarkPopout>
 {/if}
