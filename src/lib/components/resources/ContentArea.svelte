@@ -67,6 +67,7 @@
                     text={historySidebarOpen ? 'Hide Versions' : 'Show Versions'}
                 >
                     <button
+                        data-app-insights-event-name="toggle-history-pane-click"
                         class="btn btn-ghost btn-sm {historySidebarOpen && 'bg-[#e6f7fc]'}"
                         on:click={onToggleHistoryPane}
                     >
@@ -81,6 +82,7 @@
                     text={commentsSidebarOpen ? 'Hide Comments' : 'Show Comments'}
                 >
                     <button
+                        data-app-insights-event-name="toggle-comments-pane-click"
                         class="btn btn-ghost btn-sm {commentsSidebarOpen && 'bg-[#e6f7fc]'}"
                         on:click={() => (commentsSidebarOpen = !commentsSidebarOpen)}
                     >

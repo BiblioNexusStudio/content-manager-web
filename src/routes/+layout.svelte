@@ -65,8 +65,6 @@
     function onInteraction(e: MouseEvent) {
         let element = e.target as HTMLElement;
         for (let i = 0; i < 5; i++) {
-            console.log(element);
-
             if (element.dataset?.appInsightsEventName) {
                 console.log(element.dataset.appInsightsEventName);
                 log.trackEvent(element.dataset.appInsightsEventName);
