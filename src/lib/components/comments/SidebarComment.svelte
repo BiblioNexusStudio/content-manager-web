@@ -92,5 +92,5 @@
     class="rounded-md border-2 {thread.resolved && 'bg-gray-100'}"
     on:click={() => focusParent(false)}
 >
-    <CommentThread {commentStores} threadId={thread.id} bind:isCommenting />
+    <CommentThread componentSource="sidebar" {commentStores} threadId={thread.id} bind:isCommenting />
 </div>
