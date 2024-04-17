@@ -118,15 +118,27 @@
             <div class="text-xs font-bold">{column.label}</div>
             <div>
                 {#if column.sorted && column.sortable && sortAsc}
-                    <button class="flex w-12 items-center justify-end" on:click={() => setCurrentColumn(column.name)}>
+                    <button
+                        data-app-insights-event-name="projects-{column.name}-sort-click"
+                        class="flex w-12 items-center justify-end"
+                        on:click={() => setCurrentColumn(column.name)}
+                    >
                         <ChevronUpIcon />
                     </button>
                 {:else if column.sorted && column.sortable && !sortAsc}
-                    <button class="flex w-12 items-center justify-end" on:click={() => setCurrentColumn(column.name)}>
+                    <button
+                        data-app-insights-event-name="projects-{column.name}-sort-click"
+                        class="flex w-12 items-center justify-end"
+                        on:click={() => setCurrentColumn(column.name)}
+                    >
                         <ChevronDownIcon />
                     </button>
                 {:else if !column.sorted && column.sortable}
-                    <button class="flex w-12 items-center justify-end" on:click={() => setCurrentColumn(column.name)}>
+                    <button
+                        data-app-insights-event-name="projects-{column.name}-sort-click"
+                        class="flex w-12 items-center justify-end"
+                        on:click={() => setCurrentColumn(column.name)}
+                    >
                         <ChevronDownIcon />
                     </button>
                 {/if}

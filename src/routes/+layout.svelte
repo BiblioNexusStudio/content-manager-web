@@ -63,10 +63,17 @@
     }
 
     function onInteraction(e: MouseEvent) {
-        const element = e.target as HTMLElement;
-        if (element.dataset.appInsightsEventName) {
-            console.log(element.dataset.appInsightsEventName);
-            log.trackEvent(element.dataset.appInsightsEventName);
+        let element = e.target as HTMLElement;
+        for (let i = 0; i < 5; i++) {
+            console.log(element);
+
+            if (element.dataset?.appInsightsEventName) {
+                console.log(element.dataset.appInsightsEventName);
+                log.trackEvent(element.dataset.appInsightsEventName);
+                break;
+            }
+
+            element = element.parentNode as HTMLElement;
         }
     }
 </script>

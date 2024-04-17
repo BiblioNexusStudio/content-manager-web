@@ -49,6 +49,7 @@
 
 <div class="divider divider-horizontal w-0" />
 <button
+    data-app-insights-event-name="editor-toolbar-translate-click"
     class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
     on:click={onClick}
     disabled={isLoading}>Translate with AI</button

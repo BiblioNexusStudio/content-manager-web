@@ -24,6 +24,7 @@
 <div class="mt-4 flex ps-4">
     {#each tabs as tab, index (tab.name)}
         <button
+            data-app-insights-event-name="projects-{tab.name}-tab-click"
             class="me-4 py-2 text-lg {tab.current ? 'border-b-4 border-primary' : ''}"
             on:click={() => setCurrentTab(index)}
         >
