@@ -125,6 +125,7 @@
                         <div class="flex items-center justify-end">
                             <div class="tooltip tooltip-left" data-tip={$translate('sidebar.logout.value')}>
                                 <button
+                                    data-app-insights-event-name="logout-click"
                                     class="btn btn-link m-0 h-4 min-h-0 w-4 p-0 text-neutral-100"
                                     on:click={() => logout($page.url)}
                                 >

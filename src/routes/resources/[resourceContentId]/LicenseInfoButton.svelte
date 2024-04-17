@@ -20,6 +20,7 @@
 
 <div bind:this={container} class="dropdown dropdown-top">
     <div
+        data-app-insights-event-name="resource-license-info-click"
         tabindex="0"
         role="button"
         class="btn btn-ghost btn-sm text-gray-600 hover:bg-[#e6f7fc]"

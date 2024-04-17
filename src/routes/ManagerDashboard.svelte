@@ -154,6 +154,7 @@
             </div>
             <div class="grow"></div>
             <button
+                data-app-insights-event-name="manager-dashboard-bulk-assign-click"
                 class="btn btn-primary btn-sm"
                 on:click={() => (isAssignContentModalOpen = true)}
                 disabled={selectedReviewContentIds.length === 0 && selectedInProgressContentIds.length === 0}

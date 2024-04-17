@@ -117,6 +117,7 @@
         <div class="mx-4 text-3xl">{$translate('page.resources.header.value')}</div>
         <div class="flex flex-row space-x-2 overflow-x-auto px-4 py-2">
             <Select
+                appInsightsEventName="resources-languages-filter-selection"
                 bind:value={languageId}
                 isNumber={true}
                 class="select select-bordered min-w-[8rem] flex-grow"
@@ -126,6 +127,7 @@
                 ]}
             />
             <Select
+                appInsightsEventName="resources-resources-filter-selection"
                 bind:value={parentResourceId}
                 isNumber={true}
                 class="select select-bordered min-w-[10rem] flex-grow"
@@ -135,6 +137,7 @@
                 ]}
             />
             <Select
+                appInsightsEventName="resources-book-filter-selection"
                 class="select select-bordered min-w-[9rem] flex-grow"
                 options={[
                     { value: null, label: 'Select Book' },

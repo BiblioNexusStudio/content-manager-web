@@ -154,7 +154,7 @@
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Publisher Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
-            <div role="tablist" class="tabs-bordered tabs w-fit">
+            <div role="tablist" class="tabs tabs-bordered w-fit">
                 <button
                     on:click={selectTab(Tab.myWork)}
                     role="tab"
@@ -177,6 +177,7 @@
             <div class="grow"></div>
             {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending}
                 <button
+                    data-app-insights-event-name="publisher-dashboard-bulk-assign-click"
                     class="btn btn-primary btn-sm"
                     on:click={() => (isAssignContentModalOpen = true)}
                     disabled={selectedReviewContentIds.length === 0 && selectedInProgressContentIds.length === 0}
