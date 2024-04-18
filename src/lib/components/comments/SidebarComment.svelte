@@ -74,11 +74,13 @@
             parentDiv.classList.remove(borderClass);
         }
 
+        if (thread.resolved) return;
+
         const commentMark = $commentMarks.find((x) => x.threadId === thread.id);
         if (commentMark) {
             const span = document.getElementById(commentMark.spanId) as HTMLSpanElement;
-            span.classList.add(normalSpanBackgroundColorClass);
-            span.classList.remove(...selectedSpanBackgroundColorClass);
+            span?.classList.add(normalSpanBackgroundColorClass);
+            span?.classList.remove(...selectedSpanBackgroundColorClass);
         }
     };
 </script>
