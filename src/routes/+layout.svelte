@@ -61,13 +61,26 @@
         event.preventDefault();
         log.exception(event.reason);
     }
+
+    function onInteraction(e: MouseEvent) {
+        let element = e.target as HTMLElement;
+        for (let i = 0; i < 5; i++) {
+            if (element.dataset?.appInsightsEventName) {
+                console.log(element.dataset.appInsightsEventName);
+                log.trackEvent(element.dataset.appInsightsEventName);
+                break;
+            }
+
+            element = element.parentNode as HTMLElement;
+        }
+    }
 </script>
 
 <svelte:head>
     <title>Aquifer Admin</title>
 </svelte:head>
 
-<svelte:window on:error={onError} on:unhandledrejection={onRejection} />
+<svelte:window on:error={onError} on:unhandledrejection={onRejection} on:click={onInteraction} />
 
 {#if $sideBarHiddenOnPage}
     <slot />
@@ -112,6 +125,7 @@
                         <div class="flex items-center justify-end">
                             <div class="tooltip tooltip-left" data-tip={$translate('sidebar.logout.value')}>
                                 <button
+                                    data-app-insights-event-name="logout-click"
                                     class="btn btn-link m-0 h-4 min-h-0 w-4 p-0 text-neutral-100"
                                     on:click={() => logout($page.url)}
                                 >

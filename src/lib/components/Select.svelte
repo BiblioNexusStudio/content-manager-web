@@ -6,6 +6,7 @@
     export let value: string | number | null;
     export let disabled = false;
     export let onChange: ((value: string | number | null) => void) | undefined = undefined;
+    export let appInsightsEventName: string | undefined = undefined;
 
     function handleChange(event: Event) {
         const selectTarget = event.target as HTMLSelectElement;
@@ -22,6 +23,6 @@
 
 <select {disabled} class={$$props.class} on:change={handleChange} {value}>
     {#each options as option (option.value)}
-        <option value={option.value}>{option.label}</option>
+        <option data-app-insights-event-name={appInsightsEventName} value={option.value}>{option.label}</option>
     {/each}
 </select>

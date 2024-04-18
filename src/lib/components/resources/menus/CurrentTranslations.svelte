@@ -34,7 +34,7 @@
 
 <div class="dropdown ms-2">
     <button class="btn btn-ghost flex flex-nowrap px-1 hover:bg-[#e6f6fc]">
-        <span>Translations</span>
+        <span data-app-insights-event-name="translations-menu-click">Translations</span>
         <span class="flex h-6 w-6 items-center justify-center rounded-full border border-blue-300 bg-blue-50"
             >{numberOfTranslations}</span
         >
@@ -43,6 +43,7 @@
         {#if canCreateTranslation && englishTranslation?.hasPublished && languages.length !== translations.length}
             <div class="mb-4 mt-2 flex flex-col place-items-end border-y px-4 py-3">
                 <button
+                    data-app-insights-event-name="translations-new-menu-click"
                     class="flex w-full items-center justify-start rounded-md border border-[#bbe7f7] bg-[#e6f6fc] px-2 py-1 text-lg font-bold"
                     on:click={() => openModal()}
                 >
@@ -64,7 +65,10 @@
                 </div>
             {/if}
             {#if project}
-                <div class="mb-4 flex items-center justify-between px-4">
+                <div
+                    class="mb-4 flex items-center justify-between px-4"
+                    data-app-insights-event-name="translations-project-menu-click"
+                >
                     <span class="text-lg font-bold">Project:</span>
                     <span class="btn-link ms-8 flex w-72 justify-end text-lg font-bold no-underline"
                         ><a href={`/projects/${project.id}`} class="truncate">{project.name}</a></span
@@ -75,7 +79,10 @@
                 <div class="mb-4 w-full border-b"></div>
             {/if}
             {#each filteredMappedTranslations as translation (translation.contentId)}
-                <div class="mb-2 flex items-center justify-between px-4">
+                <div
+                    class="mb-2 flex items-center justify-between px-4"
+                    data-app-insights-event-name="translations-language-menu-click"
+                >
                     <span class="btn-link me-4 whitespace-nowrap text-lg font-bold no-underline"
                         ><a href={`/resources/${translation.contentId}`}>{translation.languageName}</a></span
                     >

@@ -429,7 +429,11 @@
                             </button>
                         {/if}
                         {#if canUnpublish}
-                            <button class="btn btn-primary ms-2" class:btn-disabled={isTransacting} on:click={unpublish}
+                            <button
+                                data-app-insights-event-name="resource-unpublish-click"
+                                class="btn btn-primary ms-2"
+                                class:btn-disabled={isTransacting}
+                                on:click={unpublish}
                                 >Unpublish
                             </button>
                         {/if}

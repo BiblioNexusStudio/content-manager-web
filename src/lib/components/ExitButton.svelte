@@ -8,4 +8,8 @@
     }
 </script>
 
-<button class="btn btn-outline btn-primary border-2 font-extrabold" on:click={goBack}>Exit</button>
+<button
+    data-app-insights-event-name="exit-button-click"
+    class="btn btn-outline btn-primary border-2 font-extrabold"
+    on:click={goBack}>Exit</button
+>

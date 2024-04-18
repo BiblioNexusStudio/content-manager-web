@@ -15,6 +15,7 @@
     export let parentDiv: HTMLDivElement | undefined = undefined;
     export let isCommenting = false;
     export let threadId: number;
+    export let componentSource: string;
 
     export let commentStores: CommentStores;
     const { commentThreads, createNewThread, commentMarks } = commentStores;
@@ -188,7 +189,11 @@
                         class="border-primary text-primary"
                         text="Mark Resolved and Hide"
                     >
-                        <button class="me-1 text-primary" on:click={onResolveClick}><CheckLongIcon /></button>
+                        <button
+                            data-app-insights-event-name="{componentSource}-comment-resolve-click"
+                            class="me-1 text-primary"
+                            on:click={onResolveClick}><CheckLongIcon /></button
+                        >
                     </Tooltip>
                 {/if}
             </div>
@@ -203,6 +208,7 @@
                     {:else}
                         <CommentButton on:click={onCancelClick}>Cancel</CommentButton>
                         <CommentButton
+                            appInsightsEventName="{componentSource}-comment-save-click"
                             disabled={currentCommentValue === '' || currentCommentValue === previousCommentValue}
                             on:click={(e) => onEditCommentClick(e, comment)}>Save</CommentButton
                         >
@@ -217,16 +223,24 @@
         {#if i !== activeThread.comments.length - 1}
             {#if comment.user.id === $currentUser?.id && !isCommenting && !activeThread.resolved}
                 <div class="flex justify-end">
-                    <CommentButton on:click={() => onEditClick(comment)}>Edit</CommentButton>
+                    <CommentButton
+                        appInsightsEventName="{componentSource}-comment-edit-click"
+                        on:click={() => onEditClick(comment)}>Edit</CommentButton
+                    >
                 </div>
             {/if}
             <div class="divider mx-2 my-0" />
         {:else if !isCommenting && !activeThread.resolved}
             <div class="flex justify-end">
                 {#if comment.user.id === $currentUser?.id}
-                    <CommentButton on:click={() => onEditClick(comment)}>Edit</CommentButton>
+                    <CommentButton
+                        appInsightsEventName="{componentSource}-comment-edit-click"
+                        on:click={() => onEditClick(comment)}>Edit</CommentButton
+                    >
                 {/if}
-                <CommentButton on:click={onReplyClick}>Reply</CommentButton>
+                <CommentButton appInsightsEventName="{componentSource}-comment-reply-click" on:click={onReplyClick}
+                    >Reply</CommentButton
+                >
             </div>
         {:else}
             <div class="h-3" />
@@ -250,8 +264,10 @@
                     <div class="loading loading-dots my-3 me-4 text-primary"></div>
                 {:else}
                     <CommentButton on:click={onCancelClick}>Cancel</CommentButton>
-                    <CommentButton disabled={currentCommentValue === ''} on:click={onNewCommentClick}
-                        >Comment</CommentButton
+                    <CommentButton
+                        appInsightsEventName="{componentSource}-comment-create-click"
+                        disabled={currentCommentValue === ''}
+                        on:click={onNewCommentClick}>Comment</CommentButton
                     >
                 {/if}
             </div>

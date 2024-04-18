@@ -4,5 +4,11 @@
 
 <div class="flex items-center">
     <label for="show-closed" class="text-md">Show Closed</label>
-    <input type="checkbox" id="show-closed" bind:checked={showClosed} class="ms-4" />
+    <input
+        data-app-insights-event-name="projects-show-closed-click"
+        type="checkbox"
+        id="show-closed"
+        bind:checked={showClosed}
+        class="ms-4"
+    />
 </div>

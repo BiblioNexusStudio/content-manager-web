@@ -174,6 +174,7 @@
             {#if canEdit}
                 {#each formattingOptions(editor) as option (option.name)}
                     <button
+                        data-app-insights-event-name="editor-toolbar-{option.name}-click"
                         class="btn btn-xs px-1 {option.disabled && '!bg-base-200'} {option.isActive
                             ? 'btn-primary'
                             : 'btn-link hover:bg-[#e6f7fc]'}"
@@ -196,6 +197,7 @@
                     text="Add Comment"
                 >
                     <button
+                        data-app-insights-event-name="editor-toolbar-comment-click"
                         class="btn btn-xs px-1 {commentOptions.disabled && '!bg-base-200'} {commentOptions.isActive
                             ? 'btn-primary'
                             : 'btn-link hover:bg-[#e6f7fc]'}"

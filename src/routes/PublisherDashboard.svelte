@@ -177,6 +177,7 @@
             <div class="grow"></div>
             {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending}
                 <button
+                    data-app-insights-event-name="publisher-dashboard-bulk-assign-click"
                     class="btn btn-primary btn-sm"
                     on:click={() => (isAssignContentModalOpen = true)}
                     disabled={selectedReviewContentIds.length === 0 && selectedInProgressContentIds.length === 0}

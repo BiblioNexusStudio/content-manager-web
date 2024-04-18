@@ -56,5 +56,12 @@
 <svelte:window on:click={onAnyClick} />
 
 <MarkPopout bind:show bind:container bind:markSpan>
-    <CommentThread {commentStores} parentDiv={container} bind:isCommenting bind:showParent={show} bind:threadId />
+    <CommentThread
+        componentSource="inline"
+        {commentStores}
+        parentDiv={container}
+        bind:isCommenting
+        bind:showParent={show}
+        bind:threadId
+    />
 </MarkPopout>

@@ -9,4 +9,8 @@
     }
 </script>
 
-<button class="btn btn-link btn-sm m-0 me-2 min-h-0 p-0 text-black" on:click={goBack}><ArrowLeftSmall /></button>
+<button
+    data-app-insights-event-name="back-arrow-click"
+    class="btn btn-link btn-sm m-0 me-2 min-h-0 p-0 text-black"
+    on:click={goBack}><ArrowLeftSmall /></button
+>

@@ -22,6 +22,14 @@ const additionalProperties = {
     environment: config.PUBLIC_ENV,
 };
 
+const getUserProperties = () => {
+    const user = get(profile);
+    return {
+        userName: user?.name ?? 'undefined',
+        userEmail: user?.email ?? 'undefined',
+    };
+};
+
 export const log = {
     exception: (uncastError: unknown) => {
         if (uncastError && typeof uncastError === 'object' && 'message' in uncastError) {
@@ -43,7 +51,7 @@ export const log = {
                     { exception: error },
                     {
                         ...additionalProperties,
-                        userName: get(profile)?.name ?? 'undefined',
+                        ...getUserProperties(),
                         isAuthenticated: get(isAuthenticatedStore) ?? 'undefined',
                         commitSha: config.PUBLIC_COMMIT_SHA,
                     }
@@ -55,7 +63,20 @@ export const log = {
         browser &&
             appInsights.trackPageView({
                 name: routeId,
-                properties: additionalProperties,
+                properties: {
+                    ...additionalProperties,
+                    ...getUserProperties(),
+                },
+            });
+    },
+    trackEvent: (eventName: string) => {
+        browser &&
+            appInsights.trackEvent({
+                name: eventName,
+                properties: {
+                    ...additionalProperties,
+                    ...getUserProperties(),
+                },
             });
     },
 };
