@@ -63,10 +63,11 @@
     }
 
     function onInteraction(e: MouseEvent) {
-        let element = e.target as HTMLElement;
+        let element = e.target as HTMLElement | null;
         for (let i = 0; i < 5; i++) {
+            if (element === null) break;
+
             if (element.dataset?.appInsightsEventName) {
-                console.log(element.dataset.appInsightsEventName);
                 log.trackEvent(element.dataset.appInsightsEventName);
                 break;
             }
