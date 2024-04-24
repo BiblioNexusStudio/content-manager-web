@@ -23,6 +23,16 @@ export const userCan = derived(currentUser, (user) => {
     };
 });
 
+export const userCanOnly = derived(currentUser, (user) => {
+    return (permission: Permission) => {
+        if (user === null) {
+            throw new Error('You must `await parent()` in a +page.ts before you can use `userCan`.');
+        }
+        console.log(user.permissions);
+        return user.permissions.includes(permission) && user.permissions.length == 1;
+    };
+});
+
 export const userIsInCompany = derived(currentUser, (user) => {
     return (companyId: number | undefined) => {
         if (user === null) {

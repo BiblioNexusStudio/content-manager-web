@@ -10,7 +10,7 @@
     import ProjectsIcon from '$lib/icons/ProjectsIcon.svelte';
     import { navigating, page } from '$app/stores';
     import { _ as translate } from 'svelte-i18n';
-    import { logout, profile, Permission, userCan } from '$lib/stores/auth';
+    import { logout, profile, Permission, userCan, userCanOnly } from '$lib/stores/auth';
     import { log } from '$lib/logger';
     import { sideBarHiddenOnPage } from '$lib/stores/app';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
@@ -25,11 +25,13 @@
             name: $translate('sidebar.dashboard.value'),
             icon: BarChartIcon,
             href: '/',
+            hidden: !!$userCanOnly(Permission.ReadReports),
         },
         {
             name: $translate('sidebar.resources.value'),
             icon: SquareStackIcon,
             href: '/resources',
+            hidden: !!$userCanOnly(Permission.ReadReports),
         },
         {
             name: $translate('sidebar.reporting.value'),
