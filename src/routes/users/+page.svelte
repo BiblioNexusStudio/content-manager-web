@@ -34,33 +34,31 @@
     <CenteredSpinner />
 {:then [userData, companies]}
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
-        <div class="mt-4 flex justify-between">
+        <div class="my-4">
             <div class="text-3xl">{$translate('page.users.header.value')}</div>
-            <div class="relative w-3/12 justify-self-end text-gray-600">
-                <div class="flex">
-                    <div class="flex w-2/5 items-center pr-20">
-                        <button class="btn btn-primary me-4" on:click={openModal}>Add User</button>
-                    </div>
-                    <input
-                        bind:value={filterBySearch}
-                        type="search"
-                        class="min-h-12 w-full rounded-md border-[1px] py-2 ps-5 text-sm text-gray-900 focus:outline-none"
-                        placeholder={$translate('page.resources.searchBox.value')}
-                    />
-                </div>
-            </div>
         </div>
-        {#if $userCan(Permission.ReadAllUsers)}
-            <Select
-                class="select select-bordered max-w-xs"
-                options={[
-                    { value: null, label: 'Select Company' },
-                    ...companies.map((c) => ({ value: c.id, label: c.name })),
-                ]}
-                isNumber={true}
-                bind:value={filterByCompanyId}
-            />
-        {/if}
+        <div class="flex justify-between">
+            <div class="flex w-1/2 space-x-8">
+                {#if $userCan(Permission.ReadAllUsers)}
+                    <Select
+                        class="select select-bordered max-w-xs"
+                        options={[
+                            { value: null, label: 'Select Company' },
+                            ...companies.map((c) => ({ value: c.id, label: c.name })),
+                        ]}
+                        isNumber={true}
+                        bind:value={filterByCompanyId}
+                    />
+                {/if}
+                <input
+                    bind:value={filterBySearch}
+                    type="search"
+                    class="min-h-12 w-[320px] rounded-md border-[1px] py-2 ps-5 text-sm text-gray-900 focus:outline-none"
+                    placeholder={$translate('page.resources.searchBox.value')}
+                />
+            </div>
+            <button class="btn btn-primary" on:click={openModal}>Add</button>
+        </div>
         <div class="flex flex-row space-x-4 overflow-y-hidden">
             <div class="my-4 max-h-full flex-[2] overflow-y-auto rounded border-2">
                 <table class="table table-pin-rows">
@@ -75,12 +73,12 @@
                     </thead>
                     <tbody>
                         {#each filterUsers(userData, filterBySearch, filterByCompanyId) as user (user.email)}
-                            <tr>
-                                <td class="p-5">{user.name}</td>
-                                <td class="p-5">{user.email}</td>
-                                <td class="p-5">{user.role}</td>
-                                <td class="p-5">{user.company.name}</td>
-                                <td class="p-5">{user.isEmailVerified ? 'Verified' : 'Invited'}</td>
+                            <tr class="text-xs">
+                                <td class="px-5">{user.name}</td>
+                                <td class="px-5">{user.email}</td>
+                                <td class="px-5">{user.role}</td>
+                                <td class="px-5">{user.company.name}</td>
+                                <td class="px-5">{user.isEmailVerified ? 'Verified' : 'Invited'}</td>
                             </tr>
                         {/each}
                     </tbody>
