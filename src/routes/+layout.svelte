@@ -15,8 +15,7 @@
     import { sideBarHiddenOnPage } from '$lib/stores/app';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
 
-    $: userEmail = $profile?.email ?? ' '; // set to avoid flashing undefined
-    $: userFullName = $profile?.name ?? ' ';
+    $: userFullName = $profile?.name ?? ' '; // set to avoid flashing undefined
 
     $: log.pageView($page.route.id ?? '');
 
@@ -119,7 +118,7 @@
 
                 <div class="mx-2 flex flex-grow flex-col justify-end text-neutral-100">
                     <div class="divider" />
-                    <div class="grid grid-cols-4 content-center">
+                    <div class="mb-2 grid grid-cols-4 content-center">
                         <div class="col-span-3 text-sm font-bold text-white">
                             {userFullName}
                         </div>
@@ -135,7 +134,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mb-2 text-[10px]">{userEmail}</div>
                 </div>
             </div>
         </div>
