@@ -449,13 +449,8 @@
                             <button
                                 class="btn btn-primary ms-2"
                                 class:btn-disabled={isTransacting}
-                                on:click={openAquiferizeModal}
-                                >{#if isInTranslationWorkflow}
-                                    Translate
-                                {:else}
-                                    Aquiferize
-                                {/if}
-                            </button>
+                                on:click={openAquiferizeModal}>Create Draft</button
+                            >
                         {/if}
                     </div>
                 </div>
