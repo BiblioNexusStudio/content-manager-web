@@ -14,19 +14,14 @@
     const inProgressWidth = getWidth(inProgressCount);
     const inReviewWidth = getWidth(inReviewCount);
     const completeWidth = getWidth(completeCount);
-
-    console.log(notStartedCount);
-    console.log(total);
-    console.log(inProgressCount);
-    console.log(inProgressWidth);
 </script>
 
 <div class="flex w-full flex-col">
     <div class="flex h-4 w-full flex-row border border-black">
-        <div class="bg-white" style={`width: ${notStartedWidth}%`}></div>
-        <div class="bg-primary bg-opacity-30" style={`width: ${inProgressWidth}%`}></div>
-        <div class="bg-primary" style={`width: ${inReviewWidth}%`}></div>
         <div class="bg-neutral" style={`width: ${completeWidth}%`}></div>
+        <div class="bg-primary" style={`width: ${inReviewWidth}%`}></div>
+        <div class="bg-primary bg-opacity-30" style={`width: ${inProgressWidth}%`}></div>
+        <div class="bg-white" style={`width: ${notStartedWidth}%`}></div>
     </div>
 
     {#if showLegend}
