@@ -60,9 +60,10 @@
         </div>
         <div>
             <ProjectViewTabs />
-            {#if projectResponse?.counts?.inProgress != 0 || projectResponse?.counts?.inReview != 0 || projectResponse?.counts?.completed != 0}
+            {#if projectResponse?.counts?.notStarted !== 0 || projectResponse?.counts?.inProgress !== 0 || projectResponse?.counts?.inReview !== 0 || projectResponse?.counts?.completed !== 0}
                 <div class="mb-8 w-1/2 pe-8">
                     <ProjectProgressBar
+                        notStartedCount={projectResponse?.counts?.notStarted}
                         inProgressCount={projectResponse?.counts?.inProgress}
                         inReviewCount={projectResponse?.counts?.inReview}
                         completeCount={projectResponse?.counts?.completed}

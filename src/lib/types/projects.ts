@@ -11,6 +11,7 @@ export interface ProjectListResponse {
 }
 
 export interface ProjectResourceStatusCounts {
+    notStarted: number;
     inProgress: number;
     inReview: number;
     completed: number;
