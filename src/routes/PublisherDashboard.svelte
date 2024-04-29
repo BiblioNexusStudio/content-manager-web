@@ -74,6 +74,8 @@
     function toggleResourceSelection(contentId: number, status: ResourceContentStatusEnum | null = null) {
         return () => {
             if (
+                status === ResourceContentStatusEnum.New ||
+                status === ResourceContentStatusEnum.TranslationNotStarted ||
                 status === ResourceContentStatusEnum.AquiferizeInProgress ||
                 status === ResourceContentStatusEnum.TranslationInProgress
             ) {
