@@ -110,7 +110,9 @@
     }
 
     function isProjectClosed(project: ProjectListResponse) {
-        return project.counts.inProgress === 0 && project.counts.inReview === 0 && project.isStarted;
+        return (
+            project.counts.notStarted + project.counts.inProgress + project.counts.inReview === 0 && project.isStarted
+        );
     }
 </script>
 
