@@ -34,7 +34,11 @@
         const lowerCaseSearchValue = projectSearchValue.toLowerCase();
 
         const unsortedProjects = projects.filter((project) => {
-            const isClosed = project.counts.inProgress === 0 && project.counts.inReview === 0 && project.isStarted;
+            const isClosed =
+                project.counts.notStarted === 0 &&
+                project.counts.inProgress === 0 &&
+                project.counts.inReview === 0 &&
+                project.isStarted;
             const matchesSearchValue = [project.name].some((field) =>
                 field.toLowerCase().includes(lowerCaseSearchValue)
             );
@@ -106,7 +110,9 @@
     }
 
     function isProjectClosed(project: ProjectListResponse) {
-        return project.counts.inProgress === 0 && project.counts.inReview === 0 && project.isStarted;
+        return (
+            project.counts.notStarted + project.counts.inProgress + project.counts.inReview === 0 && project.isStarted
+        );
     }
 </script>
 
@@ -157,6 +163,7 @@
         </div>
         <div class="flex items-center border-b px-4 py-3 text-xs">
             <ProjectProgressBar
+                notStartedCount={row.counts.notStarted}
                 inProgressCount={row.counts.inProgress}
                 inReviewCount={row.counts.inReview}
                 completeCount={row.counts.completed}

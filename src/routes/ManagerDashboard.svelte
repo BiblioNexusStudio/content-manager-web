@@ -67,6 +67,8 @@
         return () => {
             if (
                 status === null ||
+                status === ResourceContentStatusEnum.New ||
+                status === ResourceContentStatusEnum.TranslationNotStarted ||
                 status === ResourceContentStatusEnum.AquiferizeInProgress ||
                 status === ResourceContentStatusEnum.TranslationInProgress
             ) {

@@ -3,12 +3,12 @@
     import Content from '$lib/components/resources/Content.svelte';
     import { beforeNavigate, goto } from '$app/navigation';
     import {
-        type ResourceContent,
         type ContentTranslation,
         MediaTypeEnum,
+        type ResourceContent,
         type TiptapContentItem,
     } from '$lib/types/resources';
-    import { postToApi, patchToApi } from '$lib/utils/http-service';
+    import { patchToApi, postToApi } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import UserSelector from './UserSelector.svelte';
@@ -66,6 +66,7 @@
     let englishContentTranslation: ContentTranslation | undefined;
     let createTranslationFromDraft = false;
     let isInTranslationWorkflow = false;
+    let isNewStatus = false;
     let mediaType: MediaTypeEnum | undefined;
     let selectedStepNumber: number | undefined;
     let isShowingDiffs = false;
@@ -113,6 +114,8 @@
             resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
             resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending;
 
+        isNewStatus = resourceContent.status === ResourceContentStatusEnum.New;
+
         canMakeContentEdits =
             $userCan(Permission.EditContent) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
@@ -123,7 +126,7 @@
             currentUserIsAssigned;
 
         canAquiferize =
-            $userCan(Permission.CreateContent) &&
+            $userCan(Permission.EditContent) &&
             (resourceContent.status === ResourceContentStatusEnum.New ||
                 resourceContent.status === ResourceContentStatusEnum.Complete ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted);
@@ -327,12 +330,20 @@
         );
     }
 
-    async function translate() {
-        await takeActionAndRefresh(() =>
-            postToApi(`/admin/resources/content/${resourceContentId}/assign-translator`, {
-                assignedUserId: assignToUserId,
-            })
-        );
+    async function assignDraftToEditor() {
+        if (isInTranslationWorkflow) {
+            await takeActionAndRefresh(() =>
+                postToApi(`/admin/resources/content/${resourceContentId}/assign-translator`, {
+                    assignedUserId: assignToUserId,
+                })
+            );
+        } else if (isNewStatus) {
+            await takeActionAndRefresh(() =>
+                postToApi(`/admin/resources/content/${resourceContentId}/assign-editor`, {
+                    assignedUserId: assignToUserId,
+                })
+            );
+        }
     }
 
     function calculateWordCount(wordCounts: number[]) {
@@ -452,10 +463,12 @@
                                 on:click={openAquiferizeModal}
                                 >{#if isInTranslationWorkflow}
                                     Translate
+                                {:else if isNewStatus}
+                                    Assign
                                 {:else}
-                                    Aquiferize
-                                {/if}
-                            </button>
+                                    Create Draft
+                                {/if}</button
+                            >
                         {/if}
                     </div>
                 </div>
@@ -621,7 +634,7 @@
                     <div class="flex-grow" />
                     <button
                         class="btn btn-primary"
-                        on:click={isInTranslationWorkflow ? translate : aquiferize}
+                        on:click={isInTranslationWorkflow || isNewStatus ? assignDraftToEditor : aquiferize}
                         disabled={assignToUserId === null || isTransacting}>Assign</button
                     >
                     <button class="btn btn-outline btn-primary" on:click={() => aquiferizeModal.close()}>Cancel</button>
