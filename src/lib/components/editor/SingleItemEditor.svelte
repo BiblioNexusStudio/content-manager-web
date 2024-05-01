@@ -11,7 +11,6 @@
     export let wordCountsByStep: number[];
     export let canEdit: boolean;
     export let canComment: boolean;
-    export let canAiTranslate: boolean;
     export let resourceContent: ResourceContent;
     export let commentStores: CommentStores;
 
@@ -41,7 +40,7 @@
 </script>
 
 <div class="flex h-full flex-col space-y-4">
-    <EditorToolbar {editor} {canEdit} {canAiTranslate} {commentStores} {resourceContent} bind:isLoading />
+    <EditorToolbar {editor} {canEdit} {commentStores} {resourceContent} bind:isLoading />
 
     <TiptapRenderer
         {tiptapJson}

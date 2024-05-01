@@ -18,7 +18,6 @@
     export let resourceContent: ResourceContent;
     export let canEdit = false;
     export let canComment = false;
-    export let canAiTranslate = false;
     export let wordCountsByStep: number[] | undefined = undefined;
     export let snapshotOrVersion: Snapshot | Version | undefined = undefined;
     export let selectedStepNumber: number | undefined;
@@ -44,6 +43,5 @@
         {canEdit}
         {canComment}
         {commentStores}
-        {canAiTranslate}
     />
 {/if}

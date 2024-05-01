@@ -19,11 +19,9 @@
     export let editor: Editor | undefined;
     export let commentStores: CommentStores;
     export let canEdit: boolean;
-    export let canAiTranslate: boolean;
     export let resourceContent: ResourceContent;
     export let isLoading: boolean;
 
-    let hadMachineTranslation = false;
     let isCommentBoxOpen = false;
     const { createNewThread } = commentStores;
 
@@ -211,10 +209,8 @@
                 </Tooltip>
             {/if}
         </div>
-        {#if canAiTranslate && canEdit && !hadMachineTranslation}
-            <div class="mt-[-1px] scale-[85%]">
-                <AiTranslateToolbarButton {editor} {resourceContent} bind:hadMachineTranslation bind:isLoading />
-            </div>
-        {/if}
+        <div class="flex">
+            <AiTranslateToolbarButton {editor} {canEdit} {resourceContent} bind:isLoading />
+        </div>
     {/if}
 </div>
