@@ -4,7 +4,7 @@ import type { ResourceContentStatusEnum } from '$lib/types/base';
 import { ssp, searchParametersForLoad, buildQueryString } from '$lib/utils/sveltekit-search-params';
 import { get } from 'svelte/store';
 import { resourcesPerPage } from '$lib/stores/resources';
-import { Permission, userCanOnly } from '$lib/stores/auth';
+import { Permission, userCan } from '$lib/stores/auth';
 import { redirect } from '@sveltejs/kit';
 
 export const _searchParamsConfig = {
@@ -23,8 +23,8 @@ export const load: PageLoad = async ({ parent, url, fetch }) => {
 
     await parent();
 
-    if (get(userCanOnly)(Permission.ReadReports)) {
-        throw redirect(302, '/reporting');
+    if (!get(userCan)(Permission.ReadResources)) {
+        throw redirect(302, '/');
     }
 
     return {

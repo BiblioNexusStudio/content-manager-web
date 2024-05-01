@@ -1,4 +1,4 @@
-import { Permission, userCan, userCanOnly } from '$lib/stores/auth';
+import { Permission, userCan } from '$lib/stores/auth';
 import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
 import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
@@ -17,8 +17,6 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             companies,
             roles,
         };
-    } else if (get(userCanOnly)(Permission.ReadReports)) {
-        throw redirect(302, '/reporting');
     } else {
         throw redirect(302, '/');
     }
