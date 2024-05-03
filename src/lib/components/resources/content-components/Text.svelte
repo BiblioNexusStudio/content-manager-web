@@ -9,17 +9,18 @@
     import { onMount } from 'svelte';
     import TiptapDiffRenderer from '$lib/components/editor/TiptapDiffRenderer.svelte';
     import type { CommentStores } from '$lib/stores/comments';
+    import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
 
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let canEdit: boolean;
     export let canComment: boolean;
-    export let canAiTranslate: boolean;
     export let wordCountsByStep: number[] | undefined;
     export let resourceContent: ResourceContent;
     export let snapshotOrVersion: Snapshot | Version | undefined;
     export let isComparingToCurrent: boolean;
     export let selectedStepNumber: number | undefined;
     export let commentStores: CommentStores;
+    export let machineTranslationStore: MachineTranslationStore;
 
     onMount(() => (selectedStepNumber ||= 1));
 
@@ -103,9 +104,9 @@
                         itemIndex={index}
                         {canEdit}
                         {canComment}
-                        {canAiTranslate}
                         {commentStores}
                         {resourceContent}
+                        {machineTranslationStore}
                     />
                 {:else if isComparingToCurrent}
                     <TiptapDiffRenderer

@@ -128,11 +128,12 @@ export interface ResourceContent {
     content: Content;
     isPublished: boolean;
     isDraft: boolean;
+    resourceContentVersionId: boolean;
     wordCount: number | null;
     snapshots: BasicSnapshot[];
     versions: BasicVersion[];
     commentThreads: CommentThreadsResponse;
-    hadMachineTranslation: boolean | null;
+    machineTranslation: MachineTranslation | null;
 }
 
 export interface ParentResourceLicenseInfo {
@@ -188,4 +189,13 @@ export interface Version {
 export interface Project {
     id: number;
     name: string;
+}
+
+export interface MachineTranslation {
+    id: number;
+    userId: number;
+    userRating?: number;
+    improveClarity?: boolean;
+    improveTone?: boolean;
+    improveConsistency?: boolean;
 }
