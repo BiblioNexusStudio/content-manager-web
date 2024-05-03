@@ -4,6 +4,7 @@
     import { beforeNavigate, goto } from '$app/navigation';
     import {
         type ContentTranslation,
+        type MachineTranslation,
         MediaTypeEnum,
         type ResourceContent,
         type TiptapContentItem,
@@ -35,10 +36,15 @@
     import type { CommentThreadsResponse } from '$lib/types/comments';
     import { createSidebarContentStore } from './sidebar-content-store';
     import CommentsSidebar from '$lib/components/comments/CommentsSidebar.svelte';
+    import { createMachineTranslationStore, type MachineTranslationStore } from '$lib/stores/machineTranslation';
+    import MachineTranslationRating from '$lib/components/MachineTranslationRating.svelte';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
     let removeAllInlineThreads: Readable<() => void>;
+    let machineTranslationStore: MachineTranslationStore;
+    let machineTranslation: Writable<MachineTranslation>;
+    let promptForMachineTranslationRating: Writable<boolean>;
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -169,6 +175,14 @@
             editableContentStore.setOriginalAndCurrent(resourceContent.content);
         }
         editableDisplayNameStore.setOriginalAndCurrent(resourceContent.displayName);
+
+        machineTranslationStore = createMachineTranslationStore();
+        promptForMachineTranslationRating = machineTranslationStore.promptForRating;
+        machineTranslation = machineTranslationStore.machineTranslation;
+        if (resourceContent.machineTranslation !== null) {
+            machineTranslation.set(resourceContent.machineTranslation);
+            promptForMachineTranslationRating.set(!$machineTranslation.userRating);
+        }
 
         commentStores = createCommentStores();
         commentThreads = commentStores.commentThreads;
@@ -511,6 +525,7 @@
                                 canComment={resourceContent.isDraft}
                                 {resourceContent}
                                 {commentStores}
+                                {machineTranslationStore}
                             />
                         </div>
                         <div class="flex flex-row items-center space-x-2">
@@ -565,6 +580,7 @@
                                     snapshotOrVersion={$sidebarContentStore.selected}
                                     {resourceContent}
                                     {commentStores}
+                                    {machineTranslationStore}
                                 />
                                 {#if mediaType === MediaTypeEnum.text}
                                     <div class="flex h-10 flex-row items-center text-sm text-gray-500">
@@ -644,6 +660,18 @@
                     Choose an Editor
                 {/if}
             </h3>
+            {#if $promptForMachineTranslationRating && $userIsEqual($machineTranslation?.userId)}
+                <div class="mb-8 flex flex-col justify-start gap-4">
+                    <div class="font-semibold text-error">Please rate the AI translation before reassigning.</div>
+                    <div>
+                        <MachineTranslationRating
+                            {machineTranslationStore}
+                            showingInPrompt={true}
+                            improvementHorizontalPositionPx={0}
+                        />
+                    </div>
+                </div>
+            {/if}
             <div class="flex flex-col">
                 <UserSelector
                     users={usersThatCanBeAssigned()}

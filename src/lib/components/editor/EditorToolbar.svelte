@@ -15,12 +15,14 @@
     import Tooltip from '$lib/components/Tooltip.svelte';
     import type { CommentStores } from '$lib/stores/comments';
     import type { ResourceContent } from '$lib/types/resources';
+    import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
 
     export let editor: Editor | undefined;
     export let commentStores: CommentStores;
     export let canEdit: boolean;
     export let resourceContent: ResourceContent;
     export let isLoading: boolean;
+    export let machineTranslationStore: MachineTranslationStore;
 
     let isCommentBoxOpen = false;
     const { createNewThread } = commentStores;
@@ -210,7 +212,7 @@
             {/if}
         </div>
         <div class="flex">
-            <AiTranslateToolbarButton {editor} {canEdit} {resourceContent} bind:isLoading />
+            <AiTranslateToolbarButton {editor} {canEdit} {resourceContent} {machineTranslationStore} bind:isLoading />
         </div>
     {/if}
 </div>

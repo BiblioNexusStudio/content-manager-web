@@ -191,11 +191,11 @@ export interface Project {
     name: string;
 }
 
-interface MachineTranslation {
+export interface MachineTranslation {
     id: number;
     userId: number;
-    userRating: number;
-    improveClarity: boolean;
-    improveTone: boolean;
-    improveConsistency: boolean;
+    userRating?: number;
+    improveClarity?: boolean;
+    improveTone?: boolean;
+    improveConsistency?: boolean;
 }

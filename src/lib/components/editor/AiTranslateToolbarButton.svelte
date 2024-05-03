@@ -1,43 +1,28 @@
 ﻿<script lang="ts">
     import type { Editor } from '@tiptap/core';
-    import { patchToApi, postToApi } from '$lib/utils/http-service';
+    import { postToApi } from '$lib/utils/http-service';
     import type { ResourceContent } from '$lib/types/resources';
     import TranslateIcon from '$lib/icons/TranslateIcon.svelte';
     import Tooltip from '$lib/components/Tooltip.svelte';
-    import { Permission, userCan, userIsEqual } from '$lib/stores/auth';
+    import MachineTranslationRating from '$lib/components/MachineTranslationRating.svelte';
+    import { Permission, userCan, userIsEqual, currentUser } from '$lib/stores/auth';
     import { ResourceContentStatusEnum } from '$lib/types/base';
-    import StarRating from '$lib/components/StarRating.svelte';
+    import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
 
     export let editor: Editor;
     export let resourceContent: ResourceContent;
     export let isLoading: boolean;
     export let canEdit: boolean;
-
-    interface RatingData {
-        userRating: number;
-        improveClarity: boolean;
-        improveConsistency: boolean;
-        improveTone: boolean;
-    }
+    export let machineTranslationStore: MachineTranslationStore;
 
     const canShowAnything =
         canEdit &&
         $userCan(Permission.AiTranslate) &&
         resourceContent.status === ResourceContentStatusEnum.TranslationInProgress;
 
-    let machineTranslation = resourceContent.machineTranslation;
-    let machineTranslationId = machineTranslation?.id;
-    let showTranslateButton = canShowAnything && !machineTranslationId;
-    let showRating = canShowAnything && $userIsEqual(machineTranslation?.userId);
-
-    let ratingData: RatingData = {
-        userRating: machineTranslation?.userRating ?? 0,
-        improveClarity: machineTranslation?.improveClarity ?? false,
-        improveConsistency: machineTranslation?.improveConsistency ?? false,
-        improveTone: machineTranslation?.improveTone ?? false,
-    };
-
-    console.log(ratingData.userRating);
+    let machineTranslation = machineTranslationStore.machineTranslation;
+    $: showTranslateButton = canShowAnything && !$machineTranslation.id;
+    $: showRating = canShowAnything && !showTranslateButton && $userIsEqual($machineTranslation.userId);
 
     const onClick = async () => {
         isLoading = true;
@@ -77,21 +62,11 @@
             content: editor.getHTML(),
         });
 
-        machineTranslationId = response?.id;
-        showTranslateButton = false;
-        showRating = true;
+        machineTranslationStore.promptForRating.set(true);
+        machineTranslation.update((x) => {
+            return { ...x, id: response!.id, userId: $currentUser!.id };
+        });
     }
-
-    async function updateMachineTranslation() {
-        await patchToApi(`/resources/content/machine-translation/${machineTranslationId}`, { ...ratingData });
-    }
-
-    const onRating = async (newRating: number) => {
-        if (ratingData.userRating === newRating) return;
-
-        ratingData.userRating = newRating;
-        await updateMachineTranslation();
-    };
 </script>
 
 {#if showTranslateButton}
@@ -108,5 +83,7 @@
         >
     </Tooltip>
 {:else if showRating}
-    <StarRating callback={onRating} rating={ratingData.userRating} />
+    <div class="mx-2">
+        <MachineTranslationRating {machineTranslationStore} />
+    </div>
 {/if}
