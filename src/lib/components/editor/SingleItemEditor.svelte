@@ -5,15 +5,16 @@
     import TiptapRenderer from './TiptapRenderer.svelte';
     import type { Editor } from '@tiptap/core';
     import type { CommentStores } from '$lib/stores/comments';
+    import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
 
     export let itemIndex: number;
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let wordCountsByStep: number[];
     export let canEdit: boolean;
     export let canComment: boolean;
-    export let canAiTranslate: boolean;
     export let resourceContent: ResourceContent;
     export let commentStores: CommentStores;
+    export let machineTranslationStore: MachineTranslationStore;
 
     let editor: Editor | undefined = undefined;
     let tiptapJson = $editableContentStore[itemIndex];
@@ -41,7 +42,7 @@
 </script>
 
 <div class="flex h-full flex-col space-y-4">
-    <EditorToolbar {editor} {canEdit} {canAiTranslate} {commentStores} {resourceContent} bind:isLoading />
+    <EditorToolbar {editor} {canEdit} {commentStores} {resourceContent} {machineTranslationStore} bind:isLoading />
 
     <TiptapRenderer
         {tiptapJson}
