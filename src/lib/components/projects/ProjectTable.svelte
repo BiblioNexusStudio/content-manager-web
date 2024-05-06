@@ -162,13 +162,15 @@
             {isProjectClosed(row) || row.days === null ? '' : row.days}
         </div>
         <div class="flex items-center border-b px-4 py-3 text-xs">
-            <ProjectProgressBar
-                notStartedCount={row.counts.notStarted}
-                inProgressCount={row.counts.inProgress}
-                inReviewCount={row.counts.inReview}
-                completeCount={row.counts.completed}
-                showLegend={false}
-            />
+            {#if row.isStarted}
+                <ProjectProgressBar
+                    notStartedCount={row.counts.notStarted}
+                    inProgressCount={row.counts.inProgress}
+                    inReviewCount={row.counts.inReview}
+                    completeCount={row.counts.completed}
+                    showLegend={false}
+                />
+            {/if}
         </div>
     {/each}
 </div>
