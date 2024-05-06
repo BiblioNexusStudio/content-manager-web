@@ -24,11 +24,13 @@
             name: $translate('sidebar.dashboard.value'),
             icon: BarChartIcon,
             href: '/',
+            hidden: !$userCan(Permission.ReadResources),
         },
         {
             name: $translate('sidebar.resources.value'),
             icon: SquareStackIcon,
             href: '/resources',
+            hidden: !$userCan(Permission.ReadResources),
         },
         {
             name: $translate('sidebar.reporting.value'),

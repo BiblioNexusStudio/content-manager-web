@@ -58,6 +58,7 @@ export enum Permission {
     PublishContent = 'publish:content',
     ReadProjects = 'read:projects',
     ReadReports = 'read:reports',
+    ReadResources = 'read:resources',
     ReadUsers = 'read:users',
     ReadAllUsers = 'read:all-users',
     ReviewContent = 'review:content',
