@@ -6,7 +6,7 @@ import type { Language, ResourceContentStatus, ResourceType, User, CurrentUser }
 import { initAuth0, Permission, setCurrentUser, userCan } from '$lib/stores/auth';
 import { sortByKey } from '$lib/utils/sorting';
 import { get } from 'svelte/store';
-import { error, redirect } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 
 export const ssr = false;
 
@@ -36,15 +36,6 @@ export const load: LayoutLoad = async ({ url, fetch }) => {
 
     await initI18n();
     await waitLocale();
-
-    // have to be able to ReadResources to go to homepage '/'
-    if (
-        !get(userCan)(Permission.ReadResources) &&
-        get(userCan)(Permission.ReadReports) &&
-        !url.pathname.includes('/reporting') // avoid infinite redirect loop
-    ) {
-        throw redirect(302, '/reporting');
-    }
 
     return {
         languages: sortByKey(languages, 'englishDisplay') as Language[],

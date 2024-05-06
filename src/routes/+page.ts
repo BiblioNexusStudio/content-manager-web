@@ -3,6 +3,7 @@ import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
 import { Permission, userCan } from '$lib/stores/auth';
 import { get } from 'svelte/store';
 import type { ResourceContentStatusEnum } from '$lib/types/base';
+import { redirect } from '@sveltejs/kit';
 
 export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
@@ -33,6 +34,8 @@ export const load: PageLoad = async ({ parent, fetch }) => {
     } else if (get(userCan)(Permission.EditContent)) {
         const resourceContent = fetchAssignedResourceContent(fetch);
         return { editorDashboard: { resourceContent } };
+    } else if (get(userCan)(Permission.ReadReports)) {
+        throw redirect(302, '/reporting');
     } else {
         return {};
     }
