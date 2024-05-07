@@ -156,7 +156,7 @@
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Publisher Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
-            <div role="tablist" class="tabs-bordered tabs w-fit">
+            <div role="tablist" class="tabs tabs-bordered w-fit">
                 <button
                     on:click={selectTab(Tab.myWork)}
                     role="tab"
@@ -176,17 +176,18 @@
                     >My Projects ({assignedProjects.length})</button
                 >
             </div>
-            <div class="grow"></div>
-            {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending}
+        </div>
+        {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending}
+            <div class="mt-4">
                 <button
                     data-app-insights-event-name="publisher-dashboard-bulk-assign-click"
-                    class="btn btn-primary btn-sm"
+                    class="btn btn-primary"
                     on:click={() => (isAssignContentModalOpen = true)}
                     disabled={selectedReviewContentIds.length === 0 && selectedInProgressContentIds.length === 0}
-                    >Assign</button
-                >
-            {/if}
-        </div>
+                    >Assign
+                </button>
+            </div>
+        {/if}
         {#if $searchParams.tab === Tab.myProjects}
             <div class="mt-4 flex flex-row">
                 <input class="input input-bordered max-w-xs" bind:value={search} placeholder="Search" />

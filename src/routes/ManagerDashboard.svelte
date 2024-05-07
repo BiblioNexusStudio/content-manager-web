@@ -154,26 +154,29 @@
                     >Manage ({manageContents.length})</button
                 >
             </div>
-            <div class="grow"></div>
+        </div>
+        <div class="mt-4 flex gap-4">
+            {#if $searchParams.tab === Tab.manage}
+                <Select
+                    class="select select-bordered max-w-[14rem] flex-grow"
+                    bind:value={$searchParams.assignedUserId}
+                    isNumber={true}
+                    options={[
+                        { value: 0, label: 'Assigned' },
+                        ...(data.users || []).map((u) => ({ value: u.id, label: u.name })),
+                    ]}
+                />
+            {/if}
+
             <button
                 data-app-insights-event-name="manager-dashboard-bulk-assign-click"
-                class="btn btn-primary btn-sm"
+                class="btn btn-primary"
                 on:click={() => (isAssignContentModalOpen = true)}
                 disabled={selectedReviewContentIds.length === 0 && selectedInProgressContentIds.length === 0}
                 >Assign</button
             >
         </div>
-        {#if $searchParams.tab === Tab.manage}
-            <Select
-                class="select select-bordered mt-4 max-w-[14rem] flex-grow"
-                bind:value={$searchParams.assignedUserId}
-                isNumber={true}
-                options={[
-                    { value: 0, label: 'Assigned' },
-                    ...(data.users || []).map((u) => ({ value: u.id, label: u.name })),
-                ]}
-            />
-        {/if}
+
         <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-auto">
             <table class="table table-pin-rows">
                 {#if $searchParams.tab === Tab.myWork}
