@@ -58,6 +58,7 @@ export enum UserRole {
     Manager = 'Manager',
     Publisher = 'Publisher',
     Admin = 'Admin',
+    ReportViewer = 'Report Viewer',
 }
 
 export interface User extends BasicUser {
