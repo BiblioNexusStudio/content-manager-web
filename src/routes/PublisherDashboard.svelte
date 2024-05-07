@@ -176,17 +176,18 @@
                     >My Projects ({assignedProjects.length})</button
                 >
             </div>
-            <div class="grow"></div>
-            {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending}
+        </div>
+        {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending}
+            <div class="mt-4">
                 <button
                     data-app-insights-event-name="publisher-dashboard-bulk-assign-click"
-                    class="btn btn-primary btn-sm"
+                    class="btn btn-primary"
                     on:click={() => (isAssignContentModalOpen = true)}
                     disabled={selectedReviewContentIds.length === 0 && selectedInProgressContentIds.length === 0}
-                    >Assign</button
-                >
-            {/if}
-        </div>
+                    >Assign
+                </button>
+            </div>
+        {/if}
         {#if $searchParams.tab === Tab.myProjects}
             <div class="mt-4 flex flex-row">
                 <input class="input input-bordered max-w-xs" bind:value={search} placeholder="Search" />
