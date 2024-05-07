@@ -90,11 +90,11 @@
                     email,
                     firstName,
                     lastName,
-                    role,
+                    role: (role as string).replaceAll(' ', ''),
                     companyId,
                 });
                 errorMessage = null;
-                invalidateAll();
+                await invalidateAll();
             }
         } catch (error) {
             if (isAuthorizationError(error)) {
@@ -121,11 +121,9 @@
                 >✕</button
             >
         </form>
-        <div
-            class="mt-0 flex items-center rounded-t border-b border-primary bg-primary bg-opacity-10 p-4 text-primary dark:border-gray-600"
-        >
+        <div class="mt-0 flex items-center rounded-t border-b border-primary bg-primary bg-opacity-10 p-4 text-primary">
             <InfoIcon />
-            <h3 class="ml-4 text-xl font-semibold text-primary dark:text-white">
+            <h3 class="ml-4 text-xl font-semibold text-primary">
                 {header}
             </h3>
         </div>

@@ -56,8 +56,8 @@
                     class="min-h-12 w-[320px] rounded-md border-[1px] py-2 ps-5 text-sm text-gray-900 focus:outline-none"
                     placeholder={$translate('page.resources.searchBox.value')}
                 />
+                <button class="btn btn-primary" on:click={openModal}>Add</button>
             </div>
-            <button class="btn btn-primary" on:click={openModal}>Add</button>
         </div>
         <div class="flex flex-row space-x-4 overflow-y-hidden">
             <div class="my-4 max-h-full flex-[2] overflow-y-auto rounded border-2">
