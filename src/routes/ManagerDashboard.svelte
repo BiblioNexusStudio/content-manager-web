@@ -17,6 +17,7 @@
 
     enum Tab {
         myWork = 'my-work',
+        toAssign = 'to-assign',
         manage = 'manage',
     }
 
@@ -90,7 +91,18 @@
                     selectedReviewContentIds = selectedReviewContentIds;
                 }
             }
+
+            contentCheckboxes = contentCheckboxes;
         };
+    }
+
+    function onSelectAll() {
+        const allCurrentlyChecked = contentCheckboxes.every((x) => x.checked);
+        for (const input of contentCheckboxes) {
+            if (allCurrentlyChecked || !input.checked) {
+                input.click();
+            }
+        }
     }
 
     function resetSelection() {
@@ -126,17 +138,21 @@
     }
 
     $: manageContentsPromise = data.managerDashboard!.manageResourceContent.promise;
+    $: toAssignContentsPromise = data.managerDashboard!.toAssignContent.promise;
     $: assignedContentsPromise = data.managerDashboard!.assignedResourceContent.promise;
 
-    $: allDataPromise = Promise.all([assignedContentsPromise, manageContentsPromise]);
+    $: allDataPromise = Promise.all([assignedContentsPromise, toAssignContentsPromise, manageContentsPromise]);
 
     let scrollingDiv: HTMLDivElement | undefined;
     $: $searchParams.sort && scrollingDiv && (scrollingDiv.scrollTop = 0);
+
+    let contentCheckboxes: HTMLInputElement[] = [];
+    $: allChecked = contentCheckboxes.every((x) => x.checked);
 </script>
 
 {#await allDataPromise}
     <CenteredSpinner />
-{:then [assignedContents, manageContents]}
+{:then [assignedContents, toAssignContents, manageContents]}
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Manager Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
@@ -146,6 +162,12 @@
                     role="tab"
                     class="tab {$searchParams.tab === Tab.myWork && 'tab-active'}"
                     >My Work ({assignedContents.length})</button
+                >
+                <button
+                    on:click={() => ($searchParams.tab = Tab.toAssign)}
+                    role="tab"
+                    class="tab {$searchParams.tab === Tab.toAssign && 'tab-active'}"
+                    >To Assign ({toAssignContents.length})</button
                 >
                 <button
                     on:click={() => ($searchParams.tab = Tab.manage)}
@@ -179,14 +201,25 @@
 
         <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-auto">
             <table class="table table-pin-rows">
-                {#if $searchParams.tab === Tab.myWork}
+                {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.toAssign}
+                    {@const isMyWorkTab = $searchParams.tab === Tab.myWork}
                     <thead>
                         <tr class="bg-base-200">
-                            <th></th>
+                            <th
+                                ><input
+                                    bind:checked={allChecked}
+                                    on:click={onSelectAll}
+                                    type="checkbox"
+                                    class="checkbox checkbox-sm"
+                                /></th
+                            >
                             <th>Title</th>
                             <th>Resource</th>
                             <th>Language</th>
                             <th>Project</th>
+                            {#if isMyWorkTab}
+                                <th>Status</th>
+                            {/if}
                             <SortingTableHeaderCell
                                 text="Deadline (Days)"
                                 sortKey={SORT_KEYS.days}
@@ -200,11 +233,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each sortAssignedData(assignedContents, $searchParams.sort) as resource (resource.id)}
+                        {#each sortAssignedData(isMyWorkTab ? assignedContents : toAssignContents, $searchParams.sort) as resource, i (resource.id)}
                             {@const href = `/resources/${resource.id}`}
                             <tr class="hover">
                                 <TableCell class="w-4"
                                     ><input
+                                        bind:this={contentCheckboxes[i]}
                                         checked={selectedReviewContentIds.includes(resource.id) ||
                                             selectedInProgressContentIds.includes(resource.id)}
                                         on:change={toggleResourceSelection(resource.id, resource.statusValue)}
@@ -216,6 +250,9 @@
                                 <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.projectName ?? ''}</LinkedTableCell>
+                                {#if isMyWorkTab}
+                                    <LinkedTableCell {href}>{resource.statusDisplayName ?? ''}</LinkedTableCell>
+                                {/if}
                                 <LinkedTableCell
                                     {href}
                                     class={(resource.daysUntilProjectDeadline ?? 0) < 0 ? 'text-error' : ''}
@@ -232,7 +269,14 @@
                 {:else if $searchParams.tab === Tab.manage}
                     <thead>
                         <tr class="bg-base-200">
-                            <th></th>
+                            <th
+                                ><input
+                                    bind:checked={allChecked}
+                                    on:click={onSelectAll}
+                                    type="checkbox"
+                                    class="checkbox checkbox-sm"
+                                /></th
+                            >
                             <th>Title</th>
                             <th>Resource</th>
                             <th>Language</th>
@@ -251,11 +295,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each sortAndFilterManageData(manageContents, $searchParams) as resource (resource.id)}
+                        {#each sortAndFilterManageData(manageContents, $searchParams) as resource, i (resource.id)}
                             {@const href = `/resources/${resource.id}`}
                             <tr class="hover">
                                 <TableCell class="w-4"
                                     ><input
+                                        bind:this={contentCheckboxes[i]}
                                         checked={selectedReviewContentIds.includes(resource.id) ||
                                             selectedInProgressContentIds.includes(resource.id)}
                                         on:change={toggleResourceSelection(resource.id)}
