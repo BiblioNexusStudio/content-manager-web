@@ -36,10 +36,64 @@
         [SORT_KEYS.wordCount]: 'wordCount',
     });
 
-    function sortAndFilterManageData(
+    const searchParams = searchParameters({
+        sort: ssp.string('-' + SORT_KEYS.days),
+        tab: ssp.string(Tab.myWork),
+        assignedUserId: ssp.number(0),
+    });
+
+    const getInReviewStatus = (status: ResourceContentStatusEnum) =>
+        [
+            ResourceContentStatusEnum.AquiferizeInReview,
+            ResourceContentStatusEnum.AquiferizeReviewPending,
+            ResourceContentStatusEnum.TranslationInReview,
+            ResourceContentStatusEnum.TranslationReviewPending,
+        ].includes(status);
+
+    let assignToUserId: number | null = null;
+    let isAssignContentModalOpen = false;
+    let isErrorModalOpen = false;
+    let isAssigning = false;
+
+    let myWorkContents: ResourceAssignedToSelf[] = [];
+    let toAssignContents: ResourceAssignedToSelf[] = [];
+    let manageContents: ResourceAssignedToOwnCompany[] = [];
+
+    const getTabContents = (tab: string) => {
+        if (tab === Tab.myWork) {
+            console.log(myWorkContents);
+            return myWorkContents;
+        } else if (tab === Tab.toAssign) {
+            return toAssignContents;
+        } else if (tab === Tab.manage) {
+            return manageContents;
+        }
+
+        return [];
+    };
+
+    $: allTabContents = getTabContents($searchParams.tab);
+    $: anyRowSelected = allTabContents.some((x) => x.rowSelected);
+    $: allRowsSelected = allTabContents.every((x) => x.rowSelected);
+    $: anyInReviewSelected = allTabContents.some((x) => x.rowSelected && getInReviewStatus(x.statusValue));
+    $: $searchParams.tab && resetSelection();
+
+    const loadContents = async () => {
+        const manageContentsPromise = data.managerDashboard!.manageResourceContent.promise;
+        const toAssignContentsPromise = data.managerDashboard!.toAssignContent.promise;
+        const assignedContentsPromise = data.managerDashboard!.assignedResourceContent.promise;
+
+        [myWorkContents, toAssignContents, manageContents] = await Promise.all([
+            assignedContentsPromise,
+            toAssignContentsPromise,
+            manageContentsPromise,
+        ]);
+    };
+
+    const sortAndFilterManageData = (
         list: ResourceAssignedToOwnCompany[],
         params: SubscribedSearchParams<typeof searchParams>
-    ) {
+    ) => {
         if (params.assignedUserId === 0) {
             return sortManageData(list, params.sort);
         }
@@ -47,112 +101,82 @@
             list.filter((r) => r.assignedUser.id === params.assignedUserId),
             params.sort
         );
-    }
-
-    const searchParams = searchParameters({
-        sort: ssp.string('-' + SORT_KEYS.days),
-        tab: ssp.string(Tab.myWork),
-        assignedUserId: ssp.number(0),
-    });
-
-    let selectedReviewContentIds: number[] = [];
-    let selectedInProgressContentIds: number[] = [];
-    let assignToUserId: number | null = null;
-    let isAssignContentModalOpen = false;
-    let isErrorModalOpen = false;
-    let isAssigning = false;
-
-    $: $searchParams.tab && resetSelection();
+    };
 
     function toggleResourceSelection(contentId: number, status: ResourceContentStatusEnum | null = null) {
         return () => {
-            if (
-                status === null ||
-                status === ResourceContentStatusEnum.New ||
-                status === ResourceContentStatusEnum.TranslationNotStarted ||
-                status === ResourceContentStatusEnum.AquiferizeInProgress ||
-                status === ResourceContentStatusEnum.TranslationInProgress
-            ) {
-                const index = selectedInProgressContentIds.indexOf(contentId);
-                if (index !== -1) {
-                    selectedInProgressContentIds.splice(index, 1);
-                    selectedInProgressContentIds = selectedInProgressContentIds;
-                } else {
-                    selectedInProgressContentIds.push(contentId);
-                    selectedInProgressContentIds = selectedInProgressContentIds;
-                }
-            } else {
-                const index = selectedReviewContentIds.indexOf(contentId);
-                if (index !== -1) {
-                    selectedReviewContentIds.splice(index, 1);
-                    selectedReviewContentIds = selectedReviewContentIds;
-                } else {
-                    selectedReviewContentIds.push(contentId);
-                    selectedReviewContentIds = selectedReviewContentIds;
-                }
-            }
-
-            contentCheckboxes = contentCheckboxes;
+            // status === null ||
+            // status === ResourceContentStatusEnum.New ||
+            // status === ResourceContentStatusEnum.TranslationNotStarted ||
+            // status === ResourceContentStatusEnum.AquiferizeInProgress ||
+            // status === ResourceContentStatusEnum.TranslationInProgress
         };
     }
 
-    function onSelectAll() {
-        const allCurrentlyChecked = contentCheckboxes.every((x) => x.checked);
-        for (const input of contentCheckboxes) {
-            if (allCurrentlyChecked || !input.checked) {
-                input.click();
+    function onSelectAll(tab: string) {
+        if (tab === Tab.myWork) {
+            const allSelected = myWorkContents.every((x) => x.rowSelected);
+            for (const content of myWorkContents) {
+                content.rowSelected = !allSelected;
+            }
+        } else if (tab === Tab.toAssign) {
+            const allSelected = toAssignContents.every((x) => x.rowSelected);
+            for (const content of toAssignContents) {
+                content.rowSelected = !allSelected;
+            }
+        } else if (tab === Tab.manage) {
+            const allSelected = manageContents.every((x) => x.rowSelected);
+            for (const content of manageContents) {
+                content.rowSelected = !allSelected;
             }
         }
     }
 
     function resetSelection() {
-        selectedReviewContentIds = [];
-        selectedInProgressContentIds = [];
-    }
-
-    async function assignContent() {
-        isAssigning = true;
-        const inProgessAssignments =
-            selectedInProgressContentIds.length > 0
-                ? postToApi<null>('/resources/content/assign-editor', {
-                      assignedUserId: assignToUserId,
-                      contentIds: selectedInProgressContentIds,
-                  })
-                : Promise.resolve(null);
-        const inReviewAssignments =
-            selectedReviewContentIds.length > 0
-                ? postToApi<null>('/resources/content/assign-review', {
-                      assignedUserId: assignToUserId,
-                      contentIds: selectedReviewContentIds,
-                  })
-                : Promise.resolve(null);
-
-        try {
-            await Promise.all([inProgessAssignments, inReviewAssignments]);
-            isAssigning = false;
-            window.location.reload();
-        } catch {
-            isErrorModalOpen = true;
-            isAssigning = false;
+        console.log('reset called');
+        for (const content of allTabContents) {
+            content.rowSelected = false;
         }
     }
 
-    $: manageContentsPromise = data.managerDashboard!.manageResourceContent.promise;
-    $: toAssignContentsPromise = data.managerDashboard!.toAssignContent.promise;
-    $: assignedContentsPromise = data.managerDashboard!.assignedResourceContent.promise;
+    const assignEditor = async () => {};
 
-    $: allDataPromise = Promise.all([assignedContentsPromise, toAssignContentsPromise, manageContentsPromise]);
+    const assignReviewer = async () => {};
+
+    async function assignContent() {
+        // isAssigning = true;
+        // const inProgessAssignments =
+        //     selectedInProgressContentIds.length > 0
+        //         ? postToApi<null>('/resources/content/assign-editor', {
+        //               assignedUserId: assignToUserId,
+        //               contentIds: selectedInProgressContentIds,
+        //           })
+        //         : Promise.resolve(null);
+        // const inReviewAssignments =
+        //     selectedReviewContentIds.length > 0
+        //         ? postToApi<null>('/resources/content/assign-review', {
+        //               assignedUserId: assignToUserId,
+        //               contentIds: selectedReviewContentIds,
+        //           })
+        //         : Promise.resolve(null);
+        //
+        // try {
+        //     await Promise.all([inProgessAssignments, inReviewAssignments]);
+        //     isAssigning = false;
+        //     window.location.reload();
+        // } catch {
+        //     isErrorModalOpen = true;
+        //     isAssigning = false;
+        // }
+    }
 
     let scrollingDiv: HTMLDivElement | undefined;
     $: $searchParams.sort && scrollingDiv && (scrollingDiv.scrollTop = 0);
-
-    let contentCheckboxes: HTMLInputElement[] = [];
-    $: allChecked = contentCheckboxes.every((x) => x.checked);
 </script>
 
-{#await allDataPromise}
+{#await loadContents()}
     <CenteredSpinner />
-{:then [assignedContents, toAssignContents, manageContents]}
+{:then _}
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Manager Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
@@ -161,7 +185,7 @@
                     on:click={() => ($searchParams.tab = Tab.myWork)}
                     role="tab"
                     class="tab {$searchParams.tab === Tab.myWork && 'tab-active'}"
-                    >My Work ({assignedContents.length})</button
+                    >My Work ({myWorkContents.length})</button
                 >
                 <button
                     on:click={() => ($searchParams.tab = Tab.toAssign)}
@@ -194,8 +218,7 @@
                 data-app-insights-event-name="manager-dashboard-bulk-assign-click"
                 class="btn btn-primary"
                 on:click={() => (isAssignContentModalOpen = true)}
-                disabled={selectedReviewContentIds.length === 0 && selectedInProgressContentIds.length === 0}
-                >Assign</button
+                disabled={!anyRowSelected}>Assign</button
             >
         </div>
 
@@ -207,8 +230,8 @@
                         <tr class="bg-base-200">
                             <th
                                 ><input
-                                    bind:checked={allChecked}
-                                    on:click={onSelectAll}
+                                    bind:checked={allRowsSelected}
+                                    on:click={() => onSelectAll($searchParams.tab)}
                                     type="checkbox"
                                     class="checkbox checkbox-sm"
                                 /></th
@@ -233,14 +256,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each sortAssignedData(isMyWorkTab ? assignedContents : toAssignContents, $searchParams.sort) as resource, i (resource.id)}
+                        {#each sortAssignedData(isMyWorkTab ? myWorkContents : toAssignContents, $searchParams.sort) as resource, i (resource.id)}
                             {@const href = `/resources/${resource.id}`}
                             <tr class="hover">
                                 <TableCell class="w-4"
                                     ><input
-                                        bind:this={contentCheckboxes[i]}
-                                        checked={selectedReviewContentIds.includes(resource.id) ||
-                                            selectedInProgressContentIds.includes(resource.id)}
+                                        bind:checked={resource.rowSelected}
                                         on:change={toggleResourceSelection(resource.id, resource.statusValue)}
                                         type="checkbox"
                                         class="checkbox checkbox-sm"
@@ -271,8 +292,8 @@
                         <tr class="bg-base-200">
                             <th
                                 ><input
-                                    bind:checked={allChecked}
-                                    on:click={onSelectAll}
+                                    bind:checked={allRowsSelected}
+                                    on:click={() => onSelectAll($searchParams.tab)}
                                     type="checkbox"
                                     class="checkbox checkbox-sm"
                                 /></th
@@ -300,9 +321,7 @@
                             <tr class="hover">
                                 <TableCell class="w-4"
                                     ><input
-                                        bind:this={contentCheckboxes[i]}
-                                        checked={selectedReviewContentIds.includes(resource.id) ||
-                                            selectedInProgressContentIds.includes(resource.id)}
+                                        bind:checked={resource.rowSelected}
                                         on:change={toggleResourceSelection(resource.id)}
                                         type="checkbox"
                                         class="checkbox checkbox-sm"
@@ -342,10 +361,10 @@
     primaryButtonOnClick={assignContent}
     primaryButtonDisabled={!assignToUserId}
     bind:open={isAssignContentModalOpen}
-    header={selectedReviewContentIds.length > 0 ? 'Choose a publisher' : 'Choose a user'}
+    header={anyInReviewSelected ? 'Choose a publisher' : 'Choose a user'}
 >
     <UserSelector
-        users={data.users?.filter((u) => selectedReviewContentIds.length === 0 || u.role === UserRole.Publisher) ?? []}
+        users={data.users?.filter((u) => !anyInReviewSelected || u.role === UserRole.Publisher) ?? []}
         defaultLabel="Select User"
         bind:selectedUserId={assignToUserId}
     />

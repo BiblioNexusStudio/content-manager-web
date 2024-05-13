@@ -101,6 +101,7 @@ export interface ResourceAssignedToSelf {
     statusValue: ResourceContentStatusEnum;
     projectName: string | null;
     daysUntilProjectDeadline: number | null;
+    rowSelected: boolean;
 }
 
 export interface ResourceAssignedToOwnCompany extends ResourceAssignedToSelf {
