@@ -130,16 +130,19 @@
                 resourceContent.status === ResourceContentStatusEnum.TranslationInReview) &&
             currentUserIsAssigned;
 
+        const hasResourceAssignmentPermission =
+            ($userCan(Permission.AssignOverride) &&
+                ($userCan(Permission.AssignOutsideCompany) || assignedUserIsInCompany)) ||
+            ($userCan(Permission.AssignContent) && currentUserIsAssigned);
+
         canAquiferize =
-            $userCan(Permission.EditContent) &&
+            hasResourceAssignmentPermission &&
             (resourceContent.status === ResourceContentStatusEnum.New ||
                 resourceContent.status === ResourceContentStatusEnum.Complete ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted);
 
         canAssign =
-            (($userCan(Permission.AssignOverride) &&
-                ($userCan(Permission.AssignOutsideCompany) || assignedUserIsInCompany)) ||
-                ($userCan(Permission.AssignContent) && currentUserIsAssigned)) &&
+            hasResourceAssignmentPermission &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationInProgress);
 
@@ -276,14 +279,7 @@
     }
 
     async function sendReview() {
-        $removeAllInlineThreads();
-        await takeActionAndRefresh(() =>
-            postToApi(
-                isInTranslationWorkflow
-                    ? `/admin/resources/content/${resourceContentId}/send-translation-review`
-                    : `/admin/resources/content/${resourceContentId}/send-review`
-            )
-        );
+        await takeActionAndRefresh(() => postToApi(`/resources/content/${resourceContentId}/send-for-review`));
     }
 
     async function assignReview() {
