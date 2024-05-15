@@ -25,6 +25,8 @@ export enum ResourceContentStatusEnum {
     TranslationReviewPending = 'TranslationReviewPending',
     TranslationInReview = 'TranslationInReview',
     OnHold = 'OnHold',
+    AquiferizeManagerReview = 'AquiferizeManagerReview',
+    TranslationManagerReview = 'TranslationManagerReview',
 }
 
 export const statusColorMap: Record<ResourceContentStatusEnum, string> = {
@@ -39,6 +41,8 @@ export const statusColorMap: Record<ResourceContentStatusEnum, string> = {
     [ResourceContentStatusEnum.TranslationReviewPending]: '#f79008',
     [ResourceContentStatusEnum.TranslationInReview]: '#6172f3',
     [ResourceContentStatusEnum.OnHold]: '#6e7580',
+    [ResourceContentStatusEnum.AquiferizeManagerReview]: '#6172f3',
+    [ResourceContentStatusEnum.TranslationManagerReview]: '#6172f3',
 };
 
 export interface Language {

@@ -8,7 +8,7 @@
     import Select from '$lib/components/Select.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
-    import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
+    import { UserRole } from '$lib/types/base';
     import UserSelector from './resources/[resourceContentId]/UserSelector.svelte';
     import Modal from '$lib/components/Modal.svelte';
     import { postToApi } from '$lib/utils/http-service';
@@ -42,25 +42,9 @@
         assignedUserId: ssp.number(0),
     });
 
-    const getInReviewStatus = (status: ResourceContentStatusEnum) =>
-        [
-            ResourceContentStatusEnum.AquiferizeInReview,
-            ResourceContentStatusEnum.AquiferizeReviewPending,
-            ResourceContentStatusEnum.TranslationInReview,
-            ResourceContentStatusEnum.TranslationReviewPending,
-        ].includes(status);
-
-    const getInProgressStatus = (status: ResourceContentStatusEnum) =>
-        [
-            undefined,
-            ResourceContentStatusEnum.New,
-            ResourceContentStatusEnum.AquiferizeInProgress,
-            ResourceContentStatusEnum.TranslationNotStarted,
-            ResourceContentStatusEnum.TranslationInProgress,
-        ].includes(status);
-
     let assignToUserId: number | null = null;
     let isAssignContentModalOpen = false;
+    let isSendToPublisherModalOpen = false;
     let isErrorModalOpen = false;
     let isAssigning = false;
 
@@ -83,7 +67,6 @@
     $: allTabContents = getTabContents($searchParams.tab, $searchParams.assignedUserId);
     $: anyRowSelected = allTabContents.some((x) => x.rowSelected);
     $: allRowsSelected = allTabContents.length > 0 && allTabContents.every((x) => x.rowSelected);
-    $: anyInReviewSelected = allTabContents.some((x) => x.rowSelected && getInReviewStatus(x.statusValue));
 
     const loadContents = async () => {
         const manageContentsPromise = data.managerDashboard!.manageResourceContent.promise;
@@ -153,29 +136,20 @@
         }
     };
 
-    const assignReviewer = async (contentIds: number[]) => {
+    const sendForReview = async (contentIds: number[]) => {
         if (contentIds.length > 0) {
-            await postToApi<null>('/resources/content/assign-review', {
-                assignedUserId: assignToUserId,
+            await postToApi<null>('/resources/content/send-for-review', {
                 contentIds: contentIds,
             });
         }
     };
 
-    async function assignContent() {
-        const inProgress = allTabContents
-            .filter((x) => x.rowSelected && getInProgressStatus(x.statusValue))
-            .map((x) => x.id);
-        const inReview = allTabContents
-            .filter((x) => x.rowSelected && getInReviewStatus(x.statusValue))
-            .map((x) => x.id);
-
+    async function updateContent(action: (contentIds: number[]) => Promise<void>) {
         isAssigning = true;
-        const assignEditorPromise = assignEditor(inProgress);
-        const assignReviewPromise = assignReviewer(inReview);
 
         try {
-            await Promise.all([assignEditorPromise, assignReviewPromise]);
+            const inProgress = allTabContents.filter((x) => x.rowSelected).map((x) => x.id);
+            await action(inProgress);
             isAssigning = false;
             window.location.reload();
         } catch {
@@ -235,6 +209,15 @@
                 on:click={() => (isAssignContentModalOpen = true)}
                 disabled={!anyRowSelected}>Assign</button
             >
+
+            {#if $searchParams.tab === Tab.myWork}
+                <button
+                    data-app-insights-event-name="manager-dashboard-bulk-assign-click"
+                    class="btn btn-primary"
+                    on:click={() => (isSendToPublisherModalOpen = true)}
+                    disabled={!anyRowSelected}>Send to Publisher</button
+                >
+            {/if}
         </div>
 
         <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-auto">
@@ -374,16 +357,26 @@
 <Modal
     isTransacting={isAssigning}
     primaryButtonText={'Assign'}
-    primaryButtonOnClick={assignContent}
+    primaryButtonOnClick={() => updateContent(assignEditor)}
     primaryButtonDisabled={!assignToUserId}
     bind:open={isAssignContentModalOpen}
-    header={anyInReviewSelected ? 'Choose a publisher' : 'Choose a user'}
+    header={'Choose a user'}
 >
     <UserSelector
-        users={data.users?.filter((u) => !anyInReviewSelected || u.role === UserRole.Publisher) ?? []}
+        users={data.users?.filter((u) => u.role === UserRole.Editor || u.role === UserRole.Manager) ?? []}
         defaultLabel="Select User"
         bind:selectedUserId={assignToUserId}
     />
+</Modal>
+
+<Modal
+    isTransacting={isAssigning}
+    primaryButtonText={'Send to Publisher'}
+    primaryButtonOnClick={() => updateContent(sendForReview)}
+    bind:open={isSendToPublisherModalOpen}
+    header={'Confirm Send to Publisher'}
+>
+    <div class="my-4 text-xl">Have you completed your editing? Your assignment will be removed.</div>
 </Modal>
 
 <Modal header="Error" bind:open={isErrorModalOpen} isError={true} description="Error while assigning content." />
