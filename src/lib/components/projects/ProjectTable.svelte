@@ -37,7 +37,8 @@
             const isClosed =
                 project.counts.notStarted === 0 &&
                 project.counts.inProgress === 0 &&
-                project.counts.inReview === 0 &&
+                project.counts.inManagerReview === 0 &&
+                project.counts.inPublisherReview === 0 &&
                 project.isStarted;
             const matchesSearchValue = [project.name].some((field) =>
                 field.toLowerCase().includes(lowerCaseSearchValue)
@@ -111,7 +112,11 @@
 
     function isProjectClosed(project: ProjectListResponse) {
         return (
-            project.counts.notStarted + project.counts.inProgress + project.counts.inReview === 0 && project.isStarted
+            project.counts.notStarted +
+                project.counts.inProgress +
+                project.counts.inManagerReview +
+                project.counts.inPublisherReview ===
+                0 && project.isStarted
         );
     }
 </script>
@@ -166,7 +171,8 @@
                 <ProjectProgressBar
                     notStartedCount={row.counts.notStarted}
                     inProgressCount={row.counts.inProgress}
-                    inReviewCount={row.counts.inReview}
+                    inManagerReviewCount={row.counts.inManagerReview}
+                    inPublisherReviewCount={row.counts.inPublisherReview}
                     completeCount={row.counts.completed}
                     showLegend={false}
                 />
