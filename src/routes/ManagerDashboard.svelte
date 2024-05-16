@@ -138,7 +138,7 @@
 
     const sendForReview = async (contentIds: number[]) => {
         if (contentIds.length > 0) {
-            await postToApi<null>('/resources/content/send-for-review', {
+            await postToApi<null>('/resources/content/send-for-publisher-review', {
                 contentIds: contentIds,
             });
         }

@@ -63,8 +63,9 @@
     let canSendBack = false;
     let canPublish = false;
     let canUnpublish = false;
-    let canSendReview = false;
-    let canAssignReview = false;
+    let canSendForManagerReview = false;
+    let canSendForPublisherReview = false;
+    let canAssignPublisherForReview = false;
     let _canCreateTranslation = false;
     let isAssignReviewModalOpen = false;
     let isInReview = false;
@@ -144,7 +145,9 @@
         canAssign =
             hasResourceAssignmentPermission &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationInProgress);
+                resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeManagerReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationManagerReview);
 
         canSendBack =
             $userCan(Permission.AssignContent) &&
@@ -152,13 +155,19 @@
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationInReview);
 
-        canSendReview =
-            $userCan(Permission.SendReviewContent) &&
+        canSendForManagerReview =
+            $userCan(Permission.AssignContent) &&
             currentUserIsAssigned &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationInProgress);
 
-        canAssignReview =
+        canSendForPublisherReview =
+            $userCan(Permission.SendReviewContent) &&
+            currentUserIsAssigned &&
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeManagerReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationManagerReview);
+
+        canAssignPublisherForReview =
             $userCan(Permission.ReviewContent) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeReviewPending ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
@@ -278,13 +287,19 @@
         await takeActionAndRefresh(() => postToApi(`/admin/resources/content/${resourceContentId}/unpublish`));
     }
 
-    async function sendReview() {
-        await takeActionAndRefresh(() => postToApi(`/resources/content/${resourceContentId}/send-for-review`));
+    async function sendForManagerReview() {
+        await takeActionAndRefresh(() => postToApi(`/resources/content/${resourceContentId}/send-for-manager-review`));
     }
 
-    async function assignReview() {
+    async function sendForPublisherReview() {
         await takeActionAndRefresh(() =>
-            postToApi(`/resources/content/${resourceContentId}/assign-review`, {
+            postToApi(`/resources/content/${resourceContentId}/send-for-publisher-review`)
+        );
+    }
+
+    async function assignPublisherReview() {
+        await takeActionAndRefresh(() =>
+            postToApi(`/resources/content/${resourceContentId}/assign-publisher-review`, {
                 assignedUserId: assignToUserId,
             })
         );
@@ -310,14 +325,9 @@
 
     async function assignUser() {
         await takeActionAndRefresh(() =>
-            postToApi(
-                isInTranslationWorkflow
-                    ? `/admin/resources/content/${resourceContentId}/assign-translator`
-                    : `/admin/resources/content/${resourceContentId}/assign-editor`,
-                {
-                    assignedUserId: assignToUserId,
-                }
-            )
+            postToApi(`/resources/content/${resourceContentId}/assign-editor`, {
+                assignedUserId: assignToUserId,
+            })
         );
     }
 
@@ -426,7 +436,7 @@
                                 {/if}
                             </button>
                         {/if}
-                        {#if canAssignReview}
+                        {#if canAssignPublisherForReview}
                             <button
                                 class="btn btn-primary ms-2"
                                 class:btn-disabled={isTransacting}
@@ -451,12 +461,20 @@
                                 >Unpublish
                             </button>
                         {/if}
-                        {#if canSendReview}
+                        {#if canSendForManagerReview}
+                            <button
+                                class="btn btn-primary ms-2"
+                                class:btn-disabled={isTransacting}
+                                on:click={sendForManagerReview}
+                                >Send to Review
+                            </button>
+                        {/if}
+                        {#if canSendForPublisherReview}
                             <button
                                 class="btn btn-primary ms-2"
                                 class:btn-disabled={isTransacting}
                                 on:click={() => confirmSendReviewModal.showModal()}
-                                >Send to Review
+                                >Send to Publisher
                             </button>
                         {/if}
                         {#if canAquiferize}
@@ -606,7 +624,7 @@
 
     <Modal
         primaryButtonText="Assign"
-        primaryButtonOnClick={assignReview}
+        primaryButtonOnClick={assignPublisherReview}
         primaryButtonDisabled={!assignToUserId}
         bind:open={isAssignReviewModalOpen}
         header="Choose a Reviewer"
@@ -773,7 +791,7 @@
             <p class="py-4 text-lg">Have you completed your editing? Your assignment will be removed.</p>
             <div class="modal-action pt-4">
                 <form method="dialog">
-                    <button class="btn btn-primary" on:click={sendReview} disabled={isTransacting}
+                    <button class="btn btn-primary" on:click={sendForPublisherReview} disabled={isTransacting}
                         >Send to Review</button
                     >
                     <button class="btn btn-outline btn-primary">Cancel</button>
