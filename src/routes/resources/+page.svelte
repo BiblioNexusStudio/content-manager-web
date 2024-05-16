@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
     import type { PageData } from './$types';
     import { _ as translate } from 'svelte-i18n';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
@@ -14,7 +14,7 @@
 
     export let data: PageData;
 
-    const searchParams = searchParameters(_searchParamsConfig);
+    const searchParams = searchParameters(_searchParamsConfig, { runLoadAgainWhenParamsChange: true });
 
     $: resourceContentDataPromise =
         data.resourceContentData === null ? Promise.resolve(null) : data.resourceContentData.promise;

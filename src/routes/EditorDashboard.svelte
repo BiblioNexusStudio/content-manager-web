@@ -19,9 +19,12 @@
 
     export let data: PageData;
 
-    const searchParams = searchParameters({
-        sort: ssp.string(''),
-    });
+    const searchParams = searchParameters(
+        {
+            sort: ssp.string(''),
+        },
+        { runLoadAgainWhenParamsChange: false }
+    );
 
     $: resourceContentsPromise = data.editorDashboard!.resourceContent.promise;
 

@@ -133,7 +133,8 @@ let debouncedUpdateTimeout: SetTimeout;
 export type SubscribedSearchParams<Type> = Type extends Writable<infer X> ? X : never;
 
 export function searchParameters<T extends object>(
-    options?: Options<T>
+    options: Options<T>,
+    { runLoadAgainWhenParamsChange }: { runLoadAgainWhenParamsChange: boolean }
 ): Writable<LooseAutocomplete<T>> & {
     calculateUrlWithGivenChanges: (params: Partial<LooseAutocomplete<T>>) => string;
 } {
@@ -170,7 +171,13 @@ export function searchParameters<T extends object>(
                     batchedUpdates.forEach((batched) => {
                         batched(query);
                     });
-                    await goto(`?${query}${hash}`, GOTO_OPTIONS);
+                    const queryAndHash = `?${query}${hash}`;
+                    if (runLoadAgainWhenParamsChange) {
+                        await goto(queryAndHash, GOTO_OPTIONS);
+                    } else {
+                        history.replaceState(history.state, '', queryAndHash);
+                        _set(mixSearchAndOptions(new URLSearchParams(queryAndHash), options));
+                    }
                     batchedUpdates.clear();
                 });
             }, 50);
