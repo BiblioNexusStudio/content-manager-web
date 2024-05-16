@@ -57,10 +57,13 @@
 
     let search = '';
 
-    const searchParams = searchParameters({
-        sort: ssp.string('-' + SORT_KEYS.days),
-        tab: ssp.string(Tab.myWork),
-    });
+    const searchParams = searchParameters(
+        {
+            sort: ssp.string('-' + SORT_KEYS.days),
+            tab: ssp.string(Tab.myWork),
+        },
+        { runLoadAgainWhenParamsChange: false }
+    );
 
     let selectedReviewContentIds: number[] = [];
     let selectedInProgressContentIds: number[] = [];

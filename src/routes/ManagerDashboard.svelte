@@ -36,11 +36,14 @@
         [SORT_KEYS.wordCount]: 'wordCount',
     });
 
-    const searchParams = searchParameters({
-        sort: ssp.string('-' + SORT_KEYS.days),
-        tab: ssp.string(Tab.myWork),
-        assignedUserId: ssp.number(0),
-    });
+    const searchParams = searchParameters(
+        {
+            sort: ssp.string('-' + SORT_KEYS.days),
+            tab: ssp.string(Tab.myWork),
+            assignedUserId: ssp.number(0),
+        },
+        { runLoadAgainWhenParamsChange: false }
+    );
 
     let assignToUserId: number | null = null;
     let isAssignContentModalOpen = false;
