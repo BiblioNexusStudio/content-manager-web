@@ -2,7 +2,14 @@ import type { LayoutLoad } from './$types';
 import { waitLocale } from 'svelte-i18n';
 import { initI18n } from '$lib/i18n';
 import { getFromApi } from '$lib/utils/http-service';
-import type { Language, ResourceContentStatus, ResourceType, User, CurrentUser } from '$lib/types/base';
+import type {
+    Language,
+    ResourceContentStatus,
+    ResourceType,
+    User,
+    CurrentUser,
+    RoleToPermission,
+} from '$lib/types/base';
 import { initAuth0, Permission, setCurrentUser, userCan } from '$lib/stores/auth';
 import { sortByKey } from '$lib/utils/sorting';
 import { get } from 'svelte/store';
@@ -19,11 +26,12 @@ export const load: LayoutLoad = async ({ url, fetch }) => {
         throw error(401, 'Unauthenticated');
     }
 
-    const [languages, resourceTypes, resourceContentStatuses, currentUser] = await Promise.all([
+    const [languages, resourceTypes, resourceContentStatuses, currentUser, rolesToPermissions] = await Promise.all([
         getFromApi<Language[]>('/languages', fetch),
         getFromApi<ResourceType[]>('/resources/parent-resources', fetch),
         getFromApi<ResourceContentStatus[]>('/admin/resources/content/statuses', fetch),
         getFromApi<CurrentUser>('/users/self', fetch),
+        getFromApi<RoleToPermission>('/users/rolesToPermissions', fetch),
     ]);
 
     let users: User[] | null = null;
@@ -43,5 +51,6 @@ export const load: LayoutLoad = async ({ url, fetch }) => {
         resourceContentStatuses: resourceContentStatuses as ResourceContentStatus[],
         currentUser: currentUser as CurrentUser,
         users: sortByKey(users, 'name'),
+        rolesToPermissions: rolesToPermissions,
     };
 };

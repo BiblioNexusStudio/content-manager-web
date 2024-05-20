@@ -379,10 +379,16 @@
     }
 
     function usersThatCanBeAssigned() {
+        var users =
+            data.users?.filter((u) =>
+                data.rolesToPermissions
+                    ? data.rolesToPermissions[u.role.toLowerCase()]?.includes(Permission.ReadResources)
+                    : true
+            ) ?? null;
         if ($userCan(Permission.AssignOutsideCompany)) {
-            return data.users;
+            return users;
         }
-        return data.users?.filter((u) => $userIsInCompany(u.company.id)) ?? null;
+        return users?.filter((u) => $userIsInCompany(u.company.id)) ?? null;
     }
 </script>
 
