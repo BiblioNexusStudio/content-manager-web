@@ -2,8 +2,6 @@ import type { Permission } from '$lib/stores/auth';
 
 export type ExtendType<T, K extends keyof T, V> = Omit<T, K> & { [P in K]?: V };
 
-export type RoleToPermission = Record<keyof UserRole, string[]>;
-
 export interface ResourceType {
     id: number;
     displayName: string;
@@ -64,7 +62,7 @@ export enum UserRole {
     Manager = 'Manager',
     Publisher = 'Publisher',
     Admin = 'Admin',
-    ReportViewer = 'Report Viewer',
+    ReportViewer = 'ReportViewer',
 }
 
 export interface User extends BasicUser {
