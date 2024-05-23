@@ -2,13 +2,15 @@
     import ProjectOverview from './ProjectOverview.svelte';
     import ProjectQuote from './ProjectQuote.svelte';
     import ProjectDelivery from './ProjectDelivery.svelte';
+    import { Permission, userCan } from '$lib/stores/auth';
 
-    let tabs = [
-        { name: 'Overview', current: true },
-        { name: 'Quote', current: false },
-        { name: 'Delivery', current: false },
-    ];
-
+    let tabs = $userCan(Permission.ReadProjects)
+        ? [
+              { name: 'Overview', current: true },
+              { name: 'Quote', current: false },
+              { name: 'Delivery', current: false },
+          ]
+        : [{ name: 'Overview', current: true }];
     $: currentTab = tabs.find((tab) => tab.current)!;
 
     function setCurrentTab(index: number) {
@@ -25,7 +27,9 @@
     {#each tabs as tab, index (tab.name)}
         <button
             data-app-insights-event-name="projects-{tab.name}-tab-click"
-            class="me-4 py-2 text-lg {tab.current ? 'border-b-4 border-primary' : ''}"
+            class="me-4 {$userCan(Permission.ReadProjectsInCompany) ? 'hidden' : ''} py-2 text-lg {tab.current
+                ? 'border-b-4 border-primary'
+                : ''}"
             on:click={() => setCurrentTab(index)}
         >
             {tab.name}

@@ -1,35 +1,55 @@
 <script lang="ts">
-    import type { ProjectListResponse, ProjectTableColumn } from '$lib/types/projects';
+    import { ProjectStatusTab, type ProjectListResponse, type ProjectTableColumn } from '$lib/types/projects';
     import ProjectProgressBar from '../ProjectProgressBar.svelte';
     import ChevronDownIcon from '$lib/icons/ChevronDownIcon.svelte';
     import ChevronUpIcon from '$lib/icons/ChevronUpIcon.svelte';
+    import { Permission, userCan } from '$lib/stores/auth';
 
     export let projects: ProjectListResponse[] = [];
     export let showClosed = false;
     export let projectSearchValue = '';
+    export let currentTab: ProjectStatusTab = $userCan(Permission.ReadProjectsInCompany)
+        ? ProjectStatusTab.active
+        : ProjectStatusTab.none;
+    export let activeCount = 0;
+    export let recentlyFinishedCount = 0;
 
     let currentColumn = 'days';
     let sortAsc = true;
 
-    const initColumnsState: ProjectTableColumn[] = [
-        { name: 'name', label: 'Title', sorted: false, sortable: true },
-        { name: 'company', label: 'Company', sorted: false, sortable: true },
-        { name: 'projectPlatform', label: 'Platform', sorted: false, sortable: true },
-        { name: 'language', label: 'Language', sorted: false, sortable: true },
-        { name: 'projectLead', label: 'Project Lead', sorted: false, sortable: true },
-        { name: 'days', label: 'Days', sorted: true, sortable: true },
-        { name: 'progress', label: 'Progress', sorted: false, sortable: false },
-    ];
+    const initColumnsState: ProjectTableColumn[] = $userCan(Permission.ReadProjects)
+        ? [
+              { name: 'name', label: 'Title', sorted: false, sortable: true },
+              { name: 'company', label: 'Company', sorted: false, sortable: true },
+              { name: 'projectPlatform', label: 'Platform', sorted: false, sortable: true },
+              { name: 'language', label: 'Language', sorted: false, sortable: true },
+              { name: 'projectLead', label: 'Project Lead', sorted: false, sortable: true },
+              { name: 'days', label: 'Days', sorted: true, sortable: true },
+              { name: 'progress', label: 'Progress', sorted: false, sortable: false },
+          ]
+        : [
+              { name: 'name', label: 'Title', sorted: false, sortable: true },
+              { name: 'company', label: 'Company', sorted: false, sortable: false },
+              { name: 'projectPlatform', label: 'Platform', sorted: false, sortable: false },
+              { name: 'resource', label: 'Resource', sorted: false, sortable: false },
+              { name: 'language', label: 'Language', sorted: false, sortable: false },
+              { name: 'manager', label: 'Manager', sorted: false, sortable: false },
+              { name: 'itemCount', label: 'Items', sorted: false, sortable: true },
+              { name: 'wordCount', label: 'Words', sorted: false, sortable: true },
+              { name: 'days', label: 'Days', sorted: true, sortable: true },
+              { name: 'progress', label: 'Progress', sorted: false, sortable: false },
+          ];
 
     $: columns = handleColumnState(currentColumn);
-    $: listData = handleListData(projects, showClosed, projectSearchValue, columns, sortAsc);
+    $: listData = handleListData(projects, showClosed, projectSearchValue, columns, sortAsc, currentTab);
 
     function handleListData(
         projects: ProjectListResponse[],
         showClosed: boolean,
         projectSearchValue: string,
         columns: ProjectTableColumn[],
-        sortAsc: boolean
+        sortAsc: boolean,
+        currentTab: ProjectStatusTab
     ) {
         const lowerCaseSearchValue = projectSearchValue.toLowerCase();
 
@@ -44,11 +64,11 @@
                 field.toLowerCase().includes(lowerCaseSearchValue)
             );
 
-            if (!showClosed && !projectSearchValue) {
+            if (!showClosed && !projectSearchValue && currentTab == ProjectStatusTab.none) {
                 return !isClosed;
             } else if (showClosed && !projectSearchValue) {
                 return true;
-            } else if (!showClosed && projectSearchValue) {
+            } else if (!showClosed && projectSearchValue && currentTab == ProjectStatusTab.none) {
                 return !isClosed && matchesSearchValue;
             } else {
                 return matchesSearchValue;
@@ -83,6 +103,23 @@
 
             return a.name.localeCompare(b.name);
         });
+
+        let activeProjects = sortedProjects.filter(
+            (p) => p.isStarted && (p.counts.inProgress > 0 || p.counts.inManagerReview > 0 || p.counts.notStarted > 0)
+        );
+        let recentlyFinishedProjects = sortedProjects.filter(
+            (p) => p.counts.notStarted == 0 && p.counts.inManagerReview == 0 && p.counts.inProgress == 0 && p.isStarted
+        );
+
+        activeCount = activeProjects.length;
+        recentlyFinishedCount = recentlyFinishedProjects.length;
+
+        switch (currentTab) {
+            case ProjectStatusTab.active:
+                return activeProjects;
+            case ProjectStatusTab.recentlyFinished:
+                return recentlyFinishedProjects;
+        }
 
         return sortedProjects;
     }
@@ -121,7 +158,11 @@
     }
 </script>
 
-<div class="grid w-full grid-cols-7 rounded-md border border-b-0">
+<div
+    class="grid w-full {$userCan(Permission.ReadProjects)
+        ? 'grid-cols-7'
+        : 'grid-cols-10'}  rounded-md border border-b-0"
+>
     {#each columns as column (column.name)}
         <div
             class="flex items-center justify-between border-b {column.sorted ? 'bg-gray-200' : 'bg-gray-50'} px-4 py-3"
@@ -161,8 +202,27 @@
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.name}</a>
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.company}</a>
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.projectPlatform}</a>
+        {#if $userCan(Permission.ReadProjectsInCompany)}
+            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.resource}</a>
+        {/if}
         <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.language}</a>
-        <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.projectLead}</a>
+        {#if $userCan(Permission.ReadProjectsInCompany)}
+            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.manager ?? ''}</a>
+        {/if}
+        {#if $userCan(Permission.ReadProjectsInCompany)}
+            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
+                >{row.itemCount ?? ''}</a
+            >
+        {/if}
+        {#if $userCan(Permission.ReadProjectsInCompany)}
+            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
+                >{row.wordCount ?? ''}</a
+            >
+        {/if}
+        {#if $userCan(Permission.ReadProjects)}
+            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.projectLead}</a>
+        {/if}
+
         <div class="flex items-center border-b px-4 py-3 text-xs {redColor ? 'font-bold text-red-600' : ''}">
             {isProjectClosed(row) || row.days === null ? '' : row.days}
         </div>

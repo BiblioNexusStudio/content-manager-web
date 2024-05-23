@@ -8,7 +8,7 @@ import { get } from 'svelte/store';
 export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
 
-    if (get(userCan)(Permission.ReadProjects)) {
+    if (get(userCan)(Permission.ReadProjects) || get(userCan)(Permission.ReadProjectsInCompany)) {
         const projectListResponse = getFromApiWithoutBlocking<ProjectListResponse[]>('/projects', fetch);
         return { projectListResponse };
     } else {
