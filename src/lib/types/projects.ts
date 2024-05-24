@@ -5,6 +5,10 @@ export interface ProjectListResponse {
     projectLead: string;
     company: string;
     projectPlatform: string;
+    resource: string;
+    itemCount: number;
+    wordCount: number;
+    manager?: string;
     days?: number;
     counts: ProjectResourceStatusCounts;
     isStarted: boolean;
@@ -55,4 +59,10 @@ export interface ProjectResponse {
 
 export enum ProjectConstants {
     AQUIFER = 'Aquifer',
+}
+
+export enum ProjectStatusTab {
+    active = 'active',
+    recentlyFinished = 'recently-finished',
+    none = 'none',
 }

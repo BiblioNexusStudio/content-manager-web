@@ -42,7 +42,7 @@
             name: $translate('sidebar.projects.value'),
             icon: ProjectsIcon,
             href: '/projects',
-            hidden: !$userCan(Permission.ReadProjects),
+            hidden: !($userCan(Permission.ReadProjects) || $userCan(Permission.ReadProjectsInCompany)),
         },
         {
             name: $translate('sidebar.users.value'),
