@@ -30,7 +30,7 @@
             <h1 class="my-auto text-3xl">Projects</h1>
         </div>
         <div class="m-4 flex flex-col pt-4">
-            <div role="tablist" class="tabs tabs-bordered w-fit">
+            <div role="tablist" class="tabs-bordered tabs w-fit">
                 <button
                     on:click={() => switchTabs(ProjectStatusTab.active)}
                     role="tab"
