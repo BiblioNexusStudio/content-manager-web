@@ -9,7 +9,6 @@ export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
     const canOnlyViewProjectsInCompany =
         get(userCan)(Permission.ReadProjectsInCompany) && !get(userCan)(Permission.ReadProjects);
-    console.log(`from page.ts: ${canOnlyViewProjectsInCompany}`);
 
     if (get(userCan)(Permission.ReadProjects) || get(userCan)(Permission.ReadProjectsInCompany)) {
         const projectListResponse = getFromApiWithoutBlocking<ProjectListResponse[]>('/projects', fetch);

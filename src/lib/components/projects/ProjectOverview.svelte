@@ -11,7 +11,6 @@
     $: currentCompanyLead = $users?.find((u) => u.name === $project?.companyLead);
     $: companyLeadUserId = currentCompanyLead?.id ?? 0;
     export let canOnlyViewProjectsInCompany: boolean;
-    $: console.log(canOnlyViewProjectsInCompany);
 
     async function handleProjectManagerSelectChange(value: string | number | null) {
         const selectedUser = $users?.find((u) => u.id === value);
