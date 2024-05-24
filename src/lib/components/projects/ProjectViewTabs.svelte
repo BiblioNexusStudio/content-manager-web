@@ -2,9 +2,9 @@
     import ProjectOverview from './ProjectOverview.svelte';
     import ProjectQuote from './ProjectQuote.svelte';
     import ProjectDelivery from './ProjectDelivery.svelte';
-    import { Permission, userCan } from '$lib/stores/auth';
+    export let canOnlyViewProjectsInCompany: boolean;
 
-    let tabs = $userCan(Permission.ReadProjects)
+    let tabs = !canOnlyViewProjectsInCompany
         ? [
               { name: 'Overview', current: true },
               { name: 'Quote', current: false },
@@ -27,7 +27,7 @@
     {#each tabs as tab, index (tab.name)}
         <button
             data-app-insights-event-name="projects-{tab.name}-tab-click"
-            class="me-4 {$userCan(Permission.ReadProjectsInCompany) ? 'hidden' : ''} py-2 text-lg {tab.current
+            class="me-4 {canOnlyViewProjectsInCompany ? 'hidden' : ''} py-2 text-lg {tab.current
                 ? 'border-b-4 border-primary'
                 : ''}"
             on:click={() => setCurrentTab(index)}
@@ -38,7 +38,7 @@
 </div>
 <div class="flex">
     {#if currentTab.name === 'Overview'}
-        <ProjectOverview />
+        <ProjectOverview {canOnlyViewProjectsInCompany} />
     {:else if currentTab.name === 'Quote'}
         <ProjectQuote />
     {:else if currentTab.name === 'Delivery'}

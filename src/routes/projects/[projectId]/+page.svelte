@@ -59,7 +59,7 @@
             </div>
         </div>
         <div>
-            <ProjectViewTabs />
+            <ProjectViewTabs canOnlyViewProjectsInCompany={data.canOnlyViewProjectsInCompany} />
             {#if projectResponse?.counts?.notStarted + projectResponse?.counts?.inProgress + projectResponse?.counts?.inManagerReview + projectResponse?.counts?.inPublisherReview + projectResponse?.counts?.completed > 0}
                 <div class="mb-8 w-1/2 pe-8">
                     <ProjectProgressBar

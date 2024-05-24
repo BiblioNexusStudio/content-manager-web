@@ -5,12 +5,13 @@
     import ViewTabSlot from './ViewTabSlot.svelte';
     import { updateProject } from '$lib/utils/projects';
     import { ProjectConstants } from '$lib/types/projects';
-    import { Permission, userCan } from '$lib/stores/auth';
 
     $: currentProjectManager = $users?.find((u) => u.name === $project?.projectManager);
     $: projectManagerUserId = currentProjectManager?.id ?? 0;
     $: currentCompanyLead = $users?.find((u) => u.name === $project?.companyLead);
     $: companyLeadUserId = currentCompanyLead?.id ?? 0;
+    export let canOnlyViewProjectsInCompany: boolean;
+    $: console.log(canOnlyViewProjectsInCompany);
 
     async function handleProjectManagerSelectChange(value: string | number | null) {
         const selectedUser = $users?.find((u) => u.id === value);
@@ -29,9 +30,7 @@
     }
 </script>
 
-<div
-    class="my-4 grid {$userCan(Permission.ReadProjects) ? 'min-h-[192px]' : 'min-h-[96px]'}  w-full grid-cols-2 gap-x-8"
->
+<div class="my-4 grid {!canOnlyViewProjectsInCompany ? 'min-h-[192px]' : 'min-h-[96px]'}  w-full grid-cols-2 gap-x-8">
     <div class="flex flex-col">
         <ViewTabSlot title="Title">
             <div>{$project?.name ?? ''}</div>
@@ -40,7 +39,7 @@
             <div>{$project?.language ?? ''}</div>
         </ViewTabSlot>
         <ViewTabSlot title="Project Manager">
-            {#if $users && $userCan(Permission.ReadProjects)}
+            {#if $users && !canOnlyViewProjectsInCompany}
                 <Select
                     class="select select-bordered w-full max-w-[50%]"
                     options={[

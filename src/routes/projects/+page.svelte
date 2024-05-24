@@ -4,7 +4,6 @@
     import ShowClosed from '$lib/components/projects/ShowClosed.svelte';
     import ProjectSearch from '$lib/components/projects/ProjectSearch.svelte';
     import ProjectTable from '$lib/components/projects/ProjectTable.svelte';
-    import { Permission, userCan } from '$lib/stores/auth';
     import { ProjectStatusTab } from '$lib/types/projects';
 
     export let data: PageData;
@@ -26,12 +25,12 @@
 {#await projectPromise}
     <CenteredSpinner />
 {:then projectListResponse}
-    {#if $userCan(Permission.ReadProjectsInCompany)}
+    {#if data.canOnlyViewProjectsInCompany}
         <div class="m-4 mb-6 flex">
             <h1 class="my-auto text-3xl">Projects</h1>
         </div>
         <div class="m-4 flex flex-col pt-4">
-            <div role="tablist" class="tabs-bordered tabs w-fit">
+            <div role="tablist" class="tabs tabs-bordered w-fit">
                 <button
                     on:click={() => switchTabs(ProjectStatusTab.active)}
                     role="tab"
@@ -70,6 +69,7 @@
             bind:currentTab
             bind:activeCount
             bind:recentlyFinishedCount
+            canOnlyViewProjectsInCompany={data.canOnlyViewProjectsInCompany}
         />
     </div>
 {/await}
