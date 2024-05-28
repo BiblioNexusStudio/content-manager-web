@@ -24,6 +24,46 @@ export function getFromApiWithoutBlocking<T = never>(
     };
 }
 
+export async function getDownloadFileFromApi(path: string, filename: string) {
+    await rawApiFetch(path, null, {
+        headers: { 'Content-Type': 'text/csv', 'Content-Disposition': 'attachment;' },
+    })
+        .then((response) => {
+            const reader = response?.body?.getReader();
+            return new ReadableStream({
+                start(controller) {
+                    return pump();
+                    function pump(): unknown {
+                        return reader?.read().then(({ done, value }) => {
+                            // When no more data needs to be consumed, close the stream
+                            if (done) {
+                                controller.close();
+                                return;
+                            }
+                            // Enqueue the next data chunk into our target stream
+                            controller.enqueue(value);
+                            return pump();
+                        });
+                    }
+                },
+            });
+        })
+        // Create a new response out of the stream
+        .then((stream) => new Response(stream))
+        // Create an object URL for the response
+        .then((response) => response.blob())
+        .then((blob) => {
+            const file = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = file;
+            a.download = filename;
+            document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
+            a.click();
+            a.remove();
+        })
+        .catch((error) => console.error(`error occurred. ${error}`));
+}
+
 // Base fetch function for the Aquifer API. Handles auth, body stringifying, content type, prefixing the API path with
 // the base URL, and detecting errors.
 async function rawApiFetch(path: string, injectedFetch: typeof window.fetch | null, options: CustomFetchOptions) {

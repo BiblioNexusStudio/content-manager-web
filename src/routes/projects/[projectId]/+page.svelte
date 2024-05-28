@@ -9,6 +9,7 @@
     import { startProject } from '$lib/utils/projects';
     import { ProjectConstants, type ProjectResponse } from '$lib/types/projects';
     import BackButton from '$lib/components/BackButton.svelte';
+    import { getDownloadFileFromApi } from '$lib/utils/http-service';
 
     export let data: PageData;
     const { users: dataUsers } = data;
@@ -37,6 +38,10 @@
             window.location.reload();
         }
     }
+
+    async function downloadCsv() {
+        await getDownloadFileFromApi(`/projects/${$project?.id}/word-counts.csv`, `${$project?.name} - WordCounts.csv`);
+    }
 </script>
 
 {#await projectPromise}
@@ -55,6 +60,9 @@
                     <button class="btn btn-primary" disabled={!disabledStartButton} on:click={onStartProject}
                         >Start</button
                     >
+                {/if}
+                {#if data.canOnlyViewProjectsInCompany}
+                    <button class="btn btn-primary" on:click={downloadCsv}>Download Word Counts</button>
                 {/if}
             </div>
         </div>
