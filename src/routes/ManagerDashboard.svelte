@@ -162,7 +162,11 @@
     }
 
     let scrollingDiv: HTMLDivElement | undefined;
-    $: $searchParams.sort && scrollingDiv && (scrollingDiv.scrollTop = 0);
+    const toggleSortCallback = () => {
+        if (scrollingDiv) {
+            scrollingDiv.scrollTop = 0;
+        }
+    };
 </script>
 
 {#await loadContents()}
@@ -249,11 +253,13 @@
                                 text="Deadline (Days)"
                                 sortKey={SORT_KEYS.days}
                                 bind:currentSort={$searchParams.sort}
+                                {toggleSortCallback}
                             />
                             <SortingTableHeaderCell
                                 text="Word Count"
                                 sortKey={SORT_KEYS.wordCount}
                                 bind:currentSort={$searchParams.sort}
+                                {toggleSortCallback}
                             />
                         </tr>
                     </thead>
@@ -309,11 +315,13 @@
                                 text="Deadline (Days)"
                                 sortKey={SORT_KEYS.days}
                                 bind:currentSort={$searchParams.sort}
+                                {toggleSortCallback}
                             />
                             <SortingTableHeaderCell
                                 text="Word Count"
                                 sortKey={SORT_KEYS.wordCount}
                                 bind:currentSort={$searchParams.sort}
+                                {toggleSortCallback}
                             />
                         </tr>
                     </thead>
