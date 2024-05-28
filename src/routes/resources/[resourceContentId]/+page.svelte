@@ -128,7 +128,9 @@
                 resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationInReview) &&
+                resourceContent.status === ResourceContentStatusEnum.TranslationInReview ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeManagerReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationManagerReview) &&
             currentUserIsAssigned;
 
         const hasResourceAssignmentPermission =
