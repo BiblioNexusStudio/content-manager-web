@@ -155,7 +155,7 @@
                         options={[
                             { value: null, label: 'Select User' },
                             ...(users || [])
-                                .filter((u) => u.role === UserRole.Publisher || u.role === UserRole.Manager)
+                                .filter((u) => u.role === UserRole.Manager)
                                 .map((c) => ({ value: c.id, label: c.name })),
                         ]}
                         isNumber={true}

@@ -7,10 +7,12 @@ import { get } from 'svelte/store';
 
 export const load: PageLoad = async ({ params, parent, fetch }) => {
     await parent();
+    const canOnlyViewProjectsInCompany =
+        get(userCan)(Permission.ReadProjectsInCompany) && !get(userCan)(Permission.ReadProjects);
 
-    if (get(userCan)(Permission.ReadProjects)) {
+    if (get(userCan)(Permission.ReadProjects) || get(userCan)(Permission.ReadProjectsInCompany)) {
         const projectResponse = getFromApiWithoutBlocking<ProjectResponse>(`/projects/${params.projectId}`, fetch);
-        return { projectResponse };
+        return { projectResponse, canOnlyViewProjectsInCompany };
     } else {
         throw redirect(302, '/');
     }

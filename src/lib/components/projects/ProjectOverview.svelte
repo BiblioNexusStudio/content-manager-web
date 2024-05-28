@@ -10,6 +10,7 @@
     $: projectManagerUserId = currentProjectManager?.id ?? 0;
     $: currentCompanyLead = $users?.find((u) => u.name === $project?.companyLead);
     $: companyLeadUserId = currentCompanyLead?.id ?? 0;
+    export let canOnlyViewProjectsInCompany: boolean;
 
     async function handleProjectManagerSelectChange(value: string | number | null) {
         const selectedUser = $users?.find((u) => u.id === value);
@@ -28,7 +29,7 @@
     }
 </script>
 
-<div class="my-4 grid min-h-[192px] w-full grid-cols-2 gap-x-8">
+<div class="my-4 grid {!canOnlyViewProjectsInCompany ? 'min-h-[192px]' : 'min-h-[96px]'}  w-full grid-cols-2 gap-x-8">
     <div class="flex flex-col">
         <ViewTabSlot title="Title">
             <div>{$project?.name ?? ''}</div>
@@ -37,7 +38,7 @@
             <div>{$project?.language ?? ''}</div>
         </ViewTabSlot>
         <ViewTabSlot title="Project Manager">
-            {#if $users}
+            {#if $users && !canOnlyViewProjectsInCompany}
                 <Select
                     class="select select-bordered w-full max-w-[50%]"
                     options={[
@@ -49,6 +50,8 @@
                     value={projectManagerUserId}
                     onChange={handleProjectManagerSelectChange}
                 />
+            {:else}
+                <div>{$project?.projectManager}</div>
             {/if}
         </ViewTabSlot>
     </div>

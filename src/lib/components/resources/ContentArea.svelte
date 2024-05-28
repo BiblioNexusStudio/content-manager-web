@@ -10,6 +10,7 @@
     import HistoryIcon from '$lib/icons/HistoryIcon.svelte';
     import CommentSidebarIcon from '$lib/icons/CommentSidebarIcon.svelte';
     import type { CommentStores } from '$lib/stores/comments';
+    import { onMount } from 'svelte';
 
     export let resourceContent: ResourceContent;
     export let sidebarHistoryAvailable: boolean;
@@ -20,6 +21,12 @@
     export let resourceContentStatuses: ResourceContentStatus[];
 
     const commentThreads = commentStores.commentThreads;
+
+    onMount(() => {
+        if (sidebarHistoryAvailable && resourceContent.mediaType === MediaTypeEnum.text) {
+            onToggleHistoryPane();
+        }
+    });
 </script>
 
 <div class="my-6 flex w-full justify-between">
