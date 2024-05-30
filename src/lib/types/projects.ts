@@ -64,5 +64,6 @@ export enum ProjectConstants {
 export enum ProjectStatusTab {
     active = 'active',
     recentlyFinished = 'recently-finished',
+    notStarted = 'not-started',
     none = 'none',
 }

@@ -4,6 +4,7 @@ import type { ProjectListResponse } from '$lib/types/projects';
 import { Permission, userCan } from '$lib/stores/auth';
 import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
+import type { Company } from '$lib/types/base';
 
 export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
@@ -12,7 +13,8 @@ export const load: PageLoad = async ({ parent, fetch }) => {
 
     if (get(userCan)(Permission.ReadProjects) || get(userCan)(Permission.ReadProjectsInCompany)) {
         const projectListResponse = getFromApiWithoutBlocking<ProjectListResponse[]>('/projects', fetch);
-        return { projectListResponse, canOnlyViewProjectsInCompany };
+        const companies = getFromApiWithoutBlocking<Company[]>(`/companies`, fetch);
+        return { projectListResponse, canOnlyViewProjectsInCompany, companies };
     } else {
         throw redirect(302, '/');
     }
