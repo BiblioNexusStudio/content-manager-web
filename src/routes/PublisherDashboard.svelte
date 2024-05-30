@@ -46,12 +46,16 @@
         );
     }
 
-    const sortPendingData = createListSorter<ResourcePendingReview>({
-        [SORT_KEYS.title]: 'englishLabel',
-        [SORT_KEYS.language]: 'languageEnglishDisplay',
-        [SORT_KEYS.days]: 'daysSinceStatusChange',
-        [SORT_KEYS.wordCount]: 'wordCount',
-    });
+    const sortPendingData = createListSorter<ResourcePendingReview>(
+        {
+            [SORT_KEYS.title]: 'englishLabel',
+            [SORT_KEYS.language]: 'languageEnglishDisplay',
+            [SORT_KEYS.days]: 'daysSinceStatusChange',
+            [SORT_KEYS.wordCount]: 'wordCount',
+        },
+        // example usage
+        [{ key: 'englishLabel', dir: 'ASC' }]
+    );
 
     export let data: PageData;
 
