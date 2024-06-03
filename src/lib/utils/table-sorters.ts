@@ -1,6 +1,5 @@
 ﻿import { createListSorter } from '$lib/utils/sorting';
-import type { Project, ResourceAssignedToSelf } from '../../routes/+page';
-import type { ResourcePendingReview } from '../../../.svelte-kit/types/src/routes/proxy+page';
+import type { Project, ResourceAssignedToSelf, ResourcePendingReview } from '../../routes/+page';
 
 enum ColumnName {
     Days = 'days',

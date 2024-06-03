@@ -119,4 +119,5 @@ export interface ResourcePendingReview {
     languageEnglishDisplay: string;
     daysSinceStatusChange: number;
     wordCount: number | null;
+    sortOrder: number;
 }
