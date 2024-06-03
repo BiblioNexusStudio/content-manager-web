@@ -24,17 +24,26 @@
     const SORT_KEYS = {
         days: 'days',
         wordCount: 'word-count',
+        sortOrder: 'sort-order',
     };
 
-    const sortAssignedData = createListSorter<ResourceAssignedToSelf>({
-        [SORT_KEYS.days]: 'daysUntilProjectDeadline',
-        [SORT_KEYS.wordCount]: 'wordCount',
-    });
+    const sortAssignedData = createListSorter<ResourceAssignedToSelf>(
+        {
+            [SORT_KEYS.sortOrder]: 'sortOrder',
+            [SORT_KEYS.days]: 'daysUntilProjectDeadline',
+            [SORT_KEYS.wordCount]: 'wordCount',
+        },
+        [{ key: 'sortOrder', dir: 'ASC' }]
+    );
 
-    const sortManageData = createListSorter<ResourceAssignedToOwnCompany>({
-        [SORT_KEYS.days]: 'daysUntilProjectDeadline',
-        [SORT_KEYS.wordCount]: 'wordCount',
-    });
+    const sortManageData = createListSorter<ResourceAssignedToOwnCompany>(
+        {
+            [SORT_KEYS.sortOrder]: 'sortOrder',
+            [SORT_KEYS.days]: 'daysUntilProjectDeadline',
+            [SORT_KEYS.wordCount]: 'wordCount',
+        },
+        [{ key: 'sortOrder', dir: 'ASC' }]
+    );
 
     const searchParams = searchParameters(
         {
