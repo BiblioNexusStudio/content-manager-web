@@ -4,7 +4,7 @@
     import { searchParameters, ssp, type SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
     import type { ResourceAssignedToOwnCompany, ResourceAssignedToSelf } from './+page';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
-    import { createListSorter } from '$lib/utils/sorting';
+    import { createDefaultProjectSort } from '$lib/utils/sorting';
     import Select from '$lib/components/Select.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
@@ -28,27 +28,8 @@
         projectName: 'project-name',
     };
 
-    const sortAssignedData = createListSorter<ResourceAssignedToSelf>(
-        {
-            [SORT_KEYS.days]: 'daysUntilProjectDeadline',
-            [SORT_KEYS.wordCount]: 'wordCount',
-        },
-        [
-            { key: 'projectName', dir: 'ASC' },
-            { key: 'sortOrder', dir: 'ASC' },
-        ]
-    );
-
-    const sortManageData = createListSorter<ResourceAssignedToOwnCompany>(
-        {
-            [SORT_KEYS.days]: 'daysUntilProjectDeadline',
-            [SORT_KEYS.wordCount]: 'wordCount',
-        },
-        [
-            { key: 'projectName', dir: 'ASC' },
-            { key: 'sortOrder', dir: 'ASC' },
-        ]
-    );
+    const sortAssignedData = createDefaultProjectSort<ResourceAssignedToSelf>();
+    const sortManageData = createDefaultProjectSort<ResourceAssignedToOwnCompany>();
 
     const searchParams = searchParameters(
         {

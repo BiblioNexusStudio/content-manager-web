@@ -7,6 +7,14 @@
 //   const list: Content[] = ...;
 //   sorter(list, 'word-count'); // would sort by `wordCount` in ascending order
 //   sorter(list, '-word-count'); // would sort by `wordCount` in descending order
+
+interface BaseSortableProject {
+    daysUntilProjectDeadline: number | null;
+    wordCount: number | null;
+    projectName: string | null;
+    sortOrder: number;
+}
+
 export function createListSorter<T>(
     mapping: { [sortKey: string]: keyof T },
     secondarySorts: { key: keyof T; dir: 'ASC' | 'DESC' }[] = []
@@ -70,4 +78,24 @@ export function sortByKey<T>(items: T[] | null, key: keyof T, direction: 'asc' |
             return 0;
         }
     });
+}
+
+const PROJECT_SORT_KEYS = {
+    days: 'days',
+    wordCount: 'word-count',
+    sortOrder: 'sort-order',
+    projectName: 'project-name',
+};
+
+export function createDefaultProjectSort<T extends BaseSortableProject>() {
+    return createListSorter<T>(
+        {
+            [PROJECT_SORT_KEYS.days]: 'daysUntilProjectDeadline',
+            [PROJECT_SORT_KEYS.wordCount]: 'wordCount',
+        },
+        [
+            { key: 'projectName', dir: 'ASC' },
+            { key: 'sortOrder', dir: 'ASC' },
+        ]
+    );
 }
