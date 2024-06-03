@@ -2,10 +2,8 @@
     import type { PageData } from './$types';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
-    import type { Project, ResourceAssignedToSelf } from './+page';
+    import type { Project } from './+page';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
-    import { createListSorter } from '$lib/utils/sorting';
-    import type { ResourcePendingReview } from './proxy+page';
     import TranslatedResourcesBarChart from '$lib/charts/TranslatedResourcesBarChart.svelte';
     import TotalResourcesAreaChart from '$lib/charts/TotalResourcesAreaChart.svelte';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
@@ -14,6 +12,11 @@
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import Modal from '$lib/components/Modal.svelte';
     import UserSelector from './resources/[resourceContentId]/UserSelector.svelte';
+    import {
+        createPublisherDashboardMyWorkSorter,
+        createPublisherDashboardProjectsSorter,
+        createPublisherDashboardReviewPendingSorter,
+    } from '$lib/utils/table-sorters';
 
     enum Tab {
         myWork = 'my-work',
@@ -28,16 +31,9 @@
         wordCount: 'word-count',
     };
 
-    const sortAssignedResourceData = createListSorter<ResourceAssignedToSelf>({
-        [SORT_KEYS.title]: 'englishLabel',
-        [SORT_KEYS.language]: 'languageEnglishDisplay',
-        [SORT_KEYS.days]: 'daysSinceAssignment',
-        [SORT_KEYS.wordCount]: 'wordCount',
-    });
-
-    const sortAssignedProjectData = createListSorter<Project>({
-        [SORT_KEYS.days]: 'days',
-    });
+    const sortAssignedResourceData = createPublisherDashboardMyWorkSorter();
+    const sortPendingData = createPublisherDashboardReviewPendingSorter();
+    const sortAssignedProjectData = createPublisherDashboardProjectsSorter();
 
     function sortAndFilterAssignedProjectData(projects: Project[], search: string, sort: string) {
         return sortAssignedProjectData(
@@ -45,13 +41,6 @@
             sort
         );
     }
-
-    const sortPendingData = createListSorter<ResourcePendingReview>({
-        [SORT_KEYS.title]: 'englishLabel',
-        [SORT_KEYS.language]: 'languageEnglishDisplay',
-        [SORT_KEYS.days]: 'daysSinceStatusChange',
-        [SORT_KEYS.wordCount]: 'wordCount',
-    });
 
     export let data: PageData;
 

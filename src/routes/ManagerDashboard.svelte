@@ -4,7 +4,7 @@
     import { searchParameters, ssp, type SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
     import type { ResourceAssignedToOwnCompany, ResourceAssignedToSelf } from './+page';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
-    import { createDefaultProjectSort } from '$lib/utils/sorting';
+    import { createManagerDashboardSorter } from '$lib/utils/table-sorters';
     import Select from '$lib/components/Select.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
@@ -24,12 +24,10 @@
     const SORT_KEYS = {
         days: 'days',
         wordCount: 'word-count',
-        sortOrder: 'sort-order',
-        projectName: 'project-name',
     };
 
-    const sortAssignedData = createDefaultProjectSort<ResourceAssignedToSelf>();
-    const sortManageData = createDefaultProjectSort<ResourceAssignedToOwnCompany>();
+    const sortAssignedData = createManagerDashboardSorter<ResourceAssignedToSelf>();
+    const sortManageData = createManagerDashboardSorter<ResourceAssignedToOwnCompany>();
 
     const searchParams = searchParameters(
         {
