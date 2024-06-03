@@ -25,29 +25,34 @@
         days: 'days',
         wordCount: 'word-count',
         sortOrder: 'sort-order',
+        projectName: 'project-name',
     };
 
     const sortAssignedData = createListSorter<ResourceAssignedToSelf>(
         {
-            [SORT_KEYS.sortOrder]: 'sortOrder',
             [SORT_KEYS.days]: 'daysUntilProjectDeadline',
             [SORT_KEYS.wordCount]: 'wordCount',
         },
-        [{ key: 'sortOrder', dir: 'ASC' }]
+        [
+            { key: 'projectName', dir: 'ASC' },
+            { key: 'sortOrder', dir: 'ASC' },
+        ]
     );
 
     const sortManageData = createListSorter<ResourceAssignedToOwnCompany>(
         {
-            [SORT_KEYS.sortOrder]: 'sortOrder',
             [SORT_KEYS.days]: 'daysUntilProjectDeadline',
             [SORT_KEYS.wordCount]: 'wordCount',
         },
-        [{ key: 'sortOrder', dir: 'ASC' }]
+        [
+            { key: 'projectName', dir: 'ASC' },
+            { key: 'sortOrder', dir: 'ASC' },
+        ]
     );
 
     const searchParams = searchParameters(
         {
-            sort: ssp.string('-' + SORT_KEYS.days),
+            sort: ssp.string(SORT_KEYS.days),
             tab: ssp.string(Tab.myWork),
             assignedUserId: ssp.number(0),
         },

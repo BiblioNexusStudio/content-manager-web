@@ -28,6 +28,13 @@ export function createListSorter<T>(
                 valueB = valueB.toLowerCase() as typeof valueB;
             }
 
+            if (typeof valueA === 'number' && valueB === null) {
+                valueB = 999999999 as T[keyof T];
+            }
+            if (typeof valueB === 'number' && valueA === null) {
+                valueA = 999999999 as T[keyof T];
+            }
+
             if (valueA < valueB) return isDescending ? 1 : -1;
             if (valueA > valueB) return isDescending ? -1 : 1;
 
