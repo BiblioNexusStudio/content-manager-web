@@ -5,6 +5,7 @@
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
     import { createEditorDashboardSorter } from './dashboard-table-sorters';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
+    import { formatSimpleDaysAgo } from '$lib/utils/date-time';
 
     const SORT_KEYS = {
         days: 'days',
@@ -60,9 +61,7 @@
                             <LinkedTableCell {href}>{resource.englishLabel}</LinkedTableCell>
                             <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
                             <LinkedTableCell {href}
-                                >{resource.daysSinceContentUpdated === 0
-                                    ? '< 1'
-                                    : resource.daysSinceContentUpdated ?? ''}</LinkedTableCell
+                                >{formatSimpleDaysAgo(resource.daysSinceContentUpdated)}</LinkedTableCell
                             >
                             <LinkedTableCell {href}>{resource.daysSinceAssignment}</LinkedTableCell>
                             <LinkedTableCell {href}>{resource.wordCount ?? ''}</LinkedTableCell>

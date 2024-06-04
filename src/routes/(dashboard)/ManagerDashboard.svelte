@@ -12,6 +12,7 @@
     import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
     import Modal from '$lib/components/Modal.svelte';
     import { postToApi } from '$lib/utils/http-service';
+    import { formatSimpleDaysAgo } from '$lib/utils/date-time';
 
     export let data: PageData;
 
@@ -259,9 +260,7 @@
                                 {#if isMyWorkTab}
                                     <LinkedTableCell {href}>{resource.statusDisplayName ?? ''}</LinkedTableCell>
                                     <LinkedTableCell {href}
-                                        >{resource.daysSinceContentUpdated === 0
-                                            ? '< 1'
-                                            : resource.daysSinceContentUpdated ?? ''}</LinkedTableCell
+                                        >{formatSimpleDaysAgo(resource.daysSinceContentUpdated)}</LinkedTableCell
                                     >
                                 {/if}
                                 <LinkedTableCell
@@ -325,9 +324,7 @@
                                 <LinkedTableCell {href}>{resource.projectName ?? ''}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.assignedUser.name}</LinkedTableCell>
                                 <LinkedTableCell {href}
-                                    >{resource.daysSinceContentUpdated === 0
-                                        ? '< 1'
-                                        : resource.daysSinceContentUpdated ?? ''}</LinkedTableCell
+                                    >{formatSimpleDaysAgo(resource.daysSinceContentUpdated)}</LinkedTableCell
                                 >
                                 <LinkedTableCell
                                     {href}

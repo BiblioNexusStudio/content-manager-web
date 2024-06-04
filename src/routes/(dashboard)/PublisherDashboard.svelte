@@ -17,6 +17,7 @@
         createPublisherDashboardProjectsSorter,
         createPublisherDashboardReviewPendingSorter,
     } from './dashboard-table-sorters';
+    import { formatSimpleDaysAgo } from '$lib/utils/date-time';
 
     enum Tab {
         myWork = 'my-work',
@@ -236,9 +237,7 @@
                                     <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
                                     <LinkedTableCell {href}>{resource.statusDisplayName}</LinkedTableCell>
                                     <LinkedTableCell {href}
-                                        >{resource.daysSinceContentUpdated === 0
-                                            ? '< 1'
-                                            : resource.daysSinceContentUpdated ?? ''}</LinkedTableCell
+                                        >{formatSimpleDaysAgo(resource.daysSinceContentUpdated)}</LinkedTableCell
                                     >
                                     <LinkedTableCell {href}>{resource.daysSinceAssignment}</LinkedTableCell>
                                     <LinkedTableCell {href}>{resource.wordCount ?? ''}</LinkedTableCell>
@@ -332,9 +331,7 @@
                                     <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
                                     <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
                                     <LinkedTableCell {href}
-                                        >{resource.daysSinceContentUpdated === 0
-                                            ? '< 1'
-                                            : resource.daysSinceContentUpdated ?? ''}</LinkedTableCell
+                                        >{formatSimpleDaysAgo(resource.daysSinceContentUpdated)}</LinkedTableCell
                                     >
                                     <LinkedTableCell {href}>{resource.daysSinceStatusChange}</LinkedTableCell>
                                     <LinkedTableCell {href}>{resource.wordCount ?? ''}</LinkedTableCell>
