@@ -136,6 +136,10 @@ export interface ResourceContent {
     machineTranslation: MachineTranslation | null;
 }
 
+export interface ResourceContentNextUpInfo {
+    nextUpResourceContentId: number | null;
+}
+
 export interface ParentResourceLicenseInfo {
     title: string;
     copyright: {
