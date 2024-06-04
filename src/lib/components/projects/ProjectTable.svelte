@@ -68,8 +68,6 @@
 
             if (matchesCompany && lowerCaseSearchValue.length === 0) {
                 return true;
-            } else if (filterByCompany === null && lowerCaseSearchValue.length === 0) {
-                return true;
             } else if (matchesCompany && lowerCaseSearchValue.length > 0 && matchesSearchValue) {
                 return true;
             }
@@ -244,18 +242,13 @@
                 <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
                     >{row.manager ?? ''}</a
                 >
-            {/if}
-            {#if canOnlyViewProjectsInCompany}
                 <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
                     >{row.itemCount ?? ''}</a
                 >
-            {/if}
-            {#if canOnlyViewProjectsInCompany}
                 <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
                     >{row.wordCount ?? ''}</a
                 >
-            {/if}
-            {#if !canOnlyViewProjectsInCompany}
+            {:else}
                 <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
                     >{row.projectLead}</a
                 >
