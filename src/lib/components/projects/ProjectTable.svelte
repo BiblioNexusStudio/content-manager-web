@@ -3,17 +3,24 @@
     import ProjectProgressBar from '../ProjectProgressBar.svelte';
     import ChevronDownIcon from '$lib/icons/ChevronDownIcon.svelte';
     import ChevronUpIcon from '$lib/icons/ChevronUpIcon.svelte';
+    import ProjectTableTabs from './ProjectTableTabs.svelte';
+    import ProjectSearch from './ProjectSearch.svelte';
+    import type { Company } from '$lib/types/base';
+    import Select from '$lib/components/Select.svelte';
 
     export let projects: ProjectListResponse[] = [];
-    export let showClosed = false;
-    export let projectSearchValue = '';
+
     export let canOnlyViewProjectsInCompany: boolean;
+    export let companies: Company[];
     export let currentTab: ProjectStatusTab = canOnlyViewProjectsInCompany
         ? ProjectStatusTab.active
         : ProjectStatusTab.none;
     export let activeCount = 0;
     export let recentlyFinishedCount = 0;
+    export let notStartedCount = 0;
 
+    let filterByCompany: string | null = null;
+    let projectSearchValue = '';
     let currentColumn = 'days';
     let sortAsc = true;
 
@@ -41,38 +48,30 @@
           ];
 
     $: columns = handleColumnState(currentColumn);
-    $: listData = handleListData(projects, showClosed, projectSearchValue, columns, sortAsc, currentTab);
+    $: listData = handleListData(projects, projectSearchValue, columns, sortAsc, currentTab, filterByCompany);
 
     function handleListData(
         projects: ProjectListResponse[],
-        showClosed: boolean,
         projectSearchValue: string,
         columns: ProjectTableColumn[],
         sortAsc: boolean,
-        currentTab: ProjectStatusTab
+        currentTab: ProjectStatusTab,
+        filterByCompany: string | null
     ) {
         const lowerCaseSearchValue = projectSearchValue.toLowerCase();
 
         const unsortedProjects = projects.filter((project) => {
-            const isClosed =
-                project.counts.notStarted === 0 &&
-                project.counts.inProgress === 0 &&
-                project.counts.inManagerReview === 0 &&
-                project.counts.inPublisherReview === 0 &&
-                project.isStarted;
             const matchesSearchValue = [project.name].some((field) =>
                 field.toLowerCase().includes(lowerCaseSearchValue)
             );
+            const matchesCompany = filterByCompany == null || filterByCompany == project.company;
 
-            if (!showClosed && !projectSearchValue && currentTab == ProjectStatusTab.none) {
-                return !isClosed;
-            } else if (showClosed && !projectSearchValue) {
+            if (matchesCompany && lowerCaseSearchValue.length === 0) {
                 return true;
-            } else if (!showClosed && projectSearchValue && currentTab == ProjectStatusTab.none) {
-                return !isClosed && matchesSearchValue;
-            } else {
-                return matchesSearchValue;
+            } else if (matchesCompany && lowerCaseSearchValue.length > 0 && matchesSearchValue) {
+                return true;
             }
+            return false;
         });
 
         const sortedProjects = unsortedProjects.sort((a, b) => {
@@ -111,6 +110,9 @@
             (p) => p.counts.notStarted == 0 && p.counts.inManagerReview == 0 && p.counts.inProgress == 0 && p.isStarted
         );
 
+        let notStartedProjects = sortedProjects.filter((p) => !p.isStarted);
+
+        notStartedCount = notStartedProjects.length;
         activeCount = activeProjects.length;
         recentlyFinishedCount = recentlyFinishedProjects.length;
 
@@ -119,6 +121,8 @@
                 return activeProjects;
             case ProjectStatusTab.recentlyFinished:
                 return recentlyFinishedProjects;
+            case ProjectStatusTab.notStarted:
+                return notStartedProjects;
         }
 
         return sortedProjects;
@@ -158,81 +162,113 @@
     }
 </script>
 
-<div class="grid w-full {!canOnlyViewProjectsInCompany ? 'grid-cols-7' : 'grid-cols-10'}  rounded-md border border-b-0">
-    {#each columns as column (column.name)}
-        <div
-            class="flex items-center justify-between border-b {column.sorted ? 'bg-gray-200' : 'bg-gray-50'} px-4 py-3"
-        >
-            <div class="text-xs font-bold">{column.label}</div>
-            <div>
-                {#if column.sorted && column.sortable && sortAsc}
-                    <button
-                        data-app-insights-event-name="projects-{column.name}-sort-click"
-                        class="flex w-12 items-center justify-end"
-                        on:click={() => setCurrentColumn(column.name)}
-                    >
-                        <ChevronUpIcon />
-                    </button>
-                {:else if column.sorted && column.sortable && !sortAsc}
-                    <button
-                        data-app-insights-event-name="projects-{column.name}-sort-click"
-                        class="flex w-12 items-center justify-end"
-                        on:click={() => setCurrentColumn(column.name)}
-                    >
-                        <ChevronDownIcon />
-                    </button>
-                {:else if !column.sorted && column.sortable}
-                    <button
-                        data-app-insights-event-name="projects-{column.name}-sort-click"
-                        class="flex w-12 items-center justify-end"
-                        on:click={() => setCurrentColumn(column.name)}
-                    >
-                        <ChevronDownIcon />
-                    </button>
+<div>
+    <ProjectTableTabs
+        {canOnlyViewProjectsInCompany}
+        bind:activeCount
+        bind:recentlyFinishedCount
+        bind:notStartedCount
+        bind:currentTab
+    />
+    <div class="flex flex-row pt-4">
+        <div class="flex w-2/5 items-center py-4">
+            <a class="btn btn-primary me-4" href="/projects/new">Create</a>
+            <div class="relative mr-4 h-full grow"><ProjectSearch bind:projectSearchValue /></div>
+            <Select
+                class="select select-bordered max-w-xs"
+                options={[
+                    { value: null, label: 'Select Company' },
+                    ...companies.map((c) => ({ value: c.name, label: c.name })),
+                ]}
+                isNumber={false}
+                bind:value={filterByCompany}
+            />
+        </div>
+    </div>
+
+    <div
+        class="grid w-full {!canOnlyViewProjectsInCompany
+            ? 'grid-cols-7'
+            : 'grid-cols-10'}  rounded-md border border-b-0"
+    >
+        {#each columns as column (column.name)}
+            <div
+                class="flex items-center justify-between border-b {column.sorted
+                    ? 'bg-gray-200'
+                    : 'bg-gray-50'} px-4 py-3"
+            >
+                <div class="text-xs font-bold">{column.label}</div>
+                <div>
+                    {#if column.sorted && column.sortable && sortAsc}
+                        <button
+                            data-app-insights-event-name="projects-{column.name}-sort-click"
+                            class="flex w-12 items-center justify-end"
+                            on:click={() => setCurrentColumn(column.name)}
+                        >
+                            <ChevronUpIcon />
+                        </button>
+                    {:else if column.sorted && column.sortable && !sortAsc}
+                        <button
+                            data-app-insights-event-name="projects-{column.name}-sort-click"
+                            class="flex w-12 items-center justify-end"
+                            on:click={() => setCurrentColumn(column.name)}
+                        >
+                            <ChevronDownIcon />
+                        </button>
+                    {:else if !column.sorted && column.sortable}
+                        <button
+                            data-app-insights-event-name="projects-{column.name}-sort-click"
+                            class="flex w-12 items-center justify-end"
+                            on:click={() => setCurrentColumn(column.name)}
+                        >
+                            <ChevronDownIcon />
+                        </button>
+                    {/if}
+                </div>
+            </div>
+        {/each}
+        {#each listData as row (row.id)}
+            {@const redColor = row?.days && row?.days < 0}
+            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.name}</a>
+            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.company}</a>
+            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
+                >{row.projectPlatform}</a
+            >
+            {#if canOnlyViewProjectsInCompany}
+                <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.resource}</a>
+            {/if}
+            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.language}</a>
+            {#if canOnlyViewProjectsInCompany}
+                <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
+                    >{row.manager ?? ''}</a
+                >
+                <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
+                    >{row.itemCount ?? ''}</a
+                >
+                <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
+                    >{row.wordCount ?? ''}</a
+                >
+            {:else}
+                <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
+                    >{row.projectLead}</a
+                >
+            {/if}
+
+            <div class="flex items-center border-b px-4 py-3 text-xs {redColor ? 'font-bold text-red-600' : ''}">
+                {isProjectClosed(row) || row.days === null ? '' : row.days}
+            </div>
+            <div class="flex items-center border-b px-4 py-3 text-xs">
+                {#if row.isStarted}
+                    <ProjectProgressBar
+                        notStartedCount={row.counts.notStarted}
+                        inProgressCount={row.counts.inProgress}
+                        inManagerReviewCount={row.counts.inManagerReview}
+                        inPublisherReviewCount={row.counts.inPublisherReview}
+                        completeCount={row.counts.completed}
+                        showLegend={false}
+                    />
                 {/if}
             </div>
-        </div>
-    {/each}
-    {#each listData as row (row.id)}
-        {@const redColor = row?.days && row?.days < 0}
-        <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.name}</a>
-        <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.company}</a>
-        <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.projectPlatform}</a>
-        {#if canOnlyViewProjectsInCompany}
-            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.resource}</a>
-        {/if}
-        <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.language}</a>
-        {#if canOnlyViewProjectsInCompany}
-            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.manager ?? ''}</a>
-        {/if}
-        {#if canOnlyViewProjectsInCompany}
-            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
-                >{row.itemCount ?? ''}</a
-            >
-        {/if}
-        {#if canOnlyViewProjectsInCompany}
-            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
-                >{row.wordCount ?? ''}</a
-            >
-        {/if}
-        {#if !canOnlyViewProjectsInCompany}
-            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.projectLead}</a>
-        {/if}
-
-        <div class="flex items-center border-b px-4 py-3 text-xs {redColor ? 'font-bold text-red-600' : ''}">
-            {isProjectClosed(row) || row.days === null ? '' : row.days}
-        </div>
-        <div class="flex items-center border-b px-4 py-3 text-xs">
-            {#if row.isStarted}
-                <ProjectProgressBar
-                    notStartedCount={row.counts.notStarted}
-                    inProgressCount={row.counts.inProgress}
-                    inManagerReviewCount={row.counts.inManagerReview}
-                    inPublisherReviewCount={row.counts.inPublisherReview}
-                    completeCount={row.counts.completed}
-                    showLegend={false}
-                />
-            {/if}
-        </div>
-    {/each}
+        {/each}
+    </div>
 </div>
