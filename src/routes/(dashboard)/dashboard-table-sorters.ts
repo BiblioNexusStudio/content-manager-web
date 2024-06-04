@@ -17,6 +17,7 @@ export function createManagerDashboardSorter<T extends ResourceAssignedToSelf>()
         [
             { key: 'projectName', dir: 'ASC' },
             { key: 'sortOrder', dir: 'ASC' },
+            { key: 'englishLabel', dir: 'ASC' },
         ]
     );
 }
@@ -27,7 +28,10 @@ export function createEditorDashboardSorter() {
             [ColumnName.Days]: 'daysSinceAssignment',
             [ColumnName.WordCount]: 'wordCount',
         },
-        [{ key: 'sortOrder', dir: 'ASC' }]
+        [
+            { key: 'sortOrder', dir: 'ASC' },
+            { key: 'englishLabel', dir: 'ASC' },
+        ]
     );
 }
 
@@ -39,7 +43,10 @@ export function createPublisherDashboardMyWorkSorter() {
             [ColumnName.Days]: 'daysSinceAssignment',
             [ColumnName.WordCount]: 'wordCount',
         },
-        [{ key: 'sortOrder', dir: 'ASC' }]
+        [
+            { key: 'sortOrder', dir: 'ASC' },
+            { key: 'englishLabel', dir: 'ASC' },
+        ]
     );
 }
 
@@ -51,7 +58,10 @@ export function createPublisherDashboardReviewPendingSorter() {
             [ColumnName.Days]: 'daysSinceStatusChange',
             [ColumnName.WordCount]: 'wordCount',
         },
-        [{ key: 'sortOrder', dir: 'ASC' }]
+        [
+            { key: 'sortOrder', dir: 'ASC' },
+            { key: 'englishLabel', dir: 'ASC' },
+        ]
     );
 }
 
