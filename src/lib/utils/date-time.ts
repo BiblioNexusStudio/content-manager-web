@@ -19,3 +19,7 @@ export function formatUtcToLocalTimeAndDate(dateString: string): string {
 
     return `${time} ${date}`;
 }
+
+export function formatSimpleDaysAgo(daysAgo: number | null) {
+    return daysAgo === 0 ? '< 1' : daysAgo ?? '';
+}

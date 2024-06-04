@@ -5,6 +5,7 @@
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
     import { createEditorDashboardSorter } from './dashboard-table-sorters';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
+    import { formatSimpleDaysAgo } from '$lib/utils/date-time';
 
     const SORT_KEYS = {
         days: 'days',
@@ -40,8 +41,9 @@
                     <tr class="bg-base-200">
                         <th>Title</th>
                         <th>Resource</th>
+                        <th>Last Edit (Days)</th>
                         <SortingTableHeaderCell
-                            text="Days"
+                            text="Days Assigned"
                             sortKey={SORT_KEYS.days}
                             bind:currentSort={$searchParams.sort}
                         />
@@ -58,6 +60,9 @@
                         <tr class="hover">
                             <LinkedTableCell {href}>{resource.englishLabel}</LinkedTableCell>
                             <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
+                            <LinkedTableCell {href}
+                                >{formatSimpleDaysAgo(resource.daysSinceContentUpdated)}</LinkedTableCell
+                            >
                             <LinkedTableCell {href}>{resource.daysSinceAssignment}</LinkedTableCell>
                             <LinkedTableCell {href}>{resource.wordCount ?? ''}</LinkedTableCell>
                         </tr>
