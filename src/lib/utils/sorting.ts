@@ -7,7 +7,11 @@
 //   const list: Content[] = ...;
 //   sorter(list, 'word-count'); // would sort by `wordCount` in ascending order
 //   sorter(list, '-word-count'); // would sort by `wordCount` in descending order
-export function createListSorter<T>(mapping: { [sortKey: string]: keyof T }): (list: T[], sort: string) => T[] {
+
+export function createListSorter<T>(
+    mapping: { [sortKey: string]: keyof T },
+    secondarySorts: { key: keyof T; dir: 'ASC' | 'DESC' }[] = []
+): (list: T[], sort: string) => T[] {
     return (list: T[], sort: string) => {
         const key = sort.replace(/^-/, '');
         const isDescending = sort.startsWith('-');
@@ -25,8 +29,31 @@ export function createListSorter<T>(mapping: { [sortKey: string]: keyof T }): (l
                 valueB = valueB.toLowerCase() as typeof valueB;
             }
 
+            if (typeof valueA === 'number' && valueB === null) {
+                valueB = 999999999 as T[keyof T];
+            }
+            if (typeof valueB === 'number' && valueA === null) {
+                valueA = 999999999 as T[keyof T];
+            }
+
             if (valueA < valueB) return isDescending ? 1 : -1;
             if (valueA > valueB) return isDescending ? -1 : 1;
+
+            // Apply secondary sorts if primary sort values are equal
+            for (const { key: secondaryKey, dir } of secondarySorts) {
+                let secondaryValueA = a[secondaryKey];
+                let secondaryValueB = b[secondaryKey];
+                if (typeof secondaryValueA === 'string') {
+                    secondaryValueA = secondaryValueA.toLowerCase() as typeof secondaryValueA;
+                }
+                if (typeof secondaryValueB === 'string') {
+                    secondaryValueB = secondaryValueB.toLowerCase() as typeof secondaryValueB;
+                }
+
+                const isSecondaryDescending = dir === 'DESC';
+                if (secondaryValueA < secondaryValueB) return isSecondaryDescending ? 1 : -1;
+                if (secondaryValueA > secondaryValueB) return isSecondaryDescending ? -1 : 1;
+            }
 
             return 0;
         });
