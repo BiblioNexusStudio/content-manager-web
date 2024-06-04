@@ -65,15 +65,15 @@
                 field.toLowerCase().includes(lowerCaseSearchValue)
             );
             const matchesCompany = filterByCompany == null || filterByCompany == project.company;
-            console.log(filterByCompany);
-            console.log(matchesSearchValue);
-            console.log('------');
-            if (matchesSearchValue && !matchesCompany) {
-                return matchesSearchValue;
-            } else if (matchesSearchValue && matchesCompany) {
+
+            if (matchesCompany && lowerCaseSearchValue.length === 0) {
+                return true;
+            } else if (filterByCompany === null && lowerCaseSearchValue.length === 0) {
+                return true;
+            } else if (matchesCompany && lowerCaseSearchValue.length > 0 && matchesSearchValue) {
                 return true;
             }
-            return true;
+            return false;
         });
 
         const sortedProjects = unsortedProjects.sort((a, b) => {
