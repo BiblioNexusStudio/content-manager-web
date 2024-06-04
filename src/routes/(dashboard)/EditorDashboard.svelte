@@ -2,9 +2,8 @@
     import type { PageData } from './$types';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
-    import type { ResourceAssignedToSelf } from './+page';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
-    import { createListSorter } from '$lib/utils/sorting';
+    import { createEditorDashboardSorter } from './dashboard-table-sorters';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
 
     const SORT_KEYS = {
@@ -12,16 +11,13 @@
         wordCount: 'word-count',
     };
 
-    const sortData = createListSorter<ResourceAssignedToSelf>({
-        [SORT_KEYS.days]: 'daysSinceAssignment',
-        [SORT_KEYS.wordCount]: 'wordCount',
-    });
+    const sortData = createEditorDashboardSorter();
 
     export let data: PageData;
 
     const searchParams = searchParameters(
         {
-            sort: ssp.string(''),
+            sort: ssp.string(`-${SORT_KEYS.days}`),
         },
         { runLoadAgainWhenParamsChange: false }
     );

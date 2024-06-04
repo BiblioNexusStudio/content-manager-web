@@ -4,12 +4,12 @@
     import { searchParameters, ssp, type SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
     import type { ResourceAssignedToOwnCompany, ResourceAssignedToSelf } from './+page';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
-    import { createListSorter } from '$lib/utils/sorting';
+    import { createManagerDashboardSorter } from './dashboard-table-sorters';
     import Select from '$lib/components/Select.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
     import { UserRole } from '$lib/types/base';
-    import UserSelector from './resources/[resourceContentId]/UserSelector.svelte';
+    import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
     import Modal from '$lib/components/Modal.svelte';
     import { postToApi } from '$lib/utils/http-service';
 
@@ -26,19 +26,12 @@
         wordCount: 'word-count',
     };
 
-    const sortAssignedData = createListSorter<ResourceAssignedToSelf>({
-        [SORT_KEYS.days]: 'daysUntilProjectDeadline',
-        [SORT_KEYS.wordCount]: 'wordCount',
-    });
-
-    const sortManageData = createListSorter<ResourceAssignedToOwnCompany>({
-        [SORT_KEYS.days]: 'daysUntilProjectDeadline',
-        [SORT_KEYS.wordCount]: 'wordCount',
-    });
+    const sortAssignedData = createManagerDashboardSorter<ResourceAssignedToSelf>();
+    const sortManageData = createManagerDashboardSorter<ResourceAssignedToOwnCompany>();
 
     const searchParams = searchParameters(
         {
-            sort: ssp.string('-' + SORT_KEYS.days),
+            sort: ssp.string(SORT_KEYS.days),
             tab: ssp.string(Tab.myWork),
             assignedUserId: ssp.number(0),
         },
@@ -54,20 +47,21 @@
     let myWorkContents: ResourceAssignedToSelf[] = [];
     let toAssignContents: ResourceAssignedToSelf[] = [];
     let manageContents: ResourceAssignedToOwnCompany[] = [];
+    let allTabContents: ResourceAssignedToSelf[] | ResourceAssignedToOwnCompany[] = [];
 
-    const getTabContents = (tab: string, assignedUserId: number) => {
+    const setTabContents = (tab: string, assignedUserId: number) => {
         if (tab === Tab.myWork) {
-            return myWorkContents;
+            allTabContents = myWorkContents;
         } else if (tab === Tab.toAssign) {
-            return toAssignContents;
+            allTabContents = toAssignContents;
         } else if (tab === Tab.manage) {
-            return manageContents.filter((x) => assignedUserId === 0 || x.assignedUser.id === assignedUserId);
+            allTabContents = manageContents.filter((x) => assignedUserId === 0 || x.assignedUser.id === assignedUserId);
+        } else {
+            allTabContents = [];
         }
-
-        return [];
     };
 
-    $: allTabContents = getTabContents($searchParams.tab, $searchParams.assignedUserId);
+    $: setTabContents($searchParams.tab, $searchParams.assignedUserId);
     $: anyRowSelected = allTabContents.some((x) => x.rowSelected);
     $: allRowsSelected = allTabContents.length > 0 && allTabContents.every((x) => x.rowSelected);
 
@@ -97,37 +91,25 @@
     };
 
     const sortAndFilterManageData = (
-        list: ResourceAssignedToOwnCompany[],
+        list: ResourceAssignedToSelf[] | ResourceAssignedToOwnCompany[],
         params: SubscribedSearchParams<typeof searchParams>
     ) => {
         if (params.assignedUserId === 0) {
-            return sortManageData(list, params.sort);
+            return sortManageData(list as ResourceAssignedToOwnCompany[], params.sort);
         }
         return sortManageData(
-            list.filter((r) => r.assignedUser.id === params.assignedUserId),
+            (list as ResourceAssignedToOwnCompany[]).filter((r) => r.assignedUser.id === params.assignedUserId),
             params.sort
         );
     };
 
-    function onSelectAll(tab: string) {
-        if (tab === Tab.myWork) {
-            const allSelected = allTabContents.every((x) => x.rowSelected);
-            for (const content of allTabContents) {
-                content.rowSelected = !allSelected;
-            }
-        } else if (tab === Tab.toAssign) {
-            const allSelected = allTabContents.every((x) => x.rowSelected);
-            for (const content of allTabContents) {
-                content.rowSelected = !allSelected;
-            }
-        } else if (tab === Tab.manage) {
-            const allSelected = allTabContents.every((x) => x.rowSelected);
-            for (const content of allTabContents) {
-                content.rowSelected = !allSelected;
-            }
+    function onSelectAll() {
+        const allSelected = allTabContents.every((x) => x.rowSelected);
+        for (const content of allTabContents) {
+            content.rowSelected = !allSelected;
         }
 
-        allRowsSelected = allRowsSelected;
+        allTabContents = allTabContents;
     }
 
     const assignEditor = async (contentIds: number[]) => {
@@ -162,11 +144,7 @@
     }
 
     let scrollingDiv: HTMLDivElement | undefined;
-    const toggleSortCallback = () => {
-        if (scrollingDiv) {
-            scrollingDiv.scrollTop = 0;
-        }
-    };
+    $: $searchParams.sort && $searchParams.tab && scrollingDiv && (scrollingDiv.scrollTop = 0);
 </script>
 
 {#await loadContents()}
@@ -236,7 +214,7 @@
                             <th
                                 ><input
                                     checked={allRowsSelected}
-                                    on:click={() => onSelectAll($searchParams.tab)}
+                                    on:click={onSelectAll}
                                     disabled={allTabContents.length === 0}
                                     type="checkbox"
                                     class="checkbox checkbox-sm"
@@ -253,18 +231,16 @@
                                 text="Deadline (Days)"
                                 sortKey={SORT_KEYS.days}
                                 bind:currentSort={$searchParams.sort}
-                                {toggleSortCallback}
                             />
                             <SortingTableHeaderCell
                                 text="Word Count"
                                 sortKey={SORT_KEYS.wordCount}
                                 bind:currentSort={$searchParams.sort}
-                                {toggleSortCallback}
                             />
                         </tr>
                     </thead>
                     <tbody>
-                        {#each sortAssignedData(isMyWorkTab ? myWorkContents : toAssignContents, $searchParams.sort) as resource (resource.id)}
+                        {#each sortAssignedData(allTabContents, $searchParams.sort) as resource (resource.id)}
                             {@const href = `/resources/${resource.id}`}
                             <tr class="hover">
                                 <TableCell class="w-4"
@@ -300,8 +276,9 @@
                         <tr class="bg-base-200">
                             <th
                                 ><input
-                                    bind:checked={allRowsSelected}
-                                    on:click={() => onSelectAll($searchParams.tab)}
+                                    checked={allRowsSelected}
+                                    on:click={onSelectAll}
+                                    disabled={allTabContents.length === 0}
                                     type="checkbox"
                                     class="checkbox checkbox-sm"
                                 /></th
@@ -315,18 +292,16 @@
                                 text="Deadline (Days)"
                                 sortKey={SORT_KEYS.days}
                                 bind:currentSort={$searchParams.sort}
-                                {toggleSortCallback}
                             />
                             <SortingTableHeaderCell
                                 text="Word Count"
                                 sortKey={SORT_KEYS.wordCount}
                                 bind:currentSort={$searchParams.sort}
-                                {toggleSortCallback}
                             />
                         </tr>
                     </thead>
                     <tbody>
-                        {#each sortAndFilterManageData(manageContents, $searchParams) as resource (resource.id)}
+                        {#each sortAndFilterManageData(allTabContents, $searchParams) as resource (resource.id)}
                             {@const href = `/resources/${resource.id}`}
                             <tr class="hover">
                                 <TableCell class="w-4"

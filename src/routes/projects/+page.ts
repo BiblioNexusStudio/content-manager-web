@@ -1,4 +1,4 @@
-import type { PageLoad } from '../$types';
+import type { PageLoad } from './$types';
 import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
 import type { ProjectListResponse } from '$lib/types/projects';
 import { Permission, userCan } from '$lib/stores/auth';
