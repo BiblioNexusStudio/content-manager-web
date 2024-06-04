@@ -8,8 +8,9 @@
         MediaTypeEnum,
         type ResourceContent,
         type TiptapContentItem,
+        type ResourceContentNextUpInfo,
     } from '$lib/types/resources';
-    import { patchToApi, postToApi } from '$lib/utils/http-service';
+    import { getFromApi, patchToApi, postToApi } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import UserSelector from './UserSelector.svelte';
@@ -92,11 +93,13 @@
     let editableDisplayNameStore = createChangeTrackingStore<string>('', { onChange: save, debounceDelay: 3000 });
     let wordCountsByStep: number[] = [];
     let sidebarContentStore: ReturnType<typeof createSidebarContentStore>;
+    let nextUpInfo: ResourceContentNextUpInfo | null = null;
 
     $: resourceContentId = data.resourceContentId;
     $: resourceContentPromise = data.resourceContent.promise;
     $: handleFetchedResource(data.resourceContent.promise);
     $: hasUnresolvedThreads = $commentThreads?.threads.some((x) => !x.resolved && x.id !== -1) || false;
+    $: fetchNextUpInfo(parseInt(resourceContentId), currentUserIsAssigned);
 
     async function handleFetchedResource(resourceContentPromise: Promise<ResourceContent>) {
         const resourceContent = await resourceContentPromise;
@@ -234,6 +237,14 @@
 
     onDestroy(resetSaveState);
 
+    async function fetchNextUpInfo(id: number, currentUserIsAssigned: boolean) {
+        if (currentUserIsAssigned) {
+            nextUpInfo = await getFromApi<ResourceContentNextUpInfo>(`/resources/content/${id}/next-up`);
+        } else {
+            nextUpInfo = null;
+        }
+    }
+
     function openAquiferizeModal() {
         assignToUserId = null;
         aquiferizeModal.showModal();
@@ -289,13 +300,25 @@
         await takeActionAndRefresh(() => postToApi(`/admin/resources/content/${resourceContentId}/unpublish`));
     }
 
+    async function goToNextResource() {
+        if (nextUpInfo?.nextUpResourceContentId) {
+            await goto(`/resources/${nextUpInfo.nextUpResourceContentId}`);
+        } else {
+            await goto(`/`);
+        }
+    }
+
     async function sendForManagerReview() {
-        await takeActionAndRefresh(() => postToApi(`/resources/content/${resourceContentId}/send-for-manager-review`));
+        await takeActionAndCallback(
+            () => postToApi(`/resources/content/${resourceContentId}/send-for-manager-review`),
+            goToNextResource
+        );
     }
 
     async function sendForPublisherReview() {
-        await takeActionAndRefresh(() =>
-            postToApi(`/resources/content/${resourceContentId}/send-for-publisher-review`)
+        await takeActionAndCallback(
+            () => postToApi(`/resources/content/${resourceContentId}/send-for-publisher-review`),
+            goToNextResource
         );
     }
 
