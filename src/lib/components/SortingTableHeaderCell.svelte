@@ -2,9 +2,6 @@
     export let text: string;
     export let sortKey: string;
     export let currentSort: string;
-    export let toggleSortCallback: () => void = () => {
-        return;
-    };
 
     const determineCaret = (sortKey: string, currentSort: string): string => {
         if (currentSort === sortKey) return '↑';
@@ -15,8 +12,6 @@
     function toggleSort() {
         const isAscending = currentSort === sortKey;
         currentSort = isAscending ? '-' + sortKey : sortKey;
-
-        toggleSortCallback();
     }
 </script>
 
