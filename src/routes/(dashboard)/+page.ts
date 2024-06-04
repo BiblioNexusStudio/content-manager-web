@@ -102,6 +102,7 @@ export interface ResourceAssignedToSelf {
     projectName: string | null;
     daysUntilProjectDeadline: number | null;
     rowSelected: boolean;
+    daysSinceContentUpdated: number | null;
     sortOrder: number;
 }
 
@@ -119,5 +120,6 @@ export interface ResourcePendingReview {
     languageEnglishDisplay: string;
     daysSinceStatusChange: number;
     wordCount: number | null;
+    daysSinceContentUpdated: number | null;
     sortOrder: number;
 }

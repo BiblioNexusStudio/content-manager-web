@@ -226,6 +226,7 @@
                             <th>Project</th>
                             {#if isMyWorkTab}
                                 <th>Status</th>
+                                <th>Last Edit (Days)</th>
                             {/if}
                             <SortingTableHeaderCell
                                 text="Deadline (Days)"
@@ -257,6 +258,11 @@
                                 <LinkedTableCell {href}>{resource.projectName ?? ''}</LinkedTableCell>
                                 {#if isMyWorkTab}
                                     <LinkedTableCell {href}>{resource.statusDisplayName ?? ''}</LinkedTableCell>
+                                    <LinkedTableCell {href}
+                                        >{resource.daysSinceContentUpdated === 0
+                                            ? '< 1'
+                                            : resource.daysSinceContentUpdated ?? ''}</LinkedTableCell
+                                    >
                                 {/if}
                                 <LinkedTableCell
                                     {href}
@@ -288,6 +294,7 @@
                             <th>Language</th>
                             <th>Project</th>
                             <th>Assigned</th>
+                            <th>Last Edit (Days)</th>
                             <SortingTableHeaderCell
                                 text="Deadline (Days)"
                                 sortKey={SORT_KEYS.days}
@@ -317,6 +324,11 @@
                                 <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.projectName ?? ''}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.assignedUser.name}</LinkedTableCell>
+                                <LinkedTableCell {href}
+                                    >{resource.daysSinceContentUpdated === 0
+                                        ? '< 1'
+                                        : resource.daysSinceContentUpdated ?? ''}</LinkedTableCell
+                                >
                                 <LinkedTableCell
                                     {href}
                                     class={(resource.daysUntilProjectDeadline ?? 0) < 0 ? 'text-error' : ''}
