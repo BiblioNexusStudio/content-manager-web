@@ -1,7 +1,7 @@
 ﻿<script lang="ts">
     import Chart, { type ChartConfiguration } from 'chart.js/auto';
     import { onDestroy, onMount } from 'svelte';
-    import type { ResourcesByLanguage, ResourcesByParentResource, TotalsByMonth } from '../../routes/+page';
+    import type { ResourcesByLanguage, ResourcesByParentResource, TotalsByMonth } from '../../routes/(dashboard)/+page';
     import { _ as translate } from 'svelte-i18n';
 
     const defaultSelection = 'default';

@@ -1,7 +1,7 @@
 ﻿<script lang="ts">
     import Chart, { type ChartConfiguration, type ChartDataset } from 'chart.js/auto';
     import { onDestroy, onMount } from 'svelte';
-    import type { ResourcesByLanguage, TotalsByMonth } from '../../routes/+page';
+    import type { ResourcesByLanguage, TotalsByMonth } from '../../routes/(dashboard)/+page';
     import { _ as translate } from 'svelte-i18n';
     import { generateColors } from '$lib/utils/color-gen';
 

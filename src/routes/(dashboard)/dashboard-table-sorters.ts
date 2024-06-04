@@ -1,5 +1,5 @@
 ﻿import { createListSorter } from '$lib/utils/sorting';
-import type { Project, ResourceAssignedToSelf, ResourcePendingReview } from '../../routes/+page';
+import type { Project, ResourceAssignedToSelf, ResourcePendingReview } from './+page';
 
 enum ColumnName {
     Days = 'days',
