@@ -4,12 +4,12 @@
     import { searchParameters, ssp, type SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
     import type { ResourceAssignedToOwnCompany, ResourceAssignedToSelf } from './+page';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
-    import { createManagerDashboardSorter } from '$lib/utils/table-sorters';
+    import { createManagerDashboardSorter } from './dashboard-table-sorters';
     import Select from '$lib/components/Select.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
     import { UserRole } from '$lib/types/base';
-    import UserSelector from './resources/[resourceContentId]/UserSelector.svelte';
+    import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
     import Modal from '$lib/components/Modal.svelte';
     import { postToApi } from '$lib/utils/http-service';
 

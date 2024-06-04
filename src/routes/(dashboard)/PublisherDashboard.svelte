@@ -11,12 +11,12 @@
     import TableCell from '$lib/components/TableCell.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import Modal from '$lib/components/Modal.svelte';
-    import UserSelector from './resources/[resourceContentId]/UserSelector.svelte';
+    import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
     import {
         createPublisherDashboardMyWorkSorter,
         createPublisherDashboardProjectsSorter,
         createPublisherDashboardReviewPendingSorter,
-    } from '$lib/utils/table-sorters';
+    } from './dashboard-table-sorters';
 
     enum Tab {
         myWork = 'my-work',

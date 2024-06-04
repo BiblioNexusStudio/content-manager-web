@@ -3,7 +3,7 @@
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
-    import { createEditorDashboardSorter } from '$lib/utils/table-sorters';
+    import { createEditorDashboardSorter } from './dashboard-table-sorters';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
 
     const SORT_KEYS = {
