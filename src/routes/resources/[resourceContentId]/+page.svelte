@@ -114,12 +114,12 @@
         const assignedUserIsInCompany = $userIsInCompany(resourceContent.assignedUser?.companyId);
 
         isInReview =
-            resourceContent.status === ResourceContentStatusEnum.TranslationInReview ||
-            resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview;
+            resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
+            resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview;
 
         isInTranslationWorkflow =
             resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted ||
-            resourceContent.status === ResourceContentStatusEnum.TranslationInReview ||
+            resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
             resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
             resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending;
 
@@ -129,9 +129,9 @@
             $userCan(Permission.EditContent) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
-                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationInReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizeManagerReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationManagerReview) &&
             currentUserIsAssigned;
@@ -157,8 +157,8 @@
         canSendBack =
             $userCan(Permission.AssignContent) &&
             currentUserIsAssigned &&
-            (resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationInReview);
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview);
 
         canSendForManagerReview =
             $userCan(Permission.AssignContent) &&
@@ -175,15 +175,15 @@
         canAssignPublisherForReview =
             $userCan(Permission.ReviewContent) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeReviewPending ||
-                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationInReview ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending);
 
         canPublish =
             $userCan(Permission.PublishContent) &&
             ((resourceContent.status === ResourceContentStatusEnum.New && !resourceContent.hasPublishedVersion) ||
-                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationInReview);
+                resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview);
 
         canUnpublish = $userCan(Permission.PublishContent) && resourceContent.hasPublishedVersion;
 
