@@ -17,6 +17,7 @@
         createPublisherDashboardProjectsSorter,
         createPublisherDashboardReviewPendingSorter,
     } from './dashboard-table-sorters';
+    import { formatSimpleDaysAgo } from '$lib/utils/date-time';
 
     enum Tab {
         myWork = 'my-work',
@@ -205,8 +206,9 @@
                                     bind:currentSort={$searchParams.sort}
                                 />
                                 <th>Status</th>
+                                <th>Last Edit (Days)</th>
                                 <SortingTableHeaderCell
-                                    text="Days"
+                                    text="Days Assigned"
                                     sortKey={SORT_KEYS.days}
                                     bind:currentSort={$searchParams.sort}
                                 />
@@ -234,6 +236,9 @@
                                     <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
                                     <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
                                     <LinkedTableCell {href}>{resource.statusDisplayName}</LinkedTableCell>
+                                    <LinkedTableCell {href}
+                                        >{formatSimpleDaysAgo(resource.daysSinceContentUpdated)}</LinkedTableCell
+                                    >
                                     <LinkedTableCell {href}>{resource.daysSinceAssignment}</LinkedTableCell>
                                     <LinkedTableCell {href}>{resource.wordCount ?? ''}</LinkedTableCell>
                                 </tr>
@@ -296,8 +301,9 @@
                                     sortKey={SORT_KEYS.language}
                                     bind:currentSort={$searchParams.sort}
                                 />
+                                <th>Last Edit (Days)</th>
                                 <SortingTableHeaderCell
-                                    text="Days"
+                                    text="Days Pending"
                                     sortKey={SORT_KEYS.days}
                                     bind:currentSort={$searchParams.sort}
                                 />
@@ -324,6 +330,9 @@
                                     <LinkedTableCell {href}>{resource.englishLabel}</LinkedTableCell>
                                     <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
                                     <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
+                                    <LinkedTableCell {href}
+                                        >{formatSimpleDaysAgo(resource.daysSinceContentUpdated)}</LinkedTableCell
+                                    >
                                     <LinkedTableCell {href}>{resource.daysSinceStatusChange}</LinkedTableCell>
                                     <LinkedTableCell {href}>{resource.wordCount ?? ''}</LinkedTableCell>
                                 </tr>
