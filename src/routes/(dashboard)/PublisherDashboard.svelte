@@ -4,8 +4,6 @@
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
     import type { Project } from './+page';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
-    import TranslatedResourcesBarChart from '$lib/charts/TranslatedResourcesBarChart.svelte';
-    import TotalResourcesAreaChart from '$lib/charts/TotalResourcesAreaChart.svelte';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import { postToApi } from '$lib/utils/http-service';
     import TableCell from '$lib/components/TableCell.svelte';
@@ -18,6 +16,7 @@
         createPublisherDashboardReviewPendingSorter,
     } from './dashboard-table-sorters';
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
+    import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
 
     enum Tab {
         myWork = 'my-work',
@@ -129,7 +128,6 @@
         data.publisherDashboard!.assignedResourceContent.promise,
         data.publisherDashboard!.reviewPendingResourceContent.promise,
         data.publisherDashboard!.assignedProjects.promise,
-        data.publisherDashboard!.reportingSummary.promise,
     ]);
 
     let scrollingDiv: HTMLDivElement | undefined;
@@ -145,7 +143,7 @@
 
 {#await allDataPromise}
     <CenteredSpinner />
-{:then [assignedContents, reviewPendingContents, assignedProjects, reportingSummary]}
+{:then [assignedContents, reviewPendingContents, assignedProjects]}
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Publisher Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
@@ -260,6 +258,7 @@
                                     sortKey={SORT_KEYS.days}
                                     bind:currentSort={$searchParams.sort}
                                 />
+                                <th>Progress</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -271,8 +270,20 @@
                                     <LinkedTableCell {href}>{project.projectPlatform}</LinkedTableCell>
                                     <LinkedTableCell {href}>{project.language}</LinkedTableCell>
                                     <LinkedTableCell {href} class={project.days ?? 0 < 0 ? 'text-error' : ''}
-                                        >{project.days ?? 0}</LinkedTableCell
+                                        >{project.days ?? ''}</LinkedTableCell
                                     >
+                                    <td>
+                                        {#if project.isStarted}
+                                            <ProjectProgressBar
+                                                notStartedCount={project.counts.notStarted}
+                                                inProgressCount={project.counts.inProgress}
+                                                inManagerReviewCount={project.counts.inManagerReview}
+                                                inPublisherReviewCount={project.counts.inPublisherReview}
+                                                completeCount={project.counts.completed}
+                                                showLegend={false}
+                                            />
+                                        {/if}
+                                    </td>
                                 </tr>
                             {:else}
                                 <tr>
@@ -344,26 +355,6 @@
                         </tbody>
                     {/if}
                 </table>
-            </div>
-            <div class="my-4 flex flex-1 flex-col space-y-2 overflow-y-auto">
-                <div class="rounded-lg border border-secondary p-2">
-                    <TotalResourcesAreaChart
-                        selectedLanguages={[]}
-                        selectedResource="default"
-                        resourcesByLanguage={reportingSummary.resourcesByLanguage}
-                        totalsByMonth={reportingSummary.totalsByMonth}
-                        resourcesByType={reportingSummary.resourcesByParentResource}
-                    />
-                </div>
-                <div class="rounded-lg border border-secondary p-2">
-                    <TranslatedResourcesBarChart
-                        selectedLanguages={[]}
-                        selectedResource="default"
-                        resourcesByLanguage={reportingSummary.resourcesByLanguage}
-                        totalsByMonth={reportingSummary.totalsByMonth}
-                        languages={reportingSummary.languages}
-                    />
-                </div>
             </div>
         </div>
     </div>
