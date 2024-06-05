@@ -53,7 +53,7 @@
     let assignUserModal: HTMLDialogElement;
     let publishModal: HTMLDialogElement;
     let addTranslationModal: HTMLDialogElement;
-    let confirmSendReviewModal: HTMLDialogElement;
+    let confirmSendPublisherReviewModal: HTMLDialogElement;
 
     let assignToUserId: number | null = null;
     let newTranslationLanguageId: string | null = null;
@@ -114,12 +114,12 @@
         const assignedUserIsInCompany = $userIsInCompany(resourceContent.assignedUser?.companyId);
 
         isInReview =
-            resourceContent.status === ResourceContentStatusEnum.TranslationInReview ||
-            resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview;
+            resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
+            resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview;
 
         isInTranslationWorkflow =
             resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted ||
-            resourceContent.status === ResourceContentStatusEnum.TranslationInReview ||
+            resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
             resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
             resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending;
 
@@ -129,9 +129,9 @@
             $userCan(Permission.EditContent) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
-                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationInReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizeManagerReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationManagerReview) &&
             currentUserIsAssigned;
@@ -157,8 +157,8 @@
         canSendBack =
             $userCan(Permission.AssignContent) &&
             currentUserIsAssigned &&
-            (resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationInReview);
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview);
 
         canSendForManagerReview =
             $userCan(Permission.AssignContent) &&
@@ -175,15 +175,15 @@
         canAssignPublisherForReview =
             $userCan(Permission.ReviewContent) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeReviewPending ||
-                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationInReview ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending);
 
         canPublish =
             $userCan(Permission.PublishContent) &&
             ((resourceContent.status === ResourceContentStatusEnum.New && !resourceContent.hasPublishedVersion) ||
-                resourceContent.status === ResourceContentStatusEnum.AquiferizeInReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationInReview);
+                resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview);
 
         canUnpublish = $userCan(Permission.PublishContent) && resourceContent.hasPublishedVersion;
 
@@ -500,7 +500,7 @@
                             <button
                                 class="btn btn-primary ms-2"
                                 class:btn-disabled={isTransacting}
-                                on:click={() => confirmSendReviewModal.showModal()}
+                                on:click={() => confirmSendPublisherReviewModal.showModal()}
                                 >Send to Publisher
                             </button>
                         {/if}
@@ -809,9 +809,9 @@
         </div>
     </dialog>
 
-    <dialog bind:this={confirmSendReviewModal} class="modal">
+    <dialog bind:this={confirmSendPublisherReviewModal} class="modal">
         <div class="modal-box">
-            <h3 class="text-xl font-bold">Confirm Send to Review</h3>
+            <h3 class="text-xl font-bold">Confirm Send to Publisher</h3>
             {#if hasUnresolvedThreads}
                 <p class="pt-4 text-lg text-warning">This resource has unresolved comments.</p>
             {/if}
@@ -819,7 +819,7 @@
             <div class="modal-action pt-4">
                 <form method="dialog">
                     <button class="btn btn-primary" on:click={sendForPublisherReview} disabled={isTransacting}
-                        >Send to Review</button
+                        >Send to Publisher</button
                     >
                     <button class="btn btn-outline btn-primary">Cancel</button>
                 </form>

@@ -37,8 +37,8 @@
                 bind:value={selectedChart}
                 class="select select-bordered me-2 mt-2 w-auto"
                 options={[
-                    { value: 'TotalResourcesAreaChart', label: 'Total Resources' },
-                    { value: 'TranslatedResourcesBarChart', label: 'Translated Resources' },
+                    { value: 'TotalResourcesAreaChart', label: 'Total Resource Items' },
+                    { value: 'TranslatedResourcesBarChart', label: 'Translated Resource Items' },
                 ]}
             />
             <div class="mb-6 mt-4 flex flex-row space-x-2">
