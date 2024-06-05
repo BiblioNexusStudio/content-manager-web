@@ -16,6 +16,7 @@
         createPublisherDashboardReviewPendingSorter,
     } from './dashboard-table-sorters';
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
+    import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
 
     enum Tab {
         myWork = 'my-work',
@@ -257,6 +258,7 @@
                                     sortKey={SORT_KEYS.days}
                                     bind:currentSort={$searchParams.sort}
                                 />
+                                <th>Progress</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -268,8 +270,20 @@
                                     <LinkedTableCell {href}>{project.projectPlatform}</LinkedTableCell>
                                     <LinkedTableCell {href}>{project.language}</LinkedTableCell>
                                     <LinkedTableCell {href} class={project.days ?? 0 < 0 ? 'text-error' : ''}
-                                        >{project.days ?? 0}</LinkedTableCell
+                                        >{project.days ?? ''}</LinkedTableCell
                                     >
+                                    <td>
+                                        {#if project.isStarted}
+                                            <ProjectProgressBar
+                                                notStartedCount={project.counts.notStarted}
+                                                inProgressCount={project.counts.inProgress}
+                                                inManagerReviewCount={project.counts.inManagerReview}
+                                                inPublisherReviewCount={project.counts.inPublisherReview}
+                                                completeCount={project.counts.completed}
+                                                showLegend={false}
+                                            />
+                                        {/if}
+                                    </td>
                                 </tr>
                             {:else}
                                 <tr>
