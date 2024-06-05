@@ -9,6 +9,8 @@
     import { startProject } from '$lib/utils/projects';
     import { ProjectConstants, type ProjectResponse } from '$lib/types/projects';
     import BackButton from '$lib/components/BackButton.svelte';
+    import type { ProjectResource } from '$lib/types/projects';
+    import { browser } from '$app/environment';
 
     export let data: PageData;
     const { users: dataUsers } = data;
@@ -37,6 +39,45 @@
             window.location.reload();
         }
     }
+
+    function jsonToCsv(json: ProjectResource[] | undefined, fields: string[], fieldMapping: Record<string, string>) {
+        if (!json) return;
+        const replacer = (key: string, value: string) => (value === null ? '' : value);
+        const header = fields.map((fieldName) => fieldMapping[fieldName] || fieldName).join(',');
+        const csv = [
+            header,
+            ...json.map((row) =>
+                fields.map((fieldName) => JSON.stringify(row[fieldName as keyof ProjectResource], replacer)).join(',')
+            ),
+        ].join('\r\n');
+        return csv;
+    }
+
+    function downloadCsv(csv: string | undefined, filename: string) {
+        if (!csv || !browser) return;
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+
+    function handleDownloadWordCounts() {
+        const fields = ['englishLabel', 'wordCount'];
+        const fieldMapping = { englishLabel: 'Title', wordCount: 'Word Count' };
+        const csv = jsonToCsv($project?.items, fields, fieldMapping);
+        const csvFileName = `${$project?.company.replace(/ /g, '_')}-${$project?.name.replace(
+            / /g,
+            '_'
+        )}-word_counts.csv`;
+        downloadCsv(csv, csvFileName);
+    }
 </script>
 
 {#await projectPromise}
@@ -55,6 +96,8 @@
                     <button class="btn btn-primary" disabled={!disabledStartButton} on:click={onStartProject}
                         >Start</button
                     >
+                {:else}
+                    <button class="btn btn-primary" on:click={handleDownloadWordCounts}>Download Word Counts</button>
                 {/if}
             </div>
         </div>
