@@ -7,6 +7,7 @@
     import ProjectSearch from './ProjectSearch.svelte';
     import type { Company } from '$lib/types/base';
     import Select from '$lib/components/Select.svelte';
+    import { Permission, userCan } from '$lib/stores/auth';
 
     export let projects: ProjectListResponse[] = [];
 
@@ -172,17 +173,21 @@
     />
     <div class="flex flex-row pt-4">
         <div class="flex w-2/5 items-center py-4">
-            <a class="btn btn-primary me-4" href="/projects/new">Create</a>
+            {#if $userCan(Permission.CreateProject)}
+                <a class="btn btn-primary me-4" href="/projects/new">Create</a>
+            {/if}
             <div class="relative mr-4 h-full grow"><ProjectSearch bind:projectSearchValue /></div>
-            <Select
-                class="select select-bordered max-w-xs"
-                options={[
-                    { value: null, label: 'Select Company' },
-                    ...companies.map((c) => ({ value: c.name, label: c.name })),
-                ]}
-                isNumber={false}
-                bind:value={filterByCompany}
-            />
+            {#if $userCan(Permission.ReadProjects)}
+                <Select
+                    class="select select-bordered max-w-xs"
+                    options={[
+                        { value: null, label: 'Select Company' },
+                        ...companies.map((c) => ({ value: c.name, label: c.name })),
+                    ]}
+                    isNumber={false}
+                    bind:value={filterByCompany}
+                />
+            {/if}
         </div>
     </div>
 

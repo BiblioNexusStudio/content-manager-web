@@ -13,7 +13,9 @@ export const load: PageLoad = async ({ parent, fetch }) => {
 
     if (get(userCan)(Permission.ReadProjects) || get(userCan)(Permission.ReadProjectsInCompany)) {
         const projectListResponse = getFromApiWithoutBlocking<ProjectListResponse[]>('/projects', fetch);
-        const companies = getFromApiWithoutBlocking<Company[]>(`/companies`, fetch);
+        const companies = get(userCan)(Permission.ReadProjectsInCompany)
+            ? { promise: Promise.resolve([]) }
+            : getFromApiWithoutBlocking<Company[]>(`/companies`, fetch);
         return { projectListResponse, canOnlyViewProjectsInCompany, companies };
     } else {
         throw redirect(302, '/');
