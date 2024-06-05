@@ -9,7 +9,6 @@ export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
 
     if (get(userCan)(Permission.ReviewContent) || get(userCan)(Permission.PublishContent)) {
-        const reportingSummary = getFromApiWithoutBlocking<ResourcesSummary>('/admin/resources/summary', fetch);
         const assignedProjects = getFromApiWithoutBlocking<Project[]>('/projects/assigned-to-self', fetch);
         const assignedResourceContent = fetchAssignedResourceContent(fetch);
         const reviewPendingResourceContent = getFromApiWithoutBlocking<ResourcePendingReview[]>(
@@ -19,7 +18,6 @@ export const load: PageLoad = async ({ parent, fetch }) => {
         return {
             publisherDashboard: {
                 assignedResourceContent,
-                reportingSummary,
                 reviewPendingResourceContent,
                 assignedProjects,
             },
