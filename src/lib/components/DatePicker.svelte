@@ -7,7 +7,7 @@
     <input
         type="date"
         bind:value={date}
-        on:input={() => callback(date)}
+        on:blur={() => callback(date)}
         class="h-auto w-full rounded-md border px-4 py-2"
     />
 </div>
