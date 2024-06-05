@@ -53,7 +53,7 @@
     let assignUserModal: HTMLDialogElement;
     let publishModal: HTMLDialogElement;
     let addTranslationModal: HTMLDialogElement;
-    let confirmSendReviewModal: HTMLDialogElement;
+    let confirmSendPublisherReviewModal: HTMLDialogElement;
 
     let assignToUserId: number | null = null;
     let newTranslationLanguageId: string | null = null;
@@ -500,7 +500,7 @@
                             <button
                                 class="btn btn-primary ms-2"
                                 class:btn-disabled={isTransacting}
-                                on:click={() => confirmSendReviewModal.showModal()}
+                                on:click={() => confirmSendPublisherReviewModal.showModal()}
                                 >Send to Publisher
                             </button>
                         {/if}
@@ -809,9 +809,9 @@
         </div>
     </dialog>
 
-    <dialog bind:this={confirmSendReviewModal} class="modal">
+    <dialog bind:this={confirmSendPublisherReviewModal} class="modal">
         <div class="modal-box">
-            <h3 class="text-xl font-bold">Confirm Send to Review</h3>
+            <h3 class="text-xl font-bold">Confirm Send to Publisher</h3>
             {#if hasUnresolvedThreads}
                 <p class="pt-4 text-lg text-warning">This resource has unresolved comments.</p>
             {/if}
@@ -819,7 +819,7 @@
             <div class="modal-action pt-4">
                 <form method="dialog">
                     <button class="btn btn-primary" on:click={sendForPublisherReview} disabled={isTransacting}
-                        >Send to Review</button
+                        >Send to Publisher</button
                     >
                     <button class="btn btn-outline btn-primary">Cancel</button>
                 </form>
