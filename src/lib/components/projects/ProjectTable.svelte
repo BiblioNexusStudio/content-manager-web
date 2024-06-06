@@ -119,23 +119,8 @@
             return a.name.localeCompare(b.name);
         });
 
-        let activeProjects = sortedProjects.filter(
-            (p) =>
-                p.isStarted &&
-                (p.counts.inProgress > 0 ||
-                    p.counts.inManagerReview > 0 ||
-                    p.counts.inPublisherReview > 0 ||
-                    p.counts.notStarted > 0)
-        );
-        let recentlyFinishedProjects = sortedProjects.filter(
-            (p) =>
-                p.counts.notStarted === 0 &&
-                p.counts.inManagerReview === 0 &&
-                p.counts.inPublisherReview === 0 &&
-                p.counts.inProgress === 0 &&
-                p.isStarted
-        );
-
+        let activeProjects = sortedProjects.filter((p) => p.isStarted && p.counts.completed !== p.itemCount);
+        let recentlyFinishedProjects = sortedProjects.filter((p) => p.isStarted && p.counts.completed === p.itemCount);
         let notStartedProjects = sortedProjects.filter((p) => !p.isStarted);
 
         notStartedCount = notStartedProjects.length;
