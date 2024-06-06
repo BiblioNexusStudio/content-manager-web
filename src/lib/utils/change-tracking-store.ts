@@ -1,11 +1,10 @@
-import { writable, derived, type Readable, type Updater } from 'svelte/store';
+import { writable, derived, type Readable, type Updater, get } from 'svelte/store';
 
 export interface ChangeTrackingStore<T> {
     subscribe: (run: (value: T) => void) => () => void;
     hasChanges: Readable<boolean>;
     setOriginalAndCurrent: (value: T) => void;
     setOriginalOnly: (value: T) => void;
-    resetToOriginal: () => void;
     updateOriginalAndCurrent: (updater: Updater<T>) => void;
     update: (updater: Updater<T>) => void;
     set: (value: T) => void;
@@ -30,7 +29,7 @@ export default function createChangeTrackingStore<T>(
         current: initialValue,
     });
 
-    const hasChanges = derived(store, ($store) => jsonIsDifferent($store.original, $store.current));
+    const hasChanges = derived(store, ($store) => jsonIsDifferent(store, JSON.stringify($store.current)));
 
     let debounceTimeout: NodeJS.Timeout | null = null;
 
@@ -52,48 +51,48 @@ export default function createChangeTrackingStore<T>(
     function update(updater: Updater<T>) {
         store.update(($store) => {
             const newValue = updater($store.current);
-            handleDebounce(jsonIsDifferent($store.original, newValue));
+            handleDebounce(() => jsonIsDifferent(store, JSON.stringify(newValue)));
             return { ...$store, current: newValue };
         });
     }
 
-    function handleDebounce(changeDetected: boolean) {
+    function handleDebounce(changeDetected: () => boolean) {
         if (onChangeOptions) {
             if (debounceTimeout) {
                 clearTimeout(debounceTimeout);
             }
 
-            if (changeDetected) {
+            if (changeDetected()) {
                 debounceTimeout = setTimeout(() => {
-                    onChangeOptions.onChange();
+                    // Because this is debounced, we need to check again that there is still in fact a change.
+                    // Otherwise we could inadvertently call onChange when things are already up to date.
+                    if (changeDetected()) {
+                        onChangeOptions.onChange();
+                    }
                 }, onChangeOptions.debounceDelay);
             }
         }
     }
 
-    function resetToOriginal() {
-        store.update(($store) => ({ ...$store, current: $store.original }));
-    }
-
     function set(value: T) {
         store.update(($store) => {
-            handleDebounce(jsonIsDifferent($store.original, value));
+            handleDebounce(() => jsonIsDifferent(store, JSON.stringify(value)));
             return { ...$store, current: value };
         });
     }
 
     return {
-        subscribe: (run: (value: T) => void) => store.subscribe(($store) => run($store.current)),
+        subscribe: (run: (value: T) => void) =>
+            store.subscribe(($store) => run(JSON.parse(JSON.stringify($store.current)))),
         hasChanges,
         setOriginalAndCurrent,
         setOriginalOnly,
-        resetToOriginal,
         updateOriginalAndCurrent,
         update,
         set,
     };
 }
 
-function jsonIsDifferent<T>(original: T, current: T) {
-    return JSON.stringify(original) !== JSON.stringify(current);
+function jsonIsDifferent<T>(store: Readable<StoreValue<T>>, stringifiedCurrent: string) {
+    return JSON.stringify(get(store).original) !== stringifiedCurrent;
 }
