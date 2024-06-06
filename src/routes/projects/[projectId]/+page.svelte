@@ -97,7 +97,11 @@
                         >Start</button
                     >
                 {:else}
-                    <button class="btn btn-primary" on:click={handleDownloadWordCounts}>Download Word Counts</button>
+                    <button
+                        data-app-insights-event-name="download-word-counts-click"
+                        class="btn btn-primary"
+                        on:click={handleDownloadWordCounts}>Download Word Counts</button
+                    >
                 {/if}
             </div>
         </div>
