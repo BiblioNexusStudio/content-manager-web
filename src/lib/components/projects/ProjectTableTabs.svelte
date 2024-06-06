@@ -1,13 +1,13 @@
 <script lang="ts">
     import { ProjectStatusTab } from '$lib/types/projects';
-    export let canOnlyViewProjectsInCompany: boolean;
+    import { Permission, userCan } from '$lib/stores/auth';
 
     export let activeCount;
     export let recentlyFinishedCount;
     export let notStartedCount;
     export let currentTab: ProjectStatusTab;
 
-    let tabs = !canOnlyViewProjectsInCompany
+    let tabs = $userCan(Permission.ReadProjects)
         ? [
               { name: 'Active', current: true, count: activeCount, value: ProjectStatusTab.active },
               {

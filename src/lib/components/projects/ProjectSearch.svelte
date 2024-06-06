@@ -8,7 +8,7 @@
 <div class="relative h-full grow">
     <input
         type="text"
-        class="h-full w-full rounded-md border-[1px] bg-gray-200 py-2 pe-12 ps-4 text-sm focus:outline-none"
+        class="h-full w-full rounded-md border-[1px] py-2 pe-12 ps-4 text-sm focus:outline-none"
         placeholder={$translate('page.resources.searchBox.value')}
         bind:value={projectSearchValue}
     />
