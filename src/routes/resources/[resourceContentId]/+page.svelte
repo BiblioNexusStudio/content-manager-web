@@ -547,7 +547,8 @@
 
         <div class="flex h-[calc(100vh-250px)]">
             <div
-                class="h-full transition-[width] {!$sidebarContentStore.isOpen && !isShowingCommentsSidebar
+                class="h-full {$sidebarContentStore.animateOpen &&
+                    'transition-[width]'} {!$sidebarContentStore.isOpen && !isShowingCommentsSidebar
                     ? 'w-full'
                     : $sidebarContentStore.isOpen && !isShowingCommentsSidebar
                     ? 'w-1/2 pe-3'
@@ -596,7 +597,7 @@
             </div>
 
             <div
-                class="h-full overflow-hidden transition-[width]
+                class="h-full overflow-hidden {$sidebarContentStore.animateOpen && 'transition-[width]'}
                 {!$sidebarContentStore.isOpen ? 'w-0' : isShowingCommentsSidebar ? 'w-2/5 ps-3' : 'w-1/2 ps-3'}"
             >
                 <div class="flex h-full w-full flex-col rounded-md border border-base-300 p-4">

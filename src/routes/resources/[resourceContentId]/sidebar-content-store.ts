@@ -8,13 +8,14 @@ import { get, writable } from 'svelte/store';
 type Store = {
     isLoading: boolean;
     isOpen: boolean;
+    animateOpen: boolean;
     selected: ((Snapshot | Version) & { idForSelection: string }) | null;
 };
 
 export function createSidebarContentStore(resourceContent: ResourceContent) {
     const cachedSnapshots: Record<number, Snapshot> = {};
     const cachedVersions: Record<number, Version> = {};
-    const store = writable<Store>({ isLoading: false, selected: null, isOpen: false });
+    const store = writable<Store>({ isLoading: false, selected: null, isOpen: false, animateOpen: false });
 
     const publishedVersions = resourceContent.versions.filter(({ isPublished }) => isPublished);
     const firstSnapshot = resourceContent.snapshots[resourceContent.snapshots.length - 1];
@@ -33,14 +34,14 @@ export function createSidebarContentStore(resourceContent: ResourceContent) {
         return `${'version' in snapshotOrVersion ? 'version' : 'snapshot'}|${snapshotOrVersion.id}`;
     }
 
-    function toggleViewing() {
+    function toggleViewing(animateOpen = true) {
         const isOpen = get(store).isOpen;
         if (!isOpen) {
             selectSnapshotOrVersion(allSnapshotAndPublishedVersionOptions[0]?.value ?? null);
         } else {
             selectSnapshotOrVersion(null);
         }
-        store.update((current) => ({ ...current, isOpen: !isOpen }));
+        store.update((current) => ({ ...current, isOpen: !isOpen, animateOpen }));
     }
 
     async function selectSnapshotOrVersion(idForSelection: string | number | null) {
