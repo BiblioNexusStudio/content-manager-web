@@ -39,11 +39,12 @@
     }
 </script>
 
-<div class="mt-4 flex ps-2">
+<div role="tablist" class="tabs tabs-bordered w-fit">
     {#each tabs as tab, index (tab.name)}
         <button
             data-app-insights-event-name="projects-{tab.name}-tab-click"
-            class="me-4 py-2 text-lg {tab.current ? 'border-b-4 border-primary' : ''}"
+            role="tab"
+            class="tab {tab.current ? 'tab-active' : ''}"
             on:click={() => setCurrentTab(index)}
         >
             {tab.name} ({tab.count})
