@@ -8,6 +8,7 @@
     import type { Company, Language } from '$lib/types/base';
     import Select from '$lib/components/Select.svelte';
     import { Permission, userCan } from '$lib/stores/auth';
+    import { formatNumberWithCommas } from '$lib/utils/projects';
 
     export let projects: ProjectListResponse[] = [];
     export let languages: Language[] = [];
@@ -33,7 +34,7 @@
               { name: 'projectPlatform', label: 'Platform', sorted: false, sortable: false },
               { name: 'resource', label: 'Resource', sorted: false, sortable: false },
               { name: 'language', label: 'Language', sorted: false, sortable: false },
-              { name: 'manager', label: 'Manager', sorted: false, sortable: false },
+              { name: 'projectLead', label: 'Project Lead', sorted: false, sortable: true },
               { name: 'itemCount', label: 'Items', sorted: false, sortable: true },
               { name: 'wordCount', label: 'Word Count', sorted: false, sortable: true },
               { name: 'days', label: 'Days', sorted: true, sortable: true },
@@ -43,8 +44,11 @@
               { name: 'name', label: 'Title', sorted: false, sortable: true },
               { name: 'company', label: 'Company', sorted: false, sortable: true },
               { name: 'projectPlatform', label: 'Platform', sorted: false, sortable: true },
+              { name: 'resource', label: 'Resource', sorted: false, sortable: false },
               { name: 'language', label: 'Language', sorted: false, sortable: true },
-              { name: 'projectLead', label: 'Project Lead', sorted: false, sortable: true },
+              { name: 'manager', label: 'Manager', sorted: false, sortable: false },
+              { name: 'itemCount', label: 'Items', sorted: false, sortable: true },
+              { name: 'wordCount', label: 'Word Count', sorted: false, sortable: true },
               { name: 'days', label: 'Days', sorted: true, sortable: true },
               { name: 'progress', label: 'Progress', sorted: false, sortable: false },
           ];
@@ -205,11 +209,7 @@
         </div>
     </div>
 
-    <div
-        class="grid w-full {$userCan(Permission.ReadProjects)
-            ? 'grid-cols-10'
-            : 'grid-cols-7'}  rounded-md border border-b-0"
-    >
+    <div class="grid w-full grid-cols-10 rounded-md border border-b-0">
         {#each columns as column (column.name)}
             <div
                 class="flex items-center justify-between border-b {column.sorted
@@ -253,25 +253,23 @@
             <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
                 >{row.projectPlatform}</a
             >
-            {#if $userCan(Permission.ReadProjects)}
-                <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.resource}</a>
-            {/if}
+            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.resource}</a>
             <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs">{row.language}</a>
             {#if $userCan(Permission.ReadProjects)}
                 <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
-                    >{row.manager ?? ''}</a
-                >
-                <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
-                    >{row.itemCount ?? ''}</a
-                >
-                <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
-                    >{row.wordCount ?? ''}</a
+                    >{row.projectLead}</a
                 >
             {:else}
                 <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
-                    >{row.projectLead}</a
+                    >{row.manager ?? ''}</a
                 >
             {/if}
+            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
+                >{formatNumberWithCommas(row.itemCount) ?? ''}</a
+            >
+            <a href={`/projects/${row.id}`} class="flex items-center border-b px-4 py-3 text-xs"
+                >{formatNumberWithCommas(row.wordCount) ?? ''}</a
+            >
 
             <div class="flex items-center border-b px-4 py-3 text-xs {redColor ? 'font-bold text-red-600' : ''}">
                 {isProjectClosed(row) || row.days === null ? '' : row.days}
