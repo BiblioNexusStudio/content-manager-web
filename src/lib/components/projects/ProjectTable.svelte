@@ -105,10 +105,20 @@
         });
 
         let activeProjects = sortedProjects.filter(
-            (p) => p.isStarted && (p.counts.inProgress > 0 || p.counts.inManagerReview > 0 || p.counts.notStarted > 0)
+            (p) =>
+                p.isStarted &&
+                (p.counts.inProgress > 0 ||
+                    p.counts.inManagerReview > 0 ||
+                    p.counts.inPublisherReview > 0 ||
+                    p.counts.notStarted > 0)
         );
         let recentlyFinishedProjects = sortedProjects.filter(
-            (p) => p.counts.notStarted == 0 && p.counts.inManagerReview == 0 && p.counts.inProgress == 0 && p.isStarted
+            (p) =>
+                p.counts.notStarted === 0 &&
+                p.counts.inManagerReview === 0 &&
+                p.counts.inPublisherReview === 0 &&
+                p.counts.inProgress === 0 &&
+                p.isStarted
         );
 
         let notStartedProjects = sortedProjects.filter((p) => !p.isStarted);
