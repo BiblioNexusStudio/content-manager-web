@@ -16,29 +16,33 @@
     let bubblingClick = false;
 
     onMount(() => {
-        window.onInlineCommentClick = async (selectedThreadId: number, spanId: string) => {
-            if (isCommenting) return;
-
-            markSpan = document.getElementById(spanId);
-            threadId = selectedThreadId;
-
-            show = true;
-            if (threadId === -1) {
-                isCommenting = true;
-            }
-
-            const sidebarDiv = $sidebarParentDivs.find((x) => x.threadId === threadId);
-            if (sidebarDiv) {
-                sidebarDiv.click();
-            }
-
-            bubblingClick = true;
-        };
+        window.onInlineCommentClick = onInlineCommentClick;
     });
+
+    async function onInlineCommentClick(selectedThreadId: number, spanId: string) {
+        if (isCommenting) return;
+
+        markSpan = document.getElementById(spanId);
+        threadId = selectedThreadId;
+
+        show = true;
+        if (threadId === -1) {
+            isCommenting = true;
+        }
+
+        const sidebarDiv = $sidebarParentDivs.find((x) => x.threadId === threadId);
+        if (sidebarDiv) {
+            sidebarDiv.click();
+        }
+
+        bubblingClick = true;
+    }
 
     onDestroy(() => {
         document.removeEventListener('click', onAnyClick);
-        window.onInlineCommentClick = undefined;
+        if (window.onInlineCommentClick === onInlineCommentClick) {
+            window.onInlineCommentClick = undefined;
+        }
     });
 
     const onAnyClick = (e: MouseEvent) => {

@@ -14,10 +14,19 @@
     import { log } from '$lib/logger';
     import { sideBarHiddenOnPage } from '$lib/stores/app';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
+    import type { Navigation } from '@sveltejs/kit';
 
     $: userFullName = $profile?.name ?? ' '; // set to avoid flashing undefined
 
     $: log.pageView($page.route.id ?? '');
+
+    let customTransitionPages = [/\/resources\/\d+/];
+
+    function isCustomTransitionNavigation(navigation: Navigation) {
+        return customTransitionPages.some((pageRegex) => {
+            return navigation.from?.url.toString().match(pageRegex) && navigation.to?.url.toString().match(pageRegex);
+        });
+    }
 
     let sidebarNavigation = [
         {
@@ -94,7 +103,7 @@
             <label for="main-drawer" class="btn btn-link btn-active drawer-button btn-xs justify-start p-1 lg:hidden"
                 ><MenuIcon /></label
             >
-            {#if $navigating}
+            {#if $navigating && !isCustomTransitionNavigation($navigating)}
                 <CenteredSpinner />
             {:else}
                 <slot />
