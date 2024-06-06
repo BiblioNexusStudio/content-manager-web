@@ -13,11 +13,11 @@
             },
             "charts": {
                 "totalResources": {
-                    "value": "Total Resources",
+                    "value": "Total Resource Items",
                     "_context": "Title for Total Resources chart"
                 },
                 "translatedResources": {
-                    "value": "Translated Resources",
+                    "value": "Translated Resource Items",
                     "_context": "Title for Translated Resources chart"
                 }
             }
