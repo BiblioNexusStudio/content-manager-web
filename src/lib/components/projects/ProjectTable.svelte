@@ -181,7 +181,7 @@
 <div>
     <ProjectTableTabs bind:activeCount bind:recentlyFinishedCount bind:notStartedCount bind:currentTab />
     <div class="flex flex-row pt-4">
-        <div class="flex items-center py-4 {$userCan(Permission.ReadProjects) ? 'w-4/5' : 'w-2/5'}">
+        <div class="flex items-center py-4 {$userCan(Permission.ReadProjects) ? 'w-4/5' : 'w-1/5'}">
             {#if $userCan(Permission.CreateProject)}
                 <a class="btn btn-primary me-4" href="/projects/new">Create</a>
             {/if}
