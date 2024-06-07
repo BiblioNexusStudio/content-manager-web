@@ -98,7 +98,7 @@
                     >
                 {:else}
                     <button
-                        data-app-insights-event-name="download-word-counts-click"
+                        data-app-insights-event-name="project-download-word-counts-click"
                         class="btn btn-primary"
                         on:click={handleDownloadWordCounts}>Download Word Counts</button
                     >
