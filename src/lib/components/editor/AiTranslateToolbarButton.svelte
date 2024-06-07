@@ -8,6 +8,7 @@
     import { Permission, userCan, userIsEqual, currentUser } from '$lib/stores/auth';
     import { ResourceContentStatusEnum } from '$lib/types/base';
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
+    import Modal from '$lib/components/Modal.svelte';
 
     export let editor: Editor;
     export let resourceContent: ResourceContent;
@@ -20,6 +21,7 @@
         $userCan(Permission.AiTranslate) &&
         resourceContent.status === ResourceContentStatusEnum.TranslationInProgress;
 
+    let isErrorModalOpen = false;
     let machineTranslation = machineTranslationStore.machineTranslation;
     $: showTranslateButton = canShowAnything && !$machineTranslation.id;
     $: showRating = canShowAnything && !showTranslateButton && $userIsEqual($machineTranslation.userId);
@@ -46,13 +48,24 @@
             promises.push(promise);
         }
 
-        const responses = (await Promise.all(promises)) as unknown as { content: string }[];
-        const response = responses.map((x) => x!.content).join('');
+        try {
+            const responses = (await Promise.all(promises)) as unknown as { content: string }[];
+            const response = responses.map((x) => x!.content).join('');
 
-        editor.commands.setContent(response);
-        editor.setEditable(true);
-        isLoading = false;
-        await createMachineTranslation();
+            // Since the translate calls take so long, the user may have navigated away from the page and we don't want
+            // to create the machine translation in that case.
+            if (!editor.isDestroyed) {
+                editor.commands.setContent(response);
+                await createMachineTranslation();
+            }
+        } catch (e) {
+            isErrorModalOpen = true;
+        } finally {
+            if (!editor.isDestroyed) {
+                editor.setEditable(true);
+                isLoading = false;
+            }
+        }
     };
 
     async function createMachineTranslation() {
@@ -87,3 +100,10 @@
         <MachineTranslationRating {machineTranslationStore} />
     </div>
 {/if}
+
+<Modal
+    header="Error"
+    bind:open={isErrorModalOpen}
+    isError={true}
+    description="An error occurred creating the translation. Please try again. If the problem persists, please contact support."
+/>
