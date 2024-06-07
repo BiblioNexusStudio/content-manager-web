@@ -15,6 +15,7 @@
     export let canEdit: boolean;
     export let machineTranslationStore: MachineTranslationStore;
 
+    let errorModal: HTMLDialogElement;
     const canShowAnything =
         canEdit &&
         $userCan(Permission.AiTranslate) &&
@@ -46,13 +47,25 @@
             promises.push(promise);
         }
 
-        const responses = (await Promise.all(promises)) as unknown as { content: string }[];
-        const response = responses.map((x) => x!.content).join('');
+        try {
+            const responses = (await Promise.all(promises)) as unknown as { content: string }[];
+            const response = responses.map((x) => x!.content).join('');
 
-        editor.commands.setContent(response);
-        editor.setEditable(true);
-        isLoading = false;
-        await createMachineTranslation();
+            // Since the translate calls take so long, the user may have navigated away from the page and we don't want
+            // to create the machine translation in that case.
+            if (!editor.isDestroyed) {
+                editor.commands.setContent(response);
+                await createMachineTranslation();
+            }
+        } catch (e) {
+            console.log(e);
+            errorModal.showModal();
+        } finally {
+            if (!editor.isDestroyed) {
+                editor.setEditable(true);
+                isLoading = false;
+            }
+        }
     };
 
     async function createMachineTranslation() {
@@ -87,3 +100,17 @@
         <MachineTranslationRating {machineTranslationStore} />
     </div>
 {/if}
+
+<dialog bind:this={errorModal} class="modal">
+    <div class="modal-box">
+        <div class="w-full pb-4 text-center text-lg font-bold text-error">
+            An error occurred creating the translation. Please try again. If the problem persists, please contact
+            support.
+        </div>
+        <div class="modal-action">
+            <form method="dialog">
+                <button class="btn btn-primary">Close</button>
+            </form>
+        </div>
+    </div>
+</dialog>
