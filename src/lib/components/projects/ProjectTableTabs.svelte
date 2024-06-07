@@ -1,13 +1,13 @@
 <script lang="ts">
     import { ProjectStatusTab } from '$lib/types/projects';
-    export let canOnlyViewProjectsInCompany: boolean;
+    import { Permission, userCan } from '$lib/stores/auth';
 
     export let activeCount;
     export let recentlyFinishedCount;
     export let notStartedCount;
     export let currentTab: ProjectStatusTab;
 
-    let tabs = !canOnlyViewProjectsInCompany
+    let tabs = $userCan(Permission.ReadProjects)
         ? [
               { name: 'Active', current: true, count: activeCount, value: ProjectStatusTab.active },
               {
@@ -39,11 +39,12 @@
     }
 </script>
 
-<div class="mt-4 flex ps-2">
+<div role="tablist" class="tabs tabs-bordered w-fit">
     {#each tabs as tab, index (tab.name)}
         <button
             data-app-insights-event-name="projects-{tab.name}-tab-click"
-            class="me-4 py-2 text-lg {tab.current ? 'border-b-4 border-primary' : ''}"
+            role="tab"
+            class="tab {tab.current ? 'tab-active' : ''}"
             on:click={() => setCurrentTab(index)}
         >
             {tab.name} ({tab.count})
