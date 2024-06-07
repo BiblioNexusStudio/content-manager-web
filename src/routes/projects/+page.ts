@@ -8,15 +8,14 @@ import type { Company } from '$lib/types/base';
 
 export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
-    const canOnlyViewProjectsInCompany =
-        get(userCan)(Permission.ReadProjectsInCompany) && !get(userCan)(Permission.ReadProjects);
 
-    if (get(userCan)(Permission.ReadProjects) || get(userCan)(Permission.ReadProjectsInCompany)) {
+    if (get(userCan)(Permission.ReadProjects)) {
         const projectListResponse = getFromApiWithoutBlocking<ProjectListResponse[]>('/projects', fetch);
-        const companies = get(userCan)(Permission.ReadProjectsInCompany)
-            ? { promise: Promise.resolve([]) }
-            : getFromApiWithoutBlocking<Company[]>(`/companies`, fetch);
-        return { projectListResponse, canOnlyViewProjectsInCompany, companies };
+        const companies = getFromApiWithoutBlocking<Company[]>(`/companies`, fetch);
+        return { projectListResponse, companies };
+    } else if (get(userCan)(Permission.ReadProjectsInCompany)) {
+        const projectListResponse = getFromApiWithoutBlocking<ProjectListResponse[]>('/projects', fetch);
+        return { projectListResponse, companies: { promise: Promise.resolve([]) } };
     } else {
         throw redirect(302, '/');
     }

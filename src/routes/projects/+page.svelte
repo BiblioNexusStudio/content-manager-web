@@ -8,7 +8,7 @@
 
     $: projectPromise = data.projectListResponse!.promise;
     $: companiesPromise = data.companies!.promise;
-
+    $: languages = data.languages;
     let currentTab: ProjectStatusTab;
     let activeCount = 0;
     let recentlyFinishedCount = 0;
@@ -29,7 +29,7 @@
             bind:activeCount
             bind:recentlyFinishedCount
             bind:notStartedCount
-            canOnlyViewProjectsInCompany={data.canOnlyViewProjectsInCompany}
+            {languages}
         />
     </div>
 {/await}
