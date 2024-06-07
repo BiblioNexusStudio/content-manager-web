@@ -27,7 +27,7 @@
 </script>
 
 <dialog bind:this={dialog} class="modal" on:close={close}>
-    <div class="modal-box {isError && 'bg-error'}">
+    <div class="modal-box">
         <form method="dialog">
             <button
                 class="btn btn-circle btn-ghost btn-sm absolute right-2 top-2"
@@ -35,10 +35,10 @@
                 on:click={close}>✕</button
             >
         </form>
-        <h3 class="w-full pb-4 text-center text-xl font-bold">{header}</h3>
+        <h3 class="w-full pb-4 text-center text-xl font-bold {isError && 'text-error'}">{header}</h3>
 
         {#if description}
-            <p class="py-4 text-lg font-medium">
+            <p class="py-4 text-lg {isError && 'text-error'}">
                 {@html description.replaceAll('\n', '<br />')}
             </p>
         {/if}

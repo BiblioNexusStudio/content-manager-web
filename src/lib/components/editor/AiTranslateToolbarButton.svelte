@@ -8,6 +8,7 @@
     import { Permission, userCan, userIsEqual, currentUser } from '$lib/stores/auth';
     import { ResourceContentStatusEnum } from '$lib/types/base';
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
+    import Modal from '$lib/components/Modal.svelte';
 
     export let editor: Editor;
     export let resourceContent: ResourceContent;
@@ -15,12 +16,12 @@
     export let canEdit: boolean;
     export let machineTranslationStore: MachineTranslationStore;
 
-    let errorModal: HTMLDialogElement;
     const canShowAnything =
         canEdit &&
         $userCan(Permission.AiTranslate) &&
         resourceContent.status === ResourceContentStatusEnum.TranslationInProgress;
 
+    let isErrorModalOpen = false;
     let machineTranslation = machineTranslationStore.machineTranslation;
     $: showTranslateButton = canShowAnything && !$machineTranslation.id;
     $: showRating = canShowAnything && !showTranslateButton && $userIsEqual($machineTranslation.userId);
@@ -58,7 +59,7 @@
                 await createMachineTranslation();
             }
         } catch (e) {
-            errorModal.showModal();
+            isErrorModalOpen = true;
         } finally {
             if (!editor.isDestroyed) {
                 editor.setEditable(true);
@@ -100,16 +101,9 @@
     </div>
 {/if}
 
-<dialog bind:this={errorModal} class="modal">
-    <div class="modal-box">
-        <div class="w-full pb-4 text-center text-lg font-bold text-error">
-            An error occurred creating the translation. Please try again. If the problem persists, please contact
-            support.
-        </div>
-        <div class="modal-action">
-            <form method="dialog">
-                <button class="btn btn-primary">Close</button>
-            </form>
-        </div>
-    </div>
-</dialog>
+<Modal
+    header="Error"
+    bind:open={isErrorModalOpen}
+    isError={true}
+    description="An error occurred creating the translation. Please try again. If the problem persists, please contact support."
+/>
