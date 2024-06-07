@@ -15,7 +15,7 @@
     export let resourceContent: ResourceContent;
     export let sidebarHistoryAvailable: boolean;
     export let historySidebarOpen: boolean;
-    export let onToggleHistoryPane: () => void;
+    export let onToggleHistoryPane: (animateOpen?: boolean) => void;
     export let commentStores: CommentStores;
     export let commentsSidebarOpen: boolean;
     export let resourceContentStatuses: ResourceContentStatus[];
@@ -24,7 +24,7 @@
 
     onMount(() => {
         if (sidebarHistoryAvailable && resourceContent.mediaType === MediaTypeEnum.text) {
-            onToggleHistoryPane();
+            onToggleHistoryPane(false);
         }
     });
 </script>
@@ -76,7 +76,7 @@
                     <button
                         data-app-insights-event-name="toggle-history-pane-click"
                         class="btn btn-ghost btn-sm {historySidebarOpen && 'bg-[#e6f7fc]'}"
-                        on:click={onToggleHistoryPane}
+                        on:click={() => onToggleHistoryPane()}
                     >
                         <HistoryIcon />
                     </button>
