@@ -58,7 +58,6 @@
                 await createMachineTranslation();
             }
         } catch (e) {
-            console.log(e);
             errorModal.showModal();
         } finally {
             if (!editor.isDestroyed) {
