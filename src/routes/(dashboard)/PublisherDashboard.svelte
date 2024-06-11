@@ -2,7 +2,7 @@
     import type { PageData } from './$types';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
-    import type { Project } from './+page';
+    import type { Project, ResourceAssignedToSelf, ResourcePendingReview } from './+page';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import { postToApi } from '$lib/utils/http-service';
@@ -34,6 +34,24 @@
     const sortAssignedResourceData = createPublisherDashboardMyWorkSorter();
     const sortPendingData = createPublisherDashboardReviewPendingSorter();
     const sortAssignedProjectData = createPublisherDashboardProjectsSorter();
+
+    function sortAndFilterAssignedResourceData(
+        assignedContents: ResourceAssignedToSelf[],
+        search: string,
+        sort: string
+    ) {
+        return sortAssignedResourceData(
+            assignedContents.filter((r) => r.englishLabel.toLowerCase().includes(search.toLowerCase())),
+            sort
+        );
+    }
+
+    function sortAndFilterPendingData(resourcePendingReview: ResourcePendingReview[], search: string, sort: string) {
+        return sortPendingData(
+            resourcePendingReview.filter((p) => p.englishLabel.toLowerCase().includes(search.toLowerCase())),
+            sort
+        );
+    }
 
     function sortAndFilterAssignedProjectData(projects: Project[], search: string, sort: string) {
         return sortAssignedProjectData(
@@ -135,9 +153,36 @@
 
     function selectTab(tab: Tab) {
         return () => {
+            search = '';
             $searchParams.tab = tab;
             $searchParams.sort = tab === Tab.myProjects ? SORT_KEYS.days : '-' + SORT_KEYS.days;
         };
+    }
+
+    function handleSelectAllMyWork(assignedContents: ResourceAssignedToSelf[]) {
+        const allSelected = assignedContents.length === selectedInProgressContentIds.length;
+
+        if (allSelected) {
+            selectedInProgressContentIds.length = 0;
+        } else {
+            selectedInProgressContentIds.length = 0;
+            assignedContents.forEach((ac) => {
+                selectedInProgressContentIds.push(ac.id);
+            });
+        }
+    }
+
+    function handleSelectAllReviewPending(reviewPendingContents: ResourcePendingReview[]) {
+        const allSelected = reviewPendingContents.length === selectedReviewContentIds.length;
+
+        if (allSelected) {
+            selectedReviewContentIds.length = 0;
+        } else {
+            selectedReviewContentIds.length = 0;
+            reviewPendingContents.forEach((ac) => {
+                selectedReviewContentIds.push(ac.id);
+            });
+        }
     }
 </script>
 
@@ -168,30 +213,41 @@
                 >
             </div>
         </div>
-        {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending}
-            <div class="mt-4">
-                <button
-                    data-app-insights-event-name="publisher-dashboard-bulk-assign-click"
-                    class="btn btn-primary"
-                    on:click={() => (isAssignContentModalOpen = true)}
-                    disabled={selectedReviewContentIds.length === 0 && selectedInProgressContentIds.length === 0}
-                    >Assign
-                </button>
-            </div>
-        {/if}
-        {#if $searchParams.tab === Tab.myProjects}
-            <div class="mt-4 flex flex-row">
-                <input class="input input-bordered max-w-xs" bind:value={search} placeholder="Search" />
-                <a class="btn btn-primary ms-4" href="/projects/new">Create Project</a>
-            </div>
-        {/if}
+
+        <div class="mt-4 flex flex-row">
+            <input
+                class="input input-bordered me-4 max-w-xs focus:outline-none"
+                bind:value={search}
+                placeholder="Search"
+            />
+            {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending}
+                <div class="me-4">
+                    <button
+                        data-app-insights-event-name="publisher-dashboard-bulk-assign-click"
+                        class="btn btn-primary"
+                        on:click={() => (isAssignContentModalOpen = true)}
+                        disabled={selectedReviewContentIds.length === 0 && selectedInProgressContentIds.length === 0}
+                        >Assign
+                    </button>
+                </div>
+            {/if}
+            <a class="btn btn-primary" href="/projects/new">Create Project</a>
+        </div>
         <div class="flex flex-row space-x-4 overflow-y-hidden">
             <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-auto">
                 <table class="table table-pin-rows">
                     {#if $searchParams.tab === Tab.myWork}
                         <thead>
                             <tr class="bg-base-200">
-                                <th></th>
+                                <th class="flex"
+                                    ><input
+                                        checked={assignedContents.length === selectedInProgressContentIds.length}
+                                        on:click={() => handleSelectAllMyWork(assignedContents)}
+                                        disabled={assignedContents.length === 0}
+                                        type="checkbox"
+                                        class="hover checkbox checkbox-sm my-auto"
+                                    /></th
+                                >
                                 <SortingTableHeaderCell
                                     text="Title"
                                     sortKey={SORT_KEYS.title}
@@ -218,7 +274,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {#each sortAssignedResourceData(assignedContents, $searchParams.sort) as resource (resource.id)}
+                            {#each sortAndFilterAssignedResourceData(assignedContents, search, $searchParams.sort) as resource (resource.id)}
                                 {@const href = `/resources/${resource.id}`}
                                 <tr class="hover">
                                     <TableCell class="w-4"
@@ -300,7 +356,15 @@
                     {:else if $searchParams.tab === Tab.reviewPending}
                         <thead>
                             <tr class="bg-base-200">
-                                <th></th>
+                                <th class="flex"
+                                    ><input
+                                        checked={reviewPendingContents.length === selectedReviewContentIds.length}
+                                        on:click={() => handleSelectAllReviewPending(reviewPendingContents)}
+                                        disabled={reviewPendingContents.length === 0}
+                                        type="checkbox"
+                                        class="hover checkbox checkbox-sm my-auto"
+                                    /></th
+                                >
                                 <SortingTableHeaderCell
                                     text="Title"
                                     sortKey={SORT_KEYS.title}
@@ -326,7 +390,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {#each sortPendingData(reviewPendingContents, $searchParams.sort) as resource (resource.id)}
+                            {#each sortAndFilterPendingData(reviewPendingContents, search, $searchParams.sort) as resource (resource.id)}
                                 {@const href = `/resources/${resource.id}`}
                                 <tr class="hover">
                                     <TableCell class="w-4"

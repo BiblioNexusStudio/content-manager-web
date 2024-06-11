@@ -15,6 +15,7 @@
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
 
     export let data: PageData;
+    let search = '';
 
     enum Tab {
         myWork = 'my-work',
@@ -29,6 +30,17 @@
 
     const sortAssignedData = createManagerDashboardSorter<ResourceAssignedToSelf>();
     const sortManageData = createManagerDashboardSorter<ResourceAssignedToOwnCompany>();
+
+    function sortAndFilterAssignedData(
+        allTabContents: ResourceAssignedToSelf[] | ResourceAssignedToOwnCompany[],
+        search: string,
+        sort: string
+    ) {
+        return sortAssignedData(
+            allTabContents.filter((x) => x.englishLabel.toLowerCase().includes(search.toLowerCase())),
+            sort
+        );
+    }
 
     const searchParams = searchParameters(
         {
@@ -80,7 +92,7 @@
 
     const switchTabs = (tab: Tab) => {
         if ($searchParams.tab === tab) return;
-
+        search = '';
         $searchParams.tab = tab;
         resetSelections();
     };
@@ -91,18 +103,28 @@
         }
     };
 
-    const sortAndFilterManageData = (
+    function sortAndFilterManageData(
         list: ResourceAssignedToSelf[] | ResourceAssignedToOwnCompany[],
+        search: string,
         params: SubscribedSearchParams<typeof searchParams>
-    ) => {
+    ) {
         if (params.assignedUserId === 0) {
-            return sortManageData(list as ResourceAssignedToOwnCompany[], params.sort);
+            return sortManageData(
+                (list as ResourceAssignedToOwnCompany[]).filter((r) =>
+                    r.englishLabel.toLowerCase().includes(search.toLowerCase())
+                ),
+                params.sort
+            );
         }
         return sortManageData(
-            (list as ResourceAssignedToOwnCompany[]).filter((r) => r.assignedUser.id === params.assignedUserId),
+            (list as ResourceAssignedToOwnCompany[]).filter(
+                (r) =>
+                    r.assignedUser.id === params.assignedUserId &&
+                    r.englishLabel.toLowerCase().includes(search.toLowerCase())
+            ),
             params.sort
         );
-    };
+    }
 
     function onSelectAll() {
         const allSelected = allTabContents.every((x) => x.rowSelected);
@@ -176,6 +198,7 @@
             </div>
         </div>
         <div class="mt-4 flex gap-4">
+            <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
             {#if $searchParams.tab === Tab.manage}
                 <Select
                     class="select select-bordered max-w-[14rem] flex-grow"
@@ -242,7 +265,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each sortAssignedData(allTabContents, $searchParams.sort) as resource (resource.id)}
+                        {#each sortAndFilterAssignedData(allTabContents, search, $searchParams.sort) as resource (resource.id)}
                             {@const href = `/resources/${resource.id}`}
                             <tr class="hover">
                                 <TableCell class="w-4"
@@ -307,7 +330,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each sortAndFilterManageData(allTabContents, $searchParams) as resource (resource.id)}
+                        {#each sortAndFilterManageData(allTabContents, search, $searchParams) as resource (resource.id)}
                             {@const href = `/resources/${resource.id}`}
                             <tr class="hover">
                                 <TableCell class="w-4"
