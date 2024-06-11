@@ -37,7 +37,9 @@ export function createSidebarContentStore(resourceContent: ResourceContent) {
     function toggleViewing(animateOpen = true) {
         const isOpen = get(store).isOpen;
         if (!isOpen) {
-            selectSnapshotOrVersion(allSnapshotAndPublishedVersionOptions[0]?.value ?? null);
+            selectSnapshotOrVersion(
+                allSnapshotAndPublishedVersionOptions[allSnapshotAndPublishedVersionOptions.length - 1]?.value ?? null
+            );
         } else {
             selectSnapshotOrVersion(null);
         }

@@ -356,10 +356,12 @@
     }
 
     async function assignUser() {
-        await takeActionAndRefresh(() =>
-            postToApi(`/resources/content/${resourceContentId}/assign-editor`, {
-                assignedUserId: assignToUserId,
-            })
+        await takeActionAndCallback(
+            () =>
+                postToApi(`/resources/content/${resourceContentId}/assign-editor`, {
+                    assignedUserId: assignToUserId,
+                }),
+            goToNextResource
         );
     }
 
@@ -562,6 +564,7 @@
                             <input
                                 bind:value={$editableDisplayNameStore}
                                 class="input input-bordered h-8 w-full max-w-[18rem] leading-8"
+                                dir="auto"
                                 type="text"
                                 readonly={!canMakeContentEdits || !resourceContent.isDraft}
                             />
