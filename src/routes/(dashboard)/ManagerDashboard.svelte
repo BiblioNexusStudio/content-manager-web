@@ -15,6 +15,7 @@
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
 
     export let data: PageData;
+    let search = '';
 
     enum Tab {
         myWork = 'my-work',
@@ -50,19 +51,26 @@
     let manageContents: ResourceAssignedToOwnCompany[] = [];
     let allTabContents: ResourceAssignedToSelf[] | ResourceAssignedToOwnCompany[] = [];
 
-    const setTabContents = (tab: string, assignedUserId: number) => {
+    const setTabContents = (tab: string, assignedUserId: number, search: string) => {
         if (tab === Tab.myWork) {
-            allTabContents = myWorkContents;
+            allTabContents = myWorkContents.filter((x) => x.englishLabel.toLowerCase().includes(search.toLowerCase()));
         } else if (tab === Tab.toAssign) {
-            allTabContents = toAssignContents;
+            allTabContents = toAssignContents.filter((x) =>
+                x.englishLabel.toLowerCase().includes(search.toLowerCase())
+            );
         } else if (tab === Tab.manage) {
-            allTabContents = manageContents.filter((x) => assignedUserId === 0 || x.assignedUser.id === assignedUserId);
+            allTabContents = manageContents.filter(
+                (x) =>
+                    assignedUserId === 0 ||
+                    (x.assignedUser.id === assignedUserId &&
+                        x.englishLabel.toLowerCase().includes(search.toLowerCase()))
+            );
         } else {
             allTabContents = [];
         }
     };
 
-    $: setTabContents($searchParams.tab, $searchParams.assignedUserId);
+    $: setTabContents($searchParams.tab, $searchParams.assignedUserId, search);
     $: anyRowSelected = allTabContents.some((x) => x.rowSelected);
     $: allRowsSelected = allTabContents.length > 0 && allTabContents.every((x) => x.rowSelected);
 
@@ -154,7 +162,7 @@
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Manager Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
-            <div role="tablist" class="tabs-bordered tabs w-fit">
+            <div role="tablist" class="tabs tabs-bordered w-fit">
                 <button
                     on:click={() => switchTabs(Tab.myWork)}
                     role="tab"
@@ -176,6 +184,7 @@
             </div>
         </div>
         <div class="mt-4 flex gap-4">
+            <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
             {#if $searchParams.tab === Tab.manage}
                 <Select
                     class="select select-bordered max-w-[14rem] flex-grow"
