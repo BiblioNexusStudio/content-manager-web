@@ -3,7 +3,7 @@
     export let projectSearchValue = '';
 </script>
 
-<div class="h-full grow">
+<div class="h-full">
     <input
         type="text"
         class="h-full w-full rounded-md border-[1px] py-2 ps-4 text-sm focus:outline-none"

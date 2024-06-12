@@ -176,11 +176,11 @@
 <div>
     <ProjectTableTabs bind:activeCount bind:recentlyFinishedCount bind:notStartedCount bind:currentTab />
     <div class="flex flex-row">
-        <div class="flex items-center py-4 {$userCan(Permission.ReadProjects) ? 'w-4/5' : 'w-1/5'}">
+        <div class="flex w-full items-center py-4">
             {#if $userCan(Permission.CreateProject)}
                 <a class="btn btn-primary me-4" href="/projects/new">Create</a>
             {/if}
-            <div class="relative me-4 h-full grow"><ProjectSearch bind:projectSearchValue /></div>
+            <div class="relative me-4 h-full w-80"><ProjectSearch bind:projectSearchValue /></div>
             {#if $userCan(Permission.ReadProjects)}
                 <Select
                     class="select select-bordered me-4 max-w-xs"

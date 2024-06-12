@@ -61,9 +61,8 @@
         } else if (tab === Tab.manage) {
             allTabContents = manageContents.filter(
                 (x) =>
-                    assignedUserId === 0 ||
-                    (x.assignedUser.id === assignedUserId &&
-                        x.englishLabel.toLowerCase().includes(search.toLowerCase()))
+                    (assignedUserId === 0 || x.assignedUser.id === assignedUserId) &&
+                    x.englishLabel.toLowerCase().includes(search.toLowerCase())
             );
         } else {
             allTabContents = [];
