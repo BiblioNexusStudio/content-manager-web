@@ -15,6 +15,7 @@
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
 
     export let data: PageData;
+    let search = '';
 
     enum Tab {
         myWork = 'my-work',
@@ -50,19 +51,25 @@
     let manageContents: ResourceAssignedToOwnCompany[] = [];
     let allTabContents: ResourceAssignedToSelf[] | ResourceAssignedToOwnCompany[] = [];
 
-    const setTabContents = (tab: string, assignedUserId: number) => {
+    const setTabContents = (tab: string, assignedUserId: number, search: string) => {
         if (tab === Tab.myWork) {
-            allTabContents = myWorkContents;
+            allTabContents = myWorkContents.filter((x) => x.englishLabel.toLowerCase().includes(search.toLowerCase()));
         } else if (tab === Tab.toAssign) {
-            allTabContents = toAssignContents;
+            allTabContents = toAssignContents.filter((x) =>
+                x.englishLabel.toLowerCase().includes(search.toLowerCase())
+            );
         } else if (tab === Tab.manage) {
-            allTabContents = manageContents.filter((x) => assignedUserId === 0 || x.assignedUser.id === assignedUserId);
+            allTabContents = manageContents.filter(
+                (x) =>
+                    (assignedUserId === 0 || x.assignedUser.id === assignedUserId) &&
+                    x.englishLabel.toLowerCase().includes(search.toLowerCase())
+            );
         } else {
             allTabContents = [];
         }
     };
 
-    $: setTabContents($searchParams.tab, $searchParams.assignedUserId);
+    $: setTabContents($searchParams.tab, $searchParams.assignedUserId, search);
     $: anyRowSelected = allTabContents.some((x) => x.rowSelected);
     $: allRowsSelected = allTabContents.length > 0 && allTabContents.every((x) => x.rowSelected);
 
@@ -176,6 +183,7 @@
             </div>
         </div>
         <div class="mt-4 flex gap-4">
+            <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
             {#if $searchParams.tab === Tab.manage}
                 <Select
                     class="select select-bordered max-w-[14rem] flex-grow"
