@@ -2,68 +2,70 @@
     import { onMount } from 'svelte';
     import MarkPopout from '$lib/components/editorMarkPopouts/MarkPopout.svelte';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
-    import { fetchBiblePassages, type BookPassage } from '$lib/utils/bible-passage-fetcher';
+    import { fetchBiblePassages, type BibleText } from '$lib/utils/bible-passage-fetcher';
     import { generateVerseFromReference } from '$lib/utils/reference';
+
+    export let languageId: number;
 
     let markSpan: HTMLElement | null;
     let show = false;
     let container: HTMLDivElement | undefined;
     let bubblingClick = false;
-    let passages: BookPassage[] | undefined;
+    let bibleTexts: BibleText[] | undefined;
     let verseDisplayName = '';
     let singleChapter = true;
     let singleBook = true;
     let failedFetch = false;
 
     const fetch = async (startVerse: string, endVerse: string) => {
-        const bookPassages = await fetchBiblePassages(startVerse, endVerse);
+        const bookTexts = await fetchBiblePassages(startVerse, endVerse, languageId);
 
-        if (!bookPassages || bookPassages.length === 0) {
+        if (!bookTexts || bookTexts.length === 0) {
             failedFetch = true;
             return;
         }
 
         if (
-            bookPassages.length === 1 &&
-            bookPassages[0]?.chapters.length === 1 &&
-            bookPassages[0]?.chapters[0]?.verses.length === 1
+            bookTexts.length === 1 &&
+            bookTexts[0]?.chapters.length === 1 &&
+            bookTexts[0]?.chapters[0]?.verses.length === 1
         ) {
             verseDisplayName = generateVerseFromReference({
                 verseId: 0,
-                book: bookPassages[0].book.name,
-                chapter: bookPassages[0].chapters[0].number,
-                verse: bookPassages[0].chapters[0].verses[0]!.number,
+                book: bookTexts[0].bookName,
+                chapter: bookTexts[0].chapters[0].number,
+                verse: bookTexts[0].chapters[0].verses[0]!.number,
             });
         } else {
-            const passageStart = bookPassages[0]!;
-            const passageEnd = bookPassages.at(-1)!;
+            const passageStart = bookTexts[0]!;
+            const passageEnd = bookTexts.at(-1)!;
 
             verseDisplayName = generateVerseFromReference({
                 startVerseId: 0,
-                startBook: passageStart.book.name,
+                startBook: passageStart.bookName,
                 startChapter: passageStart.chapters[0]!.number,
                 startVerse: passageStart.chapters[0]!.verses[0]!.number,
                 endVerseId: 0,
-                endBook: passageEnd.book.name,
+                endBook: passageEnd.bookName,
                 endChapter: passageEnd.chapters.at(-1)!.number,
                 endVerse: passageEnd.chapters.at(-1)!.verses.at(-1)!.number,
             });
         }
 
-        singleBook = bookPassages.length === 1;
-        singleChapter = singleBook && bookPassages[0]!.chapters.length === 1;
+        singleBook = bookTexts.length === 1;
+        singleChapter = singleBook && bookTexts[0]!.chapters.length === 1;
 
-        return bookPassages;
+        return bookTexts;
     };
 
     onMount(() => {
         window.onBibleReferenceClick = async (spanId, startVerse, endVerse) => {
             bubblingClick = true;
-            passages = undefined;
+            bibleTexts = undefined;
             show = true;
             markSpan = document.getElementById(spanId);
 
-            passages = await fetch(startVerse, endVerse);
+            bibleTexts = await fetch(startVerse, endVerse);
         };
     });
 
@@ -81,16 +83,16 @@
 
 <svelte:window on:click={onAnyClick} />
 
-{#if passages}
+{#if bibleTexts}
     <MarkPopout bind:show bind:markSpan bind:container>
-        <div class="overflow-y-auto">
+        <div class="overflow-y-auto" dir="auto">
             <div class="m-4 flex flex-col justify-center space-y-2">
                 <div class="mb-2 font-semibold">{verseDisplayName}</div>
-                {#each passages as passage (passage)}
+                {#each bibleTexts as text (text)}
                     {#if !singleBook}
-                        <div class="font-semibold">{passage.book.name}</div>
+                        <div class="font-semibold">{text.bookName}</div>
                     {/if}
-                    {#each passage.chapters as chapter (chapter)}
+                    {#each text.chapters as chapter (chapter)}
                         {#if !singleChapter}
                             <div class="font-semibold">Chapter {chapter.number}</div>
                         {/if}
