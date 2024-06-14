@@ -13,12 +13,12 @@ export function getReportingLinkData(): IReportingLinkData[] {
         },
         {
             reportTitle: 'Daily Resource Item Downloads',
-            reportDescription: 'Bar chart showing daily Resources Item downloads',
+            reportDescription: 'Bar chart showing daily Resource Item downloads',
             reportLink: '/reporting/bar-charts/daily-resource-downloads',
         },
         {
             reportTitle: 'Recently Edited Resource Items',
-            reportDescription: 'List of Resources Items edited in the last 30 days',
+            reportDescription: 'List of Resource Items edited in the last 30 days',
             reportLink: '/reporting/lists/edited-last-thirty-days',
         },
         {

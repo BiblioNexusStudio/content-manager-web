@@ -207,7 +207,7 @@
     bind:open={showingAquiferizeInProgressModal}
     primaryButtonText="Add Anyway"
     primaryButtonOnClick={() => moveToRight(true)}
-    description={`The following resources are not in a Complete status:\n\n${selectedOnLeftBeingAquiferized
+    description={`The following resource items are not in a Complete status:\n\n${selectedOnLeftBeingAquiferized
         .map((r) => r.title)
         .join('\n')}\n\nIf new items are created, the published version will be used and any changes being made will not
 be reflected. Are you sure you want to add them to this project?`}

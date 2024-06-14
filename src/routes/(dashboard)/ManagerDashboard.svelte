@@ -13,6 +13,8 @@
     import Modal from '$lib/components/Modal.svelte';
     import { postToApi } from '$lib/utils/http-service';
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
+    import { isApiErrorWithMessage } from '$lib/utils/http-errors';
+    import { log } from '$lib/logger';
 
     export let data: PageData;
     let search = '';
@@ -44,7 +46,10 @@
     let isAssignContentModalOpen = false;
     let isSendToPublisherModalOpen = false;
     let isErrorModalOpen = false;
+    let customErrorMessage: string | null = null;
     let isAssigning = false;
+
+    $: !isErrorModalOpen && (customErrorMessage = null);
 
     let myWorkContents: ResourceAssignedToSelf[] = [];
     let toAssignContents: ResourceAssignedToSelf[] = [];
@@ -131,9 +136,18 @@
 
     const sendForReview = async (contentIds: number[]) => {
         if (contentIds.length > 0) {
-            await postToApi<null>('/resources/content/send-for-publisher-review', {
-                contentIds: contentIds,
-            });
+            try {
+                await postToApi<null>('/resources/content/send-for-publisher-review', {
+                    contentIds: contentIds,
+                });
+            } catch (error) {
+                if (isApiErrorWithMessage(error, 'not in correct status', 'generalErrors')) {
+                    customErrorMessage = 'Resource items must be in Manager Review status to send to publisher.';
+                } else {
+                    log.exception(error);
+                }
+                throw error;
+            }
         }
     };
 
@@ -141,8 +155,8 @@
         isAssigning = true;
 
         try {
-            const inProgress = allTabContents.filter((x) => x.rowSelected).map((x) => x.id);
-            await action(inProgress);
+            const contentIds = allTabContents.filter((x) => x.rowSelected).map((x) => x.id);
+            await action(contentIds);
             isAssigning = false;
             window.location.reload();
         } catch {
@@ -382,4 +396,9 @@
     <div class="my-4 text-xl">Have you completed your editing? Your assignment will be removed.</div>
 </Modal>
 
-<Modal header="Error" bind:open={isErrorModalOpen} isError={true} description="Error while assigning content." />
+<Modal
+    header="Error"
+    bind:open={isErrorModalOpen}
+    isError={true}
+    description={customErrorMessage || 'Error while assigning content.'}
+/>
