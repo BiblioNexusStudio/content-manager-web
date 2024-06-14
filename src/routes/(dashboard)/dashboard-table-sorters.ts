@@ -13,6 +13,7 @@ export function createManagerDashboardSorter<T extends ResourceAssignedToSelf>()
         {
             [ColumnName.Days]: 'daysUntilProjectDeadline',
             [ColumnName.WordCount]: 'wordCount',
+            [ColumnName.Title]: 'englishLabel',
         },
         [
             { key: 'projectName', dir: 'ASC' },

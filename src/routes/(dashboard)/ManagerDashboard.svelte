@@ -28,6 +28,7 @@
     const SORT_KEYS = {
         days: 'days',
         wordCount: 'word-count',
+        title: 'title',
     };
 
     const sortAssignedData = createManagerDashboardSorter<ResourceAssignedToSelf>();
@@ -243,7 +244,11 @@
                                     class="checkbox checkbox-sm"
                                 /></th
                             >
-                            <th>Title</th>
+                            <SortingTableHeaderCell
+                                text="Title"
+                                sortKey={SORT_KEYS.title}
+                                bind:currentSort={$searchParams.sort}
+                            />
                             <th>Resource</th>
                             <th>Language</th>
                             <th>Project</th>
@@ -310,7 +315,11 @@
                                     class="checkbox checkbox-sm"
                                 /></th
                             >
-                            <th>Title</th>
+                            <SortingTableHeaderCell
+                                text="Title"
+                                sortKey={SORT_KEYS.title}
+                                bind:currentSort={$searchParams.sort}
+                            />
                             <th>Resource</th>
                             <th>Language</th>
                             <th>Project</th>
