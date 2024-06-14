@@ -41,10 +41,10 @@
             const currentParentDiv = $sidebarParentDivs[i]?.div;
             if (!thread.resolved && currentParentDiv === parentDiv) {
                 focused = true;
-                parentDiv.classList.add(borderClass);
+                parentDiv.classList?.add(borderClass);
                 highlightCommentSpan(fromInlineClick);
             } else {
-                currentParentDiv?.classList.remove(borderClass);
+                currentParentDiv?.classList?.remove(borderClass);
             }
         }
     };
@@ -53,8 +53,8 @@
         const commentMark = $commentMarks.find((x) => x.threadId === thread.id);
         if (commentMark) {
             const span = document.getElementById(commentMark.spanId) as HTMLSpanElement;
-            span.classList.add(...selectedSpanBackgroundColorClass);
-            span.classList.remove(normalSpanBackgroundColorClass);
+            span.classList?.add(...selectedSpanBackgroundColorClass);
+            span.classList?.remove(normalSpanBackgroundColorClass);
 
             if (!fromInlineClick) {
                 span.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -71,7 +71,7 @@
         focused = false;
 
         if (parentDiv) {
-            parentDiv.classList.remove(borderClass);
+            parentDiv.classList?.remove(borderClass);
         }
 
         if (thread.resolved) return;
@@ -79,8 +79,8 @@
         const commentMark = $commentMarks.find((x) => x.threadId === thread.id);
         if (commentMark) {
             const span = document.getElementById(commentMark.spanId) as HTMLSpanElement;
-            span?.classList.add(normalSpanBackgroundColorClass);
-            span?.classList.remove(...selectedSpanBackgroundColorClass);
+            span?.classList?.add(normalSpanBackgroundColorClass);
+            span?.classList?.remove(...selectedSpanBackgroundColorClass);
         }
     };
 </script>
