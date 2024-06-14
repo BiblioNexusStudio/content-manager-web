@@ -1,17 +1,10 @@
 import { log } from '$lib/logger';
 import { getFromApi } from '$lib/utils/http-service';
+import { fetchLanguageDefaultBible } from '$lib/utils/bibles-fetcher';
 
 type PassageRangeId = number;
 
-let bibleCache: Bible[] | null = null;
 const bibleTextCache: Record<PassageRangeId, BibleText> = {};
-
-interface Bible {
-    id: number;
-    name: string;
-    languageId: number;
-    isLanguageDefault: boolean;
-}
 
 interface ParsedVerse {
     bookId: number;
@@ -42,10 +35,8 @@ export async function fetchBiblePassages(
     const spansMultipleBooks = start.bookId !== end.bookId;
 
     const texts: BibleText[] = [];
-    // TODO move to its own component, see if bible-book-fetcher is needed anymore
-    await getCachedBibles();
-    console.log(bibleCache);
-    const bibleId = bibleCache?.find((b) => b.languageId === languageId && b.isLanguageDefault)?.id ?? 1;
+    const bible = await fetchLanguageDefaultBible(languageId);
+    const bibleId = bible?.id ?? 1;
 
     for (let i = start.bookId; i <= end.bookId; i++) {
         let bookStart = start;
@@ -76,17 +67,6 @@ export async function fetchBiblePassages(
     return texts;
 }
 
-const getCachedBibles = async () => {
-    if (bibleCache === null) {
-        console.log('filling Bibles cache');
-        try {
-            bibleCache = await getFromApi<Bible[]>('/bibles');
-        } catch (error) {
-            log.exception(error);
-        }
-    }
-};
-
 const getCachedBibleText = async (bibleTextId: number, bibleId: number, start: ParsedVerse, end: ParsedVerse) => {
     let bibleText: BibleText | null = null;
 
@@ -107,54 +87,6 @@ const getCachedBibleText = async (bibleTextId: number, bibleId: number, start: P
 
     return bibleText;
 };
-
-// const getPassage = (
-//     book: Book,
-//     start: ParsedVerse,
-//     end: ParsedVerse,
-//     bibleBookName: BibleBooksResponse
-// ): BookPassage => {
-//     const passage: BookPassage = {
-//         book: {
-//             id: bibleBookName.id,
-//             name: bibleBookName.name,
-//         },
-//         chapters: [],
-//     };
-//
-//     for (let chapter = start.chapter; chapter <= end.chapter; chapter++) {
-//         const chapterData = book.chapters.find((c) => c.number === chapter.toString());
-//         if (chapterData) {
-//             const passageChapter: PassageChapter = {
-//                 number: chapter,
-//                 verses: [],
-//             };
-//             let startVerseIndex = 0;
-//             let endVerseIndex = chapterData.verses.length - 1;
-//
-//             if (chapter === start.chapter) {
-//                 startVerseIndex = chapterData.verses.findIndex((v) => v.number === start.verse.toString());
-//             }
-//             if (chapter === end.chapter) {
-//                 endVerseIndex = chapterData.verses.findIndex((v) => v.number === end.verse.toString());
-//             }
-//
-//             for (let i = startVerseIndex; i <= endVerseIndex; i++) {
-//                 const verse = chapterData.verses[i];
-//                 if (verse) {
-//                     passageChapter.verses.push({
-//                         number: Number(verse.number),
-//                         text: verse.text,
-//                     });
-//                 }
-//             }
-//
-//             passage.chapters.push(passageChapter);
-//         }
-//     }
-//
-//     return passage;
-// };
 
 const parseVerseId = (verseId: string): ParsedVerse => {
     return {
