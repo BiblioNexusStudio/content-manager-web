@@ -4,7 +4,7 @@
     import { searchParameters, ssp, type SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
     import type { ResourceAssignedToOwnCompany, ResourceAssignedToSelf } from './+page';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
-    import { createManagerDashboardSorter } from './dashboard-table-sorters';
+    import { createManagerDashboardSorter, SortName } from './dashboard-table-sorters';
     import Select from '$lib/components/Select.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
@@ -25,18 +25,12 @@
         manage = 'manage',
     }
 
-    const SORT_KEYS = {
-        days: 'days',
-        wordCount: 'word-count',
-        title: 'title',
-    };
-
     const sortAssignedData = createManagerDashboardSorter<ResourceAssignedToSelf>();
     const sortManageData = createManagerDashboardSorter<ResourceAssignedToOwnCompany>();
 
     const searchParams = searchParameters(
         {
-            sort: ssp.string(SORT_KEYS.days),
+            sort: ssp.string(SortName.Days),
             tab: ssp.string(Tab.myWork),
             assignedUserId: ssp.number(0),
         },
@@ -246,7 +240,7 @@
                             >
                             <SortingTableHeaderCell
                                 text="Title"
-                                sortKey={SORT_KEYS.title}
+                                sortKey={SortName.Title}
                                 bind:currentSort={$searchParams.sort}
                             />
                             <th>Resource</th>
@@ -258,12 +252,12 @@
                             {/if}
                             <SortingTableHeaderCell
                                 text="Deadline (Days)"
-                                sortKey={SORT_KEYS.days}
+                                sortKey={SortName.Days}
                                 bind:currentSort={$searchParams.sort}
                             />
                             <SortingTableHeaderCell
                                 text="Word Count"
-                                sortKey={SORT_KEYS.wordCount}
+                                sortKey={SortName.WordCount}
                                 bind:currentSort={$searchParams.sort}
                             />
                         </tr>
@@ -317,7 +311,7 @@
                             >
                             <SortingTableHeaderCell
                                 text="Title"
-                                sortKey={SORT_KEYS.title}
+                                sortKey={SortName.Title}
                                 bind:currentSort={$searchParams.sort}
                             />
                             <th>Resource</th>
@@ -327,12 +321,12 @@
                             <th>Last Edit (Days)</th>
                             <SortingTableHeaderCell
                                 text="Deadline (Days)"
-                                sortKey={SORT_KEYS.days}
+                                sortKey={SortName.Days}
                                 bind:currentSort={$searchParams.sort}
                             />
                             <SortingTableHeaderCell
                                 text="Word Count"
-                                sortKey={SORT_KEYS.wordCount}
+                                sortKey={SortName.WordCount}
                                 bind:currentSort={$searchParams.sort}
                             />
                         </tr>

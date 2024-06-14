@@ -11,6 +11,7 @@
     import Modal from '$lib/components/Modal.svelte';
     import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
     import {
+        SortName,
         createPublisherDashboardMyWorkSorter,
         createPublisherDashboardProjectsSorter,
         createPublisherDashboardReviewPendingSorter,
@@ -23,13 +24,6 @@
         reviewPending = 'review-pending',
         myProjects = 'my-projects',
     }
-
-    const SORT_KEYS = {
-        title: 'title',
-        language: 'language',
-        days: 'days',
-        wordCount: 'word-count',
-    };
 
     let assignedContents: ResourceAssignedToSelf[] = [];
     let reviewPendingContents: ResourcePendingReview[] = [];
@@ -48,7 +42,7 @@
 
     const searchParams = searchParameters(
         {
-            sort: ssp.string('-' + SORT_KEYS.days),
+            sort: ssp.string('-' + SortName.Days),
             tab: ssp.string(Tab.myWork),
         },
         { runLoadAgainWhenParamsChange: false }
@@ -138,7 +132,7 @@
     function selectTab(tab: Tab) {
         return () => {
             $searchParams.tab = tab;
-            $searchParams.sort = tab === Tab.myProjects ? SORT_KEYS.days : '-' + SORT_KEYS.days;
+            $searchParams.sort = tab === Tab.myProjects ? SortName.Days : '-' + SortName.Days;
         };
     }
 
@@ -251,25 +245,25 @@
                                 >
                                 <SortingTableHeaderCell
                                     text="Title"
-                                    sortKey={SORT_KEYS.title}
+                                    sortKey={SortName.Title}
                                     bind:currentSort={$searchParams.sort}
                                 />
                                 <th>Resource</th>
                                 <SortingTableHeaderCell
                                     text="Language"
-                                    sortKey={SORT_KEYS.language}
+                                    sortKey={SortName.Language}
                                     bind:currentSort={$searchParams.sort}
                                 />
                                 <th>Status</th>
                                 <th>Last Edit (Days)</th>
                                 <SortingTableHeaderCell
                                     text="Days Assigned"
-                                    sortKey={SORT_KEYS.days}
+                                    sortKey={SortName.Days}
                                     bind:currentSort={$searchParams.sort}
                                 />
                                 <SortingTableHeaderCell
                                     text="Word Count"
-                                    sortKey={SORT_KEYS.wordCount}
+                                    sortKey={SortName.WordCount}
                                     bind:currentSort={$searchParams.sort}
                                 />
                             </tr>
@@ -312,7 +306,7 @@
                                 <th>Language</th>
                                 <SortingTableHeaderCell
                                     text="Days"
-                                    sortKey={SORT_KEYS.days}
+                                    sortKey={SortName.Days}
                                     bind:currentSort={$searchParams.sort}
                                 />
                                 <th>Progress</th>
@@ -369,24 +363,24 @@
                                 >
                                 <SortingTableHeaderCell
                                     text="Title"
-                                    sortKey={SORT_KEYS.title}
+                                    sortKey={SortName.Title}
                                     bind:currentSort={$searchParams.sort}
                                 />
                                 <th>Resource</th>
                                 <SortingTableHeaderCell
                                     text="Language"
-                                    sortKey={SORT_KEYS.language}
+                                    sortKey={SortName.Language}
                                     bind:currentSort={$searchParams.sort}
                                 />
                                 <th>Last Edit (Days)</th>
                                 <SortingTableHeaderCell
                                     text="Days Pending"
-                                    sortKey={SORT_KEYS.days}
+                                    sortKey={SortName.Days}
                                     bind:currentSort={$searchParams.sort}
                                 />
                                 <SortingTableHeaderCell
                                     text="Word Count"
-                                    sortKey={SORT_KEYS.wordCount}
+                                    sortKey={SortName.WordCount}
                                     bind:currentSort={$searchParams.sort}
                                 />
                             </tr>
