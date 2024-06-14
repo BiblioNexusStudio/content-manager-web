@@ -29,7 +29,6 @@ export async function fetchBiblePassages(
     languageId: number
 ): Promise<BibleText[]> {
     const bibleTextId = +(languageId + startVerseId + endVerseId);
-    console.log(bibleTextId);
     const start = parseVerseId(startVerseId);
     const end = parseVerseId(endVerseId);
     const spansMultipleBooks = start.bookId !== end.bookId;
