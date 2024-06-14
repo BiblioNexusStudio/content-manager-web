@@ -30,6 +30,17 @@ const getUserProperties = () => {
     };
 };
 
+const getBrowserAndScreenSize = () => {
+    if (browser) {
+        return {
+            browserWidth: window.innerWidth,
+            browserHeight: window.innerHeight,
+            screenWidth: window.screen.width,
+            screenHeight: window.screen.height,
+        };
+    }
+    return {};
+};
 export const log = {
     exception: (uncastError: unknown) => {
         if (uncastError && typeof uncastError === 'object' && 'message' in uncastError) {
@@ -52,6 +63,7 @@ export const log = {
                     {
                         ...additionalProperties,
                         ...getUserProperties(),
+                        ...getBrowserAndScreenSize(),
                         isAuthenticated: get(isAuthenticatedStore) ?? 'undefined',
                         commitSha: config.PUBLIC_COMMIT_SHA,
                     }
@@ -66,6 +78,7 @@ export const log = {
                 properties: {
                     ...additionalProperties,
                     ...getUserProperties(),
+                    ...getBrowserAndScreenSize(),
                 },
             });
     },
@@ -76,6 +89,7 @@ export const log = {
                 properties: {
                     ...additionalProperties,
                     ...getUserProperties(),
+                    ...getBrowserAndScreenSize(),
                 },
             });
     },
