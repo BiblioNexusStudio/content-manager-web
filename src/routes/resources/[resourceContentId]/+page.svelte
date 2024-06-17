@@ -413,7 +413,7 @@
     }
 
     function usersThatCanBeAssigned() {
-        var users = data.users?.filter((u) => u.role !== UserRole.ReportViewer) ?? null;
+        const users = data.users?.filter((u) => u.role !== UserRole.ReportViewer) ?? null;
 
         if ($userCan(Permission.AssignOutsideCompany)) {
             return users;
@@ -666,7 +666,7 @@
     </div>
 
     <InlineComment {commentStores} />
-    <VersePopout />
+    <VersePopout languageId={resourceContent.language.id} />
 {/await}
 
 {#key resourceContentId}
