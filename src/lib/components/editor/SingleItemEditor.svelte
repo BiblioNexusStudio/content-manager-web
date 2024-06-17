@@ -54,6 +54,7 @@
     />
 
     <TiptapRenderer
+        languageScriptDirection={resourceContent.language.scriptDirection}
         {tiptapJson}
         {canEdit}
         {canComment}

@@ -10,11 +10,17 @@ import Underline from '@tiptap/extension-underline';
 import { bibleReferenceMark } from '$lib/components/tiptap/bibleReferenceMark';
 import { resourceReferenceMark } from '$lib/components/tiptap/resourceReferenceMark';
 import { commentsMark } from '$lib/components/tiptap/commentsMark';
-import TextDirection from 'tiptap-text-direction';
 import type { CommentStores } from '$lib/stores/comments';
+import TextDirectionAuto from './textDirectionAuto';
+import { filterBoolean } from '$lib/utils/array';
 
-export function extensions(canComment: boolean, commentStores: CommentStores | undefined) {
-    return [
+export function extensions(
+    canComment: boolean,
+    commentStores: CommentStores | undefined,
+    includeTextDirection: boolean,
+    languageScriptDirection: 'RTL' | 'LTR' | undefined
+) {
+    return filterBoolean([
         StarterKit.configure({}),
         Image.configure({}),
         Link.configure({
@@ -29,8 +35,10 @@ export function extensions(canComment: boolean, commentStores: CommentStores | u
         bibleReferenceMark.configure({}),
         resourceReferenceMark.configure({}),
         commentsMark.configure({ render: canComment, commentStores: commentStores }),
-        TextDirection.configure({
-            types: ['heading', 'paragraph', 'orderedList', 'bulletList', 'listItem'],
-        }),
-    ];
+        includeTextDirection &&
+            TextDirectionAuto.configure({
+                defaultDirection: languageScriptDirection?.toLowerCase() as 'ltr' | 'rtl' | undefined,
+                types: ['heading', 'paragraph', 'orderedList', 'bulletList', 'listItem'],
+            }),
+    ]);
 }
