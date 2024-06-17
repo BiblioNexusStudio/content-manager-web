@@ -2,7 +2,8 @@
     import { onMount } from 'svelte';
     import MarkPopout from '$lib/components/editorMarkPopouts/MarkPopout.svelte';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
-    import { fetchBiblePassages, type BibleText } from '$lib/utils/bible-passage-fetcher';
+    import { fetchBiblePassages } from '$lib/utils/bible-passage-fetcher';
+    import type { BibleBook } from '$lib/utils/bible-book-fetcher';
     import { generateVerseFromReference } from '$lib/utils/reference';
 
     export let languageId: number;
@@ -11,7 +12,7 @@
     let show = false;
     let container: HTMLDivElement | undefined;
     let bubblingClick = false;
-    let bibleTexts: BibleText[] | undefined;
+    let bibleTexts: BibleBook[];
     let verseDisplayName = '';
     let singleChapter = true;
     let singleBook = true;
@@ -22,7 +23,7 @@
 
         if (!bookTexts || bookTexts.length === 0) {
             failedFetch = true;
-            return;
+            return [];
         }
 
         if (
@@ -60,12 +61,23 @@
 
     onMount(() => {
         window.onBibleReferenceClick = async (spanId, startVerse, endVerse) => {
+            // Because of the response caching used, there can still be a very slight delay when loading
+            // a resource that's already cached. The timeout and duplicated show = true prevents some jank
+            // when switching back and forth between references.
             bubblingClick = true;
-            bibleTexts = undefined;
-            show = true;
+            show = false;
+            const timeout = setTimeout(() => {
+                bibleTexts = [];
+                show = true;
+            }, 100);
+
             markSpan = document.getElementById(spanId);
 
-            bibleTexts = await fetch(startVerse, endVerse);
+            // I don't think the extra const is really needed here, but out of an abundance of caution...
+            const fetchResponse = await fetch(startVerse, endVerse);
+            clearTimeout(timeout);
+            show = true;
+            bibleTexts = fetchResponse;
         };
     });
 
@@ -83,7 +95,7 @@
 
 <svelte:window on:click={onAnyClick} />
 
-{#if bibleTexts}
+{#if bibleTexts?.length > 0}
     <MarkPopout bind:show bind:markSpan bind:container>
         <div class="overflow-y-auto" dir="auto">
             <div class="m-4 flex flex-col justify-center space-y-2">

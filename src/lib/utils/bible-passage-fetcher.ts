@@ -1,10 +1,5 @@
-import { log } from '$lib/logger';
-import { getFromApi } from '$lib/utils/http-service';
 import { fetchLanguageDefaultBible } from '$lib/utils/bibles-fetcher';
-
-type PassageRangeId = number;
-
-const bibleTextCache: Record<PassageRangeId, BibleText> = {};
+import { fetchBibleBookTexts, type BibleBook } from '$lib/utils/bible-book-fetcher';
 
 interface ParsedVerse {
     bookId: number;
@@ -12,28 +7,16 @@ interface ParsedVerse {
     verse: number;
 }
 
-interface PassageChapter {
-    number: number;
-    verses: { number: number; text: string }[];
-}
-
-export interface BibleText {
-    bookName: string;
-    bookNumber: number;
-    chapters: PassageChapter[];
-}
-
 export async function fetchBiblePassages(
     startVerseId: string,
     endVerseId: string,
     languageId: number
-): Promise<BibleText[]> {
-    const bibleTextId = +(languageId + startVerseId + endVerseId);
+): Promise<BibleBook[]> {
     const start = parseVerseId(startVerseId);
     const end = parseVerseId(endVerseId);
     const spansMultipleBooks = start.bookId !== end.bookId;
 
-    const texts: BibleText[] = [];
+    const texts: BibleBook[] = [];
     const bible = await fetchLanguageDefaultBible(languageId);
     const bibleId = bible?.id ?? 1;
 
@@ -57,7 +40,7 @@ export async function fetchBiblePassages(
             };
         }
 
-        const text = await getCachedBibleText(bibleTextId, bibleId, bookStart, bookEnd);
+        const text = await getText(bibleId, bookStart, bookEnd);
         if (text) {
             texts.push(text);
         }
@@ -66,25 +49,15 @@ export async function fetchBiblePassages(
     return texts;
 }
 
-const getCachedBibleText = async (bibleTextId: number, bibleId: number, start: ParsedVerse, end: ParsedVerse) => {
-    let bibleText: BibleText | null = null;
-
-    if (bibleTextCache[bibleTextId]) {
-        bibleText = bibleTextCache[bibleTextId]!;
-    } else {
-        try {
-            bibleText = await getFromApi<BibleText>(
-                `/bibles/${bibleId}/texts?startChapter=${start.chapter}&endChapter=${end.chapter}&bookNumber=${start.bookId}&startVerse=${start.verse}&endVerse=${end.verse}`
-            );
-            if (bibleText) {
-                bibleTextCache[bibleTextId] = bibleText;
-            }
-        } catch (error) {
-            log.exception(error);
-        }
+const getText = async (bibleId: number, start: ParsedVerse, end: ParsedVerse): Promise<BibleBook | null> => {
+    const bibleBook = await fetchBibleBookTexts(bibleId, start.bookId);
+    if (bibleBook) {
+        bibleBook.chapters = bibleBook.chapters.filter((b) => b.number >= start.chapter && b.number <= end.chapter);
+        bibleBook.chapters[0]!.verses = bibleBook.chapters[0]!.verses.filter((v) => v.number >= start.verse);
+        bibleBook.chapters.at(-1)!.verses = bibleBook.chapters.at(-1)!.verses.filter((v) => v.number <= end.verse);
     }
 
-    return bibleText;
+    return bibleBook;
 };
 
 const parseVerseId = (verseId: string): ParsedVerse => {
