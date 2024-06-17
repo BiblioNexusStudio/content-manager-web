@@ -62,15 +62,20 @@
     let isAssigning = false;
 
     $: $searchParams.tab && resetSelection();
+    $: (search || true) && resetSelection();
+
+    function shouldAssignAsInProgress(status: ResourceContentStatusEnum | null) {
+        return (
+            status === ResourceContentStatusEnum.New ||
+            status === ResourceContentStatusEnum.TranslationNotStarted ||
+            status === ResourceContentStatusEnum.AquiferizeInProgress ||
+            status === ResourceContentStatusEnum.TranslationInProgress
+        );
+    }
 
     function toggleResourceSelection(contentId: number, status: ResourceContentStatusEnum | null = null) {
         return () => {
-            if (
-                status === ResourceContentStatusEnum.New ||
-                status === ResourceContentStatusEnum.TranslationNotStarted ||
-                status === ResourceContentStatusEnum.AquiferizeInProgress ||
-                status === ResourceContentStatusEnum.TranslationInProgress
-            ) {
+            if (shouldAssignAsInProgress(status)) {
                 const index = selectedInProgressContentIds.indexOf(contentId);
                 if (index !== -1) {
                     selectedInProgressContentIds.splice(index, 1);
@@ -160,20 +165,28 @@
 
     function handleSelectAll(tab: string) {
         if (tab === Tab.myWork) {
-            const allSelected = currentAssignedContents.length === selectedReviewContentIds.length;
+            const allSelected =
+                currentAssignedContents.length ===
+                selectedInProgressContentIds.length + selectedReviewContentIds.length;
 
             if (allSelected) {
-                selectedReviewContentIds.length = 0;
+                selectedInProgressContentIds = [];
+                selectedReviewContentIds = [];
             } else {
-                selectedReviewContentIds = currentAssignedContents.map((c) => c.id);
+                selectedInProgressContentIds = currentAssignedContents
+                    .filter((c) => shouldAssignAsInProgress(c.statusValue))
+                    .map((c) => c.id);
+                selectedReviewContentIds = currentAssignedContents
+                    .filter((c) => !shouldAssignAsInProgress(c.statusValue))
+                    .map((c) => c.id);
             }
         } else if (tab === Tab.reviewPending) {
-            const allSelected = currentReviewPendingContents.length === selectedInProgressContentIds.length;
+            const allSelected = currentReviewPendingContents.length === selectedReviewContentIds.length;
 
             if (allSelected) {
-                selectedInProgressContentIds.length = 0;
+                selectedReviewContentIds = [];
             } else {
-                selectedInProgressContentIds = currentReviewPendingContents.map((c) => c.id);
+                selectedReviewContentIds = currentReviewPendingContents.map((c) => c.id);
             }
         }
     }
@@ -242,7 +255,8 @@
                             <tr class="bg-base-200">
                                 <th
                                     ><input
-                                        checked={currentAssignedContents.length === selectedReviewContentIds.length}
+                                        checked={currentAssignedContents.length ===
+                                            selectedInProgressContentIds.length + selectedReviewContentIds.length}
                                         on:click={() => handleSelectAll(Tab.myWork)}
                                         disabled={currentAssignedContents.length === 0}
                                         type="checkbox"
@@ -360,7 +374,7 @@
                                 <th
                                     ><input
                                         checked={currentReviewPendingContents.length ===
-                                            selectedInProgressContentIds.length}
+                                            selectedReviewContentIds.length}
                                         on:click={() => handleSelectAll(Tab.reviewPending)}
                                         disabled={currentReviewPendingContents.length === 0}
                                         type="checkbox"
