@@ -16,6 +16,7 @@
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
 
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
+    export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined = undefined;
     export let resourceContent: ResourceContent;
     export let canEdit = false;
     export let canComment = false;
@@ -41,6 +42,7 @@
         {snapshotOrVersion}
         {resourceContent}
         bind:wordCountsByStep
+        {editableDisplayNameStore}
         {editableContentStore}
         {canEdit}
         {canComment}
