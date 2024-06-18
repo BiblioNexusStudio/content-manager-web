@@ -28,7 +28,6 @@
     import ExitButton from '$lib/components/ExitButton.svelte';
     import CurrentTranslations from '$lib/components/resources/menus/CurrentTranslations.svelte';
     import Related from '$lib/components/resources/menus/Related.svelte';
-    import References from '$lib/components/resources/menus/References.svelte';
     import ContentArea from '$lib/components/resources/ContentArea.svelte';
     import Select from '$lib/components/Select.svelte';
     import InlineComment from '$lib/components/comments/InlineComment.svelte';
@@ -447,7 +446,6 @@
                     openModal={openAddTranslationModal}
                 />
                 <Related relatedContent={resourceContent.associatedResources} />
-                <References bibleReferences={getSortedReferences(resourceContent)} />
             </div>
 
             <div class="flex">
