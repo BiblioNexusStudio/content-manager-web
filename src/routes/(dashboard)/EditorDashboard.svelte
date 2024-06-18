@@ -3,14 +3,9 @@
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
-    import { createEditorDashboardSorter } from './dashboard-table-sorters';
+    import { SortName, createEditorDashboardSorter } from './dashboard-table-sorters';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
-
-    const SORT_KEYS = {
-        days: 'days',
-        wordCount: 'word-count',
-    };
 
     const sortData = createEditorDashboardSorter();
 
@@ -18,7 +13,7 @@
 
     const searchParams = searchParameters(
         {
-            sort: ssp.string(`-${SORT_KEYS.days}`),
+            sort: ssp.string(`-${SortName.Days}`),
         },
         { runLoadAgainWhenParamsChange: false }
     );
@@ -44,12 +39,12 @@
                         <th>Last Edit (Days)</th>
                         <SortingTableHeaderCell
                             text="Days Assigned"
-                            sortKey={SORT_KEYS.days}
+                            sortKey={SortName.Days}
                             bind:currentSort={$searchParams.sort}
                         />
                         <SortingTableHeaderCell
                             text="Word Count"
-                            sortKey={SORT_KEYS.wordCount}
+                            sortKey={SortName.WordCount}
                             bind:currentSort={$searchParams.sort}
                         />
                     </tr>
