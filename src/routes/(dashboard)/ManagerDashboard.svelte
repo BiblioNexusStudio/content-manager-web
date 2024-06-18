@@ -224,9 +224,7 @@
             {#if $searchParams.tab === Tab.myWork}
                 <Tooltip
                     position={{ left: '10rem' }}
-                    text={nonManagerReviewSelected
-                        ? 'Please only select resource items that are in Manager Review status.'
-                        : null}
+                    text={nonManagerReviewSelected ? 'Manager Review status only' : null}
                 >
                     <button
                         data-app-insights-event-name="manager-dashboard-bulk-assign-click"
