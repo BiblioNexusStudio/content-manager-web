@@ -19,5 +19,8 @@ export const fetchBibles = async (): Promise<Bible[]> => {
 
 export const fetchLanguageDefaultBible = async (languageId: number): Promise<Bible | undefined> => {
     const bibles = await fetchBibles();
-    return bibles?.find((b) => b.languageId === languageId && b.isLanguageDefault);
+    return (
+        bibles?.find((b) => b.languageId === languageId && b.isLanguageDefault) ??
+        bibles?.find((b) => b.languageId === 1)
+    );
 };

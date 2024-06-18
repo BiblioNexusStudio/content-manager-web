@@ -38,14 +38,14 @@
 <div class={isOpen ? '' : 'hidden'}>
     {#each bibleTextsReference.bookTexts as text (text)}
         {#if !bibleTextsReference.isSingleBook}
-            <div class="font-semibold">{text.bookName}</div>
+            <div class="font-semibold" dir="auto">{text.bookName}</div>
         {/if}
         {#each text.chapters as chapter (chapter)}
             {#if !bibleTextsReference.isSingleChapter}
-                <div class="font-semibold">Chapter {chapter.number}</div>
+                <div class="font-semibold" dir="auto">Chapter {chapter.number}</div>
             {/if}
             {#each chapter.verses as verse (verse)}
-                <div><sup class="font-bold">{verse.number}</sup> {verse.text}</div>
+                <div dir="auto"><sup class="font-bold">{verse.number}</sup> {verse.text}</div>
             {/each}
         {/each}
     {/each}
