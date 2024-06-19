@@ -1,7 +1,7 @@
 ﻿import { createListSorter } from '$lib/utils/sorting';
 import type { Project, ResourceAssignedToSelf, ResourcePendingReview } from './+page';
 
-enum ColumnName {
+export enum SortName {
     Days = 'days',
     WordCount = 'word-count',
     Title = 'title',
@@ -9,65 +9,107 @@ enum ColumnName {
 }
 
 export function createManagerDashboardSorter<T extends ResourceAssignedToSelf>() {
-    return createListSorter<T>(
-        {
-            [ColumnName.Days]: 'daysUntilProjectDeadline',
-            [ColumnName.WordCount]: 'wordCount',
-            [ColumnName.Title]: 'englishLabel',
+    return createListSorter<T>({
+        [SortName.Days]: {
+            primarySortKeys: ['daysUntilProjectDeadline'],
+            fallbackSortKeys: [
+                { key: 'projectName', dir: 'ASC' },
+                { key: 'sortOrder', dir: 'ASC' },
+                { key: 'englishLabel', dir: 'ASC' },
+            ],
         },
-        [
-            { key: 'projectName', dir: 'ASC' },
-            { key: 'sortOrder', dir: 'ASC' },
-            { key: 'englishLabel', dir: 'ASC' },
-        ]
-    );
+        [SortName.WordCount]: {
+            primarySortKeys: ['wordCount'],
+            fallbackSortKeys: [
+                { key: 'sortOrder', dir: 'ASC' },
+                { key: 'englishLabel', dir: 'ASC' },
+            ],
+        },
+        [SortName.Title]: {
+            primarySortKeys: ['sortOrder', 'englishLabel'],
+        },
+    });
 }
 
 export function createEditorDashboardSorter() {
-    return createListSorter<ResourceAssignedToSelf>(
-        {
-            [ColumnName.Days]: 'daysSinceAssignment',
-            [ColumnName.WordCount]: 'wordCount',
+    return createListSorter<ResourceAssignedToSelf>({
+        [SortName.Days]: {
+            primarySortKeys: ['daysSinceAssignment'],
+            fallbackSortKeys: [
+                { key: 'sortOrder', dir: 'ASC' },
+                { key: 'englishLabel', dir: 'ASC' },
+            ],
         },
-        [
-            { key: 'sortOrder', dir: 'ASC' },
-            { key: 'englishLabel', dir: 'ASC' },
-        ]
-    );
+        [SortName.WordCount]: {
+            primarySortKeys: ['wordCount'],
+            fallbackSortKeys: [
+                { key: 'sortOrder', dir: 'ASC' },
+                { key: 'englishLabel', dir: 'ASC' },
+            ],
+        },
+    });
 }
 
 export function createPublisherDashboardMyWorkSorter() {
-    return createListSorter<ResourceAssignedToSelf>(
-        {
-            [ColumnName.Title]: 'englishLabel',
-            [ColumnName.Language]: 'languageEnglishDisplay',
-            [ColumnName.Days]: 'daysSinceAssignment',
-            [ColumnName.WordCount]: 'wordCount',
+    return createListSorter<ResourceAssignedToSelf>({
+        [SortName.Days]: {
+            primarySortKeys: ['daysSinceAssignment'],
+            fallbackSortKeys: [
+                { key: 'sortOrder', dir: 'ASC' },
+                { key: 'englishLabel', dir: 'ASC' },
+            ],
         },
-        [
-            { key: 'sortOrder', dir: 'ASC' },
-            { key: 'englishLabel', dir: 'ASC' },
-        ]
-    );
+        [SortName.WordCount]: {
+            primarySortKeys: ['wordCount'],
+            fallbackSortKeys: [
+                { key: 'sortOrder', dir: 'ASC' },
+                { key: 'englishLabel', dir: 'ASC' },
+            ],
+        },
+        [SortName.Title]: {
+            primarySortKeys: ['sortOrder', 'englishLabel'],
+        },
+        [SortName.Language]: {
+            primarySortKeys: ['languageEnglishDisplay'],
+            fallbackSortKeys: [
+                { key: 'sortOrder', dir: 'ASC' },
+                { key: 'englishLabel', dir: 'ASC' },
+            ],
+        },
+    });
 }
 
 export function createPublisherDashboardReviewPendingSorter() {
-    return createListSorter<ResourcePendingReview>(
-        {
-            [ColumnName.Title]: 'sortOrder',
-            [ColumnName.Language]: 'languageEnglishDisplay',
-            [ColumnName.Days]: 'daysSinceStatusChange',
-            [ColumnName.WordCount]: 'wordCount',
+    return createListSorter<ResourcePendingReview>({
+        [SortName.Days]: {
+            primarySortKeys: ['daysSinceStatusChange'],
+            fallbackSortKeys: [
+                { key: 'sortOrder', dir: 'ASC' },
+                { key: 'englishLabel', dir: 'ASC' },
+            ],
         },
-        [
-            { key: 'sortOrder', dir: 'ASC' },
-            { key: 'englishLabel', dir: 'ASC' },
-        ]
-    );
+        [SortName.WordCount]: {
+            primarySortKeys: ['wordCount'],
+            fallbackSortKeys: [
+                { key: 'sortOrder', dir: 'ASC' },
+                { key: 'englishLabel', dir: 'ASC' },
+            ],
+        },
+        [SortName.Title]: {
+            primarySortKeys: ['sortOrder', 'englishLabel'],
+        },
+        [SortName.Language]: {
+            primarySortKeys: ['languageEnglishDisplay'],
+            fallbackSortKeys: [
+                { key: 'sortOrder', dir: 'ASC' },
+                { key: 'englishLabel', dir: 'ASC' },
+            ],
+        },
+    });
 }
 
 export function createPublisherDashboardProjectsSorter() {
     return createListSorter<Project>({
-        [ColumnName.Days]: 'days',
+        [SortName.Days]: { primarySortKeys: ['days'], fallbackSortKeys: [{ key: 'name', dir: 'ASC' }] },
     });
 }
