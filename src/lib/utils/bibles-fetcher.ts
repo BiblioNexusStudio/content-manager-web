@@ -21,6 +21,6 @@ export const fetchLanguageDefaultBible = async (languageId: number): Promise<Bib
     const bibles = await fetchBibles();
     return (
         bibles?.find((b) => b.languageId === languageId && b.isLanguageDefault) ??
-        bibles?.find((b) => b.languageId === 1)
+        bibles?.find((b) => b.languageId === 1 && b.isLanguageDefault)
     );
 };

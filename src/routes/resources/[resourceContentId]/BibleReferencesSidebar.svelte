@@ -17,9 +17,8 @@
         // presumably there will be multiple within the same book. This way any follow-ups can use the cached
         // response instead of pulling the same book multiple times. It's not too often that multiple
         // books would get pulled in one go.
-        for (let i = 0; i < references.length; i++) {
+        for (const reference of references) {
             let bibleTextsReference: BibleTextsReference | null;
-            const reference = references[i]!;
             if (instanceOfPassageReference(reference)) {
                 bibleTextsReference = await fetchAndFormat(
                     reference.startVerseId.toString(),
