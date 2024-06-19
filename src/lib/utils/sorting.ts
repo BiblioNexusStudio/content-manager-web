@@ -1,58 +1,65 @@
+type SortConfig<T> = {
+    [sortName: string]: {
+        primarySortKeys: (keyof T)[];
+        fallbackSortKeys?: { key: keyof T; dir: 'ASC' | 'DESC' }[];
+    };
+};
+
+function compareSortValues<T>(a: T, b: T, key: keyof T, isDescending: boolean): number {
+    let valueA = a[key];
+    let valueB = b[key];
+
+    if (typeof valueA === 'string') {
+        valueA = valueA.toLowerCase() as typeof valueA;
+    }
+    if (typeof valueB === 'string') {
+        valueB = valueB.toLowerCase() as typeof valueB;
+    }
+
+    if (typeof valueA === 'number' && valueB === null) {
+        valueB = 999999999 as T[keyof T];
+    }
+    if (typeof valueB === 'number' && valueA === null) {
+        valueA = 999999999 as T[keyof T];
+    }
+
+    if (valueA < valueB) return isDescending ? 1 : -1;
+    if (valueA > valueB) return isDescending ? -1 : 1;
+
+    return 0;
+}
+
 // Takes in a mapping and returns a function that can be used to sort a list of data.
-// The mapping contains the sort key name (the name that would be in the URL) mapped to the data attribute name.
+// The mapping contains the sort name (the name that would be in the URL) mapped to config for the sort, which is the
+// property key list the sort applies to as well as fallback sort keys if the primary keys are identical.
 //
 // Example:
 //   type Content = { wordCount: number };
-//   const sorter = createListSorter<Content>({ 'word-count': 'wordCount' });
+//   const sorter = createListSorter<Content>({ 'word-count': { primarySortKeys: ['wordCount'] } });
 //   const list: Content[] = ...;
 //   sorter(list, 'word-count'); // would sort by `wordCount` in ascending order
 //   sorter(list, '-word-count'); // would sort by `wordCount` in descending order
 
-export function createListSorter<T>(
-    mapping: { [sortKey: string]: keyof T },
-    secondarySorts: { key: keyof T; dir: 'ASC' | 'DESC' }[] = []
-): (list: T[], sort: string) => T[] {
+export function createListSorter<T>(mapping: SortConfig<T>): (list: T[], sort: string) => T[] {
     return (list: T[], sort: string) => {
-        const key = sort.replace(/^-/, '');
+        const sortName = sort.replace(/^-/, '');
         const isDescending = sort.startsWith('-');
-        const sortField = mapping[key];
+        const sortConfig = mapping[sortName];
 
-        if (!sortField) return list;
+        if (!sortConfig) return list;
 
         return list.sort((a, b) => {
-            let valueA = a[sortField];
-            let valueB = b[sortField];
-            if (typeof valueA === 'string') {
-                valueA = valueA.toLowerCase() as typeof valueA;
-            }
-            if (typeof valueB === 'string') {
-                valueB = valueB.toLowerCase() as typeof valueB;
+            // Apply primary sort keys
+            for (const primaryKey of sortConfig.primarySortKeys) {
+                const result = compareSortValues(a, b, primaryKey, isDescending);
+                if (result !== 0) return result;
             }
 
-            if (typeof valueA === 'number' && valueB === null) {
-                valueB = 999999999 as T[keyof T];
-            }
-            if (typeof valueB === 'number' && valueA === null) {
-                valueA = 999999999 as T[keyof T];
-            }
-
-            if (valueA < valueB) return isDescending ? 1 : -1;
-            if (valueA > valueB) return isDescending ? -1 : 1;
-
-            // Apply secondary sorts if primary sort values are equal
-            for (const { key: secondaryKey, dir } of secondarySorts) {
-                let secondaryValueA = a[secondaryKey];
-                let secondaryValueB = b[secondaryKey];
-                if (typeof secondaryValueA === 'string') {
-                    secondaryValueA = secondaryValueA.toLowerCase() as typeof secondaryValueA;
-                }
-                if (typeof secondaryValueB === 'string') {
-                    secondaryValueB = secondaryValueB.toLowerCase() as typeof secondaryValueB;
-                }
-
-                const isSecondaryDescending = dir === 'DESC';
-                if (secondaryValueA < secondaryValueB) return isSecondaryDescending ? 1 : -1;
-                if (secondaryValueA > secondaryValueB) return isSecondaryDescending ? -1 : 1;
+            // Apply fallback sort keys if primary sort values are equal
+            for (const { key: fallbackKey, dir } of sortConfig.fallbackSortKeys ?? []) {
+                const isFallbackDescending = dir === 'DESC';
+                const result = compareSortValues(a, b, fallbackKey, isFallbackDescending);
+                if (result !== 0) return result;
             }
 
             return 0;
