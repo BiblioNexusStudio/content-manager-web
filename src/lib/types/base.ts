@@ -49,6 +49,7 @@ export interface Language {
     id: number;
     iso6393Code: string;
     englishDisplay: string;
+    scriptDirection?: 'RTL' | 'LTR';
 }
 
 export interface BasicUser {

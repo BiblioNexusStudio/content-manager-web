@@ -112,9 +112,9 @@
                     />
                 {:else if isComparingToCurrent}
                     <TiptapDiffRenderer
+                        languageScriptDirection={resourceContent.language.scriptDirection}
                         currentTiptapJsonForDiffing={$editableContentStore[index]}
                         tiptapJson={content[index]}
-                        {commentStores}
                     />
                 {:else}
                     <div class="flex h-full flex-col">
@@ -122,6 +122,7 @@
                             <div class="h-[2.625rem]" />
                         {/if}
                         <TiptapRenderer
+                            languageScriptDirection={resourceContent.language.scriptDirection}
                             tiptapJson={content[index]}
                             canEdit={false}
                             canComment={false}

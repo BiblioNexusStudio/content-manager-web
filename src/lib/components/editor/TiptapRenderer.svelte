@@ -5,6 +5,7 @@
     import { extensions } from '../tiptap/extensions';
     import type { CommentStores } from '$lib/stores/comments';
 
+    export let languageScriptDirection: 'LTR' | 'RTL' | undefined;
     export let tiptapJson: TiptapContentItem | undefined;
     export let onChange: ((tiptapJson: object, wordCount: number) => void) | undefined = undefined;
     export let onCreate: ((tiptapJson: object, wordCount: number) => void) | undefined = undefined;
@@ -28,7 +29,7 @@
         editor = new Editor({
             element,
             editable: canEdit,
-            extensions: extensions(canComment, commentStores),
+            extensions: extensions(canComment, commentStores, true, languageScriptDirection),
             editorProps: {
                 attributes: {
                     class: 'prose prose-sm sm:prose-base focus:outline-none text-black m-4 max-w-none',
@@ -46,7 +47,6 @@
                 // Need to call this here because the formatting of editor.getJSON has the possibility of being different
                 // from what's in the database.
                 onCreate?.(editor.getJSON(), editor.storage.characterCount.words());
-                editor.commands.unsetTextDirection();
             },
         });
     });
@@ -63,6 +63,11 @@
                 <div class="loading loading-infinity loading-lg absolute left-1/2 top-1/2 text-primary" />
             </div>
         {/if}
-        <div bind:this={element} role="presentation" class:blur-sm={isLoading} />
+        <div
+            dir={languageScriptDirection?.toLowerCase()}
+            bind:this={element}
+            role="presentation"
+            class:blur-sm={isLoading}
+        />
     </div>
 </div>
