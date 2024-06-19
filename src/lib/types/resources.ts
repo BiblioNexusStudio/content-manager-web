@@ -16,6 +16,12 @@ export enum MediaTypeEnum {
     text = 'Text',
 }
 
+export enum OpenedSupplementalSideBar {
+    None,
+    Comments,
+    BibleReferences,
+}
+
 export interface PassageReference {
     startVerseId: number;
     startBook: string;

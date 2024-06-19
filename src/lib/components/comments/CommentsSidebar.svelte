@@ -37,7 +37,7 @@
 </script>
 
 <div class="w-full flex-col space-y-4 overflow-y-auto p-4">
-    <div class="text-lg font-semibold">Comments ({commentCount})</div>
+    <div class="whitespace-nowrap text-lg font-semibold">Comments ({commentCount})</div>
     {#each unresolvedThreads as thread (thread.id)}
         <SidebarComment {commentStores} {thread} />
     {/each}
