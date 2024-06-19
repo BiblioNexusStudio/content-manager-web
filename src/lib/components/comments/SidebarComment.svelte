@@ -12,17 +12,17 @@
     const normalSpanBackgroundColorClass = 'bg-primary/20';
     const selectedSpanBackgroundColorClass = ['bg-primary/50', 'border-2', borderClass];
 
-    let parentDiv: HTMLDivElement;
+    let parentDiv: HTMLDivElement | null = null;
     let bubbledClick = false;
     let focused = false;
     let isCommenting: boolean;
 
     onMount(() => {
         const existing = $sidebarParentDivs.find((x) => x.threadId === thread.id);
-        if (existing) {
+        if (existing && parentDiv) {
             existing.div = parentDiv;
             existing.click = () => focusParent(true);
-        } else {
+        } else if (parentDiv) {
             $sidebarParentDivs.push({ threadId: thread.id, div: parentDiv, click: () => focusParent(true) });
         }
     });
@@ -31,15 +31,15 @@
         bubbledClick = true;
         if (!focused) {
             if (isCommenting) {
-                parentDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                parentDiv?.scrollIntoView({ behavior: 'smooth', block: 'end' });
             } else {
-                parentDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                parentDiv?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
 
         for (let i = 0; i < $sidebarParentDivs.length; i++) {
             const currentParentDiv = $sidebarParentDivs[i]?.div;
-            if (!thread.resolved && currentParentDiv === parentDiv) {
+            if (!thread.resolved && currentParentDiv === parentDiv && parentDiv) {
                 focused = true;
                 parentDiv.classList.add(borderClass);
                 highlightCommentSpan(fromInlineClick);
@@ -52,12 +52,12 @@
     const highlightCommentSpan = (fromInlineClick: boolean) => {
         const commentMark = $commentMarks.find((x) => x.threadId === thread.id);
         if (commentMark) {
-            const span = document.getElementById(commentMark.spanId) as HTMLSpanElement;
-            span.classList.add(...selectedSpanBackgroundColorClass);
-            span.classList.remove(normalSpanBackgroundColorClass);
+            const span = document.getElementById(commentMark.spanId);
+            span?.classList.add(...selectedSpanBackgroundColorClass);
+            span?.classList.remove(normalSpanBackgroundColorClass);
 
             if (!fromInlineClick) {
-                span.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                span?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
     };

@@ -577,6 +577,7 @@
                         <div class="w-full flex-grow">
                             <Content
                                 bind:selectedStepNumber
+                                {editableDisplayNameStore}
                                 {editableContentStore}
                                 bind:wordCountsByStep
                                 canEdit={canMakeContentEdits && resourceContent.isDraft}

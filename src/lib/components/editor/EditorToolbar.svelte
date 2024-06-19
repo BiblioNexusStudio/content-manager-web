@@ -16,8 +16,10 @@
     import type { CommentStores } from '$lib/stores/comments';
     import type { ResourceContent } from '$lib/types/resources';
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
+    import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
 
     export let editor: Editor | undefined;
+    export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined;
     export let commentStores: CommentStores;
     export let canEdit: boolean;
     export let resourceContent: ResourceContent;
@@ -212,7 +214,14 @@
             {/if}
         </div>
         <div class="flex">
-            <AiTranslateToolbarButton {editor} {canEdit} {resourceContent} {machineTranslationStore} bind:isLoading />
+            <AiTranslateToolbarButton
+                {editor}
+                {canEdit}
+                {editableDisplayNameStore}
+                {resourceContent}
+                {machineTranslationStore}
+                bind:isLoading
+            />
         </div>
     {/if}
 </div>
