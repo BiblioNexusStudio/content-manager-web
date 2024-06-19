@@ -1,14 +1,6 @@
-export interface column {
+export interface column<T> {
     text: string;
-    itemKey: string;
+    itemKey?: keyof T;
     sortKey: string | undefined;
-    currentSort: string | undefined;
-}
-
-export interface genericObject {
-    [key: string]: string | number | boolean | undefined | null;
-}
-
-export interface selectableItem extends genericObject {
-    isSelected: boolean;
+    showProgress?: boolean;
 }

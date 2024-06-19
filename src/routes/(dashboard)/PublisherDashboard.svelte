@@ -18,6 +18,8 @@
     } from './dashboard-table-sorters';
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
     import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
+    import Table from '$lib/components/Table.svelte';
+    import { assignedContentsColumns, reviewPendingContentsColumns, projectColumns } from './dashboard-table-columns';
 
     enum Tab {
         myWork = 'my-work',
@@ -50,6 +52,8 @@
 
     let selectedReviewContentIds: number[] = [];
     let selectedInProgressContentIds: number[] = [];
+    let selectedMyWorkTableItems: ResourceAssignedToSelf[] = [];
+    let selectedReviewPendingTableItems: ResourcePendingReview[] = [];
     let assignToUserId: number | null = null;
     let isAssignContentModalOpen = false;
     let isErrorModalOpen = false;
@@ -230,191 +234,152 @@
         {/if}
         <div class="flex flex-row space-x-4 overflow-y-hidden">
             <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-auto">
-                <table class="table table-pin-rows">
-                    {#if $searchParams.tab === Tab.myWork}
-                        <thead>
-                            <tr class="bg-base-200">
-                                <th
-                                    ><input
-                                        checked={currentAssignedContents.length === selectedReviewContentIds.length}
-                                        on:click={() => handleSelectAll(Tab.myWork)}
-                                        disabled={currentAssignedContents.length === 0}
-                                        type="checkbox"
-                                        class="checkbox checkbox-sm"
-                                    /></th
-                                >
-                                <SortingTableHeaderCell
-                                    text="Title"
-                                    sortKey={SortName.Title}
-                                    bind:currentSort={$searchParams.sort}
-                                />
-                                <th>Resource</th>
-                                <SortingTableHeaderCell
-                                    text="Language"
-                                    sortKey={SortName.Language}
-                                    bind:currentSort={$searchParams.sort}
-                                />
-                                <th>Status</th>
-                                <th>Last Edit (Days)</th>
-                                <SortingTableHeaderCell
-                                    text="Days Assigned"
-                                    sortKey={SortName.Days}
-                                    bind:currentSort={$searchParams.sort}
-                                />
-                                <SortingTableHeaderCell
-                                    text="Word Count"
-                                    sortKey={SortName.WordCount}
-                                    bind:currentSort={$searchParams.sort}
-                                />
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {#each sortAssignedResourceData(currentAssignedContents, $searchParams.sort) as resource (resource.id)}
-                                {@const href = `/resources/${resource.id}`}
-                                <tr class="hover">
-                                    <TableCell class="w-4"
+                {#if $searchParams.tab === Tab.myWork}
+                    <Table
+                        enableSelectAll={true}
+                        columns={assignedContentsColumns}
+                        items={sortAssignedResourceData(currentAssignedContents, $searchParams.sort)}
+                        itemUrlPrefix="/resources/"
+                        bind:searchParams={$searchParams}
+                        bind:selectedItems={selectedMyWorkTableItems}
+                    />
+                {:else if $searchParams.tab === Tab.reviewPending}
+                    <Table
+                        enableSelectAll={true}
+                        columns={reviewPendingContentsColumns}
+                        items={sortPendingData(currentReviewPendingContents, $searchParams.sort)}
+                        itemUrlPrefix="/resources/"
+                        bind:searchParams={$searchParams}
+                        bind:selectedItems={selectedReviewPendingTableItems}
+                    />
+                {:else if $searchParams.tab === Tab.myProjects}
+                    <Table
+                        enableSelectAll={false}
+                        columns={projectColumns}
+                        items={sortAssignedProjectData(currentAssignedProjects, $searchParams.sort)}
+                        itemUrlPrefix="/projects/"
+                        bind:searchParams={$searchParams}
+                    />
+                    <table class="table table-pin-rows">
+                        {#if $searchParams.tab === Tab.myProjects}
+                            <thead>
+                                <tr class="bg-base-200">
+                                    <th>Title</th>
+                                    <th>Company</th>
+                                    <th>Platform</th>
+                                    <th>Language</th>
+                                    <SortingTableHeaderCell
+                                        text="Days"
+                                        sortKey={SortName.Days}
+                                        bind:currentSort={$searchParams.sort}
+                                    />
+                                    <th>Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {#each sortAssignedProjectData(currentAssignedProjects, $searchParams.sort) as project (project.id)}
+                                    {@const href = `/projects/${project.id}`}
+                                    <tr class="hover">
+                                        <LinkedTableCell {href}>{project.name}</LinkedTableCell>
+                                        <LinkedTableCell {href}>{project.company}</LinkedTableCell>
+                                        <LinkedTableCell {href}>{project.projectPlatform}</LinkedTableCell>
+                                        <LinkedTableCell {href}>{project.language}</LinkedTableCell>
+                                        <LinkedTableCell {href} class={project.days ?? 0 < 0 ? 'text-error' : ''}
+                                            >{project.days ?? ''}</LinkedTableCell
+                                        >
+                                        <td>
+                                            {#if project.isStarted}
+                                                <ProjectProgressBar
+                                                    notStartedCount={project.counts.notStarted}
+                                                    inProgressCount={project.counts.inProgress}
+                                                    inManagerReviewCount={project.counts.inManagerReview}
+                                                    inPublisherReviewCount={project.counts.inPublisherReview}
+                                                    completeCount={project.counts.completed}
+                                                    showLegend={false}
+                                                />
+                                            {/if}
+                                        </td>
+                                    </tr>
+                                {:else}
+                                    <tr>
+                                        <td colspan="99" class="text-center">
+                                            {#if !!search}
+                                                No results.
+                                            {:else}
+                                                No projects assigned to you.
+                                            {/if}
+                                        </td>
+                                    </tr>
+                                {/each}
+                            </tbody>
+                        {:else if $searchParams.tab === Tab.reviewPending}
+                            <thead>
+                                <tr class="bg-base-200">
+                                    <th
                                         ><input
-                                            checked={selectedReviewContentIds.includes(resource.id) ||
-                                                selectedInProgressContentIds.includes(resource.id)}
-                                            on:change={toggleResourceSelection(resource.id, resource.statusValue)}
+                                            checked={currentReviewPendingContents.length ===
+                                                selectedInProgressContentIds.length}
+                                            on:click={() => handleSelectAll(Tab.reviewPending)}
+                                            disabled={currentReviewPendingContents.length === 0}
                                             type="checkbox"
                                             class="checkbox checkbox-sm"
-                                        /></TableCell
+                                        /></th
                                     >
-                                    <LinkedTableCell {href}>{resource.englishLabel}</LinkedTableCell>
-                                    <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
-                                    <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
-                                    <LinkedTableCell {href}>{resource.statusDisplayName}</LinkedTableCell>
-                                    <LinkedTableCell {href}
-                                        >{formatSimpleDaysAgo(resource.daysSinceContentUpdated)}</LinkedTableCell
-                                    >
-                                    <LinkedTableCell {href}>{resource.daysSinceAssignment}</LinkedTableCell>
-                                    <LinkedTableCell {href}>{resource.wordCount ?? ''}</LinkedTableCell>
+                                    <SortingTableHeaderCell
+                                        text="Title"
+                                        sortKey={SortName.Title}
+                                        bind:currentSort={$searchParams.sort}
+                                    />
+                                    <th>Resource</th>
+                                    <SortingTableHeaderCell
+                                        text="Language"
+                                        sortKey={SortName.Language}
+                                        bind:currentSort={$searchParams.sort}
+                                    />
+                                    <th>Last Edit (Days)</th>
+                                    <SortingTableHeaderCell
+                                        text="Days Pending"
+                                        sortKey={SortName.Days}
+                                        bind:currentSort={$searchParams.sort}
+                                    />
+                                    <SortingTableHeaderCell
+                                        text="Word Count"
+                                        sortKey={SortName.WordCount}
+                                        bind:currentSort={$searchParams.sort}
+                                    />
                                 </tr>
-                            {:else}
-                                <tr>
-                                    <td colspan="99" class="text-center">Your work is all done!</td>
-                                </tr>
-                            {/each}
-                        </tbody>
-                    {:else if $searchParams.tab === Tab.myProjects}
-                        <thead>
-                            <tr class="bg-base-200">
-                                <th>Title</th>
-                                <th>Company</th>
-                                <th>Platform</th>
-                                <th>Language</th>
-                                <SortingTableHeaderCell
-                                    text="Days"
-                                    sortKey={SortName.Days}
-                                    bind:currentSort={$searchParams.sort}
-                                />
-                                <th>Progress</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {#each sortAssignedProjectData(currentAssignedProjects, $searchParams.sort) as project (project.id)}
-                                {@const href = `/projects/${project.id}`}
-                                <tr class="hover">
-                                    <LinkedTableCell {href}>{project.name}</LinkedTableCell>
-                                    <LinkedTableCell {href}>{project.company}</LinkedTableCell>
-                                    <LinkedTableCell {href}>{project.projectPlatform}</LinkedTableCell>
-                                    <LinkedTableCell {href}>{project.language}</LinkedTableCell>
-                                    <LinkedTableCell {href} class={project.days ?? 0 < 0 ? 'text-error' : ''}
-                                        >{project.days ?? ''}</LinkedTableCell
-                                    >
-                                    <td>
-                                        {#if project.isStarted}
-                                            <ProjectProgressBar
-                                                notStartedCount={project.counts.notStarted}
-                                                inProgressCount={project.counts.inProgress}
-                                                inManagerReviewCount={project.counts.inManagerReview}
-                                                inPublisherReviewCount={project.counts.inPublisherReview}
-                                                completeCount={project.counts.completed}
-                                                showLegend={false}
-                                            />
-                                        {/if}
-                                    </td>
-                                </tr>
-                            {:else}
-                                <tr>
-                                    <td colspan="99" class="text-center">
-                                        {#if !!search}
-                                            No results.
-                                        {:else}
-                                            No projects assigned to you.
-                                        {/if}
-                                    </td>
-                                </tr>
-                            {/each}
-                        </tbody>
-                    {:else if $searchParams.tab === Tab.reviewPending}
-                        <thead>
-                            <tr class="bg-base-200">
-                                <th
-                                    ><input
-                                        checked={currentReviewPendingContents.length ===
-                                            selectedInProgressContentIds.length}
-                                        on:click={() => handleSelectAll(Tab.reviewPending)}
-                                        disabled={currentReviewPendingContents.length === 0}
-                                        type="checkbox"
-                                        class="checkbox checkbox-sm"
-                                    /></th
-                                >
-                                <SortingTableHeaderCell
-                                    text="Title"
-                                    sortKey={SortName.Title}
-                                    bind:currentSort={$searchParams.sort}
-                                />
-                                <th>Resource</th>
-                                <SortingTableHeaderCell
-                                    text="Language"
-                                    sortKey={SortName.Language}
-                                    bind:currentSort={$searchParams.sort}
-                                />
-                                <th>Last Edit (Days)</th>
-                                <SortingTableHeaderCell
-                                    text="Days Pending"
-                                    sortKey={SortName.Days}
-                                    bind:currentSort={$searchParams.sort}
-                                />
-                                <SortingTableHeaderCell
-                                    text="Word Count"
-                                    sortKey={SortName.WordCount}
-                                    bind:currentSort={$searchParams.sort}
-                                />
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {#each sortPendingData(currentReviewPendingContents, $searchParams.sort) as resource (resource.id)}
-                                {@const href = `/resources/${resource.id}`}
-                                <tr class="hover">
-                                    <TableCell class="w-4"
-                                        ><input
-                                            checked={selectedReviewContentIds.includes(resource.id) ||
-                                                selectedInProgressContentIds.includes(resource.id)}
-                                            on:change={toggleResourceSelection(resource.id)}
-                                            type="checkbox"
-                                            class="checkbox checkbox-sm"
-                                        /></TableCell
-                                    >
-                                    <LinkedTableCell {href}>{resource.englishLabel}</LinkedTableCell>
-                                    <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
-                                    <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
-                                    <LinkedTableCell {href}
-                                        >{formatSimpleDaysAgo(resource.daysSinceContentUpdated)}</LinkedTableCell
-                                    >
-                                    <LinkedTableCell {href}>{resource.daysSinceStatusChange}</LinkedTableCell>
-                                    <LinkedTableCell {href}>{resource.wordCount ?? ''}</LinkedTableCell>
-                                </tr>
-                            {:else}
-                                <tr>
-                                    <td colspan="99" class="text-center">No items pending review.</td>
-                                </tr>
-                            {/each}
-                        </tbody>
-                    {/if}
-                </table>
+                            </thead>
+                            <tbody>
+                                {#each sortPendingData(currentReviewPendingContents, $searchParams.sort) as resource (resource.id)}
+                                    {@const href = `/resources/${resource.id}`}
+                                    <tr class="hover">
+                                        <TableCell class="w-4"
+                                            ><input
+                                                checked={selectedReviewContentIds.includes(resource.id) ||
+                                                    selectedInProgressContentIds.includes(resource.id)}
+                                                on:change={toggleResourceSelection(resource.id)}
+                                                type="checkbox"
+                                                class="checkbox checkbox-sm"
+                                            /></TableCell
+                                        >
+                                        <LinkedTableCell {href}>{resource.englishLabel}</LinkedTableCell>
+                                        <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
+                                        <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
+                                        <LinkedTableCell {href}
+                                            >{formatSimpleDaysAgo(resource.daysSinceContentUpdated)}</LinkedTableCell
+                                        >
+                                        <LinkedTableCell {href}>{resource.daysSinceStatusChange}</LinkedTableCell>
+                                        <LinkedTableCell {href}>{resource.wordCount ?? ''}</LinkedTableCell>
+                                    </tr>
+                                {:else}
+                                    <tr>
+                                        <td colspan="99" class="text-center">No items pending review.</td>
+                                    </tr>
+                                {/each}
+                            </tbody>
+                        {/if}
+                    </table>
+                {/if}
             </div>
         </div>
     </div>
