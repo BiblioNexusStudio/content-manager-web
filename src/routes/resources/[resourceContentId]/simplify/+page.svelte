@@ -6,20 +6,9 @@
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { postToApi } from '$lib/utils/http-service';
     import { generateHTML, generateJSON } from '@tiptap/html';
-    import StarterKit from '@tiptap/starter-kit';
-    import Image from '@tiptap/extension-image';
-    import Link from '@tiptap/extension-link';
-    import Underline from '@tiptap/extension-underline';
-    import Highlight from '@tiptap/extension-highlight';
-    import Subscript from '@tiptap/extension-subscript';
-    import Superscript from '@tiptap/extension-superscript';
-    import TextStyle from '@tiptap/extension-text-style';
-    import CharacterCount from '@tiptap/extension-character-count';
-    import TextDirection from 'tiptap-text-direction';
     import TiptapRenderer from '$lib/components/editor/TiptapRenderer.svelte';
+    import { extensions } from '$lib/components/tiptap/extensions';
     import { createCommentStores } from '$lib/stores/comments';
-    import { bibleReferenceMark } from '$lib/components/tiptap/bibleReferenceMark';
-    import { resourceReferenceMark } from '$lib/components/tiptap/resourceReferenceMark';
 
     export let data: PageData;
 
@@ -40,26 +29,8 @@
         if (originalTiptapContent) {
             working = true;
 
-            const extensions = [
-                StarterKit,
-                Image,
-                Link.configure({
-                    openOnClick: false,
-                }),
-                Underline,
-                Highlight,
-                Subscript,
-                Superscript,
-                TextStyle,
-                CharacterCount.configure({}),
-                bibleReferenceMark,
-                resourceReferenceMark,
-                TextDirection.configure({
-                    types: ['heading', 'paragraph', 'orderedList', 'bulletList', 'listItem'],
-                }),
-            ];
-
-            const html = generateHTML(originalTiptapContent.tiptap, extensions);
+            const generatedExtensions = extensions(false, undefined, false, undefined);
+            const html = generateHTML(originalTiptapContent.tiptap, generatedExtensions);
 
             const res = await postToApi<{ content: string; error: string | undefined }>(`/ai/simplify`, {
                 prompt: prompt,
@@ -68,7 +39,7 @@
 
             errorMessage = res?.error;
 
-            const aquiferizedJson = generateJSON(res?.content ?? '', extensions);
+            const aquiferizedJson = generateJSON(res?.content ?? '', generatedExtensions);
 
             aquiferizedVersion = { tiptap: aquiferizedJson };
 
@@ -117,11 +88,18 @@
 
         <div class="mt-2 flex grow flex-row space-x-4">
             <div class="flex grow flex-col">
-                <TiptapRenderer tiptapJson={originalTiptapContent} canEdit={false} canComment={false} {commentStores} />
+                <TiptapRenderer
+                    languageScriptDirection={resourceContent.language.scriptDirection}
+                    tiptapJson={originalTiptapContent}
+                    canEdit={false}
+                    canComment={false}
+                    {commentStores}
+                />
             </div>
             <div class="flex grow flex-col">
                 {#key JSON.stringify(aquiferizedVersion)}
                     <TiptapRenderer
+                        languageScriptDirection={resourceContent.language.scriptDirection}
                         tiptapJson={aquiferizedVersion}
                         canEdit={false}
                         canComment={false}

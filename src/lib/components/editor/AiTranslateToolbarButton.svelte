@@ -10,6 +10,8 @@
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
     import Modal from '$lib/components/Modal.svelte';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
+    import { generateHTML } from '@tiptap/html';
+    import { extensions } from '../tiptap/extensions';
 
     export let editor: Editor;
     export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined;
@@ -32,10 +34,10 @@
         isLoading = true;
         editor.setEditable(false);
 
-        let html = editor.getHTML();
-        let regex = /(<h\d\s|<p\s)/;
-        let splits = html.split(regex);
-        let chunks: string[] = [];
+        const html = generateHTML(editor.getJSON(), extensions(false, undefined, false, undefined));
+        const regex = /(<h\d|<p)/;
+        const splits = html.split(regex);
+        const chunks: string[] = [];
         for (let i = 1; i < splits.length; i = i + 2) {
             chunks.push(splits[i]! + splits[i + 1]!);
         }

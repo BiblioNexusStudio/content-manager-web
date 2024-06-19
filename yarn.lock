@@ -803,10 +803,10 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@tailwindcss/typography@^0.5.9":
-  version "0.5.9"
-  resolved "https://registry.npmjs.org/@tailwindcss/typography/-/typography-0.5.9.tgz"
-  integrity sha512-t8Sg3DyynFysV9f4JDOVISGsjazNb48AeIYQwcL+Bsq5uf4RYL75C1giZ43KISjeDGBaTN3Kxh7Xj/vRSMJUUg==
+"@tailwindcss/typography@^0.5.13":
+  version "0.5.13"
+  resolved "https://registry.yarnpkg.com/@tailwindcss/typography/-/typography-0.5.13.tgz#cd788a4fa4d0ca2506e242d512f377b22c1f7932"
+  integrity sha512-ADGcJ8dX21dVVHIwTRgzrcunY6YY9uSlAHHGVKvkA+vLc5qLwEszvKts40lx7z0qc4clpjclwLeK5rVCV2P/uw==
   dependencies:
     lodash.castarray "^4.4.0"
     lodash.isplainobject "^4.0.6"
@@ -5635,11 +5635,6 @@ tinyspy@^2.1.1:
   version "2.1.1"
   resolved "https://registry.npmjs.org/tinyspy/-/tinyspy-2.1.1.tgz"
   integrity sha512-XPJL2uSzcOyBMky6OFrusqWlzfFrXtE0hPuMgW8A2HmaqrPo4ZQHRN/V0QXN3FSjKxpsbRrFc5LI7KOwBsT1/w==
-
-tiptap-text-direction@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/tiptap-text-direction/-/tiptap-text-direction-0.3.0.tgz#9195b7e2f5f256356ed9396f7fae3399df0bf245"
-  integrity sha512-n5PduD4RmjsorlImOmh/CHmjmIJHgprMmcPJDp6RwebjYgyvCCtgTFlF3Sbx2CI67MN/RKpyfY4/zv25SAf2pg==
 
 tmp@^0.0.33:
   version "0.0.33"
