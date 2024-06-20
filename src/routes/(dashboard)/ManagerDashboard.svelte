@@ -324,6 +324,7 @@
                             <th>Resource</th>
                             <th>Language</th>
                             <th>Project</th>
+                            <th>Status</th>
                             <th>Assigned</th>
                             <th>Last Edit (Days)</th>
                             <SortingTableHeaderCell
@@ -354,6 +355,7 @@
                                 <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.projectName ?? ''}</LinkedTableCell>
+                                <LinkedTableCell {href}>{resource.statusDisplayName ?? ''}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.assignedUser.name}</LinkedTableCell>
                                 <LinkedTableCell {href}
                                     >{formatSimpleDaysAgo(resource.daysSinceContentUpdated)}</LinkedTableCell
