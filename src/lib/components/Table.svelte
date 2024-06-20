@@ -13,13 +13,18 @@
 
     export let searchParams: SubscribedSearchParams<ReturnType<typeof searchParameters<{ sort: string; tab: string }>>>;
 
+    export let enableSelect = false;
     export let enableSelectAll = false;
     export let columns: column<T>[] = [];
     export let items: T[] = [];
     export let itemUrlPrefix: string | undefined = undefined;
     export let selectedItems: T[] = [];
+    export let noItemsText = 'Your work is all done!';
+    export let searchAble = false;
+    export let searchText: string | undefined = undefined;
+    export let noItemsAfterSearchText = 'No results.';
 
-    $: allItemsSelected = items && items.length === selectedItems.length;
+    $: allItemsSelected = items && items.length > 0 && items.length === selectedItems.length;
 
     function onSelectAll() {
         if (allItemsSelected) {
@@ -66,7 +71,7 @@
         {#each items as item (item?.id)}
             {@const href = itemUrlPrefix && `${itemUrlPrefix}${item.id}`}
             <tr class="hover">
-                {#if enableSelectAll}
+                {#if enableSelectAll || enableSelect}
                     <TableCell class="w-4">
                         <input
                             type="checkbox"
@@ -96,5 +101,16 @@
                 {/each}
             </tr>
         {/each}
+        {#if items.length === 0}
+            <tr>
+                <td colspan="99" class="text-center">
+                    {#if searchAble && !!searchText}
+                        {noItemsAfterSearchText}
+                    {:else}
+                        {noItemsText}
+                    {/if}
+                </td>
+            </tr>
+        {/if}
     </tbody>
 </table>

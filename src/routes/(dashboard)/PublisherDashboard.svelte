@@ -156,7 +156,7 @@
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Publisher Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
-            <div role="tablist" class="tabs tabs-bordered w-fit">
+            <div role="tablist" class="tabs-bordered tabs w-fit">
                 <button
                     on:click={selectTab(Tab.myWork)}
                     role="tab"
@@ -213,6 +213,9 @@
                         itemUrlPrefix="/resources/"
                         bind:searchParams={$searchParams}
                         bind:selectedItems={selectedMyWorkTableItems}
+                        noItemsText="Your work is all done!"
+                        searchAble={true}
+                        bind:searchText={search}
                     />
                 {:else if $searchParams.tab === Tab.reviewPending}
                     <Table
@@ -222,6 +225,9 @@
                         itemUrlPrefix="/resources/"
                         bind:searchParams={$searchParams}
                         bind:selectedItems={selectedReviewPendingTableItems}
+                        noItemsText="No items pending review."
+                        searchAble={true}
+                        bind:searchText={search}
                     />
                 {:else if $searchParams.tab === Tab.myProjects}
                     <Table
@@ -230,6 +236,7 @@
                         items={sortAssignedProjectData(currentAssignedProjects, $searchParams.sort)}
                         itemUrlPrefix="/projects/"
                         bind:searchParams={$searchParams}
+                        noItemsText="No projects assigned to you."
                     />
                 {/if}
             </div>
