@@ -9,6 +9,7 @@
         type ResourceContent,
         type TiptapContentItem,
         type ResourceContentNextUpInfo,
+        OpenedSupplementalSideBar,
     } from '$lib/types/resources';
     import { getFromApi, patchToApi, postToApi } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
@@ -27,7 +28,6 @@
     import ExitButton from '$lib/components/ExitButton.svelte';
     import CurrentTranslations from '$lib/components/resources/menus/CurrentTranslations.svelte';
     import Related from '$lib/components/resources/menus/Related.svelte';
-    import References from '$lib/components/resources/menus/References.svelte';
     import ContentArea from '$lib/components/resources/ContentArea.svelte';
     import Select from '$lib/components/Select.svelte';
     import InlineComment from '$lib/components/comments/InlineComment.svelte';
@@ -40,6 +40,7 @@
     import { createMachineTranslationStore, type MachineTranslationStore } from '$lib/stores/machineTranslation';
     import MachineTranslationRating from '$lib/components/MachineTranslationRating.svelte';
     import { fly } from 'svelte/transition';
+    import BibleReferencesSidebar from './BibleReferencesSidebar.svelte';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
@@ -79,7 +80,7 @@
     let mediaType: MediaTypeEnum | undefined;
     let selectedStepNumber: number | undefined;
     let isShowingDiffs = false;
-    let isShowingCommentsSidebar = false;
+    let openedSupplementalSideBar = OpenedSupplementalSideBar.None;
     let shouldTransition = false;
     let resourceContent: ResourceContent | undefined;
 
@@ -98,6 +99,7 @@
     let sidebarContentStore: ReturnType<typeof createSidebarContentStore>;
     let nextUpInfo: ResourceContentNextUpInfo | null = null;
 
+    $: isShowingSupplementalSidebar = openedSupplementalSideBar != OpenedSupplementalSideBar.None;
     $: resourceContentId = data.resourceContentId;
     $: resourceContentPromise = data.resourceContent.promise;
     $: handleFetchedResource(data.resourceContent.promise);
@@ -444,7 +446,6 @@
                     openModal={openAddTranslationModal}
                 />
                 <Related relatedContent={resourceContent.associatedResources} />
-                <References bibleReferences={getSortedReferences(resourceContent)} />
             </div>
 
             <div class="flex">
@@ -544,17 +545,17 @@
             onToggleHistoryPane={sidebarContentStore.toggleViewing}
             resourceContentStatuses={data.resourceContentStatuses}
             {commentStores}
-            bind:commentsSidebarOpen={isShowingCommentsSidebar}
+            bind:openedSupplementalSideBar
         />
 
         <div class="flex h-[calc(100vh-250px)]">
             <div
                 class="h-full {$sidebarContentStore.animateOpen &&
-                    'transition-[width]'} {!$sidebarContentStore.isOpen && !isShowingCommentsSidebar
+                    'transition-[width]'} {!$sidebarContentStore.isOpen && !isShowingSupplementalSidebar
                     ? 'w-full'
-                    : $sidebarContentStore.isOpen && !isShowingCommentsSidebar
+                    : $sidebarContentStore.isOpen && !isShowingSupplementalSidebar
                     ? 'w-1/2 pe-3'
-                    : !$sidebarContentStore.isOpen && isShowingCommentsSidebar
+                    : !$sidebarContentStore.isOpen && isShowingSupplementalSidebar
                     ? 'w-4/5 pe-3'
                     : 'w-2/5 pe-3'}"
             >
@@ -576,6 +577,7 @@
                         <div class="w-full flex-grow">
                             <Content
                                 bind:selectedStepNumber
+                                {editableDisplayNameStore}
                                 {editableContentStore}
                                 bind:wordCountsByStep
                                 canEdit={canMakeContentEdits && resourceContent.isDraft}
@@ -601,7 +603,7 @@
 
             <div
                 class="h-full overflow-hidden {$sidebarContentStore.animateOpen && 'transition-[width]'}
-                {!$sidebarContentStore.isOpen ? 'w-0' : isShowingCommentsSidebar ? 'w-2/5 ps-3' : 'w-1/2 ps-3'}"
+                {!$sidebarContentStore.isOpen ? 'w-0' : isShowingSupplementalSidebar ? 'w-2/5 ps-3' : 'w-1/2 ps-3'}"
             >
                 <div class="flex h-full w-full flex-col rounded-md border border-base-300 p-4">
                     <div class="mx-auto flex h-full w-full max-w-4xl flex-col space-y-4">
@@ -656,10 +658,26 @@
 
             <div
                 class="h-full overflow-hidden transition-[width]
-                {!isShowingCommentsSidebar ? 'w-0' : 'w-1/5 ps-3'}"
+                {isShowingSupplementalSidebar ? 'w-1/5 ps-3' : 'w-0'}"
             >
-                <div class="flex h-full w-full flex-col rounded-md border border-base-300">
+                <div
+                    class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
+                    OpenedSupplementalSideBar.Comments
+                        ? ''
+                        : 'hidden'}"
+                >
                     <CommentsSidebar {commentStores} />
+                </div>
+                <div
+                    class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
+                    OpenedSupplementalSideBar.BibleReferences
+                        ? ''
+                        : 'hidden'}"
+                >
+                    <BibleReferencesSidebar
+                        languageId={resourceContent.language.id}
+                        references={getSortedReferences(resourceContent)}
+                    />
                 </div>
             </div>
         </div>

@@ -8,13 +8,13 @@
     import Select from '$lib/components/Select.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
-    import { UserRole } from '$lib/types/base';
+    import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
     import Modal from '$lib/components/Modal.svelte';
     import { postToApi } from '$lib/utils/http-service';
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
-    import { isApiErrorWithMessage } from '$lib/utils/http-errors';
     import { log } from '$lib/logger';
+    import Tooltip from '$lib/components/Tooltip.svelte';
 
     export let data: PageData;
     let search = '';
@@ -71,6 +71,12 @@
 
     $: setTabContents($searchParams.tab, $searchParams.assignedUserId, search);
     $: anyRowSelected = allTabContents.some((x) => x.rowSelected);
+    $: nonManagerReviewSelected = allTabContents.some(
+        (x) =>
+            x.rowSelected &&
+            x.statusValue !== ResourceContentStatusEnum.AquiferizeManagerReview &&
+            x.statusValue !== ResourceContentStatusEnum.TranslationManagerReview
+    );
     $: allRowsSelected = allTabContents.length > 0 && allTabContents.every((x) => x.rowSelected);
 
     const loadContents = async () => {
@@ -136,11 +142,7 @@
                     contentIds: contentIds,
                 });
             } catch (error) {
-                if (isApiErrorWithMessage(error, 'not in correct status', 'generalErrors')) {
-                    customErrorMessage = 'Resource items must be in Manager Review status to send to publisher.';
-                } else {
-                    log.exception(error);
-                }
+                log.exception(error);
                 throw error;
             }
         }
@@ -214,12 +216,17 @@
             >
 
             {#if $searchParams.tab === Tab.myWork}
-                <button
-                    data-app-insights-event-name="manager-dashboard-bulk-assign-click"
-                    class="btn btn-primary"
-                    on:click={() => (isSendToPublisherModalOpen = true)}
-                    disabled={!anyRowSelected}>Send to Publisher</button
+                <Tooltip
+                    position={{ left: '10rem' }}
+                    text={nonManagerReviewSelected ? 'Manager Review status only' : null}
                 >
+                    <button
+                        data-app-insights-event-name="manager-dashboard-bulk-assign-click"
+                        class="btn btn-primary"
+                        on:click={() => (isSendToPublisherModalOpen = true)}
+                        disabled={!anyRowSelected || nonManagerReviewSelected}>Send to Publisher</button
+                    >
+                </Tooltip>
             {/if}
         </div>
 
@@ -317,6 +324,7 @@
                             <th>Resource</th>
                             <th>Language</th>
                             <th>Project</th>
+                            <th>Status</th>
                             <th>Assigned</th>
                             <th>Last Edit (Days)</th>
                             <SortingTableHeaderCell
@@ -347,6 +355,7 @@
                                 <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.projectName ?? ''}</LinkedTableCell>
+                                <LinkedTableCell {href}>{resource.statusDisplayName ?? ''}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.assignedUser.name}</LinkedTableCell>
                                 <LinkedTableCell {href}
                                     >{formatSimpleDaysAgo(resource.daysSinceContentUpdated)}</LinkedTableCell

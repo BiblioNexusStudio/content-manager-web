@@ -1,17 +1,16 @@
 ﻿<script lang="ts">
     import { onDestroy } from 'svelte';
-    import { Editor } from '@tiptap/core';
     import type { TiptapContentItem } from '$lib/types/resources';
     import HtmlDiffWorker from '../../../workers/html-differ.ts?worker';
     import CenteredSpinner from '../CenteredSpinner.svelte';
     import { debounce } from '$lib/utils/debounce';
     import { extensions } from '../tiptap/extensions';
     import { log } from '$lib/logger';
-    import type { CommentStores } from '$lib/stores/comments';
+    import { Editor } from '@tiptap/core';
 
     export let tiptapJson: TiptapContentItem | undefined;
     export let currentTiptapJsonForDiffing: TiptapContentItem | undefined;
-    export let commentStores: CommentStores;
+    export let languageScriptDirection: 'LTR' | 'RTL' | undefined;
 
     $: calculateBaseHtmlWithTextDirection(tiptapJson);
     $: debouncedGenerateDiffHtml(currentTiptapJsonForDiffing, baseHtmlWithTextDirection);
@@ -22,38 +21,26 @@
     let previousBaseHtmlWithTextDirection: string | undefined;
     let baseHtmlWithTextDirection: string | undefined;
 
-    async function calculateBaseHtmlWithTextDirection(tiptapJson: TiptapContentItem | undefined) {
+    function calculateBaseHtmlWithTextDirection(tiptapJson: TiptapContentItem | undefined) {
         if (tiptapJson) {
             const original = baseHtmlWithTextDirection;
-            baseHtmlWithTextDirection = await getHtmlWithTextDirection(tiptapJson);
+            baseHtmlWithTextDirection = generateHTMLIncludingTextDirection(tiptapJson, languageScriptDirection);
             if (original !== baseHtmlWithTextDirection) {
                 diffedHtml = undefined;
             }
         }
     }
 
-    // Unfortunately because of the text direction plugin we have, we can't just use the built-in `generateHtml`
-    // that Tiptap provides. Instead this will spin up an editor and force a render to make sure the text direction
-    // tags get added to the content.
-    async function getHtmlWithTextDirection(tiptapJson: TiptapContentItem): Promise<string> {
-        let transactionCount = 0;
-        return new Promise((resolve) => {
-            new Editor({
-                editable: false,
-                extensions: extensions(false, commentStores),
-                content: tiptapJson.tiptap,
-                onTransaction: ({ editor }) => {
-                    if (transactionCount > 1) {
-                        resolve(editor.getHTML());
-                    }
-                    transactionCount++;
-                },
-                onCreate: ({ editor }) => {
-                    editor.commands.setContent(editor.getJSON());
-                    editor.commands.unsetTextDirection();
-                },
-            });
+    function generateHTMLIncludingTextDirection(
+        tiptapJson: TiptapContentItem,
+        languageScriptDirection: 'RTL' | 'LTR' | undefined
+    ) {
+        const editor = new Editor({
+            editable: false,
+            extensions: extensions(false, undefined, true, languageScriptDirection),
+            content: tiptapJson.tiptap,
         });
+        return editor.getHTML();
     }
 
     const debouncedGenerateDiffHtml = debounce(
@@ -67,7 +54,10 @@
                 (currentTiptapJsonString !== JSON.stringify(currentTiptapJsonForDiffing.tiptap) ||
                     previousBaseHtmlWithTextDirection !== baseHtmlWithTextDirection)
             ) {
-                const currentHtml = await getHtmlWithTextDirection(currentTiptapJsonForDiffing);
+                const currentHtml = generateHTMLIncludingTextDirection(
+                    currentTiptapJsonForDiffing,
+                    languageScriptDirection
+                );
                 currentTiptapJsonString = JSON.stringify(currentTiptapJsonForDiffing.tiptap);
                 previousBaseHtmlWithTextDirection = baseHtmlWithTextDirection;
 
@@ -97,7 +87,10 @@
 <div class="relative grow">
     <div class="absolute bottom-0 left-0 right-0 top-0 overflow-y-scroll rounded-md border border-base-300 bg-white">
         {#if diffedHtml}
-            <div class="prose prose-sm m-4 max-w-none text-black sm:prose-base focus:outline-none">
+            <div
+                dir={languageScriptDirection?.toLowerCase()}
+                class="prose prose-sm m-4 max-w-none text-black sm:prose-base focus:outline-none"
+            >
                 {@html diffedHtml}
             </div>
         {:else}

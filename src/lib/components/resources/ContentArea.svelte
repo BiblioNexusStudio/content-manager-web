@@ -1,7 +1,7 @@
 <script lang="ts">
     import { _ as translate } from 'svelte-i18n';
     import { type ResourceContentStatus, ResourceContentStatusEnum } from '$lib/types/base';
-    import { MediaTypeEnum, type ResourceContent } from '$lib/types/resources';
+    import { MediaTypeEnum, type ResourceContent, OpenedSupplementalSideBar } from '$lib/types/resources';
     import { Icon } from 'svelte-awesome';
     import checkCircleO from 'svelte-awesome/icons/checkCircleO';
     import ban from 'svelte-awesome/icons/ban';
@@ -9,6 +9,7 @@
     import Tooltip from '../Tooltip.svelte';
     import HistoryIcon from '$lib/icons/HistoryIcon.svelte';
     import CommentSidebarIcon from '$lib/icons/CommentSidebarIcon.svelte';
+    import BookSidebarIcon from '$lib/icons/BookSidebarIcon.svelte';
     import type { CommentStores } from '$lib/stores/comments';
     import { onMount } from 'svelte';
 
@@ -17,7 +18,7 @@
     export let historySidebarOpen: boolean;
     export let onToggleHistoryPane: (animateOpen?: boolean) => void;
     export let commentStores: CommentStores;
-    export let commentsSidebarOpen: boolean;
+    export let openedSupplementalSideBar: OpenedSupplementalSideBar;
     export let resourceContentStatuses: ResourceContentStatus[];
 
     const commentThreads = commentStores.commentThreads;
@@ -27,6 +28,14 @@
             onToggleHistoryPane(false);
         }
     });
+
+    const toggleOpenedSupplementalSideBar = (sidebar: OpenedSupplementalSideBar) => {
+        if (openedSupplementalSideBar === sidebar) {
+            openedSupplementalSideBar = OpenedSupplementalSideBar.None;
+        } else {
+            openedSupplementalSideBar = sidebar;
+        }
+    };
 </script>
 
 <div class="my-6 flex w-full justify-between">
@@ -83,20 +92,37 @@
                 </Tooltip>
             {/if}
             {#if $commentThreads?.threads.length}
+                {@const active = openedSupplementalSideBar === OpenedSupplementalSideBar.Comments}
                 <Tooltip
                     position={{ right: '3rem', top: '0.25rem' }}
                     class="border-[#485467] text-[#485467]"
-                    text={commentsSidebarOpen ? 'Hide Comments' : 'Show Comments'}
+                    text={active ? 'Hide Comments' : 'Show Comments'}
                 >
                     <button
                         data-app-insights-event-name="toggle-comments-pane-click"
-                        class="btn btn-ghost btn-sm {commentsSidebarOpen && 'bg-[#e6f7fc]'}"
-                        on:click={() => (commentsSidebarOpen = !commentsSidebarOpen)}
+                        class="btn btn-ghost btn-sm {active && 'bg-[#e6f7fc]'}"
+                        on:click={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.Comments)}
                     >
                         <CommentSidebarIcon />
                     </button>
                 </Tooltip>
             {/if}
+            <Tooltip
+                position={{ right: '3rem', top: '0.25rem' }}
+                class="border-[#485467] text-[#485467]"
+                text={openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences
+                    ? 'Hide Bible References'
+                    : 'Show Bible References'}
+            >
+                <button
+                    data-app-insights-event-name="toggle-comments-pane-click"
+                    class="btn btn-ghost btn-sm {openedSupplementalSideBar ===
+                        OpenedSupplementalSideBar.BibleReferences && 'bg-[#e6f7fc]'}"
+                    on:click={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.BibleReferences)}
+                >
+                    <BookSidebarIcon />
+                </button>
+            </Tooltip>
         </div>
         {#if resourceContent.assignedUser}
             <div class="flex text-xl">

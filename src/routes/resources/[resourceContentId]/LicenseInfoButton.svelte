@@ -1,10 +1,11 @@
 <script lang="ts">
-    import type { ResourceContent, SingleLicenseInfo } from '$lib/types/resources';
+    import type { ResourceContent } from '$lib/types/resources';
+    import { filterBoolean } from '$lib/utils/array';
 
     export let resourceContent: ResourceContent;
 
     let licenseInfo = resourceContent.parentResourceLicenseInfo!;
-    let englishLicenses = licenseInfo.licenses.map(({ eng }) => eng).filter(Boolean) as SingleLicenseInfo[];
+    let englishLicenses = filterBoolean(licenseInfo.licenses.map(({ eng }) => eng));
     let englishLicensesForAdaptation = englishLicenses.filter(({ name }) => name.toLowerCase() !== 'public domain');
     let container: HTMLDivElement;
     let show = false;

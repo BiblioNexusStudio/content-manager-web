@@ -8,6 +8,7 @@
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
 
     export let itemIndex: number;
+    export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined;
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let wordCountsByStep: number[];
     export let canEdit: boolean;
@@ -42,9 +43,18 @@
 </script>
 
 <div class="flex h-full flex-col space-y-4">
-    <EditorToolbar {editor} {canEdit} {commentStores} {resourceContent} {machineTranslationStore} bind:isLoading />
+    <EditorToolbar
+        {editor}
+        {canEdit}
+        {commentStores}
+        {resourceContent}
+        {machineTranslationStore}
+        {editableDisplayNameStore}
+        bind:isLoading
+    />
 
     <TiptapRenderer
+        languageScriptDirection={resourceContent.language.scriptDirection}
         {tiptapJson}
         {canEdit}
         {canComment}

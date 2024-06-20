@@ -31,7 +31,7 @@ function compareSortValues<T>(a: T, b: T, key: keyof T, isDescending: boolean): 
 
 // Takes in a mapping and returns a function that can be used to sort a list of data.
 // The mapping contains the sort name (the name that would be in the URL) mapped to config for the sort, which is the
-// property key list the sort applies to as well as secondary sort keys if the primary keys are identical.
+// property key list the sort applies to as well as fallback sort keys if the primary keys are identical.
 //
 // Example:
 //   type Content = { wordCount: number };
@@ -55,10 +55,10 @@ export function createListSorter<T>(mapping: SortConfig<T>): (list: T[], sort: s
                 if (result !== 0) return result;
             }
 
-            // Apply secondary sort keys if primary sort values are equal
-            for (const { key: secondaryKey, dir } of sortConfig.fallbackSortKeys ?? []) {
-                const isSecondaryDescending = dir === 'DESC';
-                const result = compareSortValues(a, b, secondaryKey, isSecondaryDescending);
+            // Apply fallback sort keys if primary sort values are equal
+            for (const { key: fallbackKey, dir } of sortConfig.fallbackSortKeys ?? []) {
+                const isFallbackDescending = dir === 'DESC';
+                const result = compareSortValues(a, b, fallbackKey, isFallbackDescending);
                 if (result !== 0) return result;
             }
 

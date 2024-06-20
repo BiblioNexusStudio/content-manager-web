@@ -1,20 +1,24 @@
 ﻿<script lang="ts">
-    export let text: string;
+    export let text: string | null;
     export let position: { top?: string; left?: string; bottom?: string; right?: string };
 </script>
 
-<div class="tooltip-container relative flex items-center">
-    <div class="peer flex items-center">
-        <slot />
-    </div>
+{#if text}
+    <div class="tooltip-container relative flex items-center">
+        <div class="peer flex items-center">
+            <slot />
+        </div>
 
-    <div
-        style="top: {position.top ?? 'none'}; left: {position.left ?? 'none'}; bottom: {position.bottom ??
-            'none'}; right:
+        <div
+            style="top: {position.top ?? 'none'}; left: {position.left ?? 'none'}; bottom: {position.bottom ??
+                'none'}; right:
         {position.right ?? 'none'};"
-        class="tooltip absolute hidden whitespace-nowrap rounded-xl border-2 bg-white px-2 text-sm font-bold transition peer-hover:flex
+            class="tooltip absolute hidden whitespace-nowrap rounded-xl border-2 bg-white px-2 text-sm font-bold transition peer-hover:flex
         {$$props.class}"
-    >
-        {text}
+        >
+            {text}
+        </div>
     </div>
-</div>
+{:else}
+    <slot />
+{/if}

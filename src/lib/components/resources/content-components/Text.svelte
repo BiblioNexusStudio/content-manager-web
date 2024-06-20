@@ -11,6 +11,7 @@
     import type { CommentStores } from '$lib/stores/comments';
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
 
+    export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined;
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let canEdit: boolean;
     export let canComment: boolean;
@@ -100,6 +101,7 @@
                 {#if (canEdit || canComment) && wordCountsByStep && editableContentStore}
                     <SingleItemEditor
                         bind:wordCountsByStep
+                        {editableDisplayNameStore}
                         {editableContentStore}
                         itemIndex={index}
                         {canEdit}
@@ -110,9 +112,9 @@
                     />
                 {:else if isComparingToCurrent}
                     <TiptapDiffRenderer
+                        languageScriptDirection={resourceContent.language.scriptDirection}
                         currentTiptapJsonForDiffing={$editableContentStore[index]}
                         tiptapJson={content[index]}
-                        {commentStores}
                     />
                 {:else}
                     <div class="flex h-full flex-col">
@@ -120,6 +122,7 @@
                             <div class="h-[2.625rem]" />
                         {/if}
                         <TiptapRenderer
+                            languageScriptDirection={resourceContent.language.scriptDirection}
                             tiptapJson={content[index]}
                             canEdit={false}
                             canComment={false}
