@@ -172,7 +172,7 @@
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Manager Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
-            <div role="tablist" class="tabs-bordered tabs w-fit">
+            <div role="tablist" class="tabs tabs-bordered w-fit">
                 <button
                     on:click={() => switchTabs(Tab.myWork)}
                     role="tab"
@@ -324,6 +324,7 @@
                             <th>Resource</th>
                             <th>Language</th>
                             <th>Project</th>
+                            <th>Status</th>
                             <th>Assigned</th>
                             <th>Last Edit (Days)</th>
                             <SortingTableHeaderCell
@@ -354,6 +355,7 @@
                                 <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.projectName ?? ''}</LinkedTableCell>
+                                <LinkedTableCell {href}>{resource.statusDisplayName ?? ''}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.assignedUser.name}</LinkedTableCell>
                                 <LinkedTableCell {href}
                                     >{formatSimpleDaysAgo(resource.daysSinceContentUpdated)}</LinkedTableCell
