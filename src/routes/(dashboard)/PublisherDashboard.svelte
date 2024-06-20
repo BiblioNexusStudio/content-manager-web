@@ -3,7 +3,7 @@
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
     import type { Project, ResourceAssignedToSelf, ResourcePendingReview } from './+page';
-    import { UserRole } from '$lib/types/base';
+    import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import { postToApi } from '$lib/utils/http-service';
     import Modal from '$lib/components/Modal.svelte';
     import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
@@ -61,8 +61,33 @@
         selectedReviewPendingTableItems = [];
     }
 
+    function shouldAssignAsInProgress(status: ResourceContentStatusEnum | null) {
+        return (
+            status === ResourceContentStatusEnum.New ||
+            status === ResourceContentStatusEnum.TranslationNotStarted ||
+            status === ResourceContentStatusEnum.AquiferizeInProgress ||
+            status === ResourceContentStatusEnum.TranslationInProgress
+        );
+    }
+
     async function assignContent() {
         isAssigning = true;
+
+        selectedInProgressContentIds = [];
+        selectedReviewContentIds = [];
+
+        selectedMyWorkTableItems.forEach((item) => {
+            if (shouldAssignAsInProgress(item.statusValue)) {
+                selectedInProgressContentIds.push(item.id);
+            } else {
+                selectedReviewContentIds.push(item.id);
+            }
+        });
+
+        selectedReviewPendingTableItems.forEach((item) => {
+            selectedReviewContentIds.push(item.id);
+        });
+
         const inProgessAssignments =
             selectedInProgressContentIds.length > 0
                 ? postToApi<null>('/resources/content/assign-editor', {
@@ -131,7 +156,7 @@
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Publisher Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
-            <div role="tablist" class="tabs tabs-bordered w-fit">
+            <div role="tablist" class="tabs-bordered tabs w-fit">
                 <button
                     on:click={selectTab(Tab.myWork)}
                     role="tab"
