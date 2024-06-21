@@ -97,14 +97,12 @@
     let editableDisplayNameStore = createChangeTrackingStore<string>('', { onChange: save, debounceDelay: 3000 });
     let wordCountsByStep: number[] = [];
     let sidebarContentStore: ReturnType<typeof createSidebarContentStore>;
-    let nextUpInfo: ResourceContentNextUpInfo | null = null;
 
     $: isShowingSupplementalSidebar = openedSupplementalSideBar != OpenedSupplementalSideBar.None;
     $: resourceContentId = data.resourceContentId;
     $: resourceContentPromise = data.resourceContent.promise;
     $: handleFetchedResource(data.resourceContent.promise);
     $: hasUnresolvedThreads = $commentThreads?.threads.some((x) => !x.resolved && x.id !== -1) || false;
-    $: fetchNextUpInfo(parseInt(resourceContentId), currentUserIsAssigned);
 
     async function handleFetchedResource(resourceContentPromise: Promise<ResourceContent>) {
         resourceContent = await resourceContentPromise;
@@ -244,14 +242,6 @@
 
     onDestroy(resetSaveState);
 
-    async function fetchNextUpInfo(id: number, currentUserIsAssigned: boolean) {
-        if (currentUserIsAssigned) {
-            nextUpInfo = await getFromApi<ResourceContentNextUpInfo>(`/resources/content/${id}/next-up`);
-        } else {
-            nextUpInfo = null;
-        }
-    }
-
     function openAquiferizeModal() {
         assignToUserId = null;
         aquiferizeModal.showModal();
@@ -308,6 +298,9 @@
     }
 
     async function goToNextResource() {
+        const nextUpInfo = await getFromApi<ResourceContentNextUpInfo>(
+            `/resources/content/${resourceContentId}/next-up`
+        );
         if (nextUpInfo?.nextUpResourceContentId) {
             shouldTransition = true;
             await goto(`/resources/${nextUpInfo.nextUpResourceContentId}`);
