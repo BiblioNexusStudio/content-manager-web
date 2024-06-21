@@ -263,6 +263,7 @@
                         itemUrlPrefix="/projects/"
                         bind:searchParams={$searchParams}
                         noItemsText="No projects assigned to you."
+                        searchAble={true}
                         let:item
                         let:href
                         let:itemKey

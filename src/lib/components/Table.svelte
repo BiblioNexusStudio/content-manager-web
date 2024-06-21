@@ -3,14 +3,13 @@
     import TableCell from '$lib/components/TableCell.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import type { column } from '$lib/types/table';
-    import type { ProjectResourceStatusCounts } from '../types/projects';
     import type { searchParameters } from '$lib/utils/sveltekit-search-params';
     import type { SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
 
     // eslint-disable-next-line
-    export type T = $$Generic<{ id: number; isStarted?: boolean; counts?: ProjectResourceStatusCounts }>;
+    export type T = $$Generic<{ id: number }>;
 
-    export let searchParams: SubscribedSearchParams<ReturnType<typeof searchParameters<{ sort: string; tab: string }>>>;
+    export let searchParams: SubscribedSearchParams<ReturnType<typeof searchParameters<{ sort: string }>>>;
 
     export let enableSelect = false;
     export let enableSelectAll = false;
