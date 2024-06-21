@@ -3,7 +3,6 @@
     import TableCell from '$lib/components/TableCell.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import type { column } from '$lib/types/table';
-    import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
     import type { ProjectResourceStatusCounts } from '../types/projects';
     import type { searchParameters } from '$lib/utils/sveltekit-search-params';
     import type { SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
@@ -81,23 +80,14 @@
                         />
                     </TableCell>
                 {/if}
-                {#each columns as { itemKey, showProgress } (itemKey)}
-                    {#if href !== undefined && itemKey}
-                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                    {:else if itemKey}
-                        <TableCell>{item[itemKey] ?? ''}</TableCell>
-                    {:else if showProgress && 'isStarted' in item && item.isStarted}
-                        <td>
-                            <ProjectProgressBar
-                                notStartedCount={item?.counts?.notStarted ?? 0}
-                                inProgressCount={item?.counts?.inProgress ?? 0}
-                                inManagerReviewCount={item?.counts?.inManagerReview ?? 0}
-                                inPublisherReviewCount={item?.counts?.inPublisherReview ?? 0}
-                                completeCount={item?.counts?.completed ?? 0}
-                                showLegend={false}
-                            />
-                        </td>
-                    {/if}
+                {#each columns as { itemKey, text } (itemKey)}
+                    <slot {item} {href} {itemKey} columnText={text}>
+                        {#if href !== undefined && itemKey}
+                            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                        {:else if itemKey}
+                            <TableCell>{item[itemKey] ?? ''}</TableCell>
+                        {/if}
+                    </slot>
                 {/each}
             </tr>
         {/each}

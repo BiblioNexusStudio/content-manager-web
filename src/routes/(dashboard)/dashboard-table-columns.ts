@@ -43,5 +43,5 @@ export const projectColumns: column<Project>[] = [
     { text: 'Platform', itemKey: 'projectPlatform', sortKey: undefined },
     { text: 'Language', itemKey: 'language', sortKey: undefined },
     { text: 'Days', itemKey: 'days', sortKey: SortName.Days },
-    { text: 'Progress', sortKey: undefined, showProgress: true },
+    { text: 'Progress', sortKey: undefined },
 ];

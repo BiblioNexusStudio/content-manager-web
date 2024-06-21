@@ -15,6 +15,10 @@
     } from './dashboard-table-sorters';
     import Table from '$lib/components/Table.svelte';
     import { assignedContentsColumns, reviewPendingContentsColumns, projectColumns } from './dashboard-table-columns';
+    import { formatSimpleDaysAgo } from '$lib/utils/date-time';
+    import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
+    import TableCell from '$lib/components/TableCell.svelte';
+    import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
 
     enum Tab {
         myWork = 'my-work',
@@ -216,7 +220,18 @@
                         noItemsText="Your work is all done!"
                         searchAble={true}
                         bind:searchText={search}
-                    />
+                        let:item
+                        let:href
+                        let:itemKey
+                    >
+                        {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                            <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                        {:else if href !== undefined && itemKey}
+                            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                        {:else if itemKey}
+                            <TableCell>{item[itemKey] ?? ''}</TableCell>
+                        {/if}
+                    </Table>
                 {:else if $searchParams.tab === Tab.reviewPending}
                     <Table
                         enableSelectAll={true}
@@ -228,7 +243,18 @@
                         noItemsText="No items pending review."
                         searchAble={true}
                         bind:searchText={search}
-                    />
+                        let:item
+                        let:href
+                        let:itemKey
+                    >
+                        {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                            <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                        {:else if href !== undefined && itemKey}
+                            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                        {:else if itemKey}
+                            <TableCell>{item[itemKey] ?? ''}</TableCell>
+                        {/if}
+                    </Table>
                 {:else if $searchParams.tab === Tab.myProjects}
                     <Table
                         enableSelectAll={false}
@@ -237,7 +263,28 @@
                         itemUrlPrefix="/projects/"
                         bind:searchParams={$searchParams}
                         noItemsText="No projects assigned to you."
-                    />
+                        let:item
+                        let:href
+                        let:itemKey
+                        let:columnText
+                    >
+                        {#if columnText === 'Progress'}
+                            <td>
+                                <ProjectProgressBar
+                                    notStartedCount={item?.counts?.notStarted ?? 0}
+                                    inProgressCount={item?.counts?.inProgress ?? 0}
+                                    inManagerReviewCount={item?.counts?.inManagerReview ?? 0}
+                                    inPublisherReviewCount={item?.counts?.inPublisherReview ?? 0}
+                                    completeCount={item?.counts?.completed ?? 0}
+                                    showLegend={false}
+                                />
+                            </td>
+                        {:else if href !== undefined && itemKey}
+                            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                        {:else if itemKey}
+                            <TableCell>{item[itemKey] ?? ''}</TableCell>
+                        {/if}
+                    </Table>
                 {/if}
             </div>
         </div>
