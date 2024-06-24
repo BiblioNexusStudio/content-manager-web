@@ -15,6 +15,7 @@
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
     import { log } from '$lib/logger';
     import Tooltip from '$lib/components/Tooltip.svelte';
+    import { filterBoolean } from '$lib/utils/array';
 
     export let data: PageData;
     let search = '';
@@ -33,6 +34,7 @@
             sort: ssp.string(SortName.Days),
             tab: ssp.string(Tab.myWork),
             assignedUserId: ssp.number(0),
+            project: ssp.string(''),
         },
         { runLoadAgainWhenParamsChange: false }
     );
@@ -46,17 +48,20 @@
 
     $: !isErrorModalOpen && (customErrorMessage = null);
 
+    let toAssignProjectNames: string[] = [];
     let myWorkContents: ResourceAssignedToSelf[] = [];
     let toAssignContents: ResourceAssignedToSelf[] = [];
     let manageContents: ResourceAssignedToOwnCompany[] = [];
     let allTabContents: ResourceAssignedToSelf[] | ResourceAssignedToOwnCompany[] = [];
 
-    const setTabContents = (tab: string, assignedUserId: number, search: string) => {
+    const setTabContents = (tab: string, assignedUserId: number, toAssignProjectName: string, search: string) => {
         if (tab === Tab.myWork) {
             allTabContents = myWorkContents.filter((x) => x.englishLabel.toLowerCase().includes(search.toLowerCase()));
         } else if (tab === Tab.toAssign) {
-            allTabContents = toAssignContents.filter((x) =>
-                x.englishLabel.toLowerCase().includes(search.toLowerCase())
+            allTabContents = toAssignContents.filter(
+                (x) =>
+                    x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
+                    (toAssignProjectName === '' || x.projectName === toAssignProjectName)
             );
         } else if (tab === Tab.manage) {
             allTabContents = manageContents.filter(
@@ -69,7 +74,7 @@
         }
     };
 
-    $: setTabContents($searchParams.tab, $searchParams.assignedUserId, search);
+    $: setTabContents($searchParams.tab, $searchParams.assignedUserId, $searchParams.project, search);
     $: anyRowSelected = allTabContents.some((x) => x.rowSelected);
     $: nonManagerReviewSelected = allTabContents.some(
         (x) =>
@@ -89,6 +94,14 @@
             toAssignContentsPromise,
             manageContentsPromise,
         ]);
+
+        toAssignProjectNames = Array.from(new Set(filterBoolean(toAssignContents.map((c) => c.projectName)))).sort();
+
+        // Handle situation where project is set in the searchParams but is no longer valid. E.g. saved bookmark
+        // or forced refresh after assign that removed all of them.
+        if (!toAssignProjectNames.includes($searchParams.project)) {
+            $searchParams.project = '';
+        }
     };
 
     const switchTabs = (tab: Tab) => {
@@ -195,6 +208,18 @@
         </div>
         <div class="mt-4 flex gap-4">
             <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
+            {#if $searchParams.tab === Tab.toAssign}
+                <Select
+                    class="select select-bordered max-w-[14rem] flex-grow"
+                    bind:value={$searchParams.project}
+                    onChange={resetSelections}
+                    isNumber={false}
+                    options={[
+                        { value: '', label: 'Project' },
+                        ...toAssignProjectNames.map((p) => ({ value: p, label: p })),
+                    ]}
+                />
+            {/if}
             {#if $searchParams.tab === Tab.manage}
                 <Select
                     class="select select-bordered max-w-[14rem] flex-grow"
