@@ -23,7 +23,7 @@
     export let noItemsAfterSearchText = 'No results.';
 
     $: allItemsSelected = items && items.length > 0 && items.length === selectedItems.length;
-    $: if (searchText) {
+    $: if (searchText || searchText === '') {
         selectedItems = [];
     }
 
