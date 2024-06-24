@@ -23,6 +23,9 @@
     export let noItemsAfterSearchText = 'No results.';
 
     $: allItemsSelected = items && items.length > 0 && items.length === selectedItems.length;
+    $: if (searchText || searchText === '') {
+        selectedItems = [];
+    }
 
     function onSelectAll() {
         if (allItemsSelected) {
