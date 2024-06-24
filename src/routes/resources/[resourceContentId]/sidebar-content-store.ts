@@ -17,11 +17,10 @@ export function createSidebarContentStore(resourceContent: ResourceContent) {
     const cachedVersions: Record<number, Version> = {};
     const store = writable<Store>({ isLoading: false, selected: null, isOpen: false, animateOpen: false });
 
-    const publishedVersions = resourceContent.versions.filter(({ isPublished }) => isPublished);
     const firstSnapshot = resourceContent.snapshots[resourceContent.snapshots.length - 1];
     const allSnapshotAndPublishedVersionOptions = (
         sortByKey(
-            (resourceContent.snapshots as (BasicSnapshot | BasicVersion)[]).concat(publishedVersions),
+            (resourceContent.snapshots as (BasicSnapshot | BasicVersion)[]).concat(resourceContent.versions),
             'created',
             'desc'
         ) as (BasicSnapshot | BasicVersion)[]
@@ -90,7 +89,9 @@ export function createSidebarContentStore(resourceContent: ResourceContent) {
 
     function calculateSnapshotOrVersionName(snapshotOrVersion: BasicSnapshot | BasicVersion, isFirstSnapshot: boolean) {
         if ('version' in snapshotOrVersion) {
-            return `${formatDate(snapshotOrVersion.created)} - Published`;
+            return `${formatDate(snapshotOrVersion.created)} - Version ${snapshotOrVersion.version}${
+                snapshotOrVersion.isPublished ? ' (Published)' : ''
+            }`;
         } else {
             const isEnglish = resourceContent.language.iso6393Code.toLowerCase() === 'eng';
             if (isFirstSnapshot && isEnglish) {
