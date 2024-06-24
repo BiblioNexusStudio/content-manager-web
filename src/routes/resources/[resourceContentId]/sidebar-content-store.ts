@@ -17,6 +17,7 @@ export function createSidebarContentStore(resourceContent: ResourceContent) {
     const cachedVersions: Record<number, Version> = {};
     const store = writable<Store>({ isLoading: false, selected: null, isOpen: false, animateOpen: false });
 
+    const publishedVersion = resourceContent.versions.find(({ isPublished }) => isPublished);
     const firstSnapshot = resourceContent.snapshots[resourceContent.snapshots.length - 1];
     const allSnapshotAndPublishedVersionOptions = (
         sortByKey(
@@ -37,7 +38,9 @@ export function createSidebarContentStore(resourceContent: ResourceContent) {
         const isOpen = get(store).isOpen;
         if (!isOpen) {
             selectSnapshotOrVersion(
-                allSnapshotAndPublishedVersionOptions[allSnapshotAndPublishedVersionOptions.length - 1]?.value ?? null
+                (publishedVersion && idForSelection(publishedVersion)) ??
+                    allSnapshotAndPublishedVersionOptions[allSnapshotAndPublishedVersionOptions.length - 1]?.value ??
+                    null
             );
         } else {
             selectSnapshotOrVersion(null);
