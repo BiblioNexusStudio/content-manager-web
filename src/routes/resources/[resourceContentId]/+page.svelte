@@ -41,6 +41,7 @@
     import MachineTranslationRating from '$lib/components/MachineTranslationRating.svelte';
     import { fly } from 'svelte/transition';
     import BibleReferencesSidebar from './BibleReferencesSidebar.svelte';
+    import { log } from '$lib/logger';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
@@ -297,30 +298,40 @@
         await takeActionAndRefresh(() => postToApi(`/admin/resources/content/${resourceContentId}/unpublish`));
     }
 
-    async function goToNextResource() {
-        const nextUpInfo = await getFromApi<ResourceContentNextUpInfo>(
-            `/resources/content/${resourceContentId}/next-up`
-        );
-        if (nextUpInfo?.nextUpResourceContentId) {
-            shouldTransition = true;
-            await goto(`/resources/${nextUpInfo.nextUpResourceContentId}`);
-        } else {
-            await goto(`/`);
+    async function takeActionAndGoToNextResource<T>(action: () => Promise<T>) {
+        isTransacting = true;
+
+        let nextUpInfo: ResourceContentNextUpInfo | null = null;
+        try {
+            nextUpInfo = await getFromApi<ResourceContentNextUpInfo>(`/resources/content/${resourceContentId}/next-up`);
+        } catch (error) {
+            log.exception(error);
         }
+
+        await takeActionAndCallback(action, async () => {
+            if (nextUpInfo === null) {
+                return;
+            }
+
+            if (nextUpInfo.nextUpResourceContentId) {
+                shouldTransition = true;
+                await goto(`/resources/${nextUpInfo.nextUpResourceContentId}`);
+            } else {
+                await goto(`/`);
+            }
+        });
     }
 
     async function sendForManagerReview() {
-        await takeActionAndCallback(
-            () => postToApi(`/resources/content/${resourceContentId}/send-for-manager-review`),
-            goToNextResource
+        await takeActionAndGoToNextResource(() =>
+            postToApi(`/resources/content/${resourceContentId}/send-for-manager-review`)
         );
     }
 
     async function sendForPublisherReview() {
         confirmSendPublisherReviewModal?.close();
-        await takeActionAndCallback(
-            () => postToApi(`/resources/content/${resourceContentId}/send-for-publisher-review`),
-            goToNextResource
+        await takeActionAndGoToNextResource(() =>
+            postToApi(`/resources/content/${resourceContentId}/send-for-publisher-review`)
         );
     }
 
@@ -351,12 +362,10 @@
     }
 
     async function assignUser() {
-        await takeActionAndCallback(
-            () =>
-                postToApi(`/resources/content/${resourceContentId}/assign-editor`, {
-                    assignedUserId: assignToUserId,
-                }),
-            goToNextResource
+        await takeActionAndGoToNextResource(() =>
+            postToApi(`/resources/content/${resourceContentId}/assign-editor`, {
+                assignedUserId: assignToUserId,
+            })
         );
     }
 
