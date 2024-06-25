@@ -55,30 +55,34 @@
 
     let toAssignProjectNames: string[] = [];
     let myWorkContents: ResourceAssignedToSelf[] = [];
+    let currentMyWorkContents: ResourceAssignedToSelf[] = [];
     let selectedMyWorkContents: ResourceAssignedToSelf[] = [];
+
     let toAssignContents: ResourceAssignedToSelf[] = [];
+    let currentToAssignContents: ResourceAssignedToSelf[] = [];
     let selectedToAssignContents: ResourceAssignedToSelf[] = [];
+
     let manageContents: ResourceAssignedToOwnCompany[] = [];
+    let currentManageContents: ResourceAssignedToOwnCompany[] = [];
     let selectedManageContents: ResourceAssignedToOwnCompany[] = [];
-    let allTabContents: ResourceAssignedToSelf[] | ResourceAssignedToOwnCompany[] = [];
 
     const setTabContents = (tab: string, assignedUserId: number, toAssignProjectName: string, search: string) => {
         if (tab === Tab.myWork) {
-            allTabContents = myWorkContents.filter((x) => x.englishLabel.toLowerCase().includes(search.toLowerCase()));
+            currentMyWorkContents = myWorkContents.filter((x) =>
+                x.englishLabel.toLowerCase().includes(search.toLowerCase())
+            );
         } else if (tab === Tab.toAssign) {
-            allTabContents = toAssignContents.filter(
+            currentToAssignContents = toAssignContents.filter(
                 (x) =>
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
                     (toAssignProjectName === '' || x.projectName === toAssignProjectName)
             );
         } else if (tab === Tab.manage) {
-            allTabContents = manageContents.filter(
+            currentManageContents = manageContents.filter(
                 (x) =>
                     (assignedUserId === 0 || x.assignedUser.id === assignedUserId) &&
                     x.englishLabel.toLowerCase().includes(search.toLowerCase())
             );
-        } else {
-            allTabContents = [];
         }
     };
 
@@ -129,14 +133,14 @@
     };
 
     const sortAndFilterManageData = (
-        list: ResourceAssignedToSelf[] | ResourceAssignedToOwnCompany[],
+        list: ResourceAssignedToOwnCompany[],
         params: SubscribedSearchParams<typeof searchParams>
     ) => {
         if (params.assignedUserId === 0) {
-            return sortManageData(list as ResourceAssignedToOwnCompany[], params.sort);
+            return sortManageData(list, params.sort);
         }
         return sortManageData(
-            (list as ResourceAssignedToOwnCompany[]).filter((r) => r.assignedUser.id === params.assignedUserId),
+            list.filter((r) => r.assignedUser.id === params.assignedUserId),
             params.sort
         );
     };
@@ -266,7 +270,7 @@
                 <Table
                     enableSelectAll={true}
                     columns={assignedContentsColumns}
-                    items={sortAssignedData(allTabContents, $searchParams.sort)}
+                    items={sortAssignedData(currentMyWorkContents, $searchParams.sort)}
                     itemUrlPrefix="/resources/"
                     bind:searchParams={$searchParams}
                     bind:selectedItems={selectedMyWorkContents}
@@ -293,7 +297,7 @@
                 <Table
                     enableSelectAll={true}
                     columns={toAssignContentsColumns}
-                    items={sortAssignedData(allTabContents, $searchParams.sort)}
+                    items={sortAssignedData(currentToAssignContents, $searchParams.sort)}
                     bind:searchParams={$searchParams}
                     bind:selectedItems={selectedToAssignContents}
                     itemUrlPrefix="/resources/"
@@ -322,7 +326,7 @@
                 <Table
                     enableSelectAll={true}
                     columns={manageContentsColumns}
-                    items={sortAndFilterManageData(allTabContents, $searchParams)}
+                    items={sortAndFilterManageData(currentManageContents, $searchParams)}
                     bind:searchParams={$searchParams}
                     bind:selectedItems={selectedManageContents}
                     itemUrlPrefix="/resources/"
