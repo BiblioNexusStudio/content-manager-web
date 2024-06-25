@@ -3,7 +3,6 @@
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { searchParameters, ssp, type SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
     import type { ResourceAssignedToOwnCompany, ResourceAssignedToSelf } from './+page';
-    import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
     import { createManagerDashboardSorter, SortName } from './dashboard-table-sorters';
     import Select from '$lib/components/Select.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
@@ -16,6 +15,12 @@
     import { log } from '$lib/logger';
     import Tooltip from '$lib/components/Tooltip.svelte';
     import { filterBoolean } from '$lib/utils/array';
+    import Table from '$lib/components/Table.svelte';
+    import {
+        assignedContentsColumns,
+        toAssignContentsColumns,
+        manageContentsColumns,
+    } from './manager-dashboard-columns';
 
     export let data: PageData;
     let search = '';
@@ -50,39 +55,49 @@
 
     let toAssignProjectNames: string[] = [];
     let myWorkContents: ResourceAssignedToSelf[] = [];
+    let currentMyWorkContents: ResourceAssignedToSelf[] = [];
+    let selectedMyWorkContents: ResourceAssignedToSelf[] = [];
+
     let toAssignContents: ResourceAssignedToSelf[] = [];
+    let currentToAssignContents: ResourceAssignedToSelf[] = [];
+    let selectedToAssignContents: ResourceAssignedToSelf[] = [];
+
     let manageContents: ResourceAssignedToOwnCompany[] = [];
-    let allTabContents: ResourceAssignedToSelf[] | ResourceAssignedToOwnCompany[] = [];
+    let currentManageContents: ResourceAssignedToOwnCompany[] = [];
+    let selectedManageContents: ResourceAssignedToOwnCompany[] = [];
 
     const setTabContents = (tab: string, assignedUserId: number, toAssignProjectName: string, search: string) => {
         if (tab === Tab.myWork) {
-            allTabContents = myWorkContents.filter((x) => x.englishLabel.toLowerCase().includes(search.toLowerCase()));
+            currentMyWorkContents = myWorkContents.filter((x) =>
+                x.englishLabel.toLowerCase().includes(search.toLowerCase())
+            );
         } else if (tab === Tab.toAssign) {
-            allTabContents = toAssignContents.filter(
+            currentToAssignContents = toAssignContents.filter(
                 (x) =>
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
                     (toAssignProjectName === '' || x.projectName === toAssignProjectName)
             );
         } else if (tab === Tab.manage) {
-            allTabContents = manageContents.filter(
+            currentManageContents = manageContents.filter(
                 (x) =>
                     (assignedUserId === 0 || x.assignedUser.id === assignedUserId) &&
                     x.englishLabel.toLowerCase().includes(search.toLowerCase())
             );
-        } else {
-            allTabContents = [];
         }
     };
 
     $: setTabContents($searchParams.tab, $searchParams.assignedUserId, $searchParams.project, search);
-    $: anyRowSelected = allTabContents.some((x) => x.rowSelected);
-    $: nonManagerReviewSelected = allTabContents.some(
-        (x) =>
-            x.rowSelected &&
-            x.statusValue !== ResourceContentStatusEnum.AquiferizeManagerReview &&
-            x.statusValue !== ResourceContentStatusEnum.TranslationManagerReview
-    );
-    $: allRowsSelected = allTabContents.length > 0 && allTabContents.every((x) => x.rowSelected);
+    $: anyRowSelected =
+        selectedMyWorkContents.length > 0 || selectedToAssignContents.length > 0 || selectedManageContents.length > 0;
+    $: nonManagerReviewSelected = checkManagerReviewStatus(selectedMyWorkContents);
+
+    const checkManagerReviewStatus = (contents: ResourceAssignedToSelf[]) => {
+        return contents.some(
+            (x) =>
+                x.statusValue !== ResourceContentStatusEnum.AquiferizeManagerReview &&
+                x.statusValue !== ResourceContentStatusEnum.TranslationManagerReview
+        );
+    };
 
     const loadContents = async () => {
         const manageContentsPromise = data.managerDashboard!.manageResourceContent.promise;
@@ -112,32 +127,23 @@
     };
 
     const resetSelections = () => {
-        for (const content of allTabContents) {
-            content.rowSelected = false;
-        }
+        selectedMyWorkContents = [];
+        selectedToAssignContents = [];
+        selectedManageContents = [];
     };
 
     const sortAndFilterManageData = (
-        list: ResourceAssignedToSelf[] | ResourceAssignedToOwnCompany[],
+        list: ResourceAssignedToOwnCompany[],
         params: SubscribedSearchParams<typeof searchParams>
     ) => {
         if (params.assignedUserId === 0) {
-            return sortManageData(list as ResourceAssignedToOwnCompany[], params.sort);
+            return sortManageData(list, params.sort);
         }
         return sortManageData(
-            (list as ResourceAssignedToOwnCompany[]).filter((r) => r.assignedUser.id === params.assignedUserId),
+            list.filter((r) => r.assignedUser.id === params.assignedUserId),
             params.sort
         );
     };
-
-    function onSelectAll() {
-        const allSelected = allTabContents.every((x) => x.rowSelected);
-        for (const content of allTabContents) {
-            content.rowSelected = !allSelected;
-        }
-
-        allTabContents = allTabContents;
-    }
 
     const assignEditor = async (contentIds: number[]) => {
         if (contentIds.length > 0) {
@@ -165,7 +171,11 @@
         isAssigning = true;
 
         try {
-            const contentIds = allTabContents.filter((x) => x.rowSelected).map((x) => x.id);
+            const contentIds = [
+                ...selectedMyWorkContents.map((x) => x.id),
+                ...selectedToAssignContents.map((x) => x.id),
+                ...selectedManageContents.map((x) => x.id),
+            ];
             await action(contentIds);
             isAssigning = false;
             window.location.reload();
@@ -237,7 +247,7 @@
                 data-app-insights-event-name="manager-dashboard-bulk-assign-click"
                 class="btn btn-primary"
                 on:click={() => (isAssignContentModalOpen = true)}
-                disabled={!anyRowSelected}>Assign</button
+                disabled={selectedMyWorkContents.length === 0 && selectedToAssignContents.length === 0}>Assign</button
             >
 
             {#if $searchParams.tab === Tab.myWork}
@@ -256,154 +266,92 @@
         </div>
 
         <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-auto">
-            <table class="table table-pin-rows">
-                {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.toAssign}
-                    {@const isMyWorkTab = $searchParams.tab === Tab.myWork}
-                    <thead>
-                        <tr class="bg-base-200">
-                            <th
-                                ><input
-                                    checked={allRowsSelected}
-                                    on:click={onSelectAll}
-                                    disabled={allTabContents.length === 0}
-                                    type="checkbox"
-                                    class="checkbox checkbox-sm"
-                                /></th
-                            >
-                            <SortingTableHeaderCell
-                                text="Title"
-                                sortKey={SortName.Title}
-                                bind:currentSort={$searchParams.sort}
-                            />
-                            <th>Resource</th>
-                            <th>Language</th>
-                            <th>Project</th>
-                            {#if isMyWorkTab}
-                                <th>Status</th>
-                                <th>Last Edit (Days)</th>
-                            {/if}
-                            <SortingTableHeaderCell
-                                text="Deadline (Days)"
-                                sortKey={SortName.Days}
-                                bind:currentSort={$searchParams.sort}
-                            />
-                            <SortingTableHeaderCell
-                                text="Word Count"
-                                sortKey={SortName.WordCount}
-                                bind:currentSort={$searchParams.sort}
-                            />
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {#each sortAssignedData(allTabContents, $searchParams.sort) as resource (resource.id)}
-                            {@const href = `/resources/${resource.id}`}
-                            <tr class="hover">
-                                <TableCell class="w-4"
-                                    ><input
-                                        bind:checked={resource.rowSelected}
-                                        on:change={() => (allTabContents = allTabContents)}
-                                        type="checkbox"
-                                        class="checkbox checkbox-sm"
-                                    /></TableCell
-                                >
-                                <LinkedTableCell {href}>{resource.englishLabel}</LinkedTableCell>
-                                <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
-                                <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
-                                <LinkedTableCell {href}>{resource.projectName ?? ''}</LinkedTableCell>
-                                {#if isMyWorkTab}
-                                    <LinkedTableCell {href}>{resource.statusDisplayName ?? ''}</LinkedTableCell>
-                                    <LinkedTableCell {href}
-                                        >{formatSimpleDaysAgo(resource.daysSinceContentUpdated)}</LinkedTableCell
-                                    >
-                                {/if}
-                                <LinkedTableCell
-                                    {href}
-                                    class={(resource.daysUntilProjectDeadline ?? 0) < 0 ? 'text-error' : ''}
-                                    >{resource.daysUntilProjectDeadline ?? ''}</LinkedTableCell
-                                >
-                                <LinkedTableCell {href}>{resource.wordCount ?? ''}</LinkedTableCell>
-                            </tr>
-                        {:else}
-                            <tr>
-                                <td colspan="99" class="text-center">Your work is all done!</td>
-                            </tr>
-                        {/each}
-                    </tbody>
-                {:else if $searchParams.tab === Tab.manage}
-                    <thead>
-                        <tr class="bg-base-200">
-                            <th
-                                ><input
-                                    checked={allRowsSelected}
-                                    on:click={onSelectAll}
-                                    disabled={allTabContents.length === 0}
-                                    type="checkbox"
-                                    class="checkbox checkbox-sm"
-                                /></th
-                            >
-                            <SortingTableHeaderCell
-                                text="Title"
-                                sortKey={SortName.Title}
-                                bind:currentSort={$searchParams.sort}
-                            />
-                            <th>Resource</th>
-                            <th>Language</th>
-                            <th>Project</th>
-                            <th>Status</th>
-                            <th>Assigned</th>
-                            <th>Last Edit (Days)</th>
-                            <SortingTableHeaderCell
-                                text="Deadline (Days)"
-                                sortKey={SortName.Days}
-                                bind:currentSort={$searchParams.sort}
-                            />
-                            <SortingTableHeaderCell
-                                text="Word Count"
-                                sortKey={SortName.WordCount}
-                                bind:currentSort={$searchParams.sort}
-                            />
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {#each sortAndFilterManageData(allTabContents, $searchParams) as resource (resource.id)}
-                            {@const href = `/resources/${resource.id}`}
-                            <tr class="hover">
-                                <TableCell class="w-4"
-                                    ><input
-                                        bind:checked={resource.rowSelected}
-                                        on:change={() => (allTabContents = allTabContents)}
-                                        type="checkbox"
-                                        class="checkbox checkbox-sm"
-                                    /></TableCell
-                                >
-                                <LinkedTableCell {href}>{resource.englishLabel}</LinkedTableCell>
-                                <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
-                                <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
-                                <LinkedTableCell {href}>{resource.projectName ?? ''}</LinkedTableCell>
-                                <LinkedTableCell {href}>{resource.statusDisplayName ?? ''}</LinkedTableCell>
-                                <LinkedTableCell {href}>{resource.assignedUser.name}</LinkedTableCell>
-                                <LinkedTableCell {href}
-                                    >{formatSimpleDaysAgo(resource.daysSinceContentUpdated)}</LinkedTableCell
-                                >
-                                <LinkedTableCell
-                                    {href}
-                                    class={(resource.daysUntilProjectDeadline ?? 0) < 0 ? 'text-error' : ''}
-                                    >{resource.daysUntilProjectDeadline ?? ''}</LinkedTableCell
-                                >
-                                <LinkedTableCell {href}>{resource.wordCount ?? ''}</LinkedTableCell>
-                            </tr>
-                        {:else}
-                            <tr>
-                                <td colspan="99" class="text-center"
-                                    >{$searchParams.assignedUserId === 0
-                                        ? 'Your work is all done!'
-                                        : 'Nothing assigned to this user.'}</td
-                                >
-                            </tr>
-                        {/each}
-                    </tbody>
-                {/if}
-            </table>
+            {#if $searchParams.tab === Tab.myWork}
+                <Table
+                    enableSelectAll={true}
+                    columns={assignedContentsColumns}
+                    items={sortAssignedData(currentMyWorkContents, $searchParams.sort)}
+                    itemUrlPrefix="/resources/"
+                    bind:searchParams={$searchParams}
+                    bind:selectedItems={selectedMyWorkContents}
+                    noItemsText="Your work is all done!"
+                    searchAble={true}
+                    bind:searchText={search}
+                    let:item
+                    let:href
+                    let:itemKey
+                >
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                        <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                            >{item[itemKey] ?? ''}</LinkedTableCell
+                        >
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                </Table>
+            {:else if $searchParams.tab === Tab.toAssign}
+                <Table
+                    enableSelectAll={true}
+                    columns={toAssignContentsColumns}
+                    items={sortAssignedData(currentToAssignContents, $searchParams.sort)}
+                    bind:searchParams={$searchParams}
+                    bind:selectedItems={selectedToAssignContents}
+                    itemUrlPrefix="/resources/"
+                    noItemsText="Your work is all done!"
+                    searchAble={true}
+                    bind:searchText={search}
+                    let:item
+                    let:href
+                    let:itemKey
+                >
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                        <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                            >{item[itemKey] ?? ''}</LinkedTableCell
+                        >
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                </Table>
+            {:else if $searchParams.tab === Tab.manage}
+                <Table
+                    enableSelectAll={true}
+                    columns={manageContentsColumns}
+                    items={sortAndFilterManageData(currentManageContents, $searchParams)}
+                    bind:searchParams={$searchParams}
+                    bind:selectedItems={selectedManageContents}
+                    itemUrlPrefix="/resources/"
+                    noItemsText={$searchParams.assignedUserId === 0
+                        ? 'Your work is all done!'
+                        : 'No matching projects.'}
+                    searchAble={true}
+                    bind:searchText={search}
+                    let:item
+                    let:href
+                    let:itemKey
+                >
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'assignedUser' && item[itemKey] !== null && item[itemKey]?.name !== null}
+                        <LinkedTableCell {href}>{item[itemKey]?.name}</LinkedTableCell>
+                    {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                        <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                            >{item[itemKey] ?? ''}</LinkedTableCell
+                        >
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                </Table>
+            {/if}
         </div>
     </div>
 {/await}

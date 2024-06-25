@@ -23,7 +23,7 @@
     export let noItemsAfterSearchText = 'No results.';
 
     $: allItemsSelected = items && items.length > 0 && items.length === selectedItems.length;
-    $: if (searchText || searchText === '') {
+    $: if (items) {
         selectedItems = [];
     }
 
@@ -70,7 +70,7 @@
     </thead>
     <tbody>
         {#each items as item (item?.id)}
-            {@const href = itemUrlPrefix && `${itemUrlPrefix}${item.id}`}
+            {@const href = itemUrlPrefix && `${itemUrlPrefix}${item?.id}`}
             <tr class="hover">
                 {#if enableSelectAll || enableSelect}
                     <TableCell class="w-4">

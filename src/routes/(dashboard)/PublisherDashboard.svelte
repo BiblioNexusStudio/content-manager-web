@@ -14,7 +14,11 @@
         createPublisherDashboardReviewPendingSorter,
     } from './dashboard-table-sorters';
     import Table from '$lib/components/Table.svelte';
-    import { assignedContentsColumns, reviewPendingContentsColumns, projectColumns } from './dashboard-table-columns';
+    import {
+        assignedContentsColumns,
+        reviewPendingContentsColumns,
+        projectColumns,
+    } from './publisher-dashboard-columns';
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
