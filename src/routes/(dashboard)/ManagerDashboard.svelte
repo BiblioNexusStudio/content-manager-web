@@ -191,7 +191,7 @@
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Manager Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
-            <div role="tablist" class="tabs tabs-bordered w-fit">
+            <div role="tablist" class="tabs-bordered tabs w-fit">
                 <button
                     on:click={() => switchTabs(Tab.myWork)}
                     role="tab"
@@ -297,7 +297,9 @@
                     bind:searchParams={$searchParams}
                     bind:selectedItems={selectedToAssignContents}
                     itemUrlPrefix="/resources/"
-                    noItemsText="Your work is all done!"
+                    noItemsText={$searchParams.assignedUserId === 0
+                        ? 'Your work is all done!'
+                        : 'No matching projects.'}
                     searchAble={true}
                     bind:searchText={search}
                     let:item
@@ -324,7 +326,9 @@
                     bind:searchParams={$searchParams}
                     bind:selectedItems={selectedManageContents}
                     itemUrlPrefix="/resources/"
-                    noItemsText="Your work is all done!"
+                    noItemsText={$searchParams.assignedUserId === 0
+                        ? 'Your work is all done!'
+                        : 'Nothing assigned to this user.'}
                     searchAble={true}
                     bind:searchText={search}
                     let:item

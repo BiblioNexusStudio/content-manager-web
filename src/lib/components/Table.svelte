@@ -23,11 +23,9 @@
     export let noItemsAfterSearchText = 'No results.';
 
     $: allItemsSelected = items && items.length > 0 && items.length === selectedItems.length;
-    $: if (searchText || searchText === '') {
+    $: if (items) {
         selectedItems = [];
     }
-
-    $: selectedItems = onSearchTextChange(searchText);
 
     function onSelectAll() {
         if (allItemsSelected) {
@@ -44,10 +42,6 @@
         } else {
             selectedItems = selectedItems.filter((_, i) => i !== index);
         }
-    }
-
-    function onSearchTextChange(searchText: string | undefined): T[] {
-        return [].filter((item) => item === searchText);
     }
 </script>
 
@@ -76,7 +70,7 @@
     </thead>
     <tbody>
         {#each items as item (item?.id)}
-            {@const href = itemUrlPrefix && `${itemUrlPrefix}${item.id}`}
+            {@const href = itemUrlPrefix && `${itemUrlPrefix}${item?.id}`}
             <tr class="hover">
                 {#if enableSelectAll || enableSelect}
                     <TableCell class="w-4">
