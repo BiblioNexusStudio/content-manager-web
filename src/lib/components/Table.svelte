@@ -27,8 +27,6 @@
         selectedItems = [];
     }
 
-    $: selectedItems = onSearchTextChange(searchText);
-
     function onSelectAll() {
         if (allItemsSelected) {
             selectedItems = [];
@@ -44,10 +42,6 @@
         } else {
             selectedItems = selectedItems.filter((_, i) => i !== index);
         }
-    }
-
-    function onSearchTextChange(searchText: string | undefined): T[] {
-        return [].filter((item) => item === searchText);
     }
 </script>
 
