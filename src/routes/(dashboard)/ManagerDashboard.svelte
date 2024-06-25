@@ -187,6 +187,8 @@
 
     let scrollingDiv: HTMLDivElement | undefined;
     $: $searchParams.sort && $searchParams.tab && scrollingDiv && (scrollingDiv.scrollTop = 0);
+    $: selectedToAssignItemsCount = selectedToAssignContents.length;
+    $: selectedToAssignWordCount = selectedToAssignContents.reduce((acc, x) => acc + (x.wordCount ?? 0), 0);
 </script>
 
 {#await loadContents()}
@@ -262,6 +264,12 @@
                         disabled={!anyRowSelected || nonManagerReviewSelected}>Send to Publisher</button
                     >
                 </Tooltip>
+            {/if}
+            {#if $searchParams.tab === Tab.toAssign}
+                <div class="my-1 ml-auto flex flex-col items-end justify-center">
+                    <div class="text-sm text-gray-500">Selected Items: {selectedToAssignItemsCount ?? 0}</div>
+                    <div class="text-sm text-gray-500">Selected Word Count: {selectedToAssignWordCount ?? 0}</div>
+                </div>
             {/if}
         </div>
 
