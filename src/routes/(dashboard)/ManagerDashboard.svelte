@@ -330,9 +330,7 @@
                     bind:searchParams={$searchParams}
                     bind:selectedItems={selectedManageContents}
                     itemUrlPrefix="/resources/"
-                    noItemsText={$searchParams.assignedUserId === 0
-                        ? 'Your work is all done!'
-                        : 'Nothing assigned to this user.'}
+                    noItemsText="Your work is all done!"
                     searchAble={true}
                     bind:searchText={search}
                     let:item
