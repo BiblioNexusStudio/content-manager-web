@@ -249,7 +249,9 @@
                 data-app-insights-event-name="manager-dashboard-bulk-assign-click"
                 class="btn btn-primary"
                 on:click={() => (isAssignContentModalOpen = true)}
-                disabled={selectedMyWorkContents.length === 0 && selectedToAssignContents.length === 0}>Assign</button
+                disabled={selectedMyWorkContents.length === 0 &&
+                    selectedToAssignContents.length === 0 &&
+                    selectedManageContents.length === 0}>Assign</button
             >
 
             {#if $searchParams.tab === Tab.myWork}
