@@ -1,6 +1,6 @@
 import type { column } from '$lib/types/table';
 import { SortName } from './dashboard-table-sorters';
-import type { ResourceAssignedToSelf, ResourceAssignedToOwnCompany } from './+page';
+import type { ResourceAssignedToSelf, ResourceAssignedToOwnCompany, UserWordCount } from './+page';
 
 export const assignedContentsColumns: column<ResourceAssignedToSelf>[] = [
     { text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title },
@@ -56,4 +56,9 @@ export const manageContentsColumns: column<ResourceAssignedToOwnCompany>[] = [
         itemKey: 'wordCount',
         sortKey: SortName.WordCount,
     },
+];
+
+export const userWordCountColumns: column<UserWordCount>[] = [
+    { text: 'User', itemKey: 'userName', sortKey: SortName.User },
+    { text: 'Word Count', itemKey: 'assignedSourceWordCount', sortKey: SortName.WordCount },
 ];

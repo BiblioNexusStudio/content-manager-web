@@ -33,7 +33,15 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             '/resources/content/assigned-to-own-company',
             fetch
         );
-        return { managerDashboard: { assignedResourceContent, toAssignContent, manageResourceContent } };
+        const assignedUsersWordCount = getFromApiWithoutBlocking<UserWordCount[]>('/users/assigned-word-count', fetch);
+        return {
+            managerDashboard: {
+                assignedResourceContent,
+                toAssignContent,
+                manageResourceContent,
+                assignedUsersWordCount,
+            },
+        };
     } else if (get(userCan)(Permission.EditContent)) {
         const resourceContent = fetchAssignedResourceContent(fetch);
         return { editorDashboard: { resourceContent } };
@@ -115,4 +123,10 @@ export interface ResourcePendingReview {
     wordCount: number | null;
     daysSinceContentUpdated: number | null;
     sortOrder: number;
+}
+
+export interface UserWordCount {
+    userId: number;
+    userName: string;
+    assignedSourceWordCount: number;
 }

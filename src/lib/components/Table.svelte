@@ -7,7 +7,7 @@
     import type { SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
 
     // eslint-disable-next-line
-    export type T = $$Generic<{ id: number }>;
+    export type T<IdKey extends PropertyKey = 'id'> = $$Generic<IdKey>;
 
     export let searchParams: SubscribedSearchParams<ReturnType<typeof searchParameters<{ sort: string }>>>;
 
@@ -69,8 +69,8 @@
         </tr>
     </thead>
     <tbody>
-        {#each items as item (item?.id)}
-            {@const href = itemUrlPrefix && `${itemUrlPrefix}${item?.id}`}
+        {#each items as item, index (index)}
+            {@const href = itemUrlPrefix && `${itemUrlPrefix}${item['id'] ?? ''}`}
             <tr class="hover">
                 {#if enableSelectAll || enableSelect}
                     <TableCell class="w-4">
