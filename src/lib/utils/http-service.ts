@@ -90,6 +90,10 @@ export async function postToApi<T = never>(path: string, body: RequestBody | und
     return JSON.parse(text);
 }
 
+export async function rawPostToApi(path: string, body: RequestBody | undefined = undefined) {
+    return await rawApiFetch(path, null, { body: body || {}, method: 'POST' });
+}
+
 export async function patchToApi<T = never>(
     path: string,
     body: RequestBody | undefined = undefined
