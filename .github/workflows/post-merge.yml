@@ -13,6 +13,8 @@ on:
 
 permissions:
     contents: write
+    deployments: read
+    pull-requests: read
 
 jobs:
     deploy_to_dev:
