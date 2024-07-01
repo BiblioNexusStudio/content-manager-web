@@ -23,6 +23,21 @@ outputs:
 runs:
     using: composite
     steps:
+        - name: Notify Slack deploy is starting
+          id: slack-notify
+          if: ${{ !contains(inputs.environment, 'dev') }}
+          uses: BiblioNexusStudio/github-action-slack-notify-build@main
+          with:
+              channel_id: C05UPTGQGP9
+              status: RUNNING
+              color: warning
+              environment: ${{ inputs.environment }}
+              default_branch_name: master
+              service_name: CMS
+          env:
+              SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
         - name: Use Node.js
           uses: actions/setup-node@v4
           with:
@@ -58,6 +73,21 @@ runs:
               api_location: ./build/server
               config_file_location: ./build
               output_location: ''
+        - name: Notify Slack deploy status
+          if: ${{ !cancelled() && !contains(inputs.environment, 'dev') }}
+          uses: BiblioNexusStudio/github-action-slack-notify-build@main
+          with:
+              channel_id: C05UPTGQGP9
+              status: ${{ job.status == 'success' && 'SUCCESS' || 'FAILURE' }}
+              color: ${{ job.status == 'success' && 'good' || 'danger' }}
+              environment: ${{ inputs.environment }}
+              default_branch_name: master
+              service_name: CMS
+              message_id: ${{ steps.slack-notify.outputs.message_id }}
+          env:
+              SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
         - name: Calculate URL
           id: calculate-url
           run: |
