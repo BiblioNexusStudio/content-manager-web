@@ -77,7 +77,7 @@
     let englishContentTranslation: ContentTranslation | undefined;
     let createTranslationFromDraft = false;
     let isInTranslationWorkflow = false;
-    let isNewStatus = false;
+    let isNewDraftStatus = false;
     let mediaType: MediaTypeEnum | undefined;
     let selectedStepNumber: number | undefined;
     let isShowingDiffs = false;
@@ -129,7 +129,7 @@
             resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
             resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending;
 
-        isNewStatus = resourceContent.status === ResourceContentStatusEnum.New;
+        isNewDraftStatus = resourceContent.status === ResourceContentStatusEnum.New && resourceContent.isDraft;
 
         canMakeContentEdits =
             $userCan(Permission.EditContent) &&
@@ -388,7 +388,7 @@
                     assignedUserId: assignToUserId,
                 })
             );
-        } else if (isNewStatus) {
+        } else if (isNewDraftStatus) {
             await takeActionAndRefresh(() =>
                 postToApi(`/admin/resources/content/${resourceContentId}/assign-editor`, {
                     assignedUserId: assignToUserId,
@@ -528,7 +528,7 @@
                                 on:click={openAquiferizeModal}
                                 >{#if isInTranslationWorkflow}
                                     Translate
-                                {:else if isNewStatus}
+                                {:else if isNewDraftStatus}
                                     Assign
                                 {:else}
                                     Create Draft
@@ -724,7 +724,7 @@
                     <div class="flex-grow" />
                     <button
                         class="btn btn-primary"
-                        on:click={isInTranslationWorkflow || isNewStatus ? assignDraftToEditor : aquiferize}
+                        on:click={isInTranslationWorkflow || isNewDraftStatus ? assignDraftToEditor : aquiferize}
                         disabled={assignToUserId === null || isTransacting}>Assign</button
                     >
                     <button class="btn btn-outline btn-primary" on:click={() => aquiferizeModal.close()}>Cancel</button>
