@@ -14,6 +14,15 @@ inputs:
     override-output-url:
         description: Overrides the output deployed-url
         required: false
+    linear-api-key:
+        description: Linear API key
+        required: false
+    slack-bot-token:
+        description: Slack bot token
+        required: false
+    github-token:
+        description: GitHub token
+        required: false
 
 outputs:
     deployed-url:
@@ -35,9 +44,9 @@ runs:
               default_branch_name: master
               service_name: CMS
           env:
-              SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+              SLACK_BOT_TOKEN: ${{ inputs.slack-bot-token }}
+              GITHUB_TOKEN: ${{ inputs.github-token }}
+              LINEAR_API_KEY: ${{ inputs.linear-api-key }}
         - name: Use Node.js
           uses: actions/setup-node@v4
           with:
@@ -85,9 +94,9 @@ runs:
               service_name: CMS
               message_id: ${{ steps.slack-notify.outputs.message_id }}
           env:
-              SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+              SLACK_BOT_TOKEN: ${{ inputs.slack-bot-token }}
+              GITHUB_TOKEN: ${{ inputs.github-token }}
+              LINEAR_API_KEY: ${{ inputs.linear-api-key }}
         - name: Calculate URL
           id: calculate-url
           run: |
