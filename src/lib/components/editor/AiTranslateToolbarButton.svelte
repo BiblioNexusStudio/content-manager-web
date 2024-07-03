@@ -30,110 +30,126 @@
     $: showTranslateButton = canShowAnything && !$machineTranslation.id;
     $: showRating = canShowAnything && !showTranslateButton && $userIsEqual($machineTranslation.userId);
 
-    const sleep = async (ms: number) => {
-        return new Promise((resolve) => setTimeout(resolve, ms));
+    const postToTranslate = async (content: string, prompt: string | null = null) => {
+        return rawPostToApi('/ai/translate', {
+            languageName: resourceContent.language.englishDisplay,
+            content,
+            prompt,
+        });
+    };
+
+    const getDecodedResults = (decoder: TextDecoder, value: Uint8Array | undefined) => {
+        const decodedValue = decoder.decode(value, { stream: true });
+        return decodedValue.split('data: ');
+    };
+
+    const parseChoiceFromResult = (result: string) => {
+        const json = JSON.parse(result) as unknown as {
+            choices: { delta: { content: string }; finish_reason: string | null }[];
+        };
+
+        return json.choices[0];
+    };
+
+    const translateDisplayName = async (decoder: TextDecoder) => {
+        let newDisplayName = '';
+
+        const response = await postToTranslate(
+            resourceContent.displayName,
+            `Translate to ${resourceContent.language.englishDisplay}`
+        );
+
+        const reader = response!.body!.getReader();
+        while (!editor.isDestroyed) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const results = getDecodedResults(decoder, value);
+            for (let result of results) {
+                result = result?.trim();
+                if (!result || result === '') continue;
+
+                if (result === '[DONE]') {
+                    continue;
+                }
+
+                const choice = parseChoiceFromResult(result);
+                if (choice?.delta.content) {
+                    newDisplayName += choice.delta.content;
+                    $editableDisplayNameStore = newDisplayName;
+                }
+            }
+        }
+    };
+
+    const translateContent = async (decoder: TextDecoder) => {
+        let html = generateHTML(editor.getJSON(), extensions(false, undefined, false, undefined));
+
+        const spanAttributes: string[] = [];
+        const regex = /(?<=<span\s)([^>]*)(?=>)/g;
+
+        let match;
+        while ((match = regex.exec(html)) !== null) {
+            spanAttributes.push(match[1]!.trim());
+        }
+
+        let index = 0;
+        html = html.replace(regex, (match, p1) => {
+            return match.replace(p1, `a="${index++}"`);
+        });
+
+        const response = await postToTranslate(html);
+        const reader = response!.body!.getReader();
+
+        isLoading = false;
+
+        let fullContent = '';
+
+        while (!editor.isDestroyed) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const results = getDecodedResults(decoder, value);
+            for (let result of results) {
+                result = result?.trim();
+                if (!result || result === '') continue;
+
+                if (result === '[DONE]') {
+                    continue;
+                }
+
+                const choice = parseChoiceFromResult(result);
+
+                if (choice?.delta.content) {
+                    fullContent += choice.delta.content;
+                    editor.commands.setContent(fullContent);
+                }
+            }
+        }
+
+        for (let i = 0; i < spanAttributes.length; i++) {
+            fullContent = fullContent.replace(`a="${i}"`, spanAttributes[i]!);
+        }
+
+        editor.commands.setContent(fullContent);
     };
 
     const onClick = async () => {
-        isLoading = true;
-        editor.setEditable(false);
-
-        const html = generateHTML(editor.getJSON(), extensions(false, undefined, false, undefined));
-        // const regex = /(<h\d|<p)/;
-        // const splits = html.split(regex);
-        // const chunks: string[] = [];
-        // for (let i = 1; i < splits.length; i = i + 2) {
-        //     chunks.push(splits[i]! + splits[i + 1]!);
-        // }
-        //
-        // const promises = [
-        //     postToApi('/ai/translate', {
-        //         languageName: resourceContent.language.englishDisplay,
-        //         content: prepareDisplayName(resourceContent.displayName),
-        //     }),
-        // ];
-        // for (const key in chunks) {
-        //     const promise = postToApi('/ai/translate', {
-        //         languageName: resourceContent.language.englishDisplay,
-        //         content: chunks[key],
-        //     });
-        //
-        //     promises.push(promise);
-        // }
-
         try {
-            const response = await rawPostToApi('/ai/translate', {
-                languageName: resourceContent.language.englishDisplay,
-                content: html,
-            });
+            isLoading = true;
+            editor.setEditable(false);
 
-            const reader = response!.body!.getReader();
             const decoder = new TextDecoder('utf-8');
+            await translateDisplayName(decoder);
+            await translateContent(decoder);
 
-            isLoading = false;
-
-            let fullContent = '';
-            let lastFinishReason: string | null | undefined = null;
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                const decodedValue = decoder.decode(value, { stream: true });
-                const results = decodedValue.split('data: ');
-
-                for (let result of results) {
-                    result = result?.trim();
-                    if (!result || result === '') continue;
-
-                    if (result === '[DONE]') {
-                        continue;
-                    }
-
-                    console.log(result);
-                    const json = JSON.parse(result.trim()) as unknown as {
-                        choices: { delta: { content: string }; finish_reason: string | null }[];
-                    };
-                    console.log(json.choices[0]?.delta.content);
-
-                    if (lastFinishReason === 'stop' && fullContent.endsWith('.')) {
-                        fullContent += ' ';
-                    }
-
-                    if (json.choices[0]?.delta.content) {
-                        fullContent += json.choices[0].delta.content;
-                        editor.commands.setContent(fullContent);
-                    }
-
-                    lastFinishReason = json.choices[0]?.finish_reason;
-                }
-
-                // result = result.replace('data: ', '');
-                // console.log(result);
-                // const json = JSON.parse(result); // as unknown as { choices: { delta: { content: string } } }[];
-                // console.log(json);
-                //
-                // console.log(json[0]?.choices.delta.content); // Process the chunked data as needed
-            }
-
-            //const responseContent = response as unknown as { content: string };
-
-            //const responses = (await Promise.all(promises)) as unknown as { content: string }[];
-            //const newDisplayName = extractDisplayName(responses.shift());
-            //const response = responses.map((x) => x!.content).join('');
-
-            // Since the translate calls take so long, the user may have navigated away from the page and we don't want
-            // to create the machine translation in that case.
+            // Since the translation calls take so long, the user may have navigated away from the page, and we don't
+            // want to create the machine translation in that case.
             if (!editor.isDestroyed) {
-                // if (newDisplayName && editableDisplayNameStore) {
-                //     $editableDisplayNameStore = newDisplayName;
-                // }
-                //editor.commands.setContent(responseContent.content);
-                //await createMachineTranslation();
+                await createMachineTranslation();
             }
         } catch (e) {
-            console.log(e);
-            //isErrorModalOpen = true;
+            isErrorModalOpen = true;
         } finally {
             if (!editor.isDestroyed) {
                 editor.setEditable(true);
@@ -141,21 +157,6 @@
             }
         }
     };
-
-    // in order to make the display name as close to the header that is often in the content, wrap it in an H1
-    function prepareDisplayName(displayName: string) {
-        return `<h1>${displayName}</h1>`;
-    }
-
-    function extractDisplayName(response: { content: string } | undefined) {
-        if (response?.content) {
-            const match = response.content.match(/<h1>(.*?)<\/h1>/);
-            if (match && match[1]) {
-                return match[1];
-            }
-        }
-        return undefined;
-    }
 
     async function createMachineTranslation() {
         const response = await postToApi<{ id: number }>(`/resources/content/machine-translation`, {
