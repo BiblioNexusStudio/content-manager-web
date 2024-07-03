@@ -2,8 +2,8 @@
     import type { PageData } from './$types';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { searchParameters, ssp, type SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
-    import type { ResourceAssignedToOwnCompany, ResourceAssignedToSelf } from './+page';
-    import { createManagerDashboardSorter, SortName } from './dashboard-table-sorters';
+    import type { ResourceAssignedToOwnCompany, ResourceAssignedToSelf, UserWordCount } from './+page';
+    import { createManagerDashboardSorter, SortName, createUserWordCountSorter } from './dashboard-table-sorters';
     import Select from '$lib/components/Select.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
@@ -20,6 +20,7 @@
         assignedContentsColumns,
         toAssignContentsColumns,
         manageContentsColumns,
+        userWordCountColumns,
     } from './manager-dashboard-columns';
 
     export let data: PageData;
@@ -33,8 +34,19 @@
 
     const sortAssignedData = createManagerDashboardSorter<ResourceAssignedToSelf>();
     const sortManageData = createManagerDashboardSorter<ResourceAssignedToOwnCompany>();
+    const sortUserWordCountData = createUserWordCountSorter();
 
     const searchParams = searchParameters(
+        {
+            sort: ssp.string(SortName.Days),
+            tab: ssp.string(Tab.myWork),
+            assignedUserId: ssp.number(0),
+            project: ssp.string(''),
+        },
+        { runLoadAgainWhenParamsChange: false }
+    );
+
+    const searchParamsForUserWordCount = searchParameters(
         {
             sort: ssp.string(SortName.Days),
             tab: ssp.string(Tab.myWork),
@@ -65,6 +77,8 @@
     let manageContents: ResourceAssignedToOwnCompany[] = [];
     let currentManageContents: ResourceAssignedToOwnCompany[] = [];
     let selectedManageContents: ResourceAssignedToOwnCompany[] = [];
+
+    let userWordCounts: UserWordCount[] = [];
 
     const setTabContents = (tab: string, assignedUserId: number, toAssignProjectName: string, search: string) => {
         if (tab === Tab.myWork) {
@@ -103,11 +117,13 @@
         const manageContentsPromise = data.managerDashboard!.manageResourceContent.promise;
         const toAssignContentsPromise = data.managerDashboard!.toAssignContent.promise;
         const assignedContentsPromise = data.managerDashboard!.assignedResourceContent.promise;
+        const userWordCountsPromise = data.managerDashboard!.assignedUsersWordCount.promise;
 
-        [myWorkContents, toAssignContents, manageContents] = await Promise.all([
+        [myWorkContents, toAssignContents, manageContents, userWordCounts] = await Promise.all([
             assignedContentsPromise,
             toAssignContentsPromise,
             manageContentsPromise,
+            userWordCountsPromise,
         ]);
 
         toAssignProjectNames = Array.from(new Set(filterBoolean(toAssignContents.map((c) => c.projectName)))).sort();
@@ -186,6 +202,11 @@
     }
 
     let scrollingDiv: HTMLDivElement | undefined;
+    let userWordCountScrollingDiv: HTMLDivElement | undefined;
+    $: $searchParamsForUserWordCount.sort &&
+        $searchParamsForUserWordCount.tab &&
+        userWordCountScrollingDiv &&
+        (userWordCountScrollingDiv.scrollTop = 0);
     $: $searchParams.sort && $searchParams.tab && scrollingDiv && (scrollingDiv.scrollTop = 0);
     $: selectedToAssignItemsCount = selectedToAssignContents.length;
     $: selectedToAssignWordCount = selectedToAssignContents.reduce((acc, x) => acc + (x.wordCount ?? 0), 0);
@@ -275,8 +296,8 @@
             {/if}
         </div>
 
-        <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-auto">
-            {#if $searchParams.tab === Tab.myWork}
+        {#if $searchParams.tab === Tab.myWork}
+            <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-auto">
                 <Table
                     enableSelectAll={true}
                     columns={assignedContentsColumns}
@@ -303,34 +324,53 @@
                         <TableCell>{item[itemKey] ?? ''}</TableCell>
                     {/if}
                 </Table>
-            {:else if $searchParams.tab === Tab.toAssign}
-                <Table
-                    enableSelectAll={true}
-                    columns={toAssignContentsColumns}
-                    items={sortAssignedData(currentToAssignContents, $searchParams.sort)}
-                    bind:searchParams={$searchParams}
-                    bind:selectedItems={selectedToAssignContents}
-                    itemUrlPrefix="/resources/"
-                    noItemsText="Your work is all done!"
-                    searchAble={true}
-                    bind:searchText={search}
-                    let:item
-                    let:href
-                    let:itemKey
-                >
-                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                    {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
-                        <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
-                            >{item[itemKey] ?? ''}</LinkedTableCell
-                        >
-                    {:else if href !== undefined && itemKey}
-                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                    {:else if itemKey}
-                        <TableCell>{item[itemKey] ?? ''}</TableCell>
-                    {/if}
-                </Table>
-            {:else if $searchParams.tab === Tab.manage}
+            </div>
+        {:else if $searchParams.tab === Tab.toAssign}
+            <div class="flex h-full flex-[2] grow flex-col gap-4 overflow-y-hidden xl:flex-row">
+                <div bind:this={scrollingDiv} class="my-4 max-h-[500px] overflow-y-scroll xl:max-h-full xl:grow">
+                    <Table
+                        enableSelectAll={true}
+                        columns={toAssignContentsColumns}
+                        items={sortAssignedData(currentToAssignContents, $searchParams.sort)}
+                        bind:searchParams={$searchParams}
+                        bind:selectedItems={selectedToAssignContents}
+                        itemUrlPrefix="/resources/"
+                        noItemsText="Your work is all done!"
+                        searchAble={true}
+                        bind:searchText={search}
+                        let:item
+                        let:href
+                        let:itemKey
+                    >
+                        {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                            <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                        {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                            <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                                >{item[itemKey] ?? ''}</LinkedTableCell
+                            >
+                        {:else if href !== undefined && itemKey}
+                            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                        {:else if itemKey}
+                            <TableCell>{item[itemKey] ?? ''}</TableCell>
+                        {/if}
+                    </Table>
+                </div>
+                {#if userWordCounts.length > 0}
+                    <div
+                        bind:this={userWordCountScrollingDiv}
+                        class="my-4 w-full overflow-y-scroll xl:max-h-full xl:max-w-[275px]"
+                    >
+                        <Table
+                            columns={userWordCountColumns}
+                            items={sortUserWordCountData(userWordCounts, $searchParamsForUserWordCount.sort)}
+                            noItemsText="No Users Found."
+                            bind:searchParams={$searchParamsForUserWordCount}
+                        ></Table>
+                    </div>
+                {/if}
+            </div>
+        {:else if $searchParams.tab === Tab.manage}
+            <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-auto">
                 <Table
                     enableSelectAll={true}
                     columns={manageContentsColumns}
@@ -361,8 +401,8 @@
                         <TableCell>{item[itemKey] ?? ''}</TableCell>
                     {/if}
                 </Table>
-            {/if}
-        </div>
+            </div>
+        {/if}
     </div>
 {/await}
 

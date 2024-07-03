@@ -302,10 +302,10 @@
     primaryButtonOnClick={assignContent}
     primaryButtonDisabled={!assignToUserId}
     bind:open={isAssignContentModalOpen}
-    header={selectedReviewContentIds.length > 0 ? 'Choose a publisher' : 'Choose a user'}
+    header="Choose a publisher"
 >
     <UserSelector
-        users={data.users?.filter((u) => selectedReviewContentIds.length === 0 || u.role === UserRole.Publisher) ?? []}
+        users={data.users?.filter((u) => u.role === UserRole.Publisher) ?? []}
         defaultLabel="Select User"
         bind:selectedUserId={assignToUserId}
     />

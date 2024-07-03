@@ -1,11 +1,12 @@
 ﻿import { createListSorter } from '$lib/utils/sorting';
-import type { Project, ResourceAssignedToSelf, ResourcePendingReview } from './+page';
+import type { Project, ResourceAssignedToSelf, ResourcePendingReview, UserWordCount } from './+page';
 
 export enum SortName {
     Days = 'days',
     WordCount = 'word-count',
     Title = 'title',
     Language = 'language',
+    User = 'user',
 }
 
 export function createManagerDashboardSorter<T extends ResourceAssignedToSelf>() {
@@ -111,5 +112,12 @@ export function createPublisherDashboardReviewPendingSorter() {
 export function createPublisherDashboardProjectsSorter() {
     return createListSorter<Project>({
         [SortName.Days]: { primarySortKeys: ['days'], fallbackSortKeys: [{ key: 'name', dir: 'ASC' }] },
+    });
+}
+
+export function createUserWordCountSorter() {
+    return createListSorter<UserWordCount>({
+        [SortName.WordCount]: { primarySortKeys: ['assignedSourceWordCount'] },
+        [SortName.User]: { primarySortKeys: ['userName'] },
     });
 }
