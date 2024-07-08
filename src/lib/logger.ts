@@ -48,10 +48,15 @@ export const log = {
 
             let logToAppInsights = true;
 
-            if (
+            const ignoredFetchError =
                 'isFetchError' in error &&
-                (error.message.includes('Failed to fetch') || error.message.includes('Load failed'))
-            ) {
+                (error.message.includes('Failed to fetch') || error.message.includes('Load failed'));
+
+            const ignoredResizeError = error.message.includes(
+                'ResizeObserver loop completed with undelivered notifications'
+            );
+
+            if (ignoredFetchError || ignoredResizeError) {
                 logToAppInsights = false;
             }
 
