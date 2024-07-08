@@ -1,6 +1,7 @@
 ﻿import { fetchBiblePassages } from '$lib/utils/bible-passage-fetcher';
 import { generateVerseFromReference } from '$lib/utils/reference';
 import type { BibleBook } from '$lib/utils/bible-book-fetcher';
+import { log } from '$lib/logger';
 
 export interface BibleTextsReference {
     verseDisplayName: string;
@@ -20,7 +21,7 @@ export const fetchAndFormat = async (
         return null;
     }
 
-    let verseDisplayName: string;
+    let verseDisplayName = '';
     if (
         bookTexts.length === 1 &&
         bookTexts[0]?.chapters.length === 1 &&
@@ -36,16 +37,26 @@ export const fetchAndFormat = async (
         const passageStart = bookTexts[0]!;
         const passageEnd = bookTexts.at(-1)!;
 
-        verseDisplayName = generateVerseFromReference({
-            startVerseId: 0,
-            startBook: passageStart.bookName,
-            startChapter: passageStart.chapters[0]!.number,
-            startVerse: passageStart.chapters[0]!.verses[0]!.number,
-            endVerseId: 0,
-            endBook: passageEnd.bookName,
-            endChapter: passageEnd.chapters.at(-1)!.number,
-            endVerse: passageEnd.chapters.at(-1)!.verses.at(-1)!.number,
-        });
+        if (passageStart.chapters[0]?.verses[0] && passageEnd.chapters.at(-1)!.verses.at(-1)) {
+            verseDisplayName = generateVerseFromReference({
+                startVerseId: 0,
+                startBook: passageStart.bookName,
+                startChapter: passageStart.chapters[0]!.number,
+                startVerse: passageStart.chapters[0]!.verses[0]!.number,
+                endVerseId: 0,
+                endBook: passageEnd.bookName,
+                endChapter: passageEnd.chapters.at(-1)!.number,
+                endVerse: passageEnd.chapters.at(-1)!.verses.at(-1)!.number,
+            });
+        } else {
+            log.exception(
+                new Error(
+                    `Unexpected issue while building verse display name. startVerse: ${startVerse} endVerse: ${endVerse} languageId: ${languageId} bookTextsStart: ${bookTextDebugInfo(
+                        passageStart
+                    )} bookTextsEnd: ${bookTextDebugInfo(passageEnd)}`
+                )
+            );
+        }
     }
 
     const isSingleBook = bookTexts.length === 1;
@@ -56,3 +67,9 @@ export const fetchAndFormat = async (
         bookTexts,
     };
 };
+
+function bookTextDebugInfo(book: BibleBook | undefined) {
+    return JSON.stringify(
+        book?.chapters.map((c) => ({ numberAndVerses: `${c.number}-${JSON.stringify(c.verses.map((v) => v.number))}` }))
+    );
+}
