@@ -21,6 +21,7 @@
             // when switching back and forth between references.
             bubblingClick = true;
             show = false;
+            failedFetch = false;
             const timeout = setTimeout(() => {
                 bibleTextsReference = null;
                 show = true;
@@ -30,6 +31,9 @@
 
             // I don't think the extra const is really needed here, but out of an abundance of caution...
             const fetchResponse = await fetchAndFormat(startVerse, endVerse, languageId);
+            if (!fetchResponse) {
+                failedFetch = true;
+            }
             clearTimeout(timeout);
             show = true;
             bibleTextsReference = fetchResponse;
