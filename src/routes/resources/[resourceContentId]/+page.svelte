@@ -85,8 +85,6 @@
     let shouldTransition = false;
     let resourceContent: ResourceContent | undefined;
 
-    let canAiSimplify = $userCan(Permission.AiSimplify);
-
     export let data: PageData;
 
     const { save, resetSaveState, isSaving, showSavingFailed } = createAutosaveStore(patchData);
@@ -461,12 +459,6 @@
                         {/if}
                     </div>
                     <div class="flex flex-wrap justify-end">
-                        {#if canAiSimplify && mediaType === MediaTypeEnum.text}
-                            <button
-                                class="btn btn-primary"
-                                on:click={() => goto(`/resources/${resourceContentId}/simplify`)}>AI Aquiferize</button
-                            >
-                        {/if}
                         {#if canAssign || canSendBack}
                             <button
                                 class="btn btn-primary ms-2"
