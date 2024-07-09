@@ -1,6 +1,6 @@
 ﻿<script lang="ts">
     import type { Editor } from '@tiptap/core';
-    import { postToApi } from '$lib/utils/http-service';
+    import { postToApi, rawPostToApi } from '$lib/utils/http-service';
     import type { ResourceContent } from '$lib/types/resources';
     import TranslateIcon from '$lib/icons/TranslateIcon.svelte';
     import Tooltip from '$lib/components/Tooltip.svelte';
@@ -18,6 +18,7 @@
     export let resourceContent: ResourceContent;
     export let isLoading: boolean;
     export let canEdit: boolean;
+    export let aiTranslateInProgress: boolean;
     export let machineTranslationStore: MachineTranslationStore;
 
     const canShowAnything =
@@ -30,71 +31,137 @@
     $: showTranslateButton = canShowAnything && !$machineTranslation.id;
     $: showRating = canShowAnything && !showTranslateButton && $userIsEqual($machineTranslation.userId);
 
-    const onClick = async () => {
-        isLoading = true;
-        editor.setEditable(false);
+    const postToTranslate = async (content: string, prompt: string | null = null) => {
+        return rawPostToApi('/ai/translate', {
+            languageName: resourceContent.language.englishDisplay,
+            content,
+            prompt,
+        });
+    };
 
-        const html = generateHTML(editor.getJSON(), extensions(false, undefined, false, undefined));
-        const regex = /(<h\d|<p)/;
-        const splits = html.split(regex);
-        const chunks: string[] = [];
-        for (let i = 1; i < splits.length; i = i + 2) {
-            chunks.push(splits[i]! + splits[i + 1]!);
-        }
+    const getDecodedResults = (decoder: TextDecoder, value: Uint8Array | undefined) => {
+        const decodedValue = decoder.decode(value, { stream: true });
+        return decodedValue.split('data: ');
+    };
 
-        const promises = [
-            postToApi('/ai/translate', {
-                languageName: resourceContent.language.englishDisplay,
-                content: prepareDisplayName(resourceContent.displayName),
-            }),
-        ];
-        for (const key in chunks) {
-            const promise = postToApi('/ai/translate', {
-                languageName: resourceContent.language.englishDisplay,
-                content: chunks[key],
-            });
+    const parseChoiceFromResult = (result: string) => {
+        const json = JSON.parse(result) as unknown as {
+            choices: { delta: { content: string }; finish_reason: string | null }[];
+        };
 
-            promises.push(promise);
-        }
+        return json.choices[0];
+    };
 
-        try {
-            const responses = (await Promise.all(promises)) as unknown as { content: string }[];
-            const newDisplayName = extractDisplayName(responses.shift());
-            const response = responses.map((x) => x!.content).join('');
+    const translateDisplayName = async (decoder: TextDecoder) => {
+        let newDisplayName = '';
 
-            // Since the translate calls take so long, the user may have navigated away from the page and we don't want
-            // to create the machine translation in that case.
-            if (!editor.isDestroyed) {
-                if (newDisplayName && editableDisplayNameStore) {
+        const response = await postToTranslate(
+            resourceContent.displayName,
+            `Translate to ${resourceContent.language.englishDisplay}`
+        );
+
+        const reader = response!.body!.getReader();
+        while (!editor.isDestroyed) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const results = getDecodedResults(decoder, value);
+            for (let result of results) {
+                result = result?.trim();
+                if (!result || result === '') continue;
+
+                if (result === '[DONE]') {
+                    continue;
+                }
+
+                const choice = parseChoiceFromResult(result);
+                if (choice?.delta.content) {
+                    newDisplayName += choice.delta.content;
                     $editableDisplayNameStore = newDisplayName;
                 }
-                editor.commands.setContent(response);
+            }
+        }
+    };
+
+    const translateContent = async (decoder: TextDecoder, originalHtml: string) => {
+        const spanAttrs: string[] = [];
+        const spanAttrRegex = /(?<=<span\s)([^>]*)(?=>)/g;
+
+        let match;
+        while ((match = spanAttrRegex.exec(originalHtml)) !== null) {
+            spanAttrs.push(match[1]!.trim());
+        }
+
+        let index = 0;
+        originalHtml = originalHtml.replace(spanAttrRegex, (match, p1) => {
+            return match.replace(p1, `a="${index++}"`);
+        });
+
+        const response = await postToTranslate(originalHtml);
+        const reader = response!.body!.getReader();
+
+        isLoading = false;
+
+        let fullContent = '';
+
+        while (!editor.isDestroyed) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const results = getDecodedResults(decoder, value);
+            for (let result of results) {
+                result = result?.trim();
+                if (!result || result === '') continue;
+
+                if (result === '[DONE]') {
+                    continue;
+                }
+
+                const choice = parseChoiceFromResult(result);
+
+                if (choice?.delta.content) {
+                    fullContent += choice.delta.content;
+                    editor.commands.setContent(fullContent);
+                }
+            }
+        }
+
+        for (let i = 0; i < spanAttrs.length; i++) {
+            fullContent = fullContent.replace(`a="${i}"`, spanAttrs[i]!);
+        }
+
+        editor.commands.setContent(fullContent);
+    };
+
+    const onClick = async () => {
+        const originalHtml = generateHTML(editor.getJSON(), extensions(false, undefined, false, undefined));
+        const originalDisplayName = $editableDisplayNameStore;
+        try {
+            aiTranslateInProgress = true;
+            isLoading = true;
+            editor.setEditable(false);
+
+            const decoder = new TextDecoder('utf-8');
+            await translateDisplayName(decoder);
+            await translateContent(decoder, originalHtml);
+
+            // Since the translation calls take so long, the user may have navigated away from the page, and we don't
+            // want to create the machine translation in that case.
+            if (!editor.isDestroyed) {
                 await createMachineTranslation();
             }
         } catch (e) {
             isErrorModalOpen = true;
+            $editableDisplayNameStore = originalDisplayName;
+            editor.commands.setContent(originalHtml);
         } finally {
             if (!editor.isDestroyed) {
+                aiTranslateInProgress = false;
                 editor.setEditable(true);
                 isLoading = false;
             }
         }
     };
-
-    // in order to make the display name as close to the header that is often in the content, wrap it in an H1
-    function prepareDisplayName(displayName: string) {
-        return `<h1>${displayName}</h1>`;
-    }
-
-    function extractDisplayName(response: { content: string } | undefined) {
-        if (response?.content) {
-            const match = response.content.match(/<h1>(.*?)<\/h1>/);
-            if (match && match[1]) {
-                return match[1];
-            }
-        }
-        return undefined;
-    }
 
     async function createMachineTranslation() {
         const response = await postToApi<{ id: number }>(`/resources/content/machine-translation`, {
@@ -111,18 +178,24 @@
 </script>
 
 {#if showTranslateButton}
-    <Tooltip
-        position={{ right: '2.2rem' }}
-        class="flex border-primary align-middle text-primary"
-        text="Translate with AI"
-    >
-        <button
-            data-app-insights-event-name="editor-toolbar-translate-click"
-            class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
-            on:click={onClick}
-            disabled={isLoading}><TranslateIcon /></button
+    {#if aiTranslateInProgress}
+        <div class="flex w-[42px] justify-center">
+            <div class="loading loading-infinity loading-md text-primary" />
+        </div>
+    {:else}
+        <Tooltip
+            position={{ right: '2.2rem' }}
+            class="flex border-primary align-middle text-primary"
+            text="Translate with AI"
         >
-    </Tooltip>
+            <button
+                data-app-insights-event-name="editor-toolbar-translate-click"
+                class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
+                on:click={onClick}
+                disabled={aiTranslateInProgress}><TranslateIcon /></button
+            >
+        </Tooltip>
+    {/if}
 {:else if showRating}
     <div class="mx-2">
         <MachineTranslationRating {machineTranslationStore} />

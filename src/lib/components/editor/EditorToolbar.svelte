@@ -26,6 +26,7 @@
     export let isLoading: boolean;
     export let machineTranslationStore: MachineTranslationStore;
 
+    let aiTranslateInProgress = false;
     let isCommentBoxOpen = false;
     const { createNewThread } = commentStores;
 
@@ -175,12 +176,13 @@
         <div class="flex space-x-2">
             {#if canEdit}
                 {#each formattingOptions(editor) as option (option.name)}
+                    {@const disable = option.disabled || aiTranslateInProgress}
                     <button
                         data-app-insights-event-name="editor-toolbar-{option.name}-click"
-                        class="btn btn-xs px-1 {option.disabled && '!bg-base-200'} {option.isActive
+                        class="btn btn-xs px-1 {disable && '!bg-base-200'} {option.isActive
                             ? 'btn-primary'
                             : 'btn-link hover:bg-[#e6f7fc]'}"
-                        disabled={option.disabled}
+                        disabled={disable}
                         on:click={option.onClick}
                     >
                         <div class="mt-[-1px] scale-[85%]">
@@ -193,6 +195,7 @@
             {#if commentOptions.hidden}
                 <div class="h-6" />
             {:else}
+                {@const disable = commentOptions.disabled || aiTranslateInProgress}
                 <Tooltip
                     position={{ left: '2rem', bottom: '0.2rem' }}
                     class="flex border-primary align-middle text-primary"
@@ -200,10 +203,10 @@
                 >
                     <button
                         data-app-insights-event-name="editor-toolbar-comment-click"
-                        class="btn btn-xs px-1 {commentOptions.disabled && '!bg-base-200'} {commentOptions.isActive
+                        class="btn btn-xs px-1 {disable && '!bg-base-200'} {commentOptions.isActive
                             ? 'btn-primary'
                             : 'btn-link hover:bg-[#e6f7fc]'}"
-                        disabled={commentOptions.disabled}
+                        disabled={disable}
                         on:click={commentOptions.onClick}
                     >
                         <div class="mt-[-1px] scale-[85%]">
@@ -220,6 +223,7 @@
                 {editableDisplayNameStore}
                 {resourceContent}
                 {machineTranslationStore}
+                bind:aiTranslateInProgress
                 bind:isLoading
             />
         </div>
