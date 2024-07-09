@@ -135,13 +135,15 @@
 
     const onClick = async () => {
         const originalHtml = generateHTML(editor.getJSON(), extensions(false, undefined, false, undefined));
+        const originalDisplayName = $editableDisplayNameStore;
         try {
             aiTranslateInProgress = true;
             isLoading = true;
             editor.setEditable(false);
 
             const decoder = new TextDecoder('utf-8');
-            await Promise.all([translateDisplayName(decoder), translateContent(decoder, originalHtml)]);
+            await translateDisplayName(decoder);
+            await translateContent(decoder, originalHtml);
 
             // Since the translation calls take so long, the user may have navigated away from the page, and we don't
             // want to create the machine translation in that case.
@@ -150,6 +152,7 @@
             }
         } catch (e) {
             isErrorModalOpen = true;
+            $editableDisplayNameStore = originalDisplayName;
             editor.commands.setContent(originalHtml);
         } finally {
             if (!editor.isDestroyed) {
