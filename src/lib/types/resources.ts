@@ -209,3 +209,8 @@ export interface MachineTranslation {
     improveTone?: boolean;
     improveConsistency?: boolean;
 }
+
+export interface Assignment {
+    assignedUserId: number;
+    resourceContentId: number;
+}

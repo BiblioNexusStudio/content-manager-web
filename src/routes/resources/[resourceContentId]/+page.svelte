@@ -10,12 +10,13 @@
         type TiptapContentItem,
         type ResourceContentNextUpInfo,
         OpenedSupplementalSideBar,
+        type Assignment,
     } from '$lib/types/resources';
     import { getFromApi, patchToApi, postToApi } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import UserSelector from './UserSelector.svelte';
-    import { Permission, userCan, userIsEqual, userIsInCompany } from '$lib/stores/auth';
+    import { currentUser, Permission, userCan, userIsEqual, userIsInCompany } from '$lib/stores/auth';
     import { type CommentStores, createCommentStores } from '$lib/stores/comments';
     import spinner from 'svelte-awesome/icons/spinner';
     import { Icon } from 'svelte-awesome';
@@ -272,6 +273,38 @@
         addTranslationModal.showModal();
     }
 
+    async function runNextUpApiIfNoMatchingAssignments(assignments: Assignment[]) {
+        const doNotRunNextApiCall = assignments.some(
+            (assignment) =>
+                assignment.assignedUserId === $currentUser?.id &&
+                assignment.resourceContentId === parseInt(resourceContentId)
+        );
+
+        if (doNotRunNextApiCall) {
+            window?.location?.reload();
+        } else {
+            let nextUpInfo: ResourceContentNextUpInfo | null = null;
+            try {
+                nextUpInfo = await getFromApi<ResourceContentNextUpInfo>(
+                    `/resources/content/${resourceContentId}/next-up`
+                );
+
+                if (nextUpInfo === null) {
+                    return;
+                }
+
+                if (nextUpInfo.nextUpResourceContentId) {
+                    shouldTransition = true;
+                    await goto(`/resources/${nextUpInfo.nextUpResourceContentId}`);
+                } else {
+                    await goto(`/`);
+                }
+            } catch (error) {
+                log.exception(error);
+            }
+        }
+    }
+
     async function takeActionAndCallback<T>(action: () => Promise<T>, callback: (response: T) => Promise<void>) {
         isTransacting = true;
         if (get(editableDisplayNameStore.hasChanges) || get(editableContentStore.hasChanges)) {
@@ -321,8 +354,16 @@
     }
 
     async function sendForManagerReview() {
-        await takeActionAndGoToNextResource(() =>
-            postToApi(`/resources/content/${resourceContentId}/send-for-manager-review`)
+        await takeActionAndCallback(
+            () =>
+                postToApi<{ assignments: Assignment[] }>(
+                    `/resources/content/${resourceContentId}/send-for-manager-review`
+                ),
+            async (response) => {
+                if (response?.assignments) {
+                    await runNextUpApiIfNoMatchingAssignments(response.assignments);
+                }
+            }
         );
     }
 
