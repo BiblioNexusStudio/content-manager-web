@@ -18,6 +18,7 @@
     export let resourceContent: ResourceContent;
     export let isLoading: boolean;
     export let canEdit: boolean;
+    export let aiTranslateInProgress: boolean;
     export let machineTranslationStore: MachineTranslationStore;
 
     const canShowAnything =
@@ -82,23 +83,21 @@
         }
     };
 
-    const translateContent = async (decoder: TextDecoder) => {
-        let html = generateHTML(editor.getJSON(), extensions(false, undefined, false, undefined));
-
-        const spanAttributes: string[] = [];
-        const regex = /(?<=<span\s)([^>]*)(?=>)/g;
+    const translateContent = async (decoder: TextDecoder, originalHtml: string) => {
+        const spanAttrs: string[] = [];
+        const spanAttrRegex = /(?<=<span\s)([^>]*)(?=>)/g;
 
         let match;
-        while ((match = regex.exec(html)) !== null) {
-            spanAttributes.push(match[1]!.trim());
+        while ((match = spanAttrRegex.exec(originalHtml)) !== null) {
+            spanAttrs.push(match[1]!.trim());
         }
 
         let index = 0;
-        html = html.replace(regex, (match, p1) => {
+        originalHtml = originalHtml.replace(spanAttrRegex, (match, p1) => {
             return match.replace(p1, `a="${index++}"`);
         });
 
-        const response = await postToTranslate(html);
+        const response = await postToTranslate(originalHtml);
         const reader = response!.body!.getReader();
 
         isLoading = false;
@@ -127,21 +126,22 @@
             }
         }
 
-        for (let i = 0; i < spanAttributes.length; i++) {
-            fullContent = fullContent.replace(`a="${i}"`, spanAttributes[i]!);
+        for (let i = 0; i < spanAttrs.length; i++) {
+            fullContent = fullContent.replace(`a="${i}"`, spanAttrs[i]!);
         }
 
         editor.commands.setContent(fullContent);
     };
 
     const onClick = async () => {
+        const originalHtml = generateHTML(editor.getJSON(), extensions(false, undefined, false, undefined));
         try {
+            aiTranslateInProgress = true;
             isLoading = true;
             editor.setEditable(false);
 
             const decoder = new TextDecoder('utf-8');
-            await translateDisplayName(decoder);
-            await translateContent(decoder);
+            await Promise.all([translateDisplayName(decoder), translateContent(decoder, originalHtml)]);
 
             // Since the translation calls take so long, the user may have navigated away from the page, and we don't
             // want to create the machine translation in that case.
@@ -150,8 +150,10 @@
             }
         } catch (e) {
             isErrorModalOpen = true;
+            editor.commands.setContent(originalHtml);
         } finally {
             if (!editor.isDestroyed) {
+                aiTranslateInProgress = false;
                 editor.setEditable(true);
                 isLoading = false;
             }
@@ -173,18 +175,24 @@
 </script>
 
 {#if showTranslateButton}
-    <Tooltip
-        position={{ right: '2.2rem' }}
-        class="flex border-primary align-middle text-primary"
-        text="Translate with AI"
-    >
-        <button
-            data-app-insights-event-name="editor-toolbar-translate-click"
-            class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
-            on:click={onClick}
-            disabled={isLoading}><TranslateIcon /></button
+    {#if aiTranslateInProgress}
+        <div class="flex w-[42px] justify-center">
+            <div class="loading loading-infinity loading-md text-primary" />
+        </div>
+    {:else}
+        <Tooltip
+            position={{ right: '2.2rem' }}
+            class="flex border-primary align-middle text-primary"
+            text="Translate with AI"
         >
-    </Tooltip>
+            <button
+                data-app-insights-event-name="editor-toolbar-translate-click"
+                class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
+                on:click={onClick}
+                disabled={aiTranslateInProgress}><TranslateIcon /></button
+            >
+        </Tooltip>
+    {/if}
 {:else if showRating}
     <div class="mx-2">
         <MachineTranslationRating {machineTranslationStore} />
