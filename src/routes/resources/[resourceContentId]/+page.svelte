@@ -277,21 +277,26 @@
 
     async function callNextUpApi() {
         let nextUpInfo: ResourceContentNextUpInfo | null = null;
+
         try {
             nextUpInfo = await getFromApi<ResourceContentNextUpInfo>(`/resources/content/${resourceContentId}/next-up`);
-
-            if (nextUpInfo === null) {
-                return;
-            }
-
-            if (nextUpInfo.nextUpResourceContentId) {
-                shouldTransition = true;
-                await goto(`/resources/${nextUpInfo.nextUpResourceContentId}`);
-            } else {
-                await goto(`/`);
-            }
         } catch (error) {
             log.exception(error);
+        }
+
+        return nextUpInfo;
+    }
+
+    async function handleNextUpInfo(nextUpInfo: ResourceContentNextUpInfo | null) {
+        if (nextUpInfo === null) {
+            return;
+        }
+
+        if (nextUpInfo.nextUpResourceContentId) {
+            shouldTransition = true;
+            await goto(`/resources/${nextUpInfo.nextUpResourceContentId}`);
+        } else {
+            await goto(`/`);
         }
     }
 
@@ -344,24 +349,24 @@
     }
 
     async function sendForManagerReview() {
+        const nextUpInfo = await callNextUpApi();
+
         await takeActionAndCallback(
             () =>
                 postToApi<{ assignments: Assignment[] }>(
                     `/resources/content/${resourceContentId}/send-for-manager-review`
                 ),
             async (response) => {
-                if (response?.assignments) {
-                    const matchingAssignment = response?.assignments.some(
+                if (
+                    response?.assignments.some(
                         (assignment) =>
                             assignment.assignedUserId === $currentUser?.id &&
                             assignment.resourceContentId === parseInt(resourceContentId)
-                    );
-
-                    if (matchingAssignment) {
-                        window?.location?.reload();
-                    } else {
-                        await callNextUpApi();
-                    }
+                    )
+                ) {
+                    window?.location?.reload();
+                } else {
+                    handleNextUpInfo(nextUpInfo);
                 }
             }
         );
@@ -369,6 +374,7 @@
 
     async function sendForPublisherReview() {
         confirmSendPublisherReviewModal?.close();
+        const nextUpInfo = await callNextUpApi();
 
         await takeActionAndCallback(
             () =>
@@ -379,7 +385,7 @@
                 if (response?.changedByPublisher) {
                     window?.location?.reload();
                 } else {
-                    await callNextUpApi();
+                    handleNextUpInfo(nextUpInfo);
                 }
             }
         );
