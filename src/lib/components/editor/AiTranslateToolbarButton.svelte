@@ -34,6 +34,7 @@
     const postToTranslate = async (content: string, prompt: string | null = null) => {
         return rawPostToApi('/ai/translate', {
             languageName: resourceContent.language.englishDisplay,
+            languageCode: resourceContent.language.iso6393Code,
             content,
             prompt,
         });
@@ -69,7 +70,7 @@
 
         const response = await postToTranslate(
             resourceContent.displayName,
-            `Translate to ${resourceContent.language.englishDisplay}`
+            `You receive text and then return the exact text in the ${resourceContent.language.englishDisplay} language. Always translate the text no matter what.`
         );
 
         const reader = response!.body!.getReader();
