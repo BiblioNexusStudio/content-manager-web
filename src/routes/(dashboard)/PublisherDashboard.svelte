@@ -62,8 +62,6 @@
     let selectedInProgressContentIds: number[] = [];
     let selectedMyWorkTableItems: ResourceAssignedToSelf[] = [];
     let selectedReviewPendingTableItems: ResourcePendingReview[] = [];
-    let myWorkProjectNames: string[] = [];
-    let myWorkStatuses: string[] = [];
     let assignToUserId: number | null = null;
     let isAssignContentModalOpen = false;
     let isConfirmPublishModalOpen = false;
@@ -142,24 +140,20 @@
         }
     }
 
+    function projectNamesForContents(contents: ResourceAssignedToSelf[] | ResourcePendingReview[]) {
+        return Array.from(new Set(filterBoolean(contents.map((c) => c.projectName)))).sort();
+    }
+
+    function statusesForContents(contents: ResourceAssignedToSelf[]) {
+        return Array.from(new Set(filterBoolean(contents.map((c) => c.statusDisplayName)))).sort();
+    }
+
     const allDataPromise = async () => {
         [assignedContents, reviewPendingContents, assignedProjects] = await Promise.all([
             data.publisherDashboard!.assignedResourceContent.promise,
             data.publisherDashboard!.reviewPendingResourceContent.promise,
             data.publisherDashboard!.assignedProjects.promise,
         ]);
-
-        myWorkProjectNames = Array.from(new Set(filterBoolean(assignedContents.map((c) => c.projectName)))).sort();
-        myWorkStatuses = Array.from(new Set(filterBoolean(assignedContents.map((c) => c.statusDisplayName)))).sort();
-
-        // Handle situation where project/status is set in the searchParams but is no longer valid. E.g. saved bookmark
-        // or forced refresh after assign that removed all of them.
-        if (!myWorkProjectNames.includes($searchParams.project)) {
-            $searchParams.project = '';
-        }
-        if (!myWorkStatuses.includes($searchParams.status)) {
-            $searchParams.status = '';
-        }
     };
 
     $: nonPublisherReviewSelected = selectedMyWorkTableItems.some(
@@ -172,6 +166,30 @@
 
     let scrollingDiv: HTMLDivElement | undefined;
     $: $searchParams.sort && scrollingDiv && (scrollingDiv.scrollTop = 0);
+    $: clearStaleSearchParams($searchParams.tab);
+
+    // Handle situation where project/status is set in the searchParams but is no longer valid. E.g. saved bookmark
+    // or forced refresh after assign that removed all of them.
+    function clearStaleSearchParams(tab: string) {
+        const projectNames =
+            tab === Tab.myWork
+                ? projectNamesForContents(assignedContents)
+                : tab === Tab.reviewPending
+                ? projectNamesForContents(reviewPendingContents)
+                : [];
+        if (
+            $searchParams.project &&
+            ((tab !== Tab.myWork && tab !== Tab.reviewPending) || !projectNames.includes($searchParams.project))
+        ) {
+            $searchParams.project = '';
+        }
+        if (
+            $searchParams.status &&
+            (tab !== Tab.myWork || !statusesForContents(assignedContents).includes($searchParams.status))
+        ) {
+            $searchParams.status = '';
+        }
+    }
 
     function selectTab(tab: Tab) {
         return () => {
@@ -189,8 +207,10 @@
                     (!project || ac.projectName === project)
             );
         } else if (tab === Tab.reviewPending) {
-            currentReviewPendingContents = reviewPendingContents.filter((rpc) =>
-                rpc.englishLabel.toLowerCase().includes(search.toLowerCase())
+            currentReviewPendingContents = reviewPendingContents.filter(
+                (rpc) =>
+                    rpc.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
+                    (!project || rpc.projectName === project)
             );
         } else if (tab === Tab.myProjects) {
             currentAssignedProjects = assignedProjects.filter((ap) =>
@@ -241,23 +261,23 @@
                         class="select select-bordered max-w-[14rem] flex-grow"
                         bind:value={$searchParams.status}
                         onChange={resetSelection}
-                        isNumber={false}
                         options={[
                             { value: '', label: 'Status' },
-                            ...myWorkStatuses.map((p) => ({ value: p, label: p })),
-                        ]}
-                    />
-                    <Select
-                        class="select select-bordered max-w-[14rem] flex-grow"
-                        bind:value={$searchParams.project}
-                        onChange={resetSelection}
-                        isNumber={false}
-                        options={[
-                            { value: '', label: 'Project' },
-                            ...myWorkProjectNames.map((p) => ({ value: p, label: p })),
+                            ...statusesForContents(assignedContents).map((p) => ({ value: p, label: p })),
                         ]}
                     />
                 {/if}
+                <Select
+                    class="select select-bordered max-w-[14rem] flex-grow"
+                    bind:value={$searchParams.project}
+                    onChange={resetSelection}
+                    options={[
+                        { value: '', label: 'Project' },
+                        ...projectNamesForContents(
+                            $searchParams.tab === Tab.myWork ? assignedContents : reviewPendingContents
+                        ).map((p) => ({ value: p, label: p })),
+                    ]}
+                />
                 <button
                     data-app-insights-event-name="publisher-dashboard-bulk-assign-click"
                     class="btn btn-primary"
