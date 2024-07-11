@@ -669,7 +669,9 @@
                         {#if $sidebarContentStore.isOpen}
                             {#if $sidebarContentStore.selected}
                                 <div class="flex h-6 w-full flex-row items-center">
-                                    <div class="text-lg">{$sidebarContentStore.selected.displayName}</div>
+                                    <div class="overflow-hidden text-ellipsis whitespace-nowrap text-lg">
+                                        {$sidebarContentStore.selected.displayName}
+                                    </div>
                                     <div class="grow"></div>
                                     <div class="text-lg">
                                         <label class="label cursor-pointer py-0">
