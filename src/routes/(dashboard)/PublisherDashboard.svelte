@@ -5,6 +5,7 @@
     import type { Project, ResourceAssignedToSelf, ResourcePendingReview } from './+page';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import { postToApi } from '$lib/utils/http-service';
+    import Select from '$lib/components/Select.svelte';
     import Modal from '$lib/components/Modal.svelte';
     import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
     import Tooltip from '$lib/components/Tooltip.svelte';
@@ -24,6 +25,7 @@
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
     import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
+    import { filterBoolean } from '$lib/utils/array';
 
     enum Tab {
         myWork = 'my-work',
@@ -50,6 +52,8 @@
         {
             sort: ssp.string('-' + SortName.Days),
             tab: ssp.string(Tab.myWork),
+            project: ssp.string(''),
+            status: ssp.string(''),
         },
         { runLoadAgainWhenParamsChange: false }
     );
@@ -58,6 +62,8 @@
     let selectedInProgressContentIds: number[] = [];
     let selectedMyWorkTableItems: ResourceAssignedToSelf[] = [];
     let selectedReviewPendingTableItems: ResourcePendingReview[] = [];
+    let myWorkProjectNames: string[] = [];
+    let myWorkStatuses: string[] = [];
     let assignToUserId: number | null = null;
     let isAssignContentModalOpen = false;
     let isConfirmPublishModalOpen = false;
@@ -142,6 +148,18 @@
             data.publisherDashboard!.reviewPendingResourceContent.promise,
             data.publisherDashboard!.assignedProjects.promise,
         ]);
+
+        myWorkProjectNames = Array.from(new Set(filterBoolean(assignedContents.map((c) => c.projectName)))).sort();
+        myWorkStatuses = Array.from(new Set(filterBoolean(assignedContents.map((c) => c.statusDisplayName)))).sort();
+
+        // Handle situation where project/status is set in the searchParams but is no longer valid. E.g. saved bookmark
+        // or forced refresh after assign that removed all of them.
+        if (!myWorkProjectNames.includes($searchParams.project)) {
+            $searchParams.project = '';
+        }
+        if (!myWorkStatuses.includes($searchParams.status)) {
+            $searchParams.status = '';
+        }
     };
 
     $: nonPublisherReviewSelected = selectedMyWorkTableItems.some(
@@ -162,10 +180,13 @@
         };
     }
 
-    const setTabContents = (tab: string, search: string) => {
+    const setTabContents = (tab: string, search: string, status: string, project: string) => {
         if (tab === Tab.myWork) {
-            currentAssignedContents = assignedContents.filter((ac) =>
-                ac.englishLabel.toLowerCase().includes(search.toLowerCase())
+            currentAssignedContents = assignedContents.filter(
+                (ac) =>
+                    ac.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
+                    (!status || ac.statusDisplayName === status) &&
+                    (!project || ac.projectName === project)
             );
         } else if (tab === Tab.reviewPending) {
             currentReviewPendingContents = reviewPendingContents.filter((rpc) =>
@@ -178,7 +199,7 @@
         }
     };
 
-    $: setTabContents($searchParams.tab, search);
+    $: setTabContents($searchParams.tab, search, $searchParams.status, $searchParams.project);
 </script>
 
 {#await allDataPromise()}
@@ -209,15 +230,37 @@
             </div>
         </div>
         {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending}
-            <div class="mt-4 flex">
+            <div class="mt-4 flex space-x-4">
                 <input
                     class="input input-bordered max-w-xs focus:outline-none"
                     bind:value={search}
                     placeholder="Search"
                 />
+                {#if $searchParams.tab == Tab.myWork}
+                    <Select
+                        class="select select-bordered max-w-[14rem] flex-grow"
+                        bind:value={$searchParams.status}
+                        onChange={resetSelection}
+                        isNumber={false}
+                        options={[
+                            { value: '', label: 'Status' },
+                            ...myWorkStatuses.map((p) => ({ value: p, label: p })),
+                        ]}
+                    />
+                    <Select
+                        class="select select-bordered max-w-[14rem] flex-grow"
+                        bind:value={$searchParams.project}
+                        onChange={resetSelection}
+                        isNumber={false}
+                        options={[
+                            { value: '', label: 'Project' },
+                            ...myWorkProjectNames.map((p) => ({ value: p, label: p })),
+                        ]}
+                    />
+                {/if}
                 <button
                     data-app-insights-event-name="publisher-dashboard-bulk-assign-click"
-                    class="btn btn-primary ms-4"
+                    class="btn btn-primary"
                     on:click={() => (isAssignContentModalOpen = true)}
                     disabled={selectedReviewPendingTableItems.length === 0 && selectedMyWorkTableItems.length === 0}
                     >Assign
