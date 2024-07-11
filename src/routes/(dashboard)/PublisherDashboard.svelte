@@ -8,6 +8,7 @@
     import Select from '$lib/components/Select.svelte';
     import Modal from '$lib/components/Modal.svelte';
     import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
+    import Tooltip from '$lib/components/Tooltip.svelte';
     import {
         SortName,
         createPublisherDashboardMyWorkSorter,
@@ -65,8 +66,9 @@
     let myWorkStatuses: string[] = [];
     let assignToUserId: number | null = null;
     let isAssignContentModalOpen = false;
-    let isErrorModalOpen = false;
-    let isAssigning = false;
+    let isConfirmPublishModalOpen = false;
+    let errorModalText: string | undefined;
+    let isTransacting = false;
 
     $: $searchParams.tab && resetSelection();
 
@@ -85,7 +87,7 @@
     }
 
     async function assignContent() {
-        isAssigning = true;
+        isTransacting = true;
 
         selectedInProgressContentIds = [];
         selectedReviewContentIds = [];
@@ -119,11 +121,24 @@
 
         try {
             await Promise.all([inProgessAssignments, inReviewAssignments]);
-            isAssigning = false;
+            isTransacting = false;
             window.location.reload();
         } catch {
-            isErrorModalOpen = true;
-            isAssigning = false;
+            errorModalText = 'Error while assigning content.';
+            isTransacting = false;
+        }
+    }
+
+    async function bulkPublish() {
+        isTransacting = true;
+
+        try {
+            await postToApi(`/resources/content/publish`, { contentIds: selectedMyWorkTableItems.map((i) => i.id) });
+            isTransacting = false;
+            window.location.reload();
+        } catch {
+            errorModalText = 'Error while publishing content.';
+            isTransacting = false;
         }
     }
 
@@ -146,6 +161,14 @@
             $searchParams.status = '';
         }
     };
+
+    $: nonPublisherReviewSelected = selectedMyWorkTableItems.some(
+        (i) =>
+            ![
+                ResourceContentStatusEnum.AquiferizePublisherReview,
+                ResourceContentStatusEnum.TranslationPublisherReview,
+            ].includes(i.statusValue)
+    );
 
     let scrollingDiv: HTMLDivElement | undefined;
     $: $searchParams.sort && scrollingDiv && (scrollingDiv.scrollTop = 0);
@@ -242,6 +265,20 @@
                     disabled={selectedReviewPendingTableItems.length === 0 && selectedMyWorkTableItems.length === 0}
                     >Assign
                 </button>
+                {#if $searchParams.tab === Tab.myWork}
+                    <Tooltip
+                        position={{ left: '7rem' }}
+                        text={nonPublisherReviewSelected ? 'Publisher Review status only' : null}
+                    >
+                        <button
+                            data-app-insights-event-name="publisher-dashboard-bulk-publish-click"
+                            class="btn btn-primary ms-4"
+                            on:click={() => (isConfirmPublishModalOpen = true)}
+                            disabled={selectedMyWorkTableItems.length === 0 || nonPublisherReviewSelected}
+                            >Publish
+                        </button>
+                    </Tooltip>
+                {/if}
             </div>
         {/if}
         {#if $searchParams.tab === Tab.myProjects}
@@ -340,7 +377,7 @@
 {/await}
 
 <Modal
-    isTransacting={isAssigning}
+    {isTransacting}
     primaryButtonText={'Assign'}
     primaryButtonOnClick={assignContent}
     primaryButtonDisabled={!assignToUserId}
@@ -354,4 +391,13 @@
     />
 </Modal>
 
-<Modal header="Error" bind:open={isErrorModalOpen} isError={true} description="Error while assigning content." />
+<Modal
+    header="Confirm Publish"
+    bind:open={isConfirmPublishModalOpen}
+    primaryButtonText="Publish"
+    primaryButtonOnClick={bulkPublish}
+    description="The {selectedMyWorkTableItems.length} selected resource items will be published immediately."
+    {isTransacting}
+/>
+
+<Modal header="Error" bind:description={errorModalText} isError={true} />

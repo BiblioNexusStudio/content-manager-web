@@ -408,7 +408,7 @@
     async function publish() {
         $removeAllInlineThreads();
         await takeActionAndRefresh(() =>
-            postToApi(`/admin/resources/content/${resourceContentId}/publish`, {
+            postToApi(`/resources/content/${resourceContentId}/publish`, {
                 createDraft: createDraft,
                 assignedUserId: assignToUserId,
             })

@@ -1,27 +1,46 @@
 ﻿<script lang="ts">
-    export let open: boolean;
+    // Must pass either `open` or `description` as a binding
+    // If you pass `open`, then it will be used as the trigger for opening and closing
+    // If you pass `description`, then it will be used as the trigger. `undefined` hides the modal and a string shows it.
+
+    export let open: boolean | undefined = undefined;
+    export let description: string | undefined = undefined;
     export let header: string;
     export let primaryButtonText: string | undefined = undefined;
     export let primaryButtonOnClick: (() => Promise<void>) | (() => void) | undefined = undefined;
     export let primaryButtonDisabled = false;
     export let isError = false;
-    export let description: string | undefined = undefined;
     export let isTransacting = false;
 
     let dialog: HTMLDialogElement;
 
-    $: dialog ? (open ? dialog.showModal() : dialog.close()) : null;
+    const usesDescriptionForShowAndClose = open === undefined;
+
+    $: {
+        if (dialog) {
+            const shouldShow = usesDescriptionForShowAndClose ? description !== undefined : open;
+            if (shouldShow) {
+                dialog.showModal();
+            } else {
+                dialog.close();
+            }
+        }
+    }
 
     function close() {
-        open = false;
+        if (usesDescriptionForShowAndClose) {
+            description = undefined;
+        } else {
+            open = false;
+        }
     }
 
     function handlePrimaryClick() {
         const primaryClickResult = primaryButtonOnClick?.();
         if (primaryClickResult && 'then' in primaryClickResult) {
-            primaryClickResult.then(() => (open = false));
+            primaryClickResult.then(close);
         } else {
-            open = false;
+            close();
         }
     }
 </script>
