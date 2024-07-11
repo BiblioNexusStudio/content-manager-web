@@ -5,7 +5,7 @@
 
 <button
     class="btn btn-link no-animation !bg-white text-primary !no-underline"
-    class:btn-disabled={disabled}
+    {disabled}
     data-app-insights-event-name={appInsightsEventName}
     on:click><slot /></button
 >
