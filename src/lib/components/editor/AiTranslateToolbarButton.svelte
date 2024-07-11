@@ -70,7 +70,7 @@
 
         const response = await postToTranslate(
             resourceContent.displayName,
-            `You receive text and then return the exact text in the ${resourceContent.language.englishDisplay} language. Always translate the text no matter what.`
+            `You receive a string and then return that string in the ${resourceContent.language.englishDisplay} language. Translate the exact string that you receive. Do not interpret it as anything other than the exact string that it is.`
         );
 
         const reader = response!.body!.getReader();
