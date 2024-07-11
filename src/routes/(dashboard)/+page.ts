@@ -119,6 +119,7 @@ export interface ResourcePendingReview {
     englishLabel: string;
     parentResourceName: string;
     languageEnglishDisplay: string;
+    projectName: string | null;
     daysSinceStatusChange: number;
     wordCount: number | null;
     daysSinceContentUpdated: number | null;
