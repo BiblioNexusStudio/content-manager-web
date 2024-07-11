@@ -55,19 +55,23 @@
     const onResolveClick = async () => {
         const commentMark = $commentMarks.find((x) => x.threadId === threadId);
         if (commentMark) {
-            const span = document.getElementById(commentMark.spanId) as HTMLSpanElement;
+            const span = document.getElementById(commentMark.spanId);
             const range = document.createRange();
-            range.selectNodeContents(span);
+            // Check the span actually exists in the Tiptap editor. If it doesn't exist it probably means the text
+            // containing the comment was already deleted.
+            if (span) {
+                range.selectNodeContents(span);
 
-            const selection = window.getSelection();
-            selection!.removeAllRanges();
-            selection!.addRange(range);
+                const selection = window.getSelection();
+                selection!.removeAllRanges();
+                selection!.addRange(range);
 
-            span.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                span.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-            setTimeout(() => {
-                commentMark.editor?.chain().focus().unsetComments().run();
-            }, 100);
+                setTimeout(() => {
+                    commentMark.editor?.chain().focus().unsetComments().run();
+                }, 100);
+            }
         }
 
         resetEditingFields();
