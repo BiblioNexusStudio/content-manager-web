@@ -34,6 +34,7 @@
     const postToTranslate = async (content: string, prompt: string | null = null) => {
         return rawPostToApi('/ai/translate', {
             languageName: resourceContent.language.englishDisplay,
+            languageCode: resourceContent.language.iso6393Code,
             content,
             prompt,
         });
@@ -44,12 +45,24 @@
         return decodedValue.split('data: ');
     };
 
+    // It's possible for a stream to have an incomplete chunk, and the next chunk will have the rest.
+    // If the parse fails, then join the previous result with the next one to complete the json.
+    let incompleteResult = '';
     const parseChoiceFromResult = (result: string) => {
-        const json = JSON.parse(result) as unknown as {
-            choices: { delta: { content: string }; finish_reason: string | null }[];
-        };
+        try {
+            if (incompleteResult !== '') {
+                result = incompleteResult + result;
+            }
 
-        return json.choices[0];
+            const json = JSON.parse(result) as unknown as {
+                choices: { delta: { content: string }; finish_reason: string | null }[];
+            };
+
+            incompleteResult = '';
+            return json.choices[0];
+        } catch (e) {
+            incompleteResult += result;
+        }
     };
 
     const translateDisplayName = async (decoder: TextDecoder) => {
@@ -57,7 +70,7 @@
 
         const response = await postToTranslate(
             resourceContent.displayName,
-            `Translate to ${resourceContent.language.englishDisplay}`
+            `You receive text and then return the exact text in the ${resourceContent.language.englishDisplay} language. Always translate the text no matter what.`
         );
 
         const reader = response!.body!.getReader();
