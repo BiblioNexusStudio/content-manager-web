@@ -306,6 +306,7 @@
         try {
             const response = await action();
             await callback(response);
+            isTransacting = false;
         } catch (error) {
             errorModal.showModal();
             isTransacting = false;
@@ -347,6 +348,8 @@
     }
 
     async function sendForManagerReview() {
+        isTransacting = true;
+
         const nextUpInfo = await callNextUpApi();
 
         await takeActionAndCallback(
@@ -371,6 +374,8 @@
     }
 
     async function sendForPublisherReview() {
+        isTransacting = true;
+
         confirmSendPublisherReviewModal?.close();
         const nextUpInfo = await callNextUpApi();
 
@@ -408,7 +413,7 @@
     async function publish() {
         $removeAllInlineThreads();
         await takeActionAndRefresh(() =>
-            postToApi(`/admin/resources/content/${resourceContentId}/publish`, {
+            postToApi(`/resources/content/${resourceContentId}/publish`, {
                 createDraft: createDraft,
                 assignedUserId: assignToUserId,
             })
@@ -531,7 +536,7 @@
                         {#if canAssignPublisherForReview}
                             <button
                                 class="btn btn-primary ms-2"
-                                class:btn-disabled={isTransacting}
+                                disabled={isTransacting}
                                 on:click={openAssignReviewModal}
                                 >{isInReview ? 'Assign' : 'Review'}
                             </button>
@@ -548,7 +553,7 @@
                             <button
                                 data-app-insights-event-name="resource-unpublish-click"
                                 class="btn btn-primary ms-2"
-                                class:btn-disabled={isTransacting}
+                                disabled={isTransacting}
                                 on:click={unpublish}
                                 >Unpublish
                             </button>
@@ -556,7 +561,7 @@
                         {#if canSendForManagerReview}
                             <button
                                 class="btn btn-primary ms-2"
-                                class:btn-disabled={isTransacting}
+                                disabled={isTransacting}
                                 on:click={sendForManagerReview}
                                 >Send to Review
                             </button>
@@ -564,16 +569,13 @@
                         {#if canSendForPublisherReview}
                             <button
                                 class="btn btn-primary ms-2"
-                                class:btn-disabled={isTransacting}
+                                disabled={isTransacting}
                                 on:click={() => confirmSendPublisherReviewModal.showModal()}
                                 >Send to Publisher
                             </button>
                         {/if}
                         {#if canAquiferize}
-                            <button
-                                class="btn btn-primary ms-2"
-                                class:btn-disabled={isTransacting}
-                                on:click={openAquiferizeModal}
+                            <button class="btn btn-primary ms-2" disabled={isTransacting} on:click={openAquiferizeModal}
                                 >{#if isInTranslationWorkflow}
                                     Translate
                                 {:else if isNewDraftStatus}
@@ -669,7 +671,9 @@
                         {#if $sidebarContentStore.isOpen}
                             {#if $sidebarContentStore.selected}
                                 <div class="flex h-6 w-full flex-row items-center">
-                                    <div class="text-lg">{$sidebarContentStore.selected.displayName}</div>
+                                    <div class="overflow-hidden text-ellipsis whitespace-nowrap text-lg">
+                                        {$sidebarContentStore.selected.displayName}
+                                    </div>
                                     <div class="grow"></div>
                                     <div class="text-lg">
                                         <label class="label cursor-pointer py-0">

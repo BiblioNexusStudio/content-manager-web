@@ -10,7 +10,7 @@
 
     function handleChange(event: Event) {
         const selectTarget = event.target as HTMLSelectElement;
-        if (selectTarget.value === '') {
+        if (selectTarget.value === '' && options.some((o) => o.value === null)) {
             value = null;
         } else if (isNumber) {
             value = parseInt(selectTarget.value);

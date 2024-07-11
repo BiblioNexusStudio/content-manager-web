@@ -153,15 +153,17 @@ export function searchParameters<T extends object>(
                             continue;
                         }
                         let fnToCall: EncodeAndDecodeOptions['encode'] = (value) => value.toString();
-                        const optionsKey = (options as any)?.[field as string];
+                        const optionsKey = field in options ? options[field as keyof T] : null;
                         if (typeof optionsKey !== 'boolean' && typeof optionsKey?.encode === 'function') {
                             fnToCall = optionsKey.encode;
                         }
                         const newValue = fnToCall((value as any)[field]);
-                        if (newValue == undefined || newValue === fnToCall(optionsKey.defaultValue)) {
-                            query.delete(field as string);
-                        } else {
-                            query.set(field as string, newValue);
+                        if (optionsKey && typeof optionsKey === 'object') {
+                            if (newValue == undefined || newValue === fnToCall(optionsKey.defaultValue)) {
+                                query.delete(field as string);
+                            } else {
+                                query.set(field as string, newValue);
+                            }
                         }
                     }
                 };
