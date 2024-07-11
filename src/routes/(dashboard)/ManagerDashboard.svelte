@@ -103,15 +103,13 @@
     $: setTabContents($searchParams.tab, $searchParams.assignedUserId, $searchParams.project, search);
     $: anyRowSelected =
         selectedMyWorkContents.length > 0 || selectedToAssignContents.length > 0 || selectedManageContents.length > 0;
-    $: nonManagerReviewSelected = checkManagerReviewStatus(selectedMyWorkContents);
-
-    const checkManagerReviewStatus = (contents: ResourceAssignedToSelf[]) => {
-        return contents.some(
-            (x) =>
-                x.statusValue !== ResourceContentStatusEnum.AquiferizeManagerReview &&
-                x.statusValue !== ResourceContentStatusEnum.TranslationManagerReview
-        );
-    };
+    $: nonManagerReviewSelected = selectedMyWorkContents.some(
+        (x) =>
+            ![
+                ResourceContentStatusEnum.AquiferizeManagerReview,
+                ResourceContentStatusEnum.TranslationManagerReview,
+            ].includes(x.statusValue)
+    );
 
     const loadContents = async () => {
         const manageContentsPromise = data.managerDashboard!.manageResourceContent.promise;

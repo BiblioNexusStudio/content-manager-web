@@ -5,8 +5,10 @@
     import type { Project, ResourceAssignedToSelf, ResourcePendingReview } from './+page';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import { postToApi } from '$lib/utils/http-service';
+    import Select from '$lib/components/Select.svelte';
     import Modal from '$lib/components/Modal.svelte';
     import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
+    import Tooltip from '$lib/components/Tooltip.svelte';
     import {
         SortName,
         createPublisherDashboardMyWorkSorter,
@@ -23,6 +25,7 @@
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
     import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
+    import { filterBoolean } from '$lib/utils/array';
 
     enum Tab {
         myWork = 'my-work',
@@ -49,6 +52,8 @@
         {
             sort: ssp.string('-' + SortName.Days),
             tab: ssp.string(Tab.myWork),
+            project: ssp.string(''),
+            status: ssp.string(''),
         },
         { runLoadAgainWhenParamsChange: false }
     );
@@ -57,10 +62,13 @@
     let selectedInProgressContentIds: number[] = [];
     let selectedMyWorkTableItems: ResourceAssignedToSelf[] = [];
     let selectedReviewPendingTableItems: ResourcePendingReview[] = [];
+    let myWorkProjectNames: string[] = [];
+    let myWorkStatuses: string[] = [];
     let assignToUserId: number | null = null;
     let isAssignContentModalOpen = false;
-    let isErrorModalOpen = false;
-    let isAssigning = false;
+    let isConfirmPublishModalOpen = false;
+    let errorModalText: string | undefined;
+    let isTransacting = false;
 
     $: $searchParams.tab && resetSelection();
 
@@ -79,7 +87,7 @@
     }
 
     async function assignContent() {
-        isAssigning = true;
+        isTransacting = true;
 
         selectedInProgressContentIds = [];
         selectedReviewContentIds = [];
@@ -113,11 +121,24 @@
 
         try {
             await Promise.all([inProgessAssignments, inReviewAssignments]);
-            isAssigning = false;
+            isTransacting = false;
             window.location.reload();
         } catch {
-            isErrorModalOpen = true;
-            isAssigning = false;
+            errorModalText = 'Error while assigning content.';
+            isTransacting = false;
+        }
+    }
+
+    async function bulkPublish() {
+        isTransacting = true;
+
+        try {
+            await postToApi(`/resources/content/publish`, { contentIds: selectedMyWorkTableItems.map((i) => i.id) });
+            isTransacting = false;
+            window.location.reload();
+        } catch {
+            errorModalText = 'Error while publishing content.';
+            isTransacting = false;
         }
     }
 
@@ -127,7 +148,27 @@
             data.publisherDashboard!.reviewPendingResourceContent.promise,
             data.publisherDashboard!.assignedProjects.promise,
         ]);
+
+        myWorkProjectNames = Array.from(new Set(filterBoolean(assignedContents.map((c) => c.projectName)))).sort();
+        myWorkStatuses = Array.from(new Set(filterBoolean(assignedContents.map((c) => c.statusDisplayName)))).sort();
+
+        // Handle situation where project/status is set in the searchParams but is no longer valid. E.g. saved bookmark
+        // or forced refresh after assign that removed all of them.
+        if (!myWorkProjectNames.includes($searchParams.project)) {
+            $searchParams.project = '';
+        }
+        if (!myWorkStatuses.includes($searchParams.status)) {
+            $searchParams.status = '';
+        }
     };
+
+    $: nonPublisherReviewSelected = selectedMyWorkTableItems.some(
+        (i) =>
+            ![
+                ResourceContentStatusEnum.AquiferizePublisherReview,
+                ResourceContentStatusEnum.TranslationPublisherReview,
+            ].includes(i.statusValue)
+    );
 
     let scrollingDiv: HTMLDivElement | undefined;
     $: $searchParams.sort && scrollingDiv && (scrollingDiv.scrollTop = 0);
@@ -139,10 +180,13 @@
         };
     }
 
-    const setTabContents = (tab: string, search: string) => {
+    const setTabContents = (tab: string, search: string, status: string, project: string) => {
         if (tab === Tab.myWork) {
-            currentAssignedContents = assignedContents.filter((ac) =>
-                ac.englishLabel.toLowerCase().includes(search.toLowerCase())
+            currentAssignedContents = assignedContents.filter(
+                (ac) =>
+                    ac.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
+                    (!status || ac.statusDisplayName === status) &&
+                    (!project || ac.projectName === project)
             );
         } else if (tab === Tab.reviewPending) {
             currentReviewPendingContents = reviewPendingContents.filter((rpc) =>
@@ -155,7 +199,7 @@
         }
     };
 
-    $: setTabContents($searchParams.tab, search);
+    $: setTabContents($searchParams.tab, search, $searchParams.status, $searchParams.project);
 </script>
 
 {#await allDataPromise()}
@@ -186,19 +230,55 @@
             </div>
         </div>
         {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending}
-            <div class="mt-4 flex">
+            <div class="mt-4 flex space-x-4">
                 <input
                     class="input input-bordered max-w-xs focus:outline-none"
                     bind:value={search}
                     placeholder="Search"
                 />
+                {#if $searchParams.tab == Tab.myWork}
+                    <Select
+                        class="select select-bordered max-w-[14rem] flex-grow"
+                        bind:value={$searchParams.status}
+                        onChange={resetSelection}
+                        isNumber={false}
+                        options={[
+                            { value: '', label: 'Status' },
+                            ...myWorkStatuses.map((p) => ({ value: p, label: p })),
+                        ]}
+                    />
+                    <Select
+                        class="select select-bordered max-w-[14rem] flex-grow"
+                        bind:value={$searchParams.project}
+                        onChange={resetSelection}
+                        isNumber={false}
+                        options={[
+                            { value: '', label: 'Project' },
+                            ...myWorkProjectNames.map((p) => ({ value: p, label: p })),
+                        ]}
+                    />
+                {/if}
                 <button
                     data-app-insights-event-name="publisher-dashboard-bulk-assign-click"
-                    class="btn btn-primary ms-4"
+                    class="btn btn-primary"
                     on:click={() => (isAssignContentModalOpen = true)}
                     disabled={selectedReviewPendingTableItems.length === 0 && selectedMyWorkTableItems.length === 0}
                     >Assign
                 </button>
+                {#if $searchParams.tab === Tab.myWork}
+                    <Tooltip
+                        position={{ left: '7rem' }}
+                        text={nonPublisherReviewSelected ? 'Publisher Review status only' : null}
+                    >
+                        <button
+                            data-app-insights-event-name="publisher-dashboard-bulk-publish-click"
+                            class="btn btn-primary ms-4"
+                            on:click={() => (isConfirmPublishModalOpen = true)}
+                            disabled={selectedMyWorkTableItems.length === 0 || nonPublisherReviewSelected}
+                            >Publish
+                        </button>
+                    </Tooltip>
+                {/if}
             </div>
         {/if}
         {#if $searchParams.tab === Tab.myProjects}
@@ -297,7 +377,7 @@
 {/await}
 
 <Modal
-    isTransacting={isAssigning}
+    {isTransacting}
     primaryButtonText={'Assign'}
     primaryButtonOnClick={assignContent}
     primaryButtonDisabled={!assignToUserId}
@@ -311,4 +391,13 @@
     />
 </Modal>
 
-<Modal header="Error" bind:open={isErrorModalOpen} isError={true} description="Error while assigning content." />
+<Modal
+    header="Confirm Publish"
+    bind:open={isConfirmPublishModalOpen}
+    primaryButtonText="Publish"
+    primaryButtonOnClick={bulkPublish}
+    description="The {selectedMyWorkTableItems.length} selected resource items will be published immediately."
+    {isTransacting}
+/>
+
+<Modal header="Error" bind:description={errorModalText} isError={true} />
