@@ -6,6 +6,7 @@ export const assignedContentsColumns: column<ResourceAssignedToSelf>[] = [
     { text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title },
     { text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined },
     { text: 'Language', itemKey: 'languageEnglishDisplay', sortKey: SortName.Language },
+    { text: 'Project', itemKey: 'projectName', sortKey: undefined },
     { text: 'Status', itemKey: 'statusDisplayName', sortKey: undefined },
     { text: 'Last Edit (Days)', itemKey: 'daysSinceContentUpdated', sortKey: undefined },
     {
