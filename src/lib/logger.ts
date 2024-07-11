@@ -92,6 +92,7 @@ export const log = {
             appInsights.trackEvent({
                 name: eventName,
                 properties: {
+                    url: window.location.toString(),
                     ...additionalProperties,
                     ...getUserProperties(),
                     ...getBrowserAndScreenSize(),
