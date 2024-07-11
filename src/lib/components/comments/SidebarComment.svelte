@@ -78,7 +78,7 @@
 
         const commentMark = $commentMarks.find((x) => x.threadId === thread.id);
         if (commentMark) {
-            const span = document.getElementById(commentMark.spanId) as HTMLSpanElement;
+            const span = document.getElementById(commentMark.spanId);
             span?.classList.add(normalSpanBackgroundColorClass);
             span?.classList.remove(...selectedSpanBackgroundColorClass);
         }
