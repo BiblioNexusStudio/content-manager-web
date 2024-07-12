@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
     import type { Editor } from '@tiptap/core';
     import { postToApi, rawPostToApi } from '$lib/utils/http-service';
     import type { ResourceContent } from '$lib/types/resources';
@@ -12,6 +12,7 @@
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
     import { generateHTML } from '@tiptap/html';
     import { extensions } from '../tiptap/extensions';
+    import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
     import { streamAiContent } from '$lib/utils/ai-streaming-content';
 
     export let editor: Editor;
@@ -19,13 +20,14 @@
     export let resourceContent: ResourceContent;
     export let isLoading: boolean;
     export let canEdit: boolean;
-    export let aiTranslateInProgress: boolean;
     export let machineTranslationStore: MachineTranslationStore;
 
     const canShowAnything =
         canEdit &&
         $userCan(Permission.AiTranslate) &&
         resourceContent.status === ResourceContentStatusEnum.TranslationInProgress;
+
+    const isPageTransacting = getIsPageTransactingContext();
 
     let isErrorModalOpen = false;
     let machineTranslation = machineTranslationStore.machineTranslation;
@@ -95,9 +97,8 @@
         const originalHtml = generateHTML(editor.getJSON(), extensions(false, undefined, false, undefined));
         const originalDisplayName = $editableDisplayNameStore;
         try {
-            aiTranslateInProgress = true;
+            $isPageTransacting = true;
             isLoading = true;
-            editor.setEditable(false);
 
             await translateDisplayName();
             await translateContent(originalHtml);
@@ -113,8 +114,7 @@
             editor.commands.setContent(originalHtml);
         } finally {
             if (!editor.isDestroyed) {
-                aiTranslateInProgress = false;
-                editor.setEditable(true);
+                $isPageTransacting = false;
                 isLoading = false;
             }
         }
@@ -135,7 +135,7 @@
 </script>
 
 {#if showTranslateButton}
-    {#if aiTranslateInProgress}
+    {#if $isPageTransacting}
         <div class="flex w-[42px] justify-center">
             <div class="loading loading-infinity loading-md text-primary" />
         </div>
@@ -148,8 +148,7 @@
             <button
                 data-app-insights-event-name="editor-toolbar-translate-click"
                 class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
-                on:click={onClick}
-                disabled={aiTranslateInProgress}><TranslateIcon /></button
+                on:click={onClick}><TranslateIcon /></button
             >
         </Tooltip>
     {/if}

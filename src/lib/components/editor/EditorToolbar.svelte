@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
     import { type Editor, getMarkAttributes } from '@tiptap/core';
     import AiTranslateToolbarButton from '$lib/components/editor/AiTranslateToolbarButton.svelte';
     import BoldIcon from '$lib/icons/BoldIcon.svelte';
@@ -17,6 +17,7 @@
     import type { ResourceContent } from '$lib/types/resources';
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
+    import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
 
     export let editor: Editor | undefined;
     export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined;
@@ -26,7 +27,8 @@
     export let isLoading: boolean;
     export let machineTranslationStore: MachineTranslationStore;
 
-    let aiTranslateInProgress = false;
+    const isPageTransacting = getIsPageTransactingContext();
+
     let isCommentBoxOpen = false;
     const { createNewThread } = commentStores;
 
@@ -176,7 +178,7 @@
         <div class="flex space-x-2">
             {#if canEdit}
                 {#each formattingOptions(editor) as option (option.name)}
-                    {@const disable = option.disabled || aiTranslateInProgress}
+                    {@const disable = option.disabled || $isPageTransacting}
                     <button
                         data-app-insights-event-name="editor-toolbar-{option.name}-click"
                         class="btn btn-xs px-1 {disable && '!bg-base-200'} {option.isActive
@@ -195,7 +197,7 @@
             {#if commentOptions.hidden}
                 <div class="h-6" />
             {:else}
-                {@const disable = commentOptions.disabled || aiTranslateInProgress}
+                {@const disable = commentOptions.disabled || $isPageTransacting}
                 <Tooltip
                     position={{ left: '2rem', bottom: '0.2rem' }}
                     class="flex border-primary align-middle text-primary"
@@ -223,7 +225,6 @@
                 {editableDisplayNameStore}
                 {resourceContent}
                 {machineTranslationStore}
-                bind:aiTranslateInProgress
                 bind:isLoading
             />
         </div>
