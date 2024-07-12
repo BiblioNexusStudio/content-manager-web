@@ -12,6 +12,7 @@
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
     import { generateHTML } from '@tiptap/html';
     import { extensions } from '../tiptap/extensions';
+    import { streamAiContent } from '$lib/utils/ai-streaming-content';
 
     export let editor: Editor;
     export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined;
@@ -40,32 +41,7 @@
         });
     };
 
-    const getDecodedResults = (decoder: TextDecoder, value: Uint8Array | undefined) => {
-        const decodedValue = decoder.decode(value, { stream: true });
-        return decodedValue.split('data: ');
-    };
-
-    // It's possible for a stream to have an incomplete chunk, and the next chunk will have the rest.
-    // If the parse fails, then join the previous result with the next one to complete the json.
-    let incompleteResult = '';
-    const parseChoiceFromResult = (result: string) => {
-        try {
-            if (incompleteResult !== '') {
-                result = incompleteResult + result;
-            }
-
-            const json = JSON.parse(result) as unknown as {
-                choices: { delta: { content: string }; finish_reason: string | null }[];
-            };
-
-            incompleteResult = '';
-            return json.choices[0];
-        } catch (e) {
-            incompleteResult += result;
-        }
-    };
-
-    const translateDisplayName = async (decoder: TextDecoder) => {
+    const translateDisplayName = async () => {
         let newDisplayName = '';
 
         const response = await postToTranslate(
@@ -73,30 +49,15 @@
             `You receive a string and then return that string in the ${resourceContent.language.englishDisplay} language. Translate the exact string that you receive. Do not interpret it as anything other than the exact string that it is.`
         );
 
-        const reader = response!.body!.getReader();
-        while (!editor.isDestroyed) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const results = getDecodedResults(decoder, value);
-            for (let result of results) {
-                result = result?.trim();
-                if (!result || result === '') continue;
-
-                if (result === '[DONE]') {
-                    continue;
-                }
-
-                const choice = parseChoiceFromResult(result);
-                if (choice?.delta.content) {
-                    newDisplayName += choice.delta.content;
-                    $editableDisplayNameStore = newDisplayName;
-                }
+        await streamAiContent(response, (nextText) => {
+            if (!editor.isDestroyed) {
+                newDisplayName += nextText;
+                $editableDisplayNameStore = newDisplayName;
             }
-        }
+        });
     };
 
-    const translateContent = async (decoder: TextDecoder, originalHtml: string) => {
+    const translateContent = async (originalHtml: string) => {
         const spanAttrs: string[] = [];
         const spanAttrRegex = /(?<=<span\s)([^>]*)(?=>)/g;
 
@@ -111,33 +72,17 @@
         });
 
         const response = await postToTranslate(originalHtml);
-        const reader = response!.body!.getReader();
-
-        isLoading = false;
 
         let fullContent = '';
 
-        while (!editor.isDestroyed) {
-            const { done, value } = await reader.read();
-            if (done) break;
+        isLoading = false;
 
-            const results = getDecodedResults(decoder, value);
-            for (let result of results) {
-                result = result?.trim();
-                if (!result || result === '') continue;
-
-                if (result === '[DONE]') {
-                    continue;
-                }
-
-                const choice = parseChoiceFromResult(result);
-
-                if (choice?.delta.content) {
-                    fullContent += choice.delta.content;
-                    editor.commands.setContent(fullContent);
-                }
+        await streamAiContent(response, (nextText) => {
+            if (!editor.isDestroyed) {
+                fullContent += nextText;
+                editor.commands.setContent(fullContent);
             }
-        }
+        });
 
         for (let i = 0; i < spanAttrs.length; i++) {
             fullContent = fullContent.replace(`a="${i}"`, spanAttrs[i]!);
@@ -154,9 +99,8 @@
             isLoading = true;
             editor.setEditable(false);
 
-            const decoder = new TextDecoder('utf-8');
-            await translateDisplayName(decoder);
-            await translateContent(decoder, originalHtml);
+            await translateDisplayName();
+            await translateContent(originalHtml);
 
             // Since the translation calls take so long, the user may have navigated away from the page, and we don't
             // want to create the machine translation in that case.
