@@ -18,11 +18,16 @@
     let element: HTMLDivElement | undefined;
 
     $: updateEditor(tiptapJson);
+    $: enableOrDisableEditing(canEdit);
 
     function updateEditor(tiptapJson: TiptapContentItem | undefined) {
         if (tiptapJson && editor) {
             editor.commands.setContent(tiptapJson.tiptap);
         }
+    }
+
+    function enableOrDisableEditing(canEdit: boolean) {
+        editor?.setEditable(canEdit);
     }
 
     onMount(async () => {

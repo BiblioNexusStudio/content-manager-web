@@ -43,6 +43,7 @@
     import { fly } from 'svelte/transition';
     import BibleReferencesSidebar from './BibleReferencesSidebar.svelte';
     import { log } from '$lib/logger';
+    import { createIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
@@ -108,7 +109,7 @@
         resourceContent = await resourceContentPromise;
         resetSaveState();
 
-        isTransacting = false;
+        $isPageTransacting = false;
 
         mediaType = resourceContent.mediaType;
         sidebarContentStore = createSidebarContentStore(resourceContent);
@@ -224,7 +225,7 @@
         }
     }
 
-    let isTransacting = false;
+    const isPageTransacting = createIsPageTransactingContext();
 
     beforeNavigate(async ({ to, cancel }) => {
         // beforeNavigate runs synchronously, but we can work around the limitation by always canceling the
@@ -299,17 +300,17 @@
     }
 
     async function takeActionAndCallback<T>(action: () => Promise<T>, callback: (response: T) => Promise<void>) {
-        isTransacting = true;
+        $isPageTransacting = true;
         if (get(editableDisplayNameStore.hasChanges) || get(editableContentStore.hasChanges)) {
             await patchData();
         }
         try {
             const response = await action();
             await callback(response);
-            isTransacting = false;
+            $isPageTransacting = false;
         } catch (error) {
             errorModal.showModal();
-            isTransacting = false;
+            $isPageTransacting = false;
             throw error;
         }
     }
@@ -324,7 +325,7 @@
     }
 
     async function takeActionAndGoToNextResource<T>(action: () => Promise<T>) {
-        isTransacting = true;
+        $isPageTransacting = true;
 
         let nextUpInfo: ResourceContentNextUpInfo | null = null;
         try {
@@ -348,7 +349,7 @@
     }
 
     async function sendForManagerReview() {
-        isTransacting = true;
+        $isPageTransacting = true;
 
         const nextUpInfo = await callNextUpApi();
 
@@ -374,7 +375,7 @@
     }
 
     async function sendForPublisherReview() {
-        isTransacting = true;
+        $isPageTransacting = true;
 
         confirmSendPublisherReviewModal?.close();
         const nextUpInfo = await callNextUpApi();
@@ -523,7 +524,7 @@
                         {#if canAssign || canSendBack}
                             <button
                                 class="btn btn-primary ms-2"
-                                disabled={isTransacting}
+                                disabled={$isPageTransacting}
                                 on:click={openAssignUserModal}
                             >
                                 {#if canAssign}
@@ -536,7 +537,7 @@
                         {#if canAssignPublisherForReview}
                             <button
                                 class="btn btn-primary ms-2"
-                                disabled={isTransacting}
+                                disabled={$isPageTransacting}
                                 on:click={openAssignReviewModal}
                                 >{isInReview ? 'Assign' : 'Review'}
                             </button>
@@ -544,7 +545,7 @@
                         {#if canPublish}
                             <button
                                 class="btn btn-primary ms-2"
-                                disabled={isTransacting}
+                                disabled={$isPageTransacting}
                                 on:click={() => publishOrOpenModal(resourceContent.status)}
                                 >Publish
                             </button>
@@ -553,7 +554,7 @@
                             <button
                                 data-app-insights-event-name="resource-unpublish-click"
                                 class="btn btn-primary ms-2"
-                                disabled={isTransacting}
+                                disabled={$isPageTransacting}
                                 on:click={unpublish}
                                 >Unpublish
                             </button>
@@ -561,7 +562,7 @@
                         {#if canSendForManagerReview}
                             <button
                                 class="btn btn-primary ms-2"
-                                disabled={isTransacting}
+                                disabled={$isPageTransacting}
                                 on:click={sendForManagerReview}
                                 >Send to Review
                             </button>
@@ -569,13 +570,16 @@
                         {#if canSendForPublisherReview}
                             <button
                                 class="btn btn-primary ms-2"
-                                disabled={isTransacting}
+                                disabled={$isPageTransacting}
                                 on:click={() => confirmSendPublisherReviewModal.showModal()}
                                 >Send to Publisher
                             </button>
                         {/if}
                         {#if canAquiferize}
-                            <button class="btn btn-primary ms-2" disabled={isTransacting} on:click={openAquiferizeModal}
+                            <button
+                                class="btn btn-primary ms-2"
+                                disabled={$isPageTransacting}
+                                on:click={openAquiferizeModal}
                                 >{#if isInTranslationWorkflow}
                                     Translate
                                 {:else if isNewDraftStatus}
@@ -619,7 +623,7 @@
                                 class="input input-bordered h-8 w-full max-w-[18rem] leading-8"
                                 dir="auto"
                                 type="text"
-                                readonly={!canMakeContentEdits || !resourceContent.isDraft}
+                                readonly={!canMakeContentEdits || !resourceContent.isDraft || $isPageTransacting}
                             />
                             {#if resourceContent.isDraft}
                                 <div class="grow" />
@@ -777,7 +781,7 @@
                     <button
                         class="btn btn-primary"
                         on:click={isInTranslationWorkflow || isNewDraftStatus ? assignDraftToEditor : aquiferize}
-                        disabled={assignToUserId === null || isTransacting}>Assign</button
+                        disabled={assignToUserId === null || $isPageTransacting}>Assign</button
                     >
                     <button class="btn btn-outline btn-primary" on:click={() => aquiferizeModal.close()}>Cancel</button>
                 </div>
@@ -818,7 +822,7 @@
                     <button
                         class="btn btn-primary"
                         on:click={assignUser}
-                        disabled={assignToUserId === null || isTransacting}>Assign</button
+                        disabled={assignToUserId === null || $isPageTransacting}>Assign</button
                     >
                     <button class="btn btn-outline btn-primary" on:click={() => assignUserModal.close()}>Cancel</button>
                 </div>
@@ -859,7 +863,7 @@
                 {/if}
                 <div class="flex w-full flex-row space-x-2 pt-4">
                     <div class="flex-grow" />
-                    <button class="btn btn-primary" on:click={publish} disabled={isTransacting}>Publish</button>
+                    <button class="btn btn-primary" on:click={publish} disabled={$isPageTransacting}>Publish</button>
                     <button class="btn btn-outline btn-primary" on:click={() => publishModal.close()}>Cancel</button>
                 </div>
             </div>
@@ -892,7 +896,7 @@
                     <button
                         class="btn btn-primary"
                         on:click={createTranslation}
-                        disabled={newTranslationLanguageId === null || isTransacting}>Create</button
+                        disabled={newTranslationLanguageId === null || $isPageTransacting}>Create</button
                     >
                     <button class="btn btn-outline btn-primary" on:click={() => addTranslationModal.close()}
                         >Cancel</button
@@ -911,7 +915,7 @@
             <p class="py-4 text-lg">Have you completed your editing? Your assignment will be removed.</p>
             <div class="modal-action pt-4">
                 <form method="dialog">
-                    <button class="btn btn-primary" on:click={sendForPublisherReview} disabled={isTransacting}
+                    <button class="btn btn-primary" on:click={sendForPublisherReview} disabled={$isPageTransacting}
                         >Send to Publisher</button
                     >
                     <button class="btn btn-outline btn-primary">Cancel</button>

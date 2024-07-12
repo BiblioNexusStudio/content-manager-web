@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
     import EditorToolbar from './EditorToolbar.svelte';
     import type { ResourceContent, TiptapContentItem } from '$lib/types/resources';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
@@ -6,6 +6,7 @@
     import type { Editor } from '@tiptap/core';
     import type { CommentStores } from '$lib/stores/comments';
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
+    import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
 
     export let itemIndex: number;
     export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined;
@@ -20,6 +21,8 @@
     let editor: Editor | undefined = undefined;
     let tiptapJson = $editableContentStore[itemIndex];
     let isLoading: boolean;
+
+    const isPageTransacting = getIsPageTransactingContext();
 
     function onChange(tiptapJson: object, wordCount: number) {
         editableContentStore.update((contents) => {
@@ -56,7 +59,7 @@
     <TiptapRenderer
         languageScriptDirection={resourceContent.language.scriptDirection}
         {tiptapJson}
-        {canEdit}
+        canEdit={canEdit && !$isPageTransacting}
         {canComment}
         {onChange}
         {onCreate}
