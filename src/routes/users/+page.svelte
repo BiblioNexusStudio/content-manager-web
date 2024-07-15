@@ -3,16 +3,27 @@
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { _ as translate } from 'svelte-i18n';
     import NewUserModal from '$lib/components/users/NewUserModal.svelte';
-    import type { User } from '$lib/types/base';
-    import { Permission, userCan } from '$lib/stores/auth';
+    import { type Company, type User, UserRole } from '$lib/types/base';
+    import { Permission, userCan, userIsEqual } from '$lib/stores/auth';
     import Select from '$lib/components/Select.svelte';
+    import Modal from '$lib/components/Modal.svelte';
+    import PersonDashIcon from '$lib/icons/PersonDashIcon.svelte';
+    import { patchToApi } from '$lib/utils/http-service';
+    import { createIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
 
     export let data: PageData;
 
-    $: allDataPromise = Promise.all([data.userData!.promise, data.companies!.promise]);
-
+    const isPageTransacting = createIsPageTransactingContext();
+    let userData: User[];
+    let companies: Company[];
     let filterBySearch: string | null = null;
     let filterByCompanyId: number | null = null;
+    let isDisableUserModalOpen = false;
+    let isShowingErrorModal = false;
+
+    const loadContents = async () => {
+        [userData, companies] = await Promise.all([data.userData!.promise, data.companies!.promise]);
+    };
 
     const filterUsers = (users: User[], search: string | null, companyId: number | null) => {
         return users.filter(
@@ -21,8 +32,29 @@
                 (search === null || u.name.toLowerCase().includes(search.toLowerCase()))
         );
     };
-    $: isModalOpen = false;
 
+    let onConfirmDisableUser: (() => Promise<void>) | undefined = undefined;
+    const disableUser = (userId: number) => {
+        isDisableUserModalOpen = true;
+        onConfirmDisableUser = async () => postDisableUser(userId);
+    };
+
+    const postDisableUser = async (userId: number) => {
+        try {
+            $isPageTransacting = true;
+            await patchToApi(`/users/${userId}/disable`);
+            userData = userData.filter((x) => x.id !== userId);
+        } catch (e) {
+            isShowingErrorModal = true;
+        } finally {
+            // Prevents the disable button from flashing enabled as modal is closing
+            setTimeout(() => {
+                $isPageTransacting = false;
+            }, 100);
+        }
+    };
+
+    $: isModalOpen = false;
     $: roles = data.roles!;
 
     async function openModal() {
@@ -30,9 +62,9 @@
     }
 </script>
 
-{#await allDataPromise}
+{#await loadContents()}
     <CenteredSpinner />
-{:then [userData, companies]}
+{:then _}
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <div class="my-4">
             <div class="text-3xl">{$translate('page.users.header.value')}</div>
@@ -69,6 +101,7 @@
                             <th>{$translate('page.users.role.value')}</th>
                             <th>{$translate('page.users.company.value')}</th>
                             <th>{$translate('page.users.status.value')}</th>
+                            <th />
                         </tr>
                     </thead>
                     <tbody>
@@ -79,6 +112,16 @@
                                 <td class="px-5">{user.role}</td>
                                 <td class="px-5">{user.company.name}</td>
                                 <td class="px-5">{user.isEmailVerified ? 'Verified' : 'Invited'}</td>
+                                <td class="px-5 text-primary">
+                                    {#if user.role !== UserRole.Publisher && user.role !== UserRole.Admin && !$userIsEqual(user.id)}
+                                        <button
+                                            data-app-insights-event-name="disable-user-button-click"
+                                            class="btn btn-circle btn-link btn-xs"
+                                            on:click={() => disableUser(user.id)}
+                                            ><PersonDashIcon />
+                                        </button>
+                                    {/if}
+                                </td>
                             </tr>
                         {/each}
                     </tbody>
@@ -87,4 +130,18 @@
         </div>
     </div>
     <NewUserModal {companies} {roles} header="Add User" bind:open={isModalOpen} />
+    <Modal
+        header="Confirm Disable User"
+        bind:open={isDisableUserModalOpen}
+        description="This user will be disabled"
+        primaryButtonText="Disable User"
+        primaryButtonOnClick={onConfirmDisableUser}
+        isTransacting={$isPageTransacting}
+    />
+    <Modal
+        isError={true}
+        header="Error disabling user"
+        description="An error occurred disabling the user. Please try again later."
+        bind:open={isShowingErrorModal}
+    />
 {/await}
