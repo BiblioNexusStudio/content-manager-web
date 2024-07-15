@@ -4,6 +4,8 @@ on:
     push:
         branches:
             - master
+            - 'release-patch-*'
+            - 'release-hotfix-*'
     workflow_dispatch:
 
 permissions:
@@ -12,8 +14,21 @@ permissions:
     pull-requests: read
 
 jobs:
+    check_should_deploy:
+        runs-on: ubuntu-latest
+        outputs:
+            should_deploy: ${{ github.event_name == 'workflow_dispatch' || steps.check_deploy.outputs.should_deploy == 'true' }}
+        steps:
+            - id: check_deploy
+              if: github.event_name != 'workflow_dispatch'
+              uses: BiblioNexusStudio/github-actions/check-if-branch-should-deploy@master
+              with:
+                  current_branch: ${{ github.ref_name }}
+
     deploy_to_dev:
-        if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+        needs:
+            - check_should_deploy
+        if: needs.check_should_deploy.outputs.should_deploy == 'true'
         name: Deploy to dev
         runs-on: ubuntu-latest
         environment:
@@ -31,7 +46,9 @@ jobs:
                   override-output-url: ${{ vars.URL_DEV }}
 
     deploy_to_qa:
-        if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+        needs:
+            - check_should_deploy
+        if: needs.check_should_deploy.outputs.should_deploy == 'true'
         name: Deploy to qa
         runs-on: ubuntu-latest
         environment:
@@ -52,7 +69,9 @@ jobs:
                   override-output-url: ${{ vars.URL_QA }}
 
     deploy_to_prod:
-        if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+        needs:
+            - check_should_deploy
+        if: needs.check_should_deploy.outputs.should_deploy == 'true'
         name: Deploy to prod
         runs-on: ubuntu-latest
         environment:
@@ -71,3 +90,8 @@ jobs:
                   slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
                   html-diff-ts-deploy-key: ${{ secrets.HTML_DIFF_TS_DEPLOY_KEY }}
                   override-output-url: ${{ vars.URL_PROD }}
+            - uses: BiblioNexusStudio/github-actions/delete-hotfix-or-patch-branch@master
+              with:
+                  current_branch: ${{ github.ref_name }}
+                  app_id: ${{ secrets.BIBLIONEXUS_BOT_APP_ID }}
+                  private_key: ${{ secrets.BIBLIONEXUS_BOT_PRIVATE_KEY }}
