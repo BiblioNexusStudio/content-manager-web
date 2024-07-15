@@ -733,6 +733,7 @@
                         : 'hidden'}"
                 >
                     <BibleReferencesSidebar
+                        visible={openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences}
                         languageId={resourceContent.language.id}
                         references={getSortedReferences(resourceContent)}
                     />

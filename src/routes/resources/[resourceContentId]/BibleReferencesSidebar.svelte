@@ -4,12 +4,18 @@
     import type { PassageReference, VerseReference } from '$lib/types/resources';
     import { instanceOfPassageReference } from '$lib/utils/reference';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
-    import { fetchLanguageDefaultBible } from '$lib/utils/bibles-fetcher';
+    import { fetchLanguageDefaultBible, type BasicBible } from '$lib/utils/bibles-fetcher';
 
     export let references: (PassageReference | VerseReference)[];
     export let languageId: number;
+    export let visible: boolean;
 
-    const promise = getBibleTextsReferences();
+    $: if (visible && !promise) {
+        promise = getBibleTextsReferences();
+    }
+
+    let promise: Promise<{ bible: BasicBible | undefined; bibleTextsReferences: BibleTextsReference[] }> | null = null;
+
     async function getBibleTextsReferences() {
         const bible = await fetchLanguageDefaultBible(languageId);
         const bibleTextsReferences: BibleTextsReference[] = [];
@@ -42,19 +48,21 @@
 
 {#await promise}
     <CenteredSpinner />
-{:then { bible, bibleTextsReferences }}
-    <div class="overflow-y-auto">
-        <div class="m-4 flex flex-col justify-center gap-3">
-            {#if bibleTextsReferences.length === 0}
-                <div>No linked Bible references.</div>
-            {:else}
-                <div class="text-lg font-semibold" dir="auto">{bible?.name}</div>
-                {#each bibleTextsReferences as bibleTextsReference, i (bibleTextsReference)}
-                    <div>
-                        <BibleTextReference {bibleTextsReference} collapsible={true} isOpen={i === 0} />
-                    </div>
-                {/each}
-            {/if}
+{:then fetched}
+    {#if fetched}
+        <div class="overflow-y-auto">
+            <div class="m-4 flex flex-col justify-center gap-3">
+                {#if fetched.bibleTextsReferences.length === 0}
+                    <div>No linked Bible references.</div>
+                {:else}
+                    <div class="text-lg font-semibold" dir="auto">{fetched.bible?.name}</div>
+                    {#each fetched.bibleTextsReferences as bibleTextsReference, i (bibleTextsReference)}
+                        <div>
+                            <BibleTextReference {bibleTextsReference} collapsible={true} isOpen={i === 0} />
+                        </div>
+                    {/each}
+                {/if}
+            </div>
         </div>
-    </div>
+    {/if}
 {/await}
