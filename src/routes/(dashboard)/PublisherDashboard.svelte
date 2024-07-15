@@ -166,11 +166,19 @@
 
     let scrollingDiv: HTMLDivElement | undefined;
     $: $searchParams.sort && scrollingDiv && (scrollingDiv.scrollTop = 0);
-    $: clearStaleSearchParams($searchParams.tab);
+    $: clearStaleSearchParams($searchParams.tab, assignedContents, reviewPendingContents);
 
     // Handle situation where project/status is set in the searchParams but is no longer valid. E.g. saved bookmark
     // or forced refresh after assign that removed all of them.
-    function clearStaleSearchParams(tab: string) {
+    function clearStaleSearchParams(
+        tab: string,
+        assignedContents: ResourceAssignedToSelf[],
+        reviewPendingContents: ResourcePendingReview[]
+    ) {
+        if (!assignedContents.length || !reviewPendingContents.length) {
+            return;
+        }
+
         const projectNames =
             tab === Tab.myWork
                 ? projectNamesForContents(assignedContents)

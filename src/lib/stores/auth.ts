@@ -1,7 +1,6 @@
 ﻿import { type Writable, writable, derived } from 'svelte/store';
 import { Auth0Client, createAuth0Client, User as Auth0User } from '@auth0/auth0-spa-js';
 import config from '$lib/config';
-import { log } from '$lib/logger';
 import type { CurrentUser } from '$lib/types/base';
 
 export let auth0Client: Auth0Client | undefined = undefined;
@@ -106,7 +105,6 @@ export async function initAuth0(url: URL) {
 
         return isAuthenticated;
     } catch (error) {
-        log.exception(error);
         await logout(url);
         return false;
     }
