@@ -4,7 +4,7 @@
     import { _ as translate } from 'svelte-i18n';
     import NewUserModal from '$lib/components/users/NewUserModal.svelte';
     import { type Company, type User, UserRole } from '$lib/types/base';
-    import { Permission, userCan } from '$lib/stores/auth';
+    import { Permission, userCan, userIsEqual } from '$lib/stores/auth';
     import Select from '$lib/components/Select.svelte';
     import Modal from '$lib/components/Modal.svelte';
     import PersonDashIcon from '$lib/icons/PersonDashIcon.svelte';
@@ -113,7 +113,7 @@
                                 <td class="px-5">{user.company.name}</td>
                                 <td class="px-5">{user.isEmailVerified ? 'Verified' : 'Invited'}</td>
                                 <td class="px-5 text-primary">
-                                    {#if user.role !== UserRole.Publisher && user.role !== UserRole.Admin}
+                                    {#if user.role !== UserRole.Publisher && user.role !== UserRole.Admin && !$userIsEqual(user.id)}
                                         <button
                                             data-app-insights-event-name="disable-user-button-click"
                                             class="btn btn-circle btn-link btn-xs"
