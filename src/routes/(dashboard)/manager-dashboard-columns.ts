@@ -8,6 +8,7 @@ export const assignedContentsColumns: column<ResourceAssignedToSelf>[] = [
     { text: 'Language', itemKey: 'languageEnglishDisplay', sortKey: undefined },
     { text: 'Project', itemKey: 'projectName', sortKey: undefined },
     { text: 'Status', itemKey: 'statusDisplayName', sortKey: undefined },
+    { text: 'Last Assigned', itemKey: 'lastAssignedUser', sortKey: undefined },
     { text: 'Last Edit (Days)', itemKey: 'daysSinceContentUpdated', sortKey: undefined },
     {
         text: 'Deadline (Days)',
@@ -44,6 +45,7 @@ export const manageContentsColumns: column<ResourceAssignedToOwnCompany>[] = [
     { text: 'Language', itemKey: 'languageEnglishDisplay', sortKey: undefined },
     { text: 'Project', itemKey: 'projectName', sortKey: undefined },
     { text: 'Status', itemKey: 'statusDisplayName', sortKey: undefined },
+    { text: 'Last Assigned', itemKey: 'lastAssignedUser', sortKey: undefined },
     { text: 'Assigned', itemKey: 'assignedUser', sortKey: undefined },
     { text: 'Last Edit (Days)', itemKey: 'daysSinceContentUpdated', sortKey: undefined },
     {
