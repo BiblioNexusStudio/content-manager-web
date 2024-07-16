@@ -16,7 +16,14 @@
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import UserSelector from './UserSelector.svelte';
-    import { currentUser, Permission, userCan, userIsEqual, userIsInCompany } from '$lib/stores/auth';
+    import {
+        currentUser,
+        isAuthenticatedStore,
+        Permission,
+        userCan,
+        userIsEqual,
+        userIsInCompany,
+    } from '$lib/stores/auth';
     import { type CommentStores, createCommentStores } from '$lib/stores/comments';
     import spinner from 'svelte-awesome/icons/spinner';
     import { Icon } from 'svelte-awesome';
@@ -232,11 +239,13 @@
         // navigation up front, and then conditionally doing a `goto` if the save is successful.
         // See https://github.com/sveltejs/kit/issues/4421#issuecomment-1129879937
         if (get(editableContentStore.hasChanges) || get(editableDisplayNameStore.hasChanges)) {
-            cancel();
-            if (!(await save(true))) {
-                autoSaveErrorModal.showModal();
-            } else {
-                to?.url && (await goto(to.url));
+            if ($isAuthenticatedStore) {
+                cancel();
+                if (!(await save(true))) {
+                    autoSaveErrorModal.showModal();
+                } else {
+                    to?.url && (await goto(to.url));
+                }
             }
         }
     });
