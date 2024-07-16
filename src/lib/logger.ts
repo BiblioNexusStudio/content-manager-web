@@ -56,7 +56,9 @@ export const log = {
                 'ResizeObserver loop completed with undelivered notifications'
             );
 
-            if (ignoredFetchError || ignoredResizeError) {
+            const ignoredApiError = 'isApiError' in error && error.status === 401;
+
+            if (ignoredFetchError || ignoredResizeError || ignoredApiError) {
                 logToAppInsights = false;
             }
 
