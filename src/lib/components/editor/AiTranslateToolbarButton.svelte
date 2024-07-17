@@ -30,6 +30,7 @@
     const isPageTransacting = getIsPageTransactingContext();
 
     let isErrorModalOpen = false;
+    let isTranslating = false;
     let machineTranslation = machineTranslationStore.machineTranslation;
     $: showTranslateButton = canShowAnything && !$machineTranslation.id;
     $: showRating = canShowAnything && !showTranslateButton && $userIsEqual($machineTranslation.userId);
@@ -98,6 +99,7 @@
         const originalDisplayName = $editableDisplayNameStore;
         try {
             $isPageTransacting = true;
+            isTranslating = true;
             isLoading = true;
 
             await translateDisplayName();
@@ -115,6 +117,7 @@
         } finally {
             if (!editor.isDestroyed) {
                 $isPageTransacting = false;
+                isTranslating = false;
                 isLoading = false;
             }
         }
@@ -135,7 +138,7 @@
 </script>
 
 {#if showTranslateButton}
-    {#if $isPageTransacting}
+    {#if isTranslating}
         <div class="flex w-[42px] justify-center">
             <div class="loading loading-infinity loading-md text-primary" />
         </div>
@@ -148,6 +151,7 @@
             <button
                 data-app-insights-event-name="editor-toolbar-translate-click"
                 class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
+                disabled={$isPageTransacting}
                 on:click={onClick}><TranslateIcon /></button
             >
         </Tooltip>
