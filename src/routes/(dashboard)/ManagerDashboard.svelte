@@ -348,8 +348,6 @@
                             <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
                                 >{item[itemKey] ?? ''}</LinkedTableCell
                             >
-                        {:else if itemKey === 'lastAssignedUser'}
-                            <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
                         {:else if href !== undefined && itemKey}
                             <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                         {:else if itemKey}
@@ -397,6 +395,8 @@
                         <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
                             >{item[itemKey] ?? ''}</LinkedTableCell
                         >
+                    {:else if itemKey === 'lastAssignedUser'}
+                        <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
                     {:else if href !== undefined && itemKey}
                         <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                     {:else if itemKey}
