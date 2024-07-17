@@ -1,4 +1,5 @@
 import config from '$lib/config';
+import { log } from '$lib/logger';
 import { auth0Client, logout } from '$lib/stores/auth';
 import type { ExtendType } from '$lib/types/base';
 import { FetchError, ApiError, AuthUninitializedError, TokenMissingError } from './http-errors';
@@ -115,6 +116,11 @@ export async function putToApi<T = never>(path: string, body: RequestBody | unde
     return JSON.parse(text);
 }
 
+// To deal with Auth0 weirdness, this does the following:
+// 1. try to get the token normally
+//   a. if the token is expired, get the token bypassing the cache
+// 2. if there is an error due to "login_required", then logout
+// 3. if there is any other kind of error, get the token bypassing the cache
 async function authTokenHeader(): Promise<string | undefined> {
     if (!auth0Client) {
         throw new AuthUninitializedError();
@@ -124,10 +130,30 @@ async function authTokenHeader(): Promise<string | undefined> {
 
     try {
         token = await auth0Client.getTokenSilently();
-    } catch {
-        // if the user is no longer logged in, take them through the login process
-        await logout(new URL(window.location.toString()));
-        return token;
+        if (token) {
+            const decodedToken = JSON.parse(atob(token.split('.')[1]!));
+            const currentTime = Math.floor(Date.now() / 1000);
+
+            if (decodedToken.exp <= currentTime) {
+                log.exception(
+                    new Error('Token has expired even though Auth0 returned it, bypassing cache to get a fresh one.')
+                );
+                token = await auth0Client.getTokenSilently({ cacheMode: 'off' });
+            }
+        }
+    } catch (error) {
+        const castError = error as { error?: string } | undefined;
+        if (castError && 'error' in castError && castError.error === 'login_required') {
+            log.exception(new Error(`User needs to login again. Token: ${token}`));
+            await logout(new URL(window.location.toString()));
+        } else {
+            log.exception(new Error('Unknown token fetch error happened, bypassing cache to get a fresh one.'));
+            try {
+                token = await auth0Client.getTokenSilently({ cacheMode: 'off' });
+            } catch {
+                // If this fails, the throw below will happen
+            }
+        }
     }
 
     // if for some reason the token couldn't be retrieved and there was no Auth0 error, throw our own error
