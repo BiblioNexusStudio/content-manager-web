@@ -317,7 +317,7 @@
                             >{item[itemKey] ?? ''}</LinkedTableCell
                         >
                     {:else if itemKey === 'lastAssignedUser'}
-                        <TableCell>{item[itemKey]?.name ?? ''}</TableCell>
+                        <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
                     {:else if href !== undefined && itemKey}
                         <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                     {:else if itemKey}
@@ -349,7 +349,7 @@
                                 >{item[itemKey] ?? ''}</LinkedTableCell
                             >
                         {:else if itemKey === 'lastAssignedUser'}
-                            <TableCell>{item[itemKey]?.name ?? ''}</TableCell>
+                            <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
                         {:else if href !== undefined && itemKey}
                             <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                         {:else if itemKey}
