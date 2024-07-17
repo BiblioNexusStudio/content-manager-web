@@ -105,13 +105,16 @@ export interface ResourceAssignedToSelf {
     rowSelected: boolean;
     daysSinceContentUpdated: number | null;
     sortOrder: number;
+    lastAssignedUser: ResourceUser | null;
 }
 
 export interface ResourceAssignedToOwnCompany extends ResourceAssignedToSelf {
-    assignedUser: {
-        id: number;
-        name: string;
-    };
+    assignedUser: ResourceUser;
+}
+
+export interface ResourceUser {
+    id: number;
+    name: string;
 }
 
 export interface ResourcePendingReview {
