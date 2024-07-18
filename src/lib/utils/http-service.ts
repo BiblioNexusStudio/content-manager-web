@@ -121,6 +121,8 @@ export async function putToApi<T = never>(path: string, body: RequestBody | unde
 //   a. if the token is expired, get the token bypassing the cache
 // 2. if there is an error due to "login_required", then logout
 // 3. if there is any other kind of error, get the token bypassing the cache
+// 4. if that still doesn't work, get the token by doing a popup, which lets the user login and continue the request
+//    that was running.
 async function authTokenHeader(): Promise<string | undefined> {
     if (!auth0Client) {
         throw new AuthUninitializedError();
@@ -151,7 +153,8 @@ async function authTokenHeader(): Promise<string | undefined> {
             try {
                 token = await auth0Client.getTokenSilently({ cacheMode: 'off' });
             } catch {
-                // If this fails, the throw below will happen
+                log.exception(new Error('Getting fresh token failed, getting token via popup.'));
+                token = await auth0Client.getTokenWithPopup();
             }
         }
     }
