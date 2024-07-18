@@ -18,7 +18,7 @@
     export let itemUrlPrefix: string | undefined = undefined;
     export let selectedItems: T[] = [];
     export let noItemsText = 'Your work is all done!';
-    export let searchAble = false;
+    export let searchable = false;
     export let searchText: string | undefined = undefined;
     export let noItemsAfterSearchText = 'No results.';
 
@@ -96,7 +96,7 @@
         {#if items.length === 0}
             <tr>
                 <td colspan="99" class="text-center">
-                    {#if searchAble && !!searchText}
+                    {#if searchable && !!searchText}
                         {noItemsAfterSearchText}
                     {:else}
                         {noItemsText}

@@ -48,6 +48,9 @@ export function createEditorDashboardSorter() {
                 { key: 'englishLabel', dir: 'ASC' },
             ],
         },
+        [SortName.Title]: {
+            primarySortKeys: ['sortOrder', 'englishLabel'],
+        },
     });
 }
 

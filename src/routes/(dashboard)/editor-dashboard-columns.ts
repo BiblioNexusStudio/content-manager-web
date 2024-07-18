@@ -1,0 +1,19 @@
+﻿import type { column } from '$lib/types/table';
+import { SortName } from './dashboard-table-sorters';
+import type { ResourceAssignedToSelf } from './+page';
+
+export const myWorkColumns: column<ResourceAssignedToSelf>[] = [
+    { text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title },
+    { text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined },
+    { text: 'Last Edit (Days)', itemKey: 'daysSinceContentUpdated', sortKey: undefined },
+    {
+        text: 'Days Assigned',
+        itemKey: 'daysSinceAssignment',
+        sortKey: SortName.Days,
+    },
+    {
+        text: 'Word Count',
+        itemKey: 'wordCount',
+        sortKey: SortName.WordCount,
+    },
+];
