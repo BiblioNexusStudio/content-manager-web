@@ -283,7 +283,7 @@
         addTranslationModal.showModal();
     }
 
-    async function callNextUpApi() {
+    async function callNextUpApi(resourceContentId: string) {
         let nextUpInfo: ResourceContentNextUpInfo | null = null;
 
         try {
@@ -333,72 +333,60 @@
         await takeActionAndRefresh(() => postToApi(`/admin/resources/content/${resourceContentId}/unpublish`));
     }
 
-    async function takeActionAndGoToNextResource<T>(action: () => Promise<T>) {
+    async function sendForManagerReview() {
+        const currentResourceContentId = resourceContentId;
         $isPageTransacting = true;
 
-        let nextUpInfo: ResourceContentNextUpInfo | null = null;
-        try {
-            nextUpInfo = await getFromApi<ResourceContentNextUpInfo>(`/resources/content/${resourceContentId}/next-up`);
-        } catch (error) {
-            log.exception(error);
+        const nextUpInfo = await callNextUpApi(currentResourceContentId);
+
+        if (currentResourceContentId !== resourceContentId) {
+            return;
         }
 
-        await takeActionAndCallback(action, async () => {
-            if (nextUpInfo === null) {
-                return;
-            }
-
-            if (nextUpInfo.nextUpResourceContentId) {
-                shouldTransition = true;
-                await goto(`/resources/${nextUpInfo.nextUpResourceContentId}`);
-            } else {
-                await goto(`/`);
-            }
-        });
-    }
-
-    async function sendForManagerReview() {
-        $isPageTransacting = true;
-
-        const nextUpInfo = await callNextUpApi();
-
         await takeActionAndCallback(
-            () =>
-                postToApi<{ assignments: Assignment[] }>(
-                    `/resources/content/${resourceContentId}/send-for-manager-review`
+            async () =>
+                await postToApi<{ assignments: Assignment[] }>(
+                    `/resources/content/${currentResourceContentId}/send-for-manager-review`
                 ),
             async (response) => {
                 if (
+                    !nextUpInfo ||
                     response?.assignments.some(
                         (assignment) =>
                             assignment.assignedUserId === $currentUser?.id &&
-                            assignment.resourceContentId === parseInt(resourceContentId)
+                            assignment.resourceContentId === parseInt(currentResourceContentId)
                     )
                 ) {
                     window?.location?.reload();
                 } else {
-                    handleNextUpInfo(nextUpInfo);
+                    await handleNextUpInfo(nextUpInfo);
                 }
             }
         );
     }
 
     async function sendForPublisherReview() {
+        const currentResourceContentId = resourceContentId;
         $isPageTransacting = true;
 
         confirmSendPublisherReviewModal?.close();
-        const nextUpInfo = await callNextUpApi();
+
+        const nextUpInfo = await callNextUpApi(currentResourceContentId);
+
+        if (currentResourceContentId !== resourceContentId) {
+            return;
+        }
 
         await takeActionAndCallback(
-            () =>
-                postToApi<{ changedByPublisher: boolean }>(
-                    `/resources/content/${resourceContentId}/send-for-publisher-review`
+            async () =>
+                await postToApi<{ changedByPublisher: boolean }>(
+                    `/resources/content/${currentResourceContentId}/send-for-publisher-review`
                 ),
             async (response) => {
-                if (response?.changedByPublisher) {
+                if (!nextUpInfo || response?.changedByPublisher) {
                     window?.location?.reload();
                 } else {
-                    handleNextUpInfo(nextUpInfo);
+                    await handleNextUpInfo(nextUpInfo);
                 }
             }
         );
@@ -431,37 +419,56 @@
     }
 
     async function assignUser() {
-        await takeActionAndGoToNextResource(() =>
-            postToApi(`/resources/content/${resourceContentId}/assign-editor`, {
-                assignedUserId: assignToUserId,
-            })
+        const currentResourceContentId = resourceContentId;
+        $isPageTransacting = true;
+
+        const nextUpInfo = await callNextUpApi(currentResourceContentId);
+
+        if (currentResourceContentId !== resourceContentId) {
+            return;
+        }
+
+        await takeActionAndCallback(
+            async () =>
+                await postToApi(`/resources/content/${currentResourceContentId}/assign-editor`, {
+                    assignedUserId: assignToUserId,
+                }),
+            async () => {
+                if (!nextUpInfo) {
+                    window?.location?.reload();
+                } else {
+                    await handleNextUpInfo(nextUpInfo);
+                }
+            }
         );
     }
 
     async function createTranslation() {
         await takeActionAndCallback<{ resourceContentId: number } | null>(
-            () =>
-                postToApi<{ resourceContentId: number }>('/admin/resources/content/create-translation', {
+            async () =>
+                await postToApi<{ resourceContentId: number }>('/admin/resources/content/create-translation', {
                     languageId: parseInt(newTranslationLanguageId!),
                     baseContentId: englishContentTranslation?.contentId,
                     useDraft: createTranslationFromDraft,
                 }),
-            (response) => goto(`/resources/${response?.resourceContentId}`)
+            async (response) => await goto(`/resources/${response?.resourceContentId}`)
         );
     }
 
     async function assignDraftToEditor() {
         if (isInTranslationWorkflow) {
-            await takeActionAndRefresh(() =>
-                postToApi(`/admin/resources/content/${resourceContentId}/assign-translator`, {
-                    assignedUserId: assignToUserId,
-                })
+            await takeActionAndRefresh(
+                async () =>
+                    await postToApi(`/admin/resources/content/${resourceContentId}/assign-translator`, {
+                        assignedUserId: assignToUserId,
+                    })
             );
         } else if (isNewDraftStatus) {
-            await takeActionAndRefresh(() =>
-                postToApi(`/admin/resources/content/${resourceContentId}/assign-editor`, {
-                    assignedUserId: assignToUserId,
-                })
+            await takeActionAndRefresh(
+                async () =>
+                    await postToApi(`/admin/resources/content/${resourceContentId}/assign-editor`, {
+                        assignedUserId: assignToUserId,
+                    })
             );
         }
     }
