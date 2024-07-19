@@ -43,8 +43,12 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             },
         };
     } else if (get(userCan)(Permission.EditContent)) {
-        const resourceContent = fetchAssignedResourceContent(fetch);
-        return { editorDashboard: { resourceContent } };
+        const assignedResourceContent = fetchAssignedResourceContent(fetch);
+        const assignedResourceHistoryContent = getFromApiWithoutBlocking<ResourceAssignedToSelfHistory[]>(
+            '/resources/content/assigned-to-self/history',
+            fetch
+        );
+        return { editorDashboard: { assignedResourceContent, assignedResourceHistoryContent } };
     } else if (get(userCan)(Permission.ReadReports)) {
         throw redirect(302, '/reporting');
     } else {
@@ -106,6 +110,15 @@ export interface ResourceAssignedToSelf {
     daysSinceContentUpdated: number | null;
     sortOrder: number;
     lastAssignedUser: ResourceUser | null;
+}
+
+export interface ResourceAssignedToSelfHistory {
+    id: number;
+    englishLabel: string;
+    parentResourceName: string;
+    lastActionTime: string;
+    sourceWords: number;
+    sortOrder: number;
 }
 
 export interface ResourceAssignedToOwnCompany extends ResourceAssignedToSelf {

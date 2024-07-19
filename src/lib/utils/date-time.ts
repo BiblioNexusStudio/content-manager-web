@@ -7,12 +7,16 @@ export function formatDate(dateString: string): string {
     return `${year}-${month}-${day}`;
 }
 
-export function formatUtcToLocalTimeAndDate(dateString: string): string {
-    if (!dateString.endsWith('Z')) {
-        dateString += 'Z';
+export function utcDateTimeStringToDateTime(date: string): Date {
+    if (!date.endsWith('Z')) {
+        date += 'Z';
     }
 
-    const dateTime = new Date(dateString);
+    return new Date(date);
+}
+
+export function formatUtcToLocalTimeAndDate(dateString: string): string {
+    const dateTime = utcDateTimeStringToDateTime(dateString);
 
     const time = dateTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
     const date = dateTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });

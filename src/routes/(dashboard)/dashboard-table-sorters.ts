@@ -1,5 +1,11 @@
 ﻿import { createListSorter } from '$lib/utils/sorting';
-import type { Project, ResourceAssignedToSelf, ResourcePendingReview, UserWordCount } from './+page';
+import type {
+    Project,
+    ResourceAssignedToSelf,
+    ResourceAssignedToSelfHistory,
+    ResourcePendingReview,
+    UserWordCount,
+} from './+page';
 
 export enum SortName {
     Days = 'days',
@@ -32,7 +38,7 @@ export function createManagerDashboardSorter<T extends ResourceAssignedToSelf>()
     });
 }
 
-export function createEditorDashboardSorter() {
+export function createEditorDashboardMyWorkSorter() {
     return createListSorter<ResourceAssignedToSelf>({
         [SortName.Days]: {
             primarySortKeys: ['daysSinceAssignment'],
@@ -43,6 +49,28 @@ export function createEditorDashboardSorter() {
         },
         [SortName.WordCount]: {
             primarySortKeys: ['wordCount'],
+            fallbackSortKeys: [
+                { key: 'sortOrder', dir: 'ASC' },
+                { key: 'englishLabel', dir: 'ASC' },
+            ],
+        },
+        [SortName.Title]: {
+            primarySortKeys: ['sortOrder', 'englishLabel'],
+        },
+    });
+}
+
+export function createEditorDashboardMyHistorySorter() {
+    return createListSorter<ResourceAssignedToSelfHistory>({
+        [SortName.Days]: {
+            primarySortKeys: ['lastActionTime'],
+            fallbackSortKeys: [
+                { key: 'sortOrder', dir: 'ASC' },
+                { key: 'englishLabel', dir: 'ASC' },
+            ],
+        },
+        [SortName.WordCount]: {
+            primarySortKeys: ['sourceWords'],
             fallbackSortKeys: [
                 { key: 'sortOrder', dir: 'ASC' },
                 { key: 'englishLabel', dir: 'ASC' },
