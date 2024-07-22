@@ -330,7 +330,7 @@
                         bind:searchParams={$searchParams}
                         bind:selectedItems={selectedMyWorkTableItems}
                         noItemsText="Your work is all done!"
-                        searchAble={true}
+                        searchable={true}
                         bind:searchText={search}
                         let:item
                         let:href
@@ -353,7 +353,7 @@
                         bind:searchParams={$searchParams}
                         bind:selectedItems={selectedReviewPendingTableItems}
                         noItemsText="No items pending review."
-                        searchAble={true}
+                        searchable={true}
                         bind:searchText={search}
                         let:item
                         let:href
@@ -375,7 +375,7 @@
                         itemUrlPrefix="/projects/"
                         bind:searchParams={$searchParams}
                         noItemsText="No projects assigned to you."
-                        searchAble={true}
+                        searchable={true}
                         let:item
                         let:href
                         let:itemKey

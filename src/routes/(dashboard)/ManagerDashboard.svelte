@@ -304,7 +304,7 @@
                     bind:searchParams={$searchParams}
                     bind:selectedItems={selectedMyWorkContents}
                     noItemsText="Your work is all done!"
-                    searchAble={true}
+                    searchable={true}
                     bind:searchText={search}
                     let:item
                     let:href
@@ -336,7 +336,7 @@
                         bind:selectedItems={selectedToAssignContents}
                         itemUrlPrefix="/resources/"
                         noItemsText="Your work is all done!"
-                        searchAble={true}
+                        searchable={true}
                         bind:searchText={search}
                         let:item
                         let:href
@@ -381,7 +381,7 @@
                     noItemsText={$searchParams.assignedUserId === 0
                         ? 'Your work is all done!'
                         : 'Nothing assigned to this user.'}
-                    searchAble={true}
+                    searchable={true}
                     bind:searchText={search}
                     let:item
                     let:href
