@@ -117,7 +117,7 @@ export interface ResourceAssignedToSelfHistory {
     englishLabel: string;
     parentResourceName: string;
     lastActionTime: string;
-    sourceWords: number;
+    sourceWords: number | null;
     sortOrder: number;
 }
 
