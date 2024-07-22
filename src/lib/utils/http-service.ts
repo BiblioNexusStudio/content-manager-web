@@ -1,5 +1,4 @@
 import config from '$lib/config';
-import { log } from '$lib/logger';
 import { auth0Client, logout } from '$lib/stores/auth';
 import type { ExtendType } from '$lib/types/base';
 import { FetchError, ApiError, AuthUninitializedError, TokenMissingError } from './http-errors';
@@ -137,23 +136,17 @@ async function authTokenHeader(): Promise<string | undefined> {
             const currentTime = Math.floor(Date.now() / 1000);
 
             if (decodedToken.exp <= currentTime) {
-                log.exception(
-                    new Error('Token has expired even though Auth0 returned it, bypassing cache to get a fresh one.')
-                );
                 token = await auth0Client.getTokenSilently({ cacheMode: 'off' });
             }
         }
     } catch (error) {
         const castError = error as { error?: string } | undefined;
         if (castError && 'error' in castError && castError.error === 'login_required') {
-            log.exception(new Error(`User needs to login again. Token: ${token}`));
             await logout(new URL(window.location.toString()));
         } else {
-            log.exception(new Error('Unknown token fetch error happened, bypassing cache to get a fresh one.'));
             try {
                 token = await auth0Client.getTokenSilently({ cacheMode: 'off' });
             } catch {
-                log.exception(new Error('Getting fresh token failed, getting token via popup.'));
                 token = await auth0Client.getTokenWithPopup();
             }
         }
