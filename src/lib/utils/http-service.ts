@@ -1,5 +1,4 @@
 import config from '$lib/config';
-import { log } from '$lib/logger';
 import { auth0Client, logout } from '$lib/stores/auth';
 import type { ExtendType } from '$lib/types/base';
 import { FetchError, ApiError, AuthUninitializedError, TokenMissingError } from './http-errors';
@@ -121,6 +120,8 @@ export async function putToApi<T = never>(path: string, body: RequestBody | unde
 //   a. if the token is expired, get the token bypassing the cache
 // 2. if there is an error due to "login_required", then logout
 // 3. if there is any other kind of error, get the token bypassing the cache
+// 4. if that still doesn't work, get the token by doing a popup, which lets the user login and continue the request
+//    that was running.
 async function authTokenHeader(): Promise<string | undefined> {
     if (!auth0Client) {
         throw new AuthUninitializedError();
@@ -135,23 +136,18 @@ async function authTokenHeader(): Promise<string | undefined> {
             const currentTime = Math.floor(Date.now() / 1000);
 
             if (decodedToken.exp <= currentTime) {
-                log.exception(
-                    new Error('Token has expired even though Auth0 returned it, bypassing cache to get a fresh one.')
-                );
                 token = await auth0Client.getTokenSilently({ cacheMode: 'off' });
             }
         }
     } catch (error) {
         const castError = error as { error?: string } | undefined;
         if (castError && 'error' in castError && castError.error === 'login_required') {
-            log.exception(new Error(`User needs to login again. Token: ${token}`));
             await logout(new URL(window.location.toString()));
         } else {
-            log.exception(new Error('Unknown token fetch error happened, bypassing cache to get a fresh one.'));
             try {
                 token = await auth0Client.getTokenSilently({ cacheMode: 'off' });
             } catch {
-                // If this fails, the throw below will happen
+                token = await auth0Client.getTokenWithPopup();
             }
         }
     }
