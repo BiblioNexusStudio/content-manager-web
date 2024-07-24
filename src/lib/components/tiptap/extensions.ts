@@ -13,6 +13,7 @@ import { commentsMark } from '$lib/components/tiptap/commentsMark';
 import type { CommentStores } from '$lib/stores/comments';
 import TextDirectionAuto from './textDirectionAuto';
 import { filterBoolean } from '$lib/utils/array';
+import { Video } from './video';
 
 export function extensions(
     canComment: boolean,
@@ -34,6 +35,7 @@ export function extensions(
         CharacterCount.configure({}),
         bibleReferenceMark.configure({}),
         resourceReferenceMark.configure({}),
+        Video.configure({}),
         commentsMark.configure({ render: canComment, commentStores: commentStores }),
         includeTextDirection &&
             TextDirectionAuto.configure({
