@@ -17,12 +17,22 @@
     let chart: Chart | undefined;
 
     const updateChart = (completesData: StatusCountPerMonth[], startsData: StatusCountPerMonth[]) => {
-        let countCompletes = completesData.map((item) => item.statusCount);
-        let countStarts = startsData.map((item) => item.statusCount);
+        let countCompletes = completesData.map((item) => ({
+            x: new Date(item.date).toLocaleString('default', { month: 'short' }),
+            y: item.statusCount,
+        }));
+        let countStarts = startsData.map((item) => ({
+            x: new Date(item.date).toLocaleString('default', { month: 'short' }),
+            y: item.statusCount,
+        }));
         if (chartData.data.datasets[0]) {
+            // eslint-disable-next-line
+            // @ts-ignore
             chartData.data.datasets[0].data = countCompletes;
         }
         if (chartData.data.datasets[1]) {
+            // eslint-disable-next-line
+            // @ts-ignore
             chartData.data.datasets[1].data = countStarts;
         }
     };
@@ -33,7 +43,7 @@
             labels: months,
             datasets: [
                 {
-                    data: [] as number[],
+                    data: [],
                     fill: false,
                     tension: 0.0,
                     borderColor: '#36A2EB',
@@ -41,7 +51,7 @@
                     label: 'Completed',
                 },
                 {
-                    data: [] as number[],
+                    data: [],
                     fill: false,
                     tension: 0.0,
                     borderColor: '#FF6384',
