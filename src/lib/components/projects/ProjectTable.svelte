@@ -36,7 +36,7 @@
               { name: 'language', label: 'Language', sorted: false, sortable: false },
               { name: 'projectLead', label: 'Project Lead', sorted: false, sortable: true },
               { name: 'itemCount', label: 'Items', sorted: false, sortable: true },
-              { name: 'wordCount', label: 'Word Count', sorted: false, sortable: true },
+              { name: 'wordCount', label: 'Source Words', sorted: false, sortable: true },
               { name: 'days', label: 'Days', sorted: true, sortable: true },
               { name: 'progress', label: 'Progress', sorted: false, sortable: false },
           ]
@@ -48,7 +48,7 @@
               { name: 'language', label: 'Language', sorted: false, sortable: true },
               { name: 'manager', label: 'Manager', sorted: false, sortable: false },
               { name: 'itemCount', label: 'Items', sorted: false, sortable: true },
-              { name: 'wordCount', label: 'Word Count', sorted: false, sortable: true },
+              { name: 'wordCount', label: 'Source Words', sorted: false, sortable: true },
               { name: 'days', label: 'Days', sorted: true, sortable: true },
               { name: 'progress', label: 'Progress', sorted: false, sortable: false },
           ];

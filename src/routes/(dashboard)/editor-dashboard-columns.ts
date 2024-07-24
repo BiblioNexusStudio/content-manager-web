@@ -7,7 +7,7 @@ export const myWorkColumns: column<ResourceAssignedToSelf>[] = [
     { text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined },
     { text: 'Last Edit (Days)', itemKey: 'daysSinceContentUpdated', sortKey: undefined },
     { text: 'Days Assigned', itemKey: 'daysSinceAssignment', sortKey: SortName.Days },
-    { text: 'Word Count', itemKey: 'wordCount', sortKey: SortName.WordCount },
+    { text: 'Source Words', itemKey: 'wordCount', sortKey: SortName.WordCount },
 ];
 
 export const myHistoryColumns: column<ResourceAssignedToSelfHistory>[] = [
