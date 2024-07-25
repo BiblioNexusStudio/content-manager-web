@@ -6,7 +6,7 @@
         { name: 'type', label: 'Resource' },
         { name: 'assigned', label: 'Assigned' },
         { name: 'status', label: 'Status' },
-        { name: 'wordCount', label: 'Word Count' },
+        { name: 'wordCount', label: 'Source Words' },
     ];
 </script>
 
