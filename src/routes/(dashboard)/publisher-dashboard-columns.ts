@@ -15,7 +15,7 @@ export const assignedContentsColumns: column<ResourceAssignedToSelf>[] = [
         sortKey: SortName.Days,
     },
     {
-        text: 'Word Count',
+        text: 'Source Words',
         itemKey: 'wordCount',
         sortKey: SortName.WordCount,
     },
@@ -33,7 +33,7 @@ export const reviewPendingContentsColumns: column<ResourcePendingReview>[] = [
         sortKey: SortName.Days,
     },
     {
-        text: 'Word Count',
+        text: 'Source Words',
         itemKey: 'wordCount',
         sortKey: SortName.WordCount,
     },
