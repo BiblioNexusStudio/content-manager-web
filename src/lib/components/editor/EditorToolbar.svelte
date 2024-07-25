@@ -18,6 +18,8 @@
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
+    import MenuIcon from '$lib/icons/MenuIcon.svelte';
+    import { onMount } from 'svelte';
 
     export let editor: Editor | undefined;
     export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined;
@@ -29,6 +31,7 @@
 
     const isPageTransacting = getIsPageTransactingContext();
 
+    let outerDiv: HTMLDivElement | null = null;
     let isCommentBoxOpen = false;
     const { createNewThread } = commentStores;
 
@@ -170,28 +173,73 @@
             },
         ];
     }
+
+    let resizeObserver: ResizeObserver;
+    let outerDivWidth: number | null = null;
+
+    onMount(() => {
+        if (outerDiv) {
+            resizeObserver = new ResizeObserver(() => {
+                outerDivWidth = outerDiv?.offsetWidth ?? null;
+            });
+            resizeObserver.observe(outerDiv);
+
+            return () => {
+                resizeObserver.disconnect();
+            };
+        }
+    });
 </script>
 
-<div class="min-h-6 flex flex-wrap items-center justify-between">
+<div bind:this={outerDiv} class="min-h-6 flex items-center justify-between">
     {#if editor}
         {@const commentOptions = getCommentOptions(editor)}
         <div class="flex space-x-2">
             {#if canEdit}
-                {#each formattingOptions(editor) as option (option.name)}
-                    {@const disable = option.disabled || $isPageTransacting}
-                    <button
-                        data-app-insights-event-name="editor-toolbar-{option.name}-click"
-                        class="btn btn-xs px-1 {disable && '!bg-base-200'} {option.isActive
-                            ? 'btn-primary'
-                            : 'btn-link hover:bg-[#e6f7fc]'}"
-                        disabled={disable}
-                        on:click={option.onClick}
-                    >
-                        <div class="mt-[-1px] scale-[85%]">
-                            <svelte:component this={option.icon} />
-                        </div>
-                    </button>
-                {/each}
+                {#if outerDivWidth && outerDivWidth < 500}
+                    <div class="dropdown-start dropdown dropdown-bottom">
+                        <div tabindex="0" role="button" class="btn btn-link btn-xs m-1"><MenuIcon /></div>
+                        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+                        <ul
+                            tabindex="0"
+                            class="menu dropdown-content z-50 space-y-2 rounded-box bg-base-100 p-2 shadow"
+                        >
+                            {#each formattingOptions(editor) as option (option.name)}
+                                {@const disable = option.disabled || $isPageTransacting}
+                                <li>
+                                    <button
+                                        data-app-insights-event-name="editor-toolbar-{option.name}-click"
+                                        class="btn h-auto min-h-0 px-1 py-0 {disable && '!bg-base-200'} {option.isActive
+                                            ? 'btn-primary'
+                                            : 'btn-link hover:bg-[#e6f7fc]'}"
+                                        disabled={disable}
+                                        on:click={option.onClick}
+                                    >
+                                        <div class="mt-[-1px] scale-[85%]">
+                                            <svelte:component this={option.icon} />
+                                        </div>
+                                    </button>
+                                </li>
+                            {/each}
+                        </ul>
+                    </div>
+                {:else}
+                    {#each formattingOptions(editor) as option (option.name)}
+                        {@const disable = option.disabled || $isPageTransacting}
+                        <button
+                            data-app-insights-event-name="editor-toolbar-{option.name}-click"
+                            class="btn btn-xs px-1 {disable && '!bg-base-200'} {option.isActive
+                                ? 'btn-primary'
+                                : 'btn-link hover:bg-[#e6f7fc]'}"
+                            disabled={disable}
+                            on:click={option.onClick}
+                        >
+                            <div class="mt-[-1px] scale-[85%]">
+                                <svelte:component this={option.icon} />
+                            </div>
+                        </button>
+                    {/each}
+                {/if}
                 <div class="divider divider-horizontal w-0" />
             {/if}
             {#if commentOptions.hidden}

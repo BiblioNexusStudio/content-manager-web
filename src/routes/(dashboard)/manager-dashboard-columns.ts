@@ -16,7 +16,7 @@ export const assignedContentsColumns: column<ResourceAssignedToSelf>[] = [
         sortKey: SortName.Days,
     },
     {
-        text: 'Word Count',
+        text: 'Source Words',
         itemKey: 'wordCount',
         sortKey: SortName.WordCount,
     },
@@ -33,7 +33,7 @@ export const toAssignContentsColumns: column<ResourceAssignedToSelf>[] = [
         sortKey: SortName.Days,
     },
     {
-        text: 'Word Count',
+        text: 'Source Words',
         itemKey: 'wordCount',
         sortKey: SortName.WordCount,
     },
@@ -54,7 +54,7 @@ export const manageContentsColumns: column<ResourceAssignedToOwnCompany>[] = [
         sortKey: SortName.Days,
     },
     {
-        text: 'Word Count',
+        text: 'Source Words',
         itemKey: 'wordCount',
         sortKey: SortName.WordCount,
     },
@@ -62,5 +62,5 @@ export const manageContentsColumns: column<ResourceAssignedToOwnCompany>[] = [
 
 export const userWordCountColumns: column<UserWordCount>[] = [
     { text: 'User', itemKey: 'userName', sortKey: SortName.User },
-    { text: 'Word Count', itemKey: 'assignedSourceWordCount', sortKey: SortName.WordCount },
+    { text: 'Source Words', itemKey: 'assignedSourceWordCount', sortKey: SortName.WordCount },
 ];
