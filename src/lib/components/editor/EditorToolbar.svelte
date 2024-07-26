@@ -29,6 +29,8 @@
     export let isLoading: boolean;
     export let machineTranslationStore: MachineTranslationStore;
 
+    let aiButtonWidth: number;
+
     const isPageTransacting = getIsPageTransactingContext();
 
     let outerDiv: HTMLDivElement | null = null;
@@ -196,13 +198,14 @@
         {@const commentOptions = getCommentOptions(editor)}
         <div class="flex space-x-2">
             {#if canEdit}
-                {#if outerDivWidth && outerDivWidth < 500}
-                    <div class="dropdown-start dropdown dropdown-bottom">
+                {#if outerDivWidth && outerDivWidth < 475 + aiButtonWidth}
+                    <div class="dropdown-start dropdown">
                         <div tabindex="0" role="button" class="btn btn-link btn-xs m-1"><MenuIcon /></div>
                         <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
                         <ul
                             tabindex="0"
-                            class="menu dropdown-content z-50 space-y-2 rounded-box bg-base-100 p-2 shadow"
+                            class="dropdown-content menu-horizontal z-50 h-auto min-h-0 items-center space-x-2
+                            rounded-box bg-base-100 p-2 pb-1 pt-3 shadow"
                         >
                             {#each formattingOptions(editor) as option (option.name)}
                                 {@const disable = option.disabled || $isPageTransacting}
@@ -268,6 +271,7 @@
         </div>
         <div class="flex">
             <AiTranslateToolbarButton
+                bind:renderedWidth={aiButtonWidth}
                 {editor}
                 {canEdit}
                 {editableDisplayNameStore}
