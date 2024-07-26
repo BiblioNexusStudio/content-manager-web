@@ -21,6 +21,10 @@
     export let isLoading: boolean;
     export let canEdit: boolean;
     export let machineTranslationStore: MachineTranslationStore;
+    export let innerElement: HTMLElement | null = null;
+    export let renderedWidth = 0;
+
+    $: renderedWidth = innerElement?.offsetWidth ?? 0;
 
     const canShowAnything =
         canEdit &&
@@ -139,7 +143,7 @@
 
 {#if showTranslateButton}
     {#if isTranslating}
-        <div class="flex w-[42px] justify-center">
+        <div bind:this={innerElement} class="flex w-[42px] justify-center">
             <div class="loading loading-infinity loading-md text-primary" />
         </div>
     {:else}
@@ -149,6 +153,7 @@
             text="Translate with AI"
         >
             <button
+                bind:this={innerElement}
                 data-app-insights-event-name="editor-toolbar-translate-click"
                 class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
                 disabled={$isPageTransacting}
@@ -157,7 +162,7 @@
         </Tooltip>
     {/if}
 {:else if showRating}
-    <div class="mx-2">
+    <div bind:this={innerElement} class="mx-2">
         <MachineTranslationRating {machineTranslationStore} />
     </div>
 {/if}
