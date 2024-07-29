@@ -7,10 +7,11 @@
     import { extensions } from '../tiptap/extensions';
     import { log } from '$lib/logger';
     import { Editor } from '@tiptap/core';
+    import type { ScriptDirection } from '$lib/types/base';
 
     export let tiptapJson: TiptapContentItem | undefined;
     export let currentTiptapJsonForDiffing: TiptapContentItem | undefined;
-    export let languageScriptDirection: 'LTR' | 'RTL' | undefined;
+    export let languageScriptDirection: ScriptDirection | undefined;
 
     $: calculateBaseHtmlWithTextDirection(tiptapJson);
     $: debouncedGenerateDiffHtml(currentTiptapJsonForDiffing, baseHtmlWithTextDirection);
@@ -33,7 +34,7 @@
 
     function generateHTMLIncludingTextDirection(
         tiptapJson: TiptapContentItem,
-        languageScriptDirection: 'RTL' | 'LTR' | undefined
+        languageScriptDirection: ScriptDirection | undefined
     ) {
         const editor = new Editor({
             editable: false,

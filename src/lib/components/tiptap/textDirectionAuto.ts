@@ -4,6 +4,8 @@
 // If it's different than the default, the `dir` HTML attribute will be set.
 // Note: this assumes that the editor's parent element has dir="{defaultDirection}" set.
 
+import { ScriptDirection } from '$lib/types/base';
+import { tinySpace } from '$lib/utils/reference';
 import { Extension } from '@tiptap/core';
 import { EditorState, Plugin, PluginKey } from '@tiptap/pm/state';
 
@@ -24,9 +26,9 @@ export function getNodeTextDirection(text: string) {
         return undefined;
     }
     if (RTL_REGEX.test(text)) {
-        return 'rtl';
+        return ScriptDirection.RTL;
     } else if (LTR_REGEX.test(text)) {
-        return 'ltr';
+        return ScriptDirection.LTR;
     }
     return undefined;
 }
@@ -36,7 +38,7 @@ function TextDirectionPlugin({
     defaultDirection,
 }: {
     types: string[];
-    defaultDirection: 'ltr' | 'rtl' | undefined;
+    defaultDirection: ScriptDirection | undefined;
 }) {
     return new Plugin({
         key: new PluginKey('textDirection'),
@@ -62,19 +64,47 @@ function TextDirectionPlugin({
     });
 }
 
-function updateNodeAttributesWithDir(state: EditorState, types: string[], defaultDirection: 'ltr' | 'rtl' | undefined) {
+function updateNodeAttributesWithDir(
+    state: EditorState,
+    types: string[],
+    defaultDirection: ScriptDirection | undefined
+) {
     let modified = false;
     const tr = state.tr;
 
+    let verseRefsHandled = 0;
     state.doc.descendants((node, pos) => {
         if (types.includes(node.type.name)) {
             const marks = tr.storedMarks || [];
             const direction = getNodeTextDirection(node.textContent);
             if (direction !== defaultDirection) {
-                tr.setNodeAttribute(pos, 'dir', direction);
+                tr.setNodeAttribute(pos + verseRefsHandled * 2, 'dir', direction);
             } else {
-                tr.setNodeAttribute(pos, 'dir', undefined);
+                tr.setNodeAttribute(pos + verseRefsHandled * 2, 'dir', undefined);
             }
+
+            // This code is necessary to update Tiptap content that contains Bible verse references in RTL languages
+            // like Arabic. It makes sure that a reference like Luke 12:17 shows up as 17:12 Luke instead of 12:17 Luke.
+            // It inserts tiny spaces into the content that are almost invisible to humans but the RTL browser handling
+            // notices it and formats things correctly.
+            if (direction === ScriptDirection.RTL) {
+                node.forEach((child, offset) => {
+                    if (child.isText && child.text && child.text.match(/\d+:\d+/)) {
+                        const regex = /(\d+):(\d+)/g;
+                        let match;
+
+                        while ((match = regex.exec(child.text)) !== null) {
+                            tr.insertText(
+                                `${match[1]}${tinySpace}:${tinySpace}${match[2]}`,
+                                pos + offset + match.index + 1 + verseRefsHandled * 2,
+                                pos + offset + match.index + 1 + match[0].length + verseRefsHandled * 2
+                            );
+                            verseRefsHandled++;
+                        }
+                    }
+                });
+            }
+
             // `tr.setNodeAttribute` resets the stored marks so we'll restore them
             for (const mark of marks) {
                 tr.addStoredMark(mark);
@@ -88,7 +118,7 @@ function updateNodeAttributesWithDir(state: EditorState, types: string[], defaul
 
 export interface TextDirectionOptions {
     types: string[];
-    defaultDirection?: 'ltr' | 'rtl';
+    defaultDirection?: ScriptDirection;
 }
 
 export const TextDirection = Extension.create<TextDirectionOptions>({

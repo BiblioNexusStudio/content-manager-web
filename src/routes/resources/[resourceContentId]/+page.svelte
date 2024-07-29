@@ -40,7 +40,7 @@
     import Select from '$lib/components/Select.svelte';
     import InlineComment from '$lib/components/comments/InlineComment.svelte';
     import VersePopout from '$lib/components/editorMarkPopouts/VersePopout.svelte';
-    import { getSortedReferences } from '$lib/utils/reference';
+    import { getSortedReferences, stripOutRtlVerseReferenceMarkers } from '$lib/utils/reference';
     import LicenseInfoButton from './LicenseInfoButton.svelte';
     import type { CommentThreadsResponse } from '$lib/types/comments';
     import { createSidebarContentStore } from './sidebar-content-store';
@@ -485,7 +485,7 @@
         await patchToApi(`/resources/content/${resourceContentId}`, {
             displayName,
             wordCount: calculateWordCount(wordCountsByStep),
-            ...(mediaType === MediaTypeEnum.text ? { content } : null),
+            ...(mediaType === MediaTypeEnum.text ? { content: stripOutRtlVerseReferenceMarkers(content) } : null),
         });
 
         editableDisplayNameStore.setOriginalOnly(displayName);
@@ -750,7 +750,7 @@
                 >
                     <BibleReferencesSidebar
                         visible={openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences}
-                        languageId={resourceContent.language.id}
+                        language={resourceContent.language}
                         references={getSortedReferences(resourceContent)}
                     />
                 </div>
@@ -759,7 +759,7 @@
     </div>
 
     <InlineComment {commentStores} />
-    <VersePopout languageId={resourceContent.language.id} />
+    <VersePopout language={resourceContent.language} />
 {/await}
 
 {#key resourceContentId}
