@@ -90,7 +90,7 @@
     <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Editor Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
-            <div role="tablist" class="tabs-bordered tabs w-fit">
+            <div role="tablist" class="tabs tabs-bordered w-fit">
                 <button
                     on:click={() => switchTabs(Tab.myWork)}
                     role="tab"
@@ -107,6 +107,16 @@
         </div>
         <div class="mt-4 flex gap-4">
             <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
+            {#if $searchParams.tab === Tab.myWork}
+                <div class="my-1 ml-auto flex flex-col items-end justify-center">
+                    <div class="text-sm text-gray-500">Total Items: {myWorkContents.length}</div>
+                    <div class="text-sm text-gray-500">
+                        Total Source Words: {myWorkContents
+                            .reduce((sum, x) => sum + (x?.wordCount ?? 0), 0)
+                            .toLocaleString()}
+                    </div>
+                </div>
+            {/if}
             {#if $searchParams.tab === Tab.myHistory}
                 <button
                     data-app-insights-event-name="editor-dashboard-download-my-history-csv-click"
