@@ -205,9 +205,42 @@
         $searchParamsForUserWordCount.tab &&
         userWordCountScrollingDiv &&
         (userWordCountScrollingDiv.scrollTop = 0);
+
     $: $searchParams.sort && $searchParams.tab && scrollingDiv && (scrollingDiv.scrollTop = 0);
-    $: selectedToAssignItemsCount = selectedToAssignContents.length;
-    $: selectedToAssignWordCount = selectedToAssignContents.reduce((acc, x) => acc + (x.wordCount ?? 0), 0);
+
+    let selectedCount = 0;
+    let selectedWordcount = 0;
+
+    function updateSelectedCountAndWordCount(
+        tab: string,
+        selectedToAssignItemsCount: number,
+        selectedToAssignWordCount: number,
+        selectedMyWorkItemsCount: number,
+        selectedMyWorkWordCount: number,
+        selectedManageItemsCount: number,
+        selectedManageWordCount: number
+    ) {
+        if (tab === Tab.myWork) {
+            selectedCount = selectedMyWorkItemsCount;
+            selectedWordcount = selectedMyWorkWordCount;
+        } else if (tab === Tab.toAssign) {
+            selectedCount = selectedToAssignItemsCount;
+            selectedWordcount = selectedToAssignWordCount;
+        } else if (tab === Tab.manage) {
+            selectedCount = selectedManageItemsCount;
+            selectedWordcount = selectedManageWordCount;
+        }
+    }
+
+    $: updateSelectedCountAndWordCount(
+        $searchParams.tab,
+        selectedToAssignContents.length,
+        selectedToAssignContents.reduce((acc, x) => acc + (x.wordCount ?? 0), 0),
+        selectedMyWorkContents.length,
+        selectedMyWorkContents.reduce((acc, x) => acc + (x.wordCount ?? 0), 0),
+        selectedManageContents.length,
+        selectedManageContents.reduce((acc, x) => acc + (x.wordCount ?? 0), 0)
+    );
 </script>
 
 {#await loadContents()}
@@ -286,12 +319,10 @@
                     >
                 </Tooltip>
             {/if}
-            {#if $searchParams.tab === Tab.toAssign}
-                <div class="my-1 ml-auto flex flex-col items-end justify-center">
-                    <div class="text-sm text-gray-500">Selected Items: {selectedToAssignItemsCount ?? 0}</div>
-                    <div class="text-sm text-gray-500">Selected Word Count: {selectedToAssignWordCount ?? 0}</div>
-                </div>
-            {/if}
+            <div class="my-1 ml-auto flex flex-col items-end justify-center">
+                <div class="text-sm text-gray-500">Selected Items: {selectedCount ?? 0}</div>
+                <div class="text-sm text-gray-500">Selected Word Count: {selectedWordcount ?? 0}</div>
+            </div>
         </div>
 
         {#if $searchParams.tab === Tab.myWork}
