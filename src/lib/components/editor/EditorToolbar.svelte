@@ -199,8 +199,10 @@
         <div class="flex space-x-2">
             {#if canEdit}
                 {#if outerDivWidth && outerDivWidth < 475 + aiButtonWidth}
-                    <div class="dropdown-start dropdown">
-                        <div tabindex="0" role="button" class="btn btn-link btn-xs m-1"><MenuIcon /></div>
+                    <div class="dropdown-start dropdown max-h-6">
+                        <div tabindex="0" role="button" class="btn btn-link h-auto min-h-0 scale-[90%] p-0">
+                            <MenuIcon />
+                        </div>
                         <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
                         <ul
                             tabindex="0"
