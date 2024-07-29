@@ -138,12 +138,12 @@
             <div class="m-2 w-16"><a href="/"><img src={AquiferLogo} alt="Aquifer" /></a></div>
         </div>
 
-        <div class="">
-            {#if $navigating && !isCustomTransitionNavigation($navigating)}
-                <CenteredSpinner />
-            {:else}
+        {#if $navigating && !isCustomTransitionNavigation($navigating)}
+            <CenteredSpinner />
+        {:else}
+            <div class="flex max-h-[calc(100vh-39px)] w-full flex-col overflow-y-hidden">
                 <slot />
-            {/if}
-        </div>
+            </div>
+        {/if}
     </div>
 {/if}

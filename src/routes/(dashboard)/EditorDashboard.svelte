@@ -87,7 +87,7 @@
 {#await loadContents()}
     <CenteredSpinner />
 {:then _}
-    <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
+    <div class="flex flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Editor Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
             <div role="tablist" class="tabs-bordered tabs w-fit">

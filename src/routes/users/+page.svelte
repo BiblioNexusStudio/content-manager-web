@@ -65,7 +65,7 @@
 {#await loadContents()}
     <CenteredSpinner />
 {:then _}
-    <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
+    <div class="flex flex-col overflow-y-hidden px-4">
         <div class="my-4">
             <div class="text-3xl">{$translate('page.users.header.value')}</div>
         </div>

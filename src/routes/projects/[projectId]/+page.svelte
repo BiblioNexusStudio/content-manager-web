@@ -83,7 +83,7 @@
 {#await projectPromise}
     <CenteredSpinner />
 {:then projectResponse}
-    <div class="flex max-h-screen max-w-[1200px] flex-col overflow-hidden p-4">
+    <div class="flex max-w-[1200px] flex-col overflow-hidden p-4">
         <div class="flex justify-between">
             <div class="flex items-center">
                 <BackButton defaultPathIfNoHistory="/projects" />
