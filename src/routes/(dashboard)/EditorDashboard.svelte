@@ -1,6 +1,5 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
     import {
         SortName,
@@ -14,6 +13,7 @@
     import { myHistoryColumns, myWorkColumns } from './editor-dashboard-columns';
     import TableCell from '$lib/components/TableCell.svelte';
     import { download } from '$lib/utils/csv-download-handler';
+    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
 
     const sortMyWorkData = createEditorDashboardMyWorkSorter();
     const sortMyHistoryData = createEditorDashboardMyHistorySorter();
@@ -85,7 +85,7 @@
 </script>
 
 {#await loadContents()}
-    <CenteredSpinner />
+    <CenteredSpinnerFullScreen />
 {:then _}
     <div class="flex flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Editor Dashboard</h1>

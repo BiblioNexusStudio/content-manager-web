@@ -1,6 +1,5 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
     import type { Project, ResourceAssignedToSelf, ResourcePendingReview } from './+page';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
@@ -26,6 +25,7 @@
     import TableCell from '$lib/components/TableCell.svelte';
     import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
     import { filterBoolean } from '$lib/utils/array';
+    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
 
     enum Tab {
         myWork = 'my-work',
@@ -231,12 +231,12 @@
 </script>
 
 {#await allDataPromise()}
-    <CenteredSpinner />
+    <CenteredSpinnerFullScreen />
 {:then _}
     <div class="flex flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Publisher Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
-            <div role="tablist" class="tabs-bordered tabs w-fit">
+            <div role="tablist" class="tabs tabs-bordered w-fit">
                 <button
                     on:click={selectTab(Tab.myWork)}
                     role="tab"

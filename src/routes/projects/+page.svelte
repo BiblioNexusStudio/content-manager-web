@@ -1,8 +1,8 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import ProjectTable from '$lib/components/projects/ProjectTable.svelte';
     import type { ProjectStatusTab } from '$lib/types/projects';
+    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
 
     export let data: PageData;
 
@@ -16,7 +16,7 @@
 </script>
 
 {#await Promise.all([projectPromise, companiesPromise])}
-    <CenteredSpinner />
+    <CenteredSpinnerFullScreen />
 {:then [projectListResponse, companiesResponse]}
     <div class="max-h-full overflow-y-scroll">
         <div class="m-4 mb-6 flex">

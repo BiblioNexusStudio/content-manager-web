@@ -13,14 +13,16 @@
     import { logout, profile, Permission, userCan } from '$lib/stores/auth';
     import { log } from '$lib/logger';
     import { sideBarHiddenOnPage } from '$lib/stores/app';
-    import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import type { Navigation } from '@sveltejs/kit';
+    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
+    import { goto } from '$app/navigation';
 
     $: userFullName = $profile?.name ?? ' '; // set to avoid flashing undefined
 
     $: log.pageView($page.route.id ?? '');
 
     let customTransitionPages = [/\/resources\/\d+/];
+    let menuElement: HTMLUListElement;
 
     function isCustomTransitionNavigation(navigation: Navigation) {
         return customTransitionPages.some((pageRegex) => {
@@ -85,6 +87,13 @@
             element = element.parentNode as HTMLElement;
         }
     }
+
+    async function onNavigationClick(href: string) {
+        // Without this the menu can hang open for a while after navigation which looks weird.
+        menuElement.hidden = true;
+        await goto(href);
+        menuElement.hidden = false;
+    }
 </script>
 
 <svelte:head>
@@ -101,23 +110,28 @@
             <div class="dropdown-start dropdown dropdown-bottom">
                 <div tabindex="0" role="button" class="btn btn-link btn-xs m-1 text-white"><MenuIcon /></div>
                 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-                <ul tabindex="0" class="menu dropdown-content z-50 space-y-2 rounded-sm bg-neutral p-2 shadow">
+                <ul
+                    bind:this={menuElement}
+                    tabindex="0"
+                    class="dropdown-content z-50 min-w-[250px] space-y-2 rounded-sm bg-neutral p-2 text-neutral-100 shadow"
+                >
                     {#each sidebarNavigation as navItem (navItem.href)}
                         {#if !navItem.hidden}
                             <li class="">
-                                <a
-                                    href={navItem.href}
-                                    class="btn btn-ghost btn-neutral btn-block justify-start px-2 text-lg normal-case text-neutral-100"
+                                <button
+                                    on:click={() => onNavigationClick(navItem.href)}
+                                    class="btn btn-ghost btn-neutral btn-block justify-start px-2 text-lg normal-case"
                                 >
-                                    <svelte:component this={navItem.icon} />{navItem.name}</a
+                                    <svelte:component this={navItem.icon} />{navItem.name}</button
                                 >
                             </li>
                         {/if}
                     {/each}
 
-                    <li class="flex text-neutral-100">
-                        <div class="grid-cols-4">
-                            <div class="col-span-3 text-sm font-bold text-white">
+                    <li class="mx-2">
+                        <div class="divider before:bg-neutral-100 after:bg-neutral-100" />
+                        <div class="flex place-items-center justify-between">
+                            <div class="col-span-3 text-sm font-bold">
                                 {userFullName}
                             </div>
                             <div class="flex items-center justify-end">
@@ -139,9 +153,9 @@
         </div>
 
         {#if $navigating && !isCustomTransitionNavigation($navigating)}
-            <CenteredSpinner />
+            <CenteredSpinnerFullScreen />
         {:else}
-            <div class="flex max-h-[calc(100vh-39px)] w-full flex-col overflow-y-hidden">
+            <div class="flex max-h-[calc(100vh-39px)] w-full flex-col">
                 <slot />
             </div>
         {/if}

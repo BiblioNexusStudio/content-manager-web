@@ -1,6 +1,5 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { searchParameters, ssp, type SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
     import type { ResourceAssignedToOwnCompany, ResourceAssignedToSelf, UserWordCount } from './+page';
     import { createManagerDashboardSorter, SortName, createUserWordCountSorter } from './dashboard-table-sorters';
@@ -22,6 +21,7 @@
         manageContentsColumns,
         userWordCountColumns,
     } from './manager-dashboard-columns';
+    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
 
     export let data: PageData;
     let search = '';
@@ -211,12 +211,12 @@
 </script>
 
 {#await loadContents()}
-    <CenteredSpinner />
+    <CenteredSpinnerFullScreen />
 {:then _}
     <div class="flex flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Manager Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
-            <div role="tablist" class="tabs-bordered tabs w-fit">
+            <div role="tablist" class="tabs tabs-bordered w-fit">
                 <button
                     on:click={() => switchTabs(Tab.myWork)}
                     role="tab"

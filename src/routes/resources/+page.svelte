@@ -11,6 +11,7 @@
     import { numbersRangeToString, parseStartAndEndFromSingleOrRangeString } from '$lib/utils/number-list-parser';
     import type { Bible } from '$lib/types/base';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
+    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
 
     export let data: PageData;
 
@@ -111,11 +112,11 @@
 </script>
 
 {#await biblesPromise}
-    <CenteredSpinner />
+    <CenteredSpinnerFullScreen />
 {:then bibles}
-    <div class="flex h-[95vh] flex-col pt-0 lg:h-screen lg:pt-4">
+    <div class="flex h-full flex-col overflow-hidden pt-0 lg:pt-4">
         <div class="mx-4 text-3xl">{$translate('page.resources.header.value')}</div>
-        <div class="flex flex-row space-x-2 overflow-x-auto px-4 py-2">
+        <div class="flex flex-shrink-0 flex-row space-x-2 overflow-x-auto px-4 py-2">
             <Select
                 appInsightsEventName="resources-languages-filter-selection"
                 bind:value={languageId}
