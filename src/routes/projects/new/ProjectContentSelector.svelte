@@ -6,7 +6,7 @@
     import { enterKeyHandler } from '$lib/utils/enter-key-action';
     import { getFromApi } from '$lib/utils/http-service';
     import { parseNumbersListFromString } from '$lib/utils/number-list-parser';
-    import { sortByKey } from '$lib/utils/sorting';
+    import { sortByKeys } from '$lib/utils/sorting';
     import type { PageData } from './$types';
     import ProjectContentSelectorTable from './ProjectContentSelectorTable.svelte';
     import type { ResourceContentForSelection } from './types';
@@ -51,9 +51,9 @@
         if (selectedOnLeftBeingAquiferized.length > 0 && !force) {
             showingAquiferizeInProgressModal = true;
         } else {
-            allContentOnRight = sortByKey(
+            allContentOnRight = sortByKeys(
                 allContentOnRight.concat([...idsSelectedOnLeft].map((id) => fetchedContentCache[id]!)),
-                'title'
+                ['sortOrder', 'title']
             )!;
             idsSelectedOnLeft = new Set();
         }
