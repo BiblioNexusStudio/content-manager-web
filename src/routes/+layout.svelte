@@ -13,14 +13,15 @@
     import { logout, profile, Permission, userCan } from '$lib/stores/auth';
     import { log } from '$lib/logger';
     import { sideBarHiddenOnPage } from '$lib/stores/app';
-    import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import type { Navigation } from '@sveltejs/kit';
+    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
 
     $: userFullName = $profile?.name ?? ' '; // set to avoid flashing undefined
 
     $: log.pageView($page.route.id ?? '');
 
     let customTransitionPages = [/\/resources\/\d+/];
+    let menuElement: HTMLUListElement;
 
     function isCustomTransitionNavigation(navigation: Navigation) {
         return customTransitionPages.some((pageRegex) => {
@@ -96,57 +97,60 @@
 {#if $sideBarHiddenOnPage}
     <slot />
 {:else}
-    <div class="drawer lg:drawer-open">
-        <input id="main-drawer" type="checkbox" class="drawer-toggle" />
-        <div class="drawer-content">
-            <!-- Page content here -->
-            <label for="main-drawer" class="btn btn-link btn-active drawer-button btn-xs justify-start p-1 lg:hidden"
-                ><MenuIcon /></label
-            >
-            {#if $navigating && !isCustomTransitionNavigation($navigating)}
-                <CenteredSpinner />
-            {:else}
-                <slot />
-            {/if}
-        </div>
-        <div class="drawer-side z-10">
-            <!-- Sidebar content here -->
-            <label for="main-drawer" class="drawer-overlay" />
-            <div class="flex h-full w-48 flex-col bg-neutral pb-1">
-                <div class="m-2 flex-grow-0"><img src={AquiferLogo} alt="Aquifer" /></div>
-
-                {#each sidebarNavigation as navItem (navItem.href)}
-                    {#if !navItem.hidden}
-                        <div class="flex-grow-0">
-                            <a
-                                href={navItem.href}
-                                class="btn btn-ghost btn-neutral btn-block justify-start px-2 text-lg normal-case text-neutral-100"
-                                ><svelte:component this={navItem.icon} />{navItem.name}</a
-                            >
-                        </div>
-                    {/if}
-                {/each}
-
-                <div class="mx-2 flex flex-grow flex-col justify-end text-neutral-100">
-                    <div class="divider" />
-                    <div class="mb-2 grid grid-cols-4 content-center">
-                        <div class="col-span-3 text-sm font-bold text-white">
-                            {userFullName}
-                        </div>
-                        <div class="flex items-center justify-end">
-                            <div class="tooltip tooltip-left" data-tip={$translate('sidebar.logout.value')}>
-                                <button
-                                    data-app-insights-event-name="logout-click"
-                                    class="btn btn-link m-0 h-4 min-h-0 w-4 p-0 text-neutral-100"
-                                    on:click={() => logout($page.url)}
+    <div class="">
+        <div class="flex h-[39px] place-items-center bg-neutral px-4">
+            <div class="dropdown-start dropdown dropdown-bottom">
+                <div tabindex="0" role="button" class="btn btn-link btn-xs m-1 text-white"><MenuIcon /></div>
+                <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+                <ul
+                    bind:this={menuElement}
+                    tabindex="0"
+                    class="dropdown-content z-50 min-w-[250px] space-y-2 rounded-sm bg-neutral p-2 text-neutral-100 shadow"
+                >
+                    {#each sidebarNavigation as navItem (navItem.href)}
+                        {#if !navItem.hidden}
+                            <li class="">
+                                <a
+                                    href={navItem.href}
+                                    on:click={menuElement.blur}
+                                    class="btn btn-ghost btn-neutral btn-block justify-start px-2 text-lg normal-case"
                                 >
-                                    <LoginIcon />
-                                </button>
+                                    <svelte:component this={navItem.icon} />{navItem.name}</a
+                                >
+                            </li>
+                        {/if}
+                    {/each}
+
+                    <li class="mx-2">
+                        <div class="divider before:bg-neutral-100 after:bg-neutral-100" />
+                        <div class="flex place-items-center justify-between">
+                            <div class="col-span-3 text-sm font-bold">
+                                {userFullName}
+                            </div>
+                            <div class="flex items-center justify-end">
+                                <div class="tooltip tooltip-left" data-tip={$translate('sidebar.logout.value')}>
+                                    <button
+                                        data-app-insights-event-name="logout-click"
+                                        class="btn btn-link m-0 h-4 min-h-0 w-4 p-0 text-neutral-100"
+                                        on:click={() => logout($page.url)}
+                                    >
+                                        <LoginIcon />
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </li>
+                </ul>
             </div>
+            <div class="m-2 w-16"><a href="/"><img src={AquiferLogo} alt="Aquifer" /></a></div>
         </div>
+
+        {#if $navigating && !isCustomTransitionNavigation($navigating)}
+            <CenteredSpinnerFullScreen />
+        {:else}
+            <div class="flex max-h-[calc(100vh-39px)] w-full flex-col">
+                <slot />
+            </div>
+        {/if}
     </div>
 {/if}

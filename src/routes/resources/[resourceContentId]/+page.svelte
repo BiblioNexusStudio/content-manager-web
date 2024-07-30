@@ -51,6 +51,7 @@
     import BibleReferencesSidebar from './BibleReferencesSidebar.svelte';
     import { log } from '$lib/logger';
     import { createIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
+    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
@@ -503,7 +504,7 @@
 </script>
 
 {#await resourceContentPromise}
-    <CenteredSpinner />
+    <CenteredSpinnerFullScreen />
 {:then resourceContent}
     <div
         on:introend={() => (shouldTransition = false)}
@@ -620,7 +621,7 @@
             bind:openedSupplementalSideBar
         />
 
-        <div class="flex h-[calc(100vh-250px)]">
+        <div class="flex h-[calc(100vh-265px)]">
             <div
                 class="h-full {$sidebarContentStore.animateOpen &&
                     'transition-[width]'} {!$sidebarContentStore.isOpen && !isShowingSupplementalSidebar

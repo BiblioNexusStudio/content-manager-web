@@ -1,6 +1,5 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { _ as translate } from 'svelte-i18n';
     import NewUserModal from '$lib/components/users/NewUserModal.svelte';
     import { type Company, type User, UserRole } from '$lib/types/base';
@@ -10,6 +9,7 @@
     import PersonDashIcon from '$lib/icons/PersonDashIcon.svelte';
     import { patchToApi } from '$lib/utils/http-service';
     import { createIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
+    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
 
     export let data: PageData;
 
@@ -63,9 +63,9 @@
 </script>
 
 {#await loadContents()}
-    <CenteredSpinner />
+    <CenteredSpinnerFullScreen />
 {:then _}
-    <div class="flex max-h-screen flex-col overflow-y-hidden px-4">
+    <div class="flex flex-col overflow-y-hidden px-4">
         <div class="my-4">
             <div class="text-3xl">{$translate('page.users.header.value')}</div>
         </div>

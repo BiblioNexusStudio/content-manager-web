@@ -1,6 +1,5 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { Permission, userCan } from '$lib/stores/auth';
     import { users, project } from '$lib/stores/projects';
     import ProjectViewTabs from '$lib/components/projects/ProjectViewTabs.svelte';
@@ -11,6 +10,7 @@
     import BackButton from '$lib/components/BackButton.svelte';
     import type { ProjectResource } from '$lib/types/projects';
     import { browser } from '$app/environment';
+    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
 
     export let data: PageData;
     const { users: dataUsers } = data;
@@ -81,9 +81,9 @@
 </script>
 
 {#await projectPromise}
-    <CenteredSpinner />
+    <CenteredSpinnerFullScreen />
 {:then projectResponse}
-    <div class="flex max-h-screen max-w-[1200px] flex-col overflow-hidden p-4">
+    <div class="flex max-w-[1200px] flex-col overflow-hidden p-4">
         <div class="flex justify-between">
             <div class="flex items-center">
                 <BackButton defaultPathIfNoHistory="/projects" />
