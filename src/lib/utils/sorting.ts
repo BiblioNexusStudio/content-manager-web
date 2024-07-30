@@ -68,14 +68,19 @@ export function createListSorter<T>(mapping: SortConfig<T>): (list: T[], sort: s
 }
 
 export function sortByKey<T>(items: T[] | null, key: keyof T, direction: 'asc' | 'desc' = 'asc'): T[] | null {
+    return sortByKeys(items, [key], direction);
+}
+
+export function sortByKeys<T>(items: T[] | null, keys: (keyof T)[], direction: 'asc' | 'desc' = 'asc'): T[] | null {
     if (!items) return null;
     return items.sort((a, b) => {
-        if (a[key] > b[key]) {
-            return direction === 'asc' ? 1 : -1;
-        } else if (a[key] < b[key]) {
-            return direction === 'asc' ? -1 : 1;
-        } else {
-            return 0;
+        for (const key of keys) {
+            if (a[key] > b[key]) {
+                return direction === 'asc' ? 1 : -1;
+            } else if (a[key] < b[key]) {
+                return direction === 'asc' ? -1 : 1;
+            }
         }
+        return 0;
     });
 }
