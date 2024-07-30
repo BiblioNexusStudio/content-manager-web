@@ -4,8 +4,9 @@
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import BibleTextReference from '$lib/components/references/BibleTextReference.svelte';
     import { type BibleTextsReference, fetchAndFormat } from '$lib/components/references/bibleTextReferenceFetcher';
+    import type { Language } from '$lib/types/base';
 
-    export let languageId: number;
+    export let language: Language;
 
     let markSpan: HTMLElement | null;
     let show = false;
@@ -30,7 +31,7 @@
             markSpan = document.getElementById(spanId);
 
             // I don't think the extra const is really needed here, but out of an abundance of caution...
-            const fetchResponse = await fetchAndFormat(startVerse, endVerse, languageId);
+            const fetchResponse = await fetchAndFormat(startVerse, endVerse, language);
             if (!fetchResponse) {
                 failedFetch = true;
             }

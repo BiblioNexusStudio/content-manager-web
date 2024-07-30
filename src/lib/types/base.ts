@@ -45,11 +45,16 @@ export const statusColorMap: Record<ResourceContentStatusEnum, string> = {
     [ResourceContentStatusEnum.TranslationManagerReview]: '#6172f3',
 };
 
+export enum ScriptDirection {
+    RTL = 'RTL',
+    LTR = 'LTR',
+}
+
 export interface Language {
     id: number;
     iso6393Code: string;
     englishDisplay: string;
-    scriptDirection?: 'RTL' | 'LTR';
+    scriptDirection: ScriptDirection;
 }
 
 export interface BasicUser {
