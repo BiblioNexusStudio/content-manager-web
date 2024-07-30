@@ -65,7 +65,10 @@
 
     $: !isErrorModalOpen && (customErrorMessage = null);
 
+    let myWorkProjectNames: string[] = [];
     let toAssignProjectNames: string[] = [];
+    let manageProjectNames: string[] = [];
+    let currentProjectNames: string[] = [];
     let myWorkContents: ResourceAssignedToSelf[] = [];
     let currentMyWorkContents: ResourceAssignedToSelf[] = [];
     let selectedMyWorkContents: ResourceAssignedToSelf[] = [];
@@ -82,8 +85,10 @@
 
     const setTabContents = (tab: string, assignedUserId: number, toAssignProjectName: string, search: string) => {
         if (tab === Tab.myWork) {
-            currentMyWorkContents = myWorkContents.filter((x) =>
-                x.englishLabel.toLowerCase().includes(search.toLowerCase())
+            currentMyWorkContents = myWorkContents.filter(
+                (x) =>
+                    x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
+                    (toAssignProjectName === '' || x.projectName === toAssignProjectName)
             );
         } else if (tab === Tab.toAssign) {
             currentToAssignContents = toAssignContents.filter(
@@ -95,7 +100,8 @@
             currentManageContents = manageContents.filter(
                 (x) =>
                     (assignedUserId === 0 || x.assignedUser.id === assignedUserId) &&
-                    x.englishLabel.toLowerCase().includes(search.toLowerCase())
+                    x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
+                    (toAssignProjectName === '' || x.projectName === toAssignProjectName)
             );
         }
     };
@@ -124,12 +130,28 @@
             userWordCountsPromise,
         ]);
 
+        myWorkProjectNames = Array.from(new Set(filterBoolean(myWorkContents.map((c) => c.projectName)))).sort();
         toAssignProjectNames = Array.from(new Set(filterBoolean(toAssignContents.map((c) => c.projectName)))).sort();
+        manageProjectNames = Array.from(new Set(filterBoolean(manageContents.map((c) => c.projectName)))).sort();
 
         // Handle situation where project is set in the searchParams but is no longer valid. E.g. saved bookmark
         // or forced refresh after assign that removed all of them.
-        if (!toAssignProjectNames.includes($searchParams.project)) {
+        if (
+            ($searchParams.tab === Tab.toAssign && !toAssignProjectNames.includes($searchParams.project)) ||
+            ($searchParams.tab === Tab.manage && !manageProjectNames.includes($searchParams.project)) ||
+            ($searchParams.tab === Tab.myWork && !myWorkProjectNames.includes($searchParams.project))
+        ) {
             $searchParams.project = '';
+        }
+    };
+
+    const switchProjectNames = (tab: string) => {
+        if (tab === Tab.myWork) {
+            currentProjectNames = myWorkProjectNames;
+        } else if (tab === Tab.toAssign) {
+            currentProjectNames = toAssignProjectNames;
+        } else if (tab === Tab.manage) {
+            currentProjectNames = manageProjectNames;
         }
     };
 
@@ -137,6 +159,7 @@
         if ($searchParams.tab === tab) return;
 
         $searchParams.tab = tab;
+        $searchParams.project = '';
         resetSelections();
     };
 
@@ -206,8 +229,29 @@
         userWordCountScrollingDiv &&
         (userWordCountScrollingDiv.scrollTop = 0);
     $: $searchParams.sort && $searchParams.tab && scrollingDiv && (scrollingDiv.scrollTop = 0);
-    $: selectedToAssignItemsCount = selectedToAssignContents.length;
-    $: selectedToAssignWordCount = selectedToAssignContents.reduce((acc, x) => acc + (x.wordCount ?? 0), 0);
+
+    let selectedCount = 0;
+    let selectedWordCount = 0;
+
+    function calculateSelectedCounts(
+        selectedMyWorkContents: ResourceAssignedToSelf[],
+        selectedToAssignContents: ResourceAssignedToSelf[],
+        selectedManageContents: ResourceAssignedToOwnCompany[]
+    ) {
+        if ($searchParams.tab === Tab.myWork) {
+            selectedCount = selectedMyWorkContents.length;
+            selectedWordCount = selectedMyWorkContents.reduce((acc, x) => acc + (x.wordCount ?? 0), 0);
+        } else if ($searchParams.tab === Tab.toAssign) {
+            selectedCount = selectedToAssignContents.length;
+            selectedWordCount = selectedToAssignContents.reduce((acc, x) => acc + (x.wordCount ?? 0), 0);
+        } else if ($searchParams.tab === Tab.manage) {
+            selectedCount = selectedManageContents.length;
+            selectedWordCount = selectedManageContents.reduce((acc, x) => acc + (x.wordCount ?? 0), 0);
+        }
+    }
+
+    $: calculateSelectedCounts(selectedMyWorkContents, selectedToAssignContents, selectedManageContents);
+    $: switchProjectNames($searchParams.tab);
 </script>
 
 {#await loadContents()}
@@ -239,18 +283,13 @@
         </div>
         <div class="mt-4 flex gap-4">
             <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
-            {#if $searchParams.tab === Tab.toAssign}
-                <Select
-                    class="select select-bordered max-w-[14rem] flex-grow"
-                    bind:value={$searchParams.project}
-                    onChange={resetSelections}
-                    isNumber={false}
-                    options={[
-                        { value: '', label: 'Project' },
-                        ...toAssignProjectNames.map((p) => ({ value: p, label: p })),
-                    ]}
-                />
-            {/if}
+            <Select
+                class="select select-bordered max-w-[14rem] flex-grow"
+                bind:value={$searchParams.project}
+                onChange={resetSelections}
+                isNumber={false}
+                options={[{ value: '', label: 'Project' }, ...currentProjectNames.map((p) => ({ value: p, label: p }))]}
+            />
             {#if $searchParams.tab === Tab.manage}
                 <Select
                     class="select select-bordered max-w-[14rem] flex-grow"
@@ -286,12 +325,10 @@
                     >
                 </Tooltip>
             {/if}
-            {#if $searchParams.tab === Tab.toAssign}
-                <div class="my-1 ml-auto flex flex-col items-end justify-center">
-                    <div class="text-sm text-gray-500">Selected Items: {selectedToAssignItemsCount ?? 0}</div>
-                    <div class="text-sm text-gray-500">Selected Word Count: {selectedToAssignWordCount ?? 0}</div>
-                </div>
-            {/if}
+            <div class="my-1 ml-auto flex flex-col items-end justify-center">
+                <div class="text-sm text-gray-500">Selected Items: {selectedCount ?? 0}</div>
+                <div class="text-sm text-gray-500">Selected Word Count: {selectedWordCount ?? 0}</div>
+            </div>
         </div>
 
         {#if $searchParams.tab === Tab.myWork}
