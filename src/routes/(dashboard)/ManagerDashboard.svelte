@@ -206,8 +206,28 @@
         userWordCountScrollingDiv &&
         (userWordCountScrollingDiv.scrollTop = 0);
     $: $searchParams.sort && $searchParams.tab && scrollingDiv && (scrollingDiv.scrollTop = 0);
-    $: selectedToAssignItemsCount = selectedToAssignContents.length;
-    $: selectedToAssignWordCount = selectedToAssignContents.reduce((acc, x) => acc + (x.wordCount ?? 0), 0);
+
+    let selectedCount = 0;
+    let selectedWordCount = 0;
+
+    function calculateSelectedCounts(
+        selectedMyWorkContents: ResourceAssignedToSelf[],
+        selectedToAssignContents: ResourceAssignedToSelf[],
+        selectedManageContents: ResourceAssignedToOwnCompany[]
+    ) {
+        if ($searchParams.tab === Tab.myWork) {
+            selectedCount = selectedMyWorkContents.length;
+            selectedWordCount = selectedMyWorkContents.reduce((acc, x) => acc + (x.wordCount ?? 0), 0);
+        } else if ($searchParams.tab === Tab.toAssign) {
+            selectedCount = selectedToAssignContents.length;
+            selectedWordCount = selectedToAssignContents.reduce((acc, x) => acc + (x.wordCount ?? 0), 0);
+        } else if ($searchParams.tab === Tab.manage) {
+            selectedCount = selectedManageContents.length;
+            selectedWordCount = selectedManageContents.reduce((acc, x) => acc + (x.wordCount ?? 0), 0);
+        }
+    }
+
+    $: calculateSelectedCounts(selectedMyWorkContents, selectedToAssignContents, selectedManageContents);
 </script>
 
 {#await loadContents()}
@@ -286,12 +306,10 @@
                     >
                 </Tooltip>
             {/if}
-            {#if $searchParams.tab === Tab.toAssign}
-                <div class="my-1 ml-auto flex flex-col items-end justify-center">
-                    <div class="text-sm text-gray-500">Selected Items: {selectedToAssignItemsCount ?? 0}</div>
-                    <div class="text-sm text-gray-500">Selected Word Count: {selectedToAssignWordCount ?? 0}</div>
-                </div>
-            {/if}
+            <div class="my-1 ml-auto flex flex-col items-end justify-center">
+                <div class="text-sm text-gray-500">Selected Items: {selectedCount ?? 0}</div>
+                <div class="text-sm text-gray-500">Selected Word Count: {selectedWordCount ?? 0}</div>
+            </div>
         </div>
 
         {#if $searchParams.tab === Tab.myWork}
