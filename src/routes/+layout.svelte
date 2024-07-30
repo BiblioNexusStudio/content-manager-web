@@ -15,7 +15,6 @@
     import { sideBarHiddenOnPage } from '$lib/stores/app';
     import type { Navigation } from '@sveltejs/kit';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
-    import { goto } from '$app/navigation';
 
     $: userFullName = $profile?.name ?? ' '; // set to avoid flashing undefined
 
@@ -87,13 +86,6 @@
             element = element.parentNode as HTMLElement;
         }
     }
-
-    async function onNavigationClick(href: string) {
-        // Without this the menu can hang open for a while after navigation which looks weird.
-        menuElement.hidden = true;
-        await goto(href);
-        menuElement.hidden = false;
-    }
 </script>
 
 <svelte:head>
@@ -118,11 +110,12 @@
                     {#each sidebarNavigation as navItem (navItem.href)}
                         {#if !navItem.hidden}
                             <li class="">
-                                <button
-                                    on:click={() => onNavigationClick(navItem.href)}
+                                <a
+                                    href={navItem.href}
+                                    on:click={menuElement.blur}
                                     class="btn btn-ghost btn-neutral btn-block justify-start px-2 text-lg normal-case"
                                 >
-                                    <svelte:component this={navItem.icon} />{navItem.name}</button
+                                    <svelte:component this={navItem.icon} />{navItem.name}</a
                                 >
                             </li>
                         {/if}
