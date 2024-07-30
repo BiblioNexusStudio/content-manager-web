@@ -5,9 +5,10 @@
     import { instanceOfPassageReference } from '$lib/utils/reference';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { fetchLanguageDefaultBible, type BasicBible } from '$lib/utils/bibles-fetcher';
+    import type { Language } from '$lib/types/base';
 
     export let references: (PassageReference | VerseReference)[];
-    export let languageId: number;
+    export let language: Language;
     export let visible: boolean;
 
     $: if (visible && !promise) {
@@ -17,7 +18,7 @@
     let promise: Promise<{ bible: BasicBible | undefined; bibleTextsReferences: BibleTextsReference[] }> | null = null;
 
     async function getBibleTextsReferences() {
-        const bible = await fetchLanguageDefaultBible(languageId);
+        const bible = await fetchLanguageDefaultBible(language.id);
         const bibleTextsReferences: BibleTextsReference[] = [];
         // The reason I loop instead of firing them all off at once is because it grabs by book, and
         // presumably there will be multiple within the same book. This way any follow-ups can use the cached
@@ -29,13 +30,13 @@
                 bibleTextsReference = await fetchAndFormat(
                     reference.startVerseId.toString(),
                     reference.endVerseId.toString(),
-                    languageId
+                    language
                 );
             } else {
                 bibleTextsReference = await fetchAndFormat(
                     reference.verseId.toString(),
                     reference.verseId.toString(),
-                    languageId
+                    language
                 );
             }
 

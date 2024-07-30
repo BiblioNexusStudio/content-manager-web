@@ -14,12 +14,13 @@ import type { CommentStores } from '$lib/stores/comments';
 import TextDirectionAuto from './textDirectionAuto';
 import { filterBoolean } from '$lib/utils/array';
 import { Video } from './video';
+import type { ScriptDirection } from '$lib/types/base';
 
 export function extensions(
     canComment: boolean,
     commentStores: CommentStores | undefined,
     includeTextDirection: boolean,
-    languageScriptDirection: 'RTL' | 'LTR' | undefined
+    languageScriptDirection: ScriptDirection | undefined
 ) {
     return filterBoolean([
         StarterKit.configure({}),
@@ -39,7 +40,7 @@ export function extensions(
         Video.configure({}),
         includeTextDirection &&
             TextDirectionAuto.configure({
-                defaultDirection: languageScriptDirection?.toLowerCase() as 'ltr' | 'rtl' | undefined,
+                defaultDirection: languageScriptDirection,
                 types: ['heading', 'paragraph', 'orderedList', 'bulletList', 'listItem'],
             }),
     ]);

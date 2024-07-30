@@ -4,8 +4,9 @@
     import type { TiptapContentItem } from '$lib/types/resources';
     import { extensions } from '../tiptap/extensions';
     import type { CommentStores } from '$lib/stores/comments';
+    import type { ScriptDirection } from '$lib/types/base';
 
-    export let languageScriptDirection: 'LTR' | 'RTL' | undefined;
+    export let languageScriptDirection: ScriptDirection | undefined;
     export let tiptapJson: TiptapContentItem | undefined;
     export let onChange: ((tiptapJson: object, wordCount: number) => void) | undefined = undefined;
     export let onCreate: ((tiptapJson: object, wordCount: number) => void) | undefined = undefined;
