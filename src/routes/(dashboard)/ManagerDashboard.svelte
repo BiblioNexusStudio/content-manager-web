@@ -150,6 +150,7 @@
         if ($searchParams.tab === tab) return;
 
         $searchParams.tab = tab;
+        $searchParams.project = '';
         resetSelections();
     };
 
