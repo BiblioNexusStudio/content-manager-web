@@ -147,13 +147,18 @@ async function authTokenHeader(): Promise<string | undefined> {
             try {
                 token = await auth0Client.getTokenSilently({ cacheMode: 'off' });
             } catch {
-                token = await auth0Client.getTokenWithPopup();
+                try {
+                    token = await auth0Client.getTokenWithPopup();
+                } catch {
+                    // popup failed for some reason, will logout below
+                }
             }
         }
     }
 
-    // if for some reason the token couldn't be retrieved and there was no Auth0 error, throw our own error
+    // if for some reason the token couldn't be retrieved and there was no Auth0 error, logout
     if (!token) {
+        await logout(new URL(window.location.toString()));
         throw new TokenMissingError();
     }
 
