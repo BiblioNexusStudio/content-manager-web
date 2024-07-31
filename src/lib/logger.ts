@@ -50,13 +50,15 @@ export const log = {
 
             const ignoredFetchError =
                 'isFetchError' in error &&
-                (error.message.includes('Failed to fetch') || error.message.includes('Load failed'));
+                (error.message.includes('Failed to fetch') ||
+                    error.message.includes('Load failed') ||
+                    error.message.includes('NetworkError when attempting to fetch resource'));
 
             const ignoredResizeError = error.message.includes(
                 'ResizeObserver loop completed with undelivered notifications'
             );
 
-            if (ignoredFetchError || ignoredResizeError) {
+            if (ignoredFetchError || ignoredResizeError || 'isTokenMissingError' in error) {
                 logToAppInsights = false;
             }
 
