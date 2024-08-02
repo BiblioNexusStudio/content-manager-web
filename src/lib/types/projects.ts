@@ -22,13 +22,6 @@ export interface ProjectResourceStatusCounts {
     completed: number;
 }
 
-export interface ProjectTableColumn {
-    name: string;
-    label: string;
-    sorted: boolean;
-    sortable: boolean;
-}
-
 export interface ProjectResource {
     assignedUserName: string | null;
     englishLabel: string | null;

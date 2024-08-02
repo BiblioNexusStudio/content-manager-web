@@ -7,13 +7,11 @@
     import Select from '$lib/components/Select.svelte';
     import { Permission, userCan } from '$lib/stores/auth';
     import Table from '$lib/components/Table.svelte';
-    import {
-        projectTableColumns,
-        projectTableColumnsWithManager,
-    } from '../../../routes/projects/project-table-columns';
+    import { projectTableColumns, projectTableColumnsWithManager } from './project-table-columns';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
+    import { createProjectListSorter, SortName } from './project-table-sorter';
 
     export let projects: ProjectListResponse[] = [];
     export let languages: Language[] = [];
@@ -30,7 +28,9 @@
     let filterByLanguage: string | null = null;
     let projectSearchValue = '';
 
-    const searchParams = searchParameters({ sort: ssp.string('days') }, { runLoadAgainWhenParamsChange: false });
+    const sortProjectListData = createProjectListSorter<ProjectListResponse>();
+
+    const searchParams = searchParameters({ sort: ssp.string(SortName.Days) }, { runLoadAgainWhenParamsChange: false });
 
     $: listData = handleListData(projects, projectSearchValue, currentTab, filterByCompany, filterByLanguage);
 
@@ -122,7 +122,7 @@
 <div class="mx-4 max-h-full flex-[2] overflow-y-scroll">
     <Table
         columns={$userCan(Permission.ReadProjects) ? projectTableColumns : projectTableColumnsWithManager}
-        items={listData}
+        items={sortProjectListData(listData, $searchParams.sort)}
         enableSelectAll={false}
         enableSelect={false}
         searchText={projectSearchValue}
