@@ -12,6 +12,9 @@ export interface ProjectListResponse {
     days?: number;
     counts: ProjectResourceStatusCounts;
     isStarted: boolean;
+
+    // calculated on frontend
+    daysForSorting?: number;
 }
 
 export interface ProjectResourceStatusCounts {

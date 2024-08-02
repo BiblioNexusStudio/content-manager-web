@@ -43,20 +43,25 @@
     ) {
         const lowerCaseSearchValue = projectSearchValue.toLowerCase();
 
-        const listData = projects.filter((project) => {
-            const matchesSearchValue = [project.name].some((field) =>
-                field.toLowerCase().includes(lowerCaseSearchValue)
-            );
-            const matchesCompany = filterByCompany == null || filterByCompany == project.company;
-            const matchesLanguage = filterByLanguage == null || filterByLanguage == project.language;
+        const listData = projects
+            .filter((project) => {
+                const matchesSearchValue = [project.name].some((field) =>
+                    field.toLowerCase().includes(lowerCaseSearchValue)
+                );
+                const matchesCompany = filterByCompany == null || filterByCompany == project.company;
+                const matchesLanguage = filterByLanguage == null || filterByLanguage == project.language;
 
-            if (matchesCompany && matchesLanguage && lowerCaseSearchValue.length === 0) {
-                return true;
-            } else if (matchesCompany && matchesLanguage && lowerCaseSearchValue.length > 0 && matchesSearchValue) {
-                return true;
-            }
-            return false;
-        });
+                if (matchesCompany && matchesLanguage && lowerCaseSearchValue.length === 0) {
+                    return true;
+                } else if (matchesCompany && matchesLanguage && lowerCaseSearchValue.length > 0 && matchesSearchValue) {
+                    return true;
+                }
+                return false;
+            })
+            .map((project) => ({
+                ...project,
+                daysForSorting: project.days === null || isProjectClosed(project) ? Infinity : project.days,
+            }));
 
         let activeProjects = listData.filter((p) => p.isStarted && p.counts.completed !== p.itemCount);
         let recentlyFinishedProjects = listData.filter((p) => p.isStarted && p.counts.completed === p.itemCount);
@@ -78,15 +83,15 @@
         return listData;
     }
 
-    // function isProjectClosed(project: ProjectListResponse) {
-    //     return (
-    //         project.counts.notStarted +
-    //             project.counts.inProgress +
-    //             project.counts.inManagerReview +
-    //             project.counts.inPublisherReview ===
-    //             0 && project.isStarted
-    //     );
-    // }
+    function isProjectClosed(project: ProjectListResponse) {
+        return (
+            project.counts.notStarted +
+                project.counts.inProgress +
+                project.counts.inManagerReview +
+                project.counts.inPublisherReview ===
+                0 && project.isStarted
+        );
+    }
 </script>
 
 <div class="mx-4 flex flex-col">
