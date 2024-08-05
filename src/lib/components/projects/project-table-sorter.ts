@@ -43,5 +43,8 @@ export function createProjectListSorter<T extends ProjectListResponse>() {
         [SortName.Days]: {
             primarySortKeys: ['daysForSorting'],
         },
+        [SortName.SourceWords]: {
+            primarySortKeys: ['wordCount'],
+        },
     });
 }
