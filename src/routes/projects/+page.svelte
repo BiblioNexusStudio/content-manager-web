@@ -18,20 +18,18 @@
 {#await Promise.all([projectPromise, companiesPromise])}
     <CenteredSpinnerFullScreen />
 {:then [projectListResponse, companiesResponse]}
-    <div class="max-h-full overflow-y-scroll">
+    <div class="flex flex-col overflow-y-hidden">
         <div class="m-4 mb-6 flex">
             <h1 class="my-auto text-3xl">Projects</h1>
         </div>
-        <div class="m-4">
-            <ProjectTable
-                projects={projectListResponse}
-                companies={companiesResponse}
-                bind:currentTab
-                bind:activeCount
-                bind:recentlyFinishedCount
-                bind:notStartedCount
-                {languages}
-            />
-        </div>
+        <ProjectTable
+            projects={projectListResponse}
+            companies={companiesResponse}
+            bind:currentTab
+            bind:activeCount
+            bind:recentlyFinishedCount
+            bind:notStartedCount
+            {languages}
+        />
     </div>
 {/await}

@@ -12,6 +12,9 @@ export interface ProjectListResponse {
     days?: number;
     counts: ProjectResourceStatusCounts;
     isStarted: boolean;
+
+    // calculated on frontend
+    daysForSorting?: number;
 }
 
 export interface ProjectResourceStatusCounts {
@@ -20,13 +23,6 @@ export interface ProjectResourceStatusCounts {
     inManagerReview: number;
     inPublisherReview: number;
     completed: number;
-}
-
-export interface ProjectTableColumn {
-    name: string;
-    label: string;
-    sorted: boolean;
-    sortable: boolean;
 }
 
 export interface ProjectResource {
