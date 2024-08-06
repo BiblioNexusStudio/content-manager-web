@@ -69,7 +69,7 @@
         </tr>
     </thead>
     <tbody>
-        {#each items as item, index (index)}
+        {#each items as item (item['id'])}
             {@const href = itemUrlPrefix && `${itemUrlPrefix}${item['id'] ?? ''}`}
             <tr class="hover">
                 {#if enableSelectAll || enableSelect}
