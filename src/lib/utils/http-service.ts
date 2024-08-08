@@ -5,6 +5,7 @@ import { FetchError, ApiError, AuthUninitializedError, TokenMissingError } from 
 
 const API_KEY = config.PUBLIC_AQUIFER_API_KEY;
 const BASE_URL = config.PUBLIC_AQUIFER_API_URL;
+const SOURCE_HEADER = 'admin-cms';
 
 type CustomFetchOptions = ExtendType<FetchOptions, 'body', object | undefined>;
 type RequestBody = Record<string, unknown>;
@@ -40,6 +41,10 @@ async function rawApiFetch(path: string, injectedFetch: typeof window.fetch | nu
 
     if (!fetchOptions.headers['Authorization']) {
         fetchOptions.headers['Authorization'] = (await authTokenHeader()) as string;
+    }
+
+    if (!fetchOptions.headers['bn-source']) {
+        fetchOptions.headers['bn-source'] = SOURCE_HEADER;
     }
 
     if (options.body) {
