@@ -510,7 +510,7 @@
         on:introend={() => (shouldTransition = false)}
         in:fly={{ x: '100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 350 : 0 }}
         out:fly={{ x: '-100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 250 : 0 }}
-        class="p-8"
+        class="px-8 pt-4"
     >
         <div class="flex w-full items-center justify-between border-b-2 pb-2">
             <div class="me-2 flex place-items-center">
@@ -621,7 +621,7 @@
             bind:openedSupplementalSideBar
         />
 
-        <div class="flex h-[calc(100vh-265px)]">
+        <div class="flex h-[calc(100vh-245px)]">
             <div
                 class="h-full {$sidebarContentStore.animateOpen &&
                     'transition-[width]'} {!$sidebarContentStore.isOpen && !isShowingSupplementalSidebar
