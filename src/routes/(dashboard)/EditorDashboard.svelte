@@ -130,6 +130,7 @@
                 <Table
                     columns={myWorkColumns}
                     items={sortMyWorkData(visibleMyWorkContents, $searchParams.sort)}
+                    idColumn="id"
                     itemUrlPrefix="/resources/"
                     bind:searchParams={$searchParams}
                     noItemsText="Your work is all done!"
@@ -149,6 +150,7 @@
                 <Table
                     columns={myHistoryColumns}
                     items={sortMyHistoryData(visibleMyHistoryContents, $searchParams.sort)}
+                    idColumn="id"
                     itemUrlPrefix="/resources/"
                     bind:searchParams={$searchParams}
                     noItemsText="Your work is all done!"

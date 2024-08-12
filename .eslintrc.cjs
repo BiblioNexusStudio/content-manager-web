@@ -19,6 +19,9 @@ module.exports = {
             parser: 'svelte-eslint-parser',
             parserOptions: {
                 parser: '@typescript-eslint/parser',
+                svelteFeatures: {
+                    experimentalGenerics: true,
+                },
             },
         },
     ],
