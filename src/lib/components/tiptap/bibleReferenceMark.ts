@@ -58,3 +58,43 @@ export const bibleReferenceMark = Mark.create({
         ];
     },
 });
+
+interface VerseReference {
+    startVerse: string | number;
+    endVerse: string | number;
+}
+
+interface ContentNode {
+    type: string;
+    marks?: MarkType[];
+    content?: ContentNode[];
+}
+
+interface MarkType {
+    type: string;
+    attrs?: {
+        verses?: VerseReference[];
+    };
+}
+
+export const parseBibleReferences = (tiptap: { doc: ContentNode }): VerseReference[] => {
+    const references: VerseReference[] = [];
+
+    const traverseContent = (node: ContentNode) => {
+        console.log(node);
+        if (node.type === 'text' && node.marks) {
+            node.marks.forEach((mark) => {
+                if (mark.type === 'bibleReference' && mark.attrs?.verses) {
+                    references.push(...mark.attrs.verses);
+                }
+            });
+        }
+
+        if (node.content) {
+            node.content.forEach(traverseContent);
+        }
+    };
+
+    traverseContent(tiptap.doc);
+    return references.filter(({ startVerse, endVerse }) => !!startVerse && !!endVerse);
+};

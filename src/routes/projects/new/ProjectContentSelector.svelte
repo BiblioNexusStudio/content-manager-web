@@ -19,7 +19,7 @@
 
     const { resourceTypes } = data;
 
-    $: bible = data.bibles?.[0];
+    $: bibleBooks = data.bibleBooks;
     let resourceTypeId: string | null = null;
     let bookCode: string | null = null;
     let chaptersString = '';
@@ -37,7 +37,7 @@
     $: chapters = parseNumbersListFromString(
         chaptersString,
         1,
-        bible?.books.find((b) => b.bookCode === bookCode)?.chapterCount ?? 0
+        bibleBooks?.find((b) => b.code === bookCode)?.totalChapters ?? 0
     );
 
     $: bookCode && (chaptersString = ''); // reset chapters if book code changes
@@ -123,7 +123,7 @@
                 class="select select-bordered"
                 options={[
                     { value: null, label: 'Select Book' },
-                    ...(bible?.books || []).map((b) => ({ value: b.bookCode, label: b.displayName })),
+                    ...(bibleBooks || []).map((b) => ({ value: b.code, label: b.localizedName })),
                 ]}
                 bind:value={bookCode}
             />

@@ -1,22 +1,17 @@
 import { fetchLanguageDefaultBible } from '$lib/utils/bibles-fetcher';
-import { fetchBibleBookTexts, type BibleBook } from '$lib/utils/bible-book-fetcher';
-
-interface ParsedVerse {
-    bookId: number;
-    chapter: number;
-    verse: number;
-}
+import { fetchBibleBookTexts, type BibleBookTexts } from '$lib/utils/bible-book-fetcher';
+import { parseVerseId, type Verse } from './bible-passage-utils';
 
 export async function fetchBiblePassages(
     startVerseId: string,
     endVerseId: string,
     languageId: number
-): Promise<BibleBook[]> {
+): Promise<BibleBookTexts[]> {
     const start = parseVerseId(startVerseId);
     const end = parseVerseId(endVerseId);
     const spansMultipleBooks = start.bookId !== end.bookId;
 
-    const texts: BibleBook[] = [];
+    const texts: BibleBookTexts[] = [];
     const bible = await fetchLanguageDefaultBible(languageId);
     const bibleId = bible?.id ?? 1;
 
@@ -49,7 +44,7 @@ export async function fetchBiblePassages(
     return texts;
 }
 
-const getText = async (bibleId: number, start: ParsedVerse, end: ParsedVerse): Promise<BibleBook | null> => {
+const getText = async (bibleId: number, start: Verse, end: Verse): Promise<BibleBookTexts | null> => {
     const bibleBook = await fetchBibleBookTexts(bibleId, start.bookId);
     if (bibleBook) {
         bibleBook.chapters = bibleBook.chapters.filter((b) => b.number >= start.chapter && b.number <= end.chapter);
@@ -58,12 +53,4 @@ const getText = async (bibleId: number, start: ParsedVerse, end: ParsedVerse): P
     }
 
     return bibleBook;
-};
-
-const parseVerseId = (verseId: string): ParsedVerse => {
-    return {
-        bookId: Number(verseId.substring(1, 4)),
-        chapter: Number(verseId.substring(4, 7)),
-        verse: Number(verseId.substring(7, 10)),
-    };
 };

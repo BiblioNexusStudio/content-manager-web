@@ -2,7 +2,7 @@
 import { getFromApi } from '$lib/utils/http-service';
 import type { ApiError } from './http-errors';
 
-export interface BibleBook {
+export interface BibleBookTexts {
     bookName: string;
     bookNumber: number;
     chapters: BibleBookChapters[];
@@ -13,9 +13,9 @@ interface BibleBookChapters {
     verses: { number: number; text: string }[];
 }
 
-export async function fetchBibleBookTexts(bibleId: number, bookId: number): Promise<BibleBook | null> {
+export async function fetchBibleBookTexts(bibleId: number, bookId: number): Promise<BibleBookTexts | null> {
     try {
-        return await getFromApi<BibleBook>(`/bibles/${bibleId}/texts?bookNumber=${bookId}`);
+        return await getFromApi<BibleBookTexts>(`/bibles/${bibleId}/texts?bookNumber=${bookId}`);
     } catch (error) {
         const castError = error as ApiError | Error;
         if ('isApiError' in castError) {
