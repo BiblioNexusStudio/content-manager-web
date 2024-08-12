@@ -128,6 +128,7 @@
     <Table
         columns={$userCan(Permission.ReadProjects) ? projectTableColumns : projectTableColumnsWithManager}
         items={sortProjectListData(listData, $searchParams.sort)}
+        idColumn="id"
         enableSelectAll={false}
         enableSelect={false}
         searchText={projectSearchValue}

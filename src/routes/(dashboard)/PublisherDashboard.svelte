@@ -326,6 +326,7 @@
                         enableSelectAll={true}
                         columns={assignedContentsColumns}
                         items={sortAssignedResourceData(currentAssignedContents, $searchParams.sort)}
+                        idColumn="id"
                         itemUrlPrefix="/resources/"
                         bind:searchParams={$searchParams}
                         bind:selectedItems={selectedMyWorkTableItems}
@@ -349,6 +350,7 @@
                         enableSelectAll={true}
                         columns={reviewPendingContentsColumns}
                         items={sortPendingData(currentReviewPendingContents, $searchParams.sort)}
+                        idColumn="id"
                         itemUrlPrefix="/resources/"
                         bind:searchParams={$searchParams}
                         bind:selectedItems={selectedReviewPendingTableItems}
@@ -372,6 +374,7 @@
                         enableSelectAll={false}
                         columns={projectColumns}
                         items={sortAssignedProjectData(currentAssignedProjects, $searchParams.sort)}
+                        idColumn="id"
                         itemUrlPrefix="/projects/"
                         bind:searchParams={$searchParams}
                         noItemsText="No projects assigned to you."

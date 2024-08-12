@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" generics="T">
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
@@ -6,15 +6,13 @@
     import type { searchParameters } from '$lib/utils/sveltekit-search-params';
     import type { SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
 
-    // eslint-disable-next-line
-    export type T<IdKey extends PropertyKey = 'id'> = $$Generic<IdKey>;
-
     export let searchParams: SubscribedSearchParams<ReturnType<typeof searchParameters<{ sort: string }>>>;
 
     export let enableSelect = false;
     export let enableSelectAll = false;
     export let columns: column<T>[] = [];
     export let items: T[] = [];
+    export let idColumn: keyof T;
     export let itemUrlPrefix: string | undefined = undefined;
     export let selectedItems: T[] = [];
     export let noItemsText = 'Your work is all done!';
@@ -69,8 +67,8 @@
         </tr>
     </thead>
     <tbody>
-        {#each items as item (item['id'])}
-            {@const href = itemUrlPrefix && `${itemUrlPrefix}${item['id'] ?? ''}`}
+        {#each items as item (item[idColumn])}
+            {@const href = itemUrlPrefix && `${itemUrlPrefix}${item[idColumn] ?? ''}`}
             <tr class="hover">
                 {#if enableSelectAll || enableSelect}
                     <TableCell class="w-4">

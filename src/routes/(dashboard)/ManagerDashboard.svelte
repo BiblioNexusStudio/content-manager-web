@@ -338,6 +338,7 @@
                     columns={assignedContentsColumns}
                     items={sortAssignedData(currentMyWorkContents, $searchParams.sort)}
                     itemUrlPrefix="/resources/"
+                    idColumn="id"
                     bind:searchParams={$searchParams}
                     bind:selectedItems={selectedMyWorkContents}
                     noItemsText="Your work is all done!"
@@ -369,6 +370,7 @@
                         enableSelectAll={true}
                         columns={toAssignContentsColumns}
                         items={sortAssignedData(currentToAssignContents, $searchParams.sort)}
+                        idColumn="id"
                         bind:searchParams={$searchParams}
                         bind:selectedItems={selectedToAssignContents}
                         itemUrlPrefix="/resources/"
@@ -400,6 +402,7 @@
                         <Table
                             columns={userWordCountColumns}
                             items={sortUserWordCountData(userWordCounts, $searchParamsForUserWordCount.sort)}
+                            idColumn="userId"
                             noItemsText="No Users Found."
                             bind:searchParams={$searchParamsForUserWordCount}
                         ></Table>
@@ -412,6 +415,7 @@
                     enableSelectAll={true}
                     columns={manageContentsColumns}
                     items={sortAndFilterManageData(currentManageContents, $searchParams)}
+                    idColumn="id"
                     bind:searchParams={$searchParams}
                     bind:selectedItems={selectedManageContents}
                     itemUrlPrefix="/resources/"
