@@ -33,6 +33,7 @@
 
     export let resourceContentId: number;
     export let editor: Editor;
+    export let languageId: number;
 
     let isTransactingAdd = false;
     let isTransactingRemove = false;
@@ -142,29 +143,33 @@
     }
 
     async function deleteIfOnlyOneReference(currentMark: ReturnType<typeof editor.getAttributes>) {
-        const references = parseBibleReferences(editor.state.toJSON());
-        if (
-            currentMark.verses &&
-            references.filter(
-                ({ startVerse, endVerse }) =>
-                    startVerse.toString() === currentMark.verses[0].startVerse.toString() &&
-                    endVerse.toString() === currentMark.verses[0].endVerse.toString()
-            ).length === 1
-        ) {
-            await deleteToApi('/resources/bible-references', {
-                resourceContentId,
-                startVerseId: parseInt(currentMark.verses[0].startVerse.toString()),
-                endVerseId: parseInt(currentMark.verses[0].endVerse.toString()),
-            });
+        if (languageId === 1) {
+            const references = parseBibleReferences(editor.state.toJSON());
+            if (
+                currentMark.verses &&
+                references.filter(
+                    ({ startVerse, endVerse }) =>
+                        startVerse.toString() === currentMark.verses[0].startVerse.toString() &&
+                        endVerse.toString() === currentMark.verses[0].endVerse.toString()
+                ).length === 1
+            ) {
+                await deleteToApi('/resources/bible-references', {
+                    resourceContentId,
+                    startVerseId: parseInt(currentMark.verses[0].startVerse.toString()),
+                    endVerseId: parseInt(currentMark.verses[0].endVerse.toString()),
+                });
+            }
         }
     }
 
     async function addReference(startVerseId: string, endVerseId: string) {
-        await postToApi('/resources/bible-references', {
-            resourceContentId,
-            startVerseId: parseInt(startVerseId),
-            endVerseId: parseInt(endVerseId),
-        });
+        if (languageId === 1) {
+            await postToApi('/resources/bible-references', {
+                resourceContentId,
+                startVerseId: parseInt(startVerseId),
+                endVerseId: parseInt(endVerseId),
+            });
+        }
     }
 
     function openModal() {

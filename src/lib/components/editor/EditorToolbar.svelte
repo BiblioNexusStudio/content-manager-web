@@ -35,7 +35,7 @@
 
     const isPageTransacting = getIsPageTransactingContext();
 
-    $: canEditBibleReferences = $userCan(Permission.EditBibleReferences) && resourceContent.language.id === 1;
+    $: canEditBibleReferences = $userCan(Permission.EditBibleReferences);
     $: widthRequired = (canEditBibleReferences ? 30 : 0) + 475 + aiButtonWidth;
 
     let outerDiv: HTMLDivElement | null = null;
@@ -252,7 +252,11 @@
                 {/if}
                 <div class="divider divider-horizontal w-0" />
                 {#if canEditBibleReferences}
-                    <LinkBibleReferenceButton resourceContentId={resourceContent.resourceContentId} {editor} />
+                    <LinkBibleReferenceButton
+                        resourceContentId={resourceContent.resourceContentId}
+                        languageId={resourceContent.language.id}
+                        {editor}
+                    />
                 {/if}
             {/if}
             <Tooltip
