@@ -9,7 +9,7 @@
     import { enterKeyHandler } from '$lib/utils/enter-key-action';
     import Select from '$lib/components/Select.svelte';
     import { numbersRangeToString, parseStartAndEndFromSingleOrRangeString } from '$lib/utils/number-list-parser';
-    import type { Bible } from '$lib/types/base';
+    import type { BibleBook } from '$lib/types/base';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
 
@@ -20,14 +20,14 @@
     $: resourceContentDataPromise =
         data.resourceContentData === null ? Promise.resolve(null) : data.resourceContentData.promise;
 
-    $: biblesPromise = data.bibles.promise;
-    $: setBibles(data.bibles.promise);
+    $: bibleBooksPromise = data.bibleBooks.promise;
+    $: setBibleBooks(data.bibleBooks.promise);
 
-    async function setBibles(biblesPromise: Promise<Bible[]>) {
-        bibles = await biblesPromise;
+    async function setBibleBooks(bibleBooksPromise: Promise<BibleBook[]>) {
+        bibleBooks = await bibleBooksPromise;
     }
 
-    let bibles: Bible[] | null = null;
+    let bibleBooks: BibleBook[] | null = null;
 
     let searchInputValue = $searchParams.query;
     let languageId = $searchParams.languageId;
@@ -38,9 +38,9 @@
     let unpublishedChecked = isPublished === null || isPublished === 'false';
 
     let chapterRange = '';
-    $: calculateChapterRange(bibles);
+    $: calculateChapterRange(bibleBooks);
 
-    $: parsedRange = parseStartAndEndFromSingleOrRangeString(chapterRange, 1, calculateMaxChapter(bibles));
+    $: parsedRange = parseStartAndEndFromSingleOrRangeString(chapterRange, 1, calculateMaxChapter(bibleBooks));
     $: invalidChapterRange = !!chapterRange && parsedRange.start === 0 && parsedRange.end === 0;
 
     let isInitialResourcePerPage = true;
@@ -97,23 +97,23 @@
         return Math.ceil(totalResourceContents / $resourcesPerPage) || 1;
     }
 
-    function calculateChapterRange(bibles: Bible[] | null) {
+    function calculateChapterRange(bibleBooks: BibleBook[] | null) {
         chapterRange = numbersRangeToString(
             $searchParams.startChapter,
             $searchParams.endChapter,
             1,
-            calculateMaxChapter(bibles)
+            calculateMaxChapter(bibleBooks)
         );
     }
 
-    function calculateMaxChapter(bibles: Bible[] | null) {
-        return bibles?.[0]?.books.find((b) => b.bookCode === bookCode)?.chapterCount ?? 0;
+    function calculateMaxChapter(bibleBooks: BibleBook[] | null) {
+        return bibleBooks?.find((b) => b.code === bookCode)?.totalChapters ?? 0;
     }
 </script>
 
-{#await biblesPromise}
+{#await bibleBooksPromise}
     <CenteredSpinnerFullScreen />
-{:then bibles}
+{:then bibleBooks}
     <div class="flex h-full flex-col overflow-hidden pt-0 lg:pt-4">
         <div class="mx-4 text-3xl">{$translate('page.resources.header.value')}</div>
         <div class="flex flex-shrink-0 flex-row space-x-2 overflow-x-auto px-4 py-2">
@@ -142,7 +142,7 @@
                 class="select select-bordered min-w-[9rem] flex-grow"
                 options={[
                     { value: null, label: 'Select Book' },
-                    ...(bibles[0]?.books || []).map((b) => ({ value: b.bookCode, label: b.displayName })),
+                    ...(bibleBooks || []).map((b) => ({ value: b.code, label: b.localizedName })),
                 ]}
                 onChange={() => (chapterRange = '')}
                 bind:value={bookCode}

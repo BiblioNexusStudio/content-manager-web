@@ -111,6 +111,18 @@ export async function patchToApi<T = never>(
     return JSON.parse(text);
 }
 
+export async function deleteToApi<T = never>(
+    path: string,
+    body: RequestBody | undefined = undefined
+): Promise<T | null> {
+    const response = await rawApiFetch(path, null, { body: body || {}, method: 'DELETE' });
+    const text = await response.text();
+    if (text === '') {
+        return null;
+    }
+    return JSON.parse(text);
+}
+
 export async function putToApi<T = never>(path: string, body: RequestBody | undefined = undefined): Promise<T | null> {
     const response = await rawApiFetch(path, null, { body: body || {}, method: 'PUT' });
     const text = await response.text();

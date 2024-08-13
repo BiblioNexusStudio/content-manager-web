@@ -20,6 +20,8 @@
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
     import MenuIcon from '$lib/icons/MenuIcon.svelte';
     import { onMount } from 'svelte';
+    import LinkBibleReferenceButton from './LinkBibleReferenceButton.svelte';
+    import { Permission, userCan } from '$lib/stores/auth';
 
     export let editor: Editor | undefined;
     export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined;
@@ -32,6 +34,9 @@
     let aiButtonWidth: number;
 
     const isPageTransacting = getIsPageTransactingContext();
+
+    $: canEditBibleReferences = $userCan(Permission.EditBibleReferences);
+    $: widthRequired = (canEditBibleReferences ? 30 : 0) + 475 + aiButtonWidth;
 
     let outerDiv: HTMLDivElement | null = null;
     let isCommentBoxOpen = false;
@@ -76,7 +81,6 @@
                 editor.isActive('comments') ||
                 editor.state.selection.empty ||
                 getMarkAttributes(editor.state, 'comments')?.comments,
-            hidden: false,
             icon: CommentIcon,
         };
     }
@@ -196,9 +200,10 @@
 <div bind:this={outerDiv} class="min-h-6 flex items-center justify-between">
     {#if editor}
         {@const commentOptions = getCommentOptions(editor)}
+        {@const commentDisabled = commentOptions.disabled || $isPageTransacting}
         <div class="flex space-x-2">
             {#if canEdit}
-                {#if outerDivWidth && outerDivWidth < 475 + aiButtonWidth}
+                {#if outerDivWidth && outerDivWidth < widthRequired}
                     <div class="dropdown-start dropdown max-h-6">
                         <div tabindex="0" role="button" class="btn btn-link h-auto min-h-0 scale-[90%] p-0">
                             <MenuIcon />
@@ -246,30 +251,32 @@
                     {/each}
                 {/if}
                 <div class="divider divider-horizontal w-0" />
+                {#if canEditBibleReferences}
+                    <LinkBibleReferenceButton
+                        resourceContentId={resourceContent.resourceContentId}
+                        languageId={resourceContent.language.id}
+                        {editor}
+                    />
+                {/if}
             {/if}
-            {#if commentOptions.hidden}
-                <div class="h-6" />
-            {:else}
-                {@const disable = commentOptions.disabled || $isPageTransacting}
-                <Tooltip
-                    position={{ left: '2rem', bottom: '0.2rem' }}
-                    class="flex border-primary align-middle text-primary"
-                    text="Add Comment"
+            <Tooltip
+                position={{ left: '2rem', bottom: '0.2rem' }}
+                class="flex border-primary align-middle text-primary"
+                text="Add Comment"
+            >
+                <button
+                    data-app-insights-event-name="editor-toolbar-comment-click"
+                    class="btn btn-xs px-1 {commentDisabled && '!bg-base-200'} {commentOptions.isActive
+                        ? 'btn-primary'
+                        : 'btn-link hover:bg-[#e6f7fc]'}"
+                    disabled={commentDisabled}
+                    on:click={commentOptions.onClick}
                 >
-                    <button
-                        data-app-insights-event-name="editor-toolbar-comment-click"
-                        class="btn btn-xs px-1 {disable && '!bg-base-200'} {commentOptions.isActive
-                            ? 'btn-primary'
-                            : 'btn-link hover:bg-[#e6f7fc]'}"
-                        disabled={disable}
-                        on:click={commentOptions.onClick}
-                    >
-                        <div class="mt-[-1px] scale-[85%]">
-                            <svelte:component this={commentOptions.icon} />
-                        </div>
-                    </button>
-                </Tooltip>
-            {/if}
+                    <div class="mt-[-1px] scale-[85%]">
+                        <svelte:component this={commentOptions.icon} />
+                    </div>
+                </button>
+            </Tooltip>
         </div>
         <div class="flex">
             <AiTranslateToolbarButton

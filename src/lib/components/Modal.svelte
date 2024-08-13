@@ -65,7 +65,9 @@
             <slot />
         </div>
         {#if primaryButtonText}
-            <div class="flex w-full flex-row justify-end space-x-2 pt-4">
+            <div class="flex w-full flex-row space-x-2 pt-4">
+                <slot name="additional-buttons" />
+                <div class="flex-grow" />
                 <button
                     class="btn btn-primary"
                     on:click={handlePrimaryClick}

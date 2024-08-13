@@ -1,6 +1,6 @@
 ﻿import { fetchBiblePassages } from '$lib/utils/bible-passage-fetcher';
 import { generateVerseFromReference } from '$lib/utils/reference';
-import type { BibleBook } from '$lib/utils/bible-book-fetcher';
+import type { BibleBookTexts } from '$lib/utils/bible-book-fetcher';
 import { log } from '$lib/logger';
 import type { Language } from '$lib/types/base';
 
@@ -8,7 +8,7 @@ export interface BibleTextsReference {
     verseDisplayName: string;
     isSingleBook: boolean;
     isSingleChapter: boolean;
-    bookTexts: BibleBook[];
+    bookTexts: BibleBookTexts[];
 }
 
 export const fetchAndFormat = async (
@@ -75,7 +75,7 @@ export const fetchAndFormat = async (
     };
 };
 
-function bookTextDebugInfo(book: BibleBook | undefined) {
+function bookTextDebugInfo(book: BibleBookTexts | undefined) {
     return JSON.stringify(
         book?.chapters.map((c) => ({ numberAndVerses: `${c.number}-${JSON.stringify(c.verses.map((v) => v.number))}` }))
     );

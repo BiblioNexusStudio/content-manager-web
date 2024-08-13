@@ -84,19 +84,12 @@ export interface CurrentUser extends BasicUser {
     company: { id: number };
 }
 
-export interface Bible {
-    id: number;
-    name: string;
-    abbreviation: string;
-    books: [
-        {
-            bookCode: string;
-            displayName: string;
-            textSize: number;
-            audioSize: number;
-            chapterCount: number;
-        },
-    ];
+export interface BibleBook {
+    number: number;
+    code: string;
+    localizedName: string;
+    totalChapters: number;
+    chapters: { number: number; totalVerses: number }[];
 }
 
 export interface ProjectPlatform {
