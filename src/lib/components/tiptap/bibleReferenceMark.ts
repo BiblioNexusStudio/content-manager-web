@@ -81,7 +81,6 @@ export const parseBibleReferences = (tiptap: { doc: ContentNode }): VerseReferen
     const references: VerseReference[] = [];
 
     const traverseContent = (node: ContentNode) => {
-        console.log(node);
         if (node.type === 'text' && node.marks) {
             node.marks.forEach((mark) => {
                 if (mark.type === 'bibleReference' && mark.attrs?.verses) {

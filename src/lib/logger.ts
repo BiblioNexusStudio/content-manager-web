@@ -14,6 +14,7 @@ const appInsights = new ApplicationInsights({
 if (config.PUBLIC_APPLICATION_INSIGHTS_CONNECTION_STRING) {
     appInsights.loadAppInsights();
 } else {
+    // eslint-disable-next-line
     console.warn('No app insights connection string available.');
 }
 
@@ -62,6 +63,7 @@ export const log = {
                 logToAppInsights = false;
             }
 
+            // eslint-disable-next-line
             console.error(error);
 
             if (logToAppInsights) {
