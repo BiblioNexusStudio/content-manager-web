@@ -134,6 +134,7 @@ export interface ResourceContent {
     content: Content;
     isPublished: boolean;
     isDraft: boolean;
+    canPullBackToManagerReview: boolean;
     resourceContentVersionId: boolean;
     wordCount: number | null;
     snapshots: BasicSnapshot[];
