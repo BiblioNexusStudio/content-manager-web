@@ -4,6 +4,8 @@
 
     $: columns = buildColumns($currentListData[0] || {});
 
+    const gridColsMap = ['', 'grid-cols-1', 'grid-cols-2', 'grid-cols-3', 'grid-cols-4'];
+
     function buildColumns(object: GenericReportRow) {
         return Object.keys(object).map((key) => {
             return key;
@@ -18,7 +20,7 @@
     }
 </script>
 
-<div class="grid grid-cols-{columns.length} w-full rounded-md border border-b-0">
+<div class="grid w-full {gridColsMap[columns.length]} rounded-md border border-b-0">
     {#each columns as column (column)}
         <div class="border-b bg-gray-50 px-4 py-3 text-xs font-bold">{formatColumnName(column)}</div>
     {/each}
