@@ -3,7 +3,7 @@
     import { Permission, userCan } from '$lib/stores/auth';
     import { users, project } from '$lib/stores/projects';
     import ProjectViewTabs from '$lib/components/projects/ProjectViewTabs.svelte';
-    import ProjectViewTable from '$lib/components/projects/ProjectViewTable.svelte';
+    import ProjectViewTableAndFilters from '$lib/components/projects/ProjectViewTableAndFilters.svelte';
     import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
     import { startProject } from '$lib/utils/projects';
     import { ProjectConstants, type ProjectResponse } from '$lib/types/projects';
@@ -120,8 +120,6 @@
                 </div>
             {/if}
         </div>
-        <div class="flex w-full grow flex-col overflow-hidden rounded-md border">
-            <ProjectViewTable />
-        </div>
+        <ProjectViewTableAndFilters />
     </div>
 {/await}
