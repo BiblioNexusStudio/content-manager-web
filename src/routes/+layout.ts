@@ -22,7 +22,7 @@ export const load: LayoutLoad = async ({ url, fetch }) => {
     const [languages, resourceTypes, resourceContentStatuses, currentUser] = await Promise.all([
         getFromApi<Language[]>('/languages', fetch),
         getFromApi<ResourceType[]>('/resources/parent-resources', fetch),
-        getFromApi<ResourceContentStatus[]>('/admin/resources/content/statuses', fetch),
+        getFromApi<ResourceContentStatus[]>('/resources/content/statuses', fetch),
         getFromApi<CurrentUser>('/users/self', fetch),
     ]);
 

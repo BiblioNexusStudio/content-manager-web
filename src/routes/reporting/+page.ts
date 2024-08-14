@@ -9,7 +9,10 @@ export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
 
     if (get(userCan)(Permission.ReadReports)) {
-        const summary = getFromApiWithoutBlocking<ResourcesSummary>('/admin/resources/summary', fetch);
+        const summary = getFromApiWithoutBlocking<ResourcesSummary>(
+            '/resources/content/general-reporting-summary',
+            fetch
+        );
         const resourceItemsSummary = getFromApiWithoutBlocking<ResourceItemsSummary>(
             '/reports/resources/item-totals',
             fetch
