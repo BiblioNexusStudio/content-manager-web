@@ -179,6 +179,7 @@
             const { startVerse: startVerseId, endVerse: endVerseId } = mark.verses[0];
             const parsedStart = parseVerseId(startVerseId.toString());
             const parsedEnd = parseVerseId(endVerseId.toString());
+            isRange = startVerseId !== endVerseId;
             bookId = parsedStart.bookId;
             startChapter = parsedStart.chapter;
             startVerse = parsedStart.verse;
