@@ -45,15 +45,15 @@
 </script>
 
 {#if $project?.items}
-    <div class="mb-4 flex">
+    <div class="mb-4 flex pt-2">
         <Select
-            class="select select-bordered me-4 max-w-[14rem] flex-grow"
+            class="select select-bordered me-4 max-w-[18rem] flex-grow"
             bind:value={$searchParams.assignedUserName}
             isNumber={false}
             options={createOptions('Assigned', 'assignedUserName')}
         />
         <Select
-            class="select select-bordered me-4 max-w-[14rem] flex-grow"
+            class="select select-bordered me-4 max-w-[18rem] flex-grow"
             bind:value={$searchParams.status}
             isNumber={false}
             options={createOptions('Status', 'statusDisplayName')}
