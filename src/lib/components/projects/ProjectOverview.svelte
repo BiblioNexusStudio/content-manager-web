@@ -36,7 +36,7 @@
 >
     <div class="flex flex-col">
         <ViewTabSlot title="Title">
-            <div>{$project?.name ?? ''}</div>
+            <div class="w-2/3 text-end">{$project?.name ?? ''}</div>
         </ViewTabSlot>
         <ViewTabSlot title="Language">
             <div>{$project?.language ?? ''}</div>

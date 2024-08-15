@@ -70,6 +70,7 @@
             searchable={false}
             bind:searchParams={$searchParams}
             itemUrlPrefix="/resources/"
+            noItemsText="No items found."
             let:item
             let:href
             let:itemKey

@@ -84,7 +84,7 @@
     <CenteredSpinnerFullScreen />
 {:then projectResponse}
     <div class="flex justify-between p-4 pb-0 xl:mb-4">
-        <div class="flex items-center">
+        <div class="flex w-2/3 items-center">
             <BackButton defaultPathIfNoHistory="/projects" />
             <span class="ms-2 text-2xl">
                 {projectResponse.company} - {projectResponse.name}
