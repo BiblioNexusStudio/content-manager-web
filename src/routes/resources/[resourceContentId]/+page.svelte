@@ -331,7 +331,7 @@
     }
 
     async function unpublish() {
-        await takeActionAndRefresh(() => postToApi(`/admin/resources/content/${resourceContentId}/unpublish`));
+        await takeActionAndRefresh(() => postToApi(`/resources/content/${resourceContentId}/unpublish`));
     }
 
     async function sendForManagerReview() {
@@ -403,7 +403,7 @@
 
     async function aquiferize() {
         await takeActionAndRefresh(() =>
-            postToApi(`/admin/resources/content/${resourceContentId}/aquiferize`, {
+            postToApi(`/resources/content/${resourceContentId}/aquiferize`, {
                 assignedUserId: assignToUserId,
             })
         );
@@ -447,31 +447,24 @@
     async function createTranslation() {
         await takeActionAndCallback<{ resourceContentId: number } | null>(
             async () =>
-                await postToApi<{ resourceContentId: number }>('/admin/resources/content/create-translation', {
-                    languageId: parseInt(newTranslationLanguageId!),
-                    baseContentId: englishContentTranslation?.contentId,
-                    useDraft: createTranslationFromDraft,
-                }),
+                await postToApi<{ resourceContentId: number }>(
+                    `/resources/content/${englishContentTranslation?.contentId}/create-translation`,
+                    {
+                        languageId: parseInt(newTranslationLanguageId!),
+                        useDraft: createTranslationFromDraft,
+                    }
+                ),
             async (response) => await goto(`/resources/${response?.resourceContentId}`)
         );
     }
 
     async function assignDraftToEditor() {
-        if (isInTranslationWorkflow) {
-            await takeActionAndRefresh(
-                async () =>
-                    await postToApi(`/admin/resources/content/${resourceContentId}/assign-translator`, {
-                        assignedUserId: assignToUserId,
-                    })
-            );
-        } else if (isNewDraftStatus) {
-            await takeActionAndRefresh(
-                async () =>
-                    await postToApi(`/admin/resources/content/${resourceContentId}/assign-editor`, {
-                        assignedUserId: assignToUserId,
-                    })
-            );
-        }
+        await takeActionAndRefresh(
+            async () =>
+                await postToApi(`/resources/content/${resourceContentId}/assign-editor`, {
+                    assignedUserId: assignToUserId,
+                })
+        );
     }
 
     function calculateWordCount(wordCounts: number[]) {

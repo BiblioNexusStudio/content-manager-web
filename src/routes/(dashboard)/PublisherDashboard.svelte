@@ -111,7 +111,7 @@
                 : Promise.resolve(null);
         const inReviewAssignments =
             selectedReviewContentIds.length > 0
-                ? postToApi<null>('/resources/content/assign-review', {
+                ? postToApi<null>('/resources/content/assign-publisher-review', {
                       assignedUserId: assignToUserId,
                       contentIds: selectedReviewContentIds,
                   })
