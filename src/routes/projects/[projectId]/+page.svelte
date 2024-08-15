@@ -83,32 +83,30 @@
 {#await projectPromise}
     <CenteredSpinnerFullScreen />
 {:then projectResponse}
-    <div class="flex max-w-[1200px] flex-col overflow-hidden p-4">
-        <div class="flex justify-between">
-            <div class="flex items-center">
-                <BackButton defaultPathIfNoHistory="/projects" />
-                <span class="ms-2 text-2xl">
-                    {projectResponse.company} - {projectResponse.name}
-                </span>
-            </div>
-            <div class="flex">
-                {#if $project?.started === null && $userCan(Permission.EditProjects)}
-                    <button class="btn btn-primary" disabled={!disabledStartButton} on:click={onStartProject}
-                        >Start</button
-                    >
-                {:else}
-                    <button
-                        data-app-insights-event-name="project-download-word-counts-click"
-                        class="btn btn-primary"
-                        on:click={handleDownloadWordCounts}>Download Word Counts</button
-                    >
-                {/if}
-            </div>
+    <div class="flex justify-between p-4 pb-0 xl:mb-4">
+        <div class="flex items-center">
+            <BackButton defaultPathIfNoHistory="/projects" />
+            <span class="ms-2 text-2xl">
+                {projectResponse.company} - {projectResponse.name}
+            </span>
         </div>
-        <div>
+        <div class="flex">
+            {#if $project?.started === null && $userCan(Permission.EditProjects)}
+                <button class="btn btn-primary" disabled={!disabledStartButton} on:click={onStartProject}>Start</button>
+            {:else}
+                <button
+                    data-app-insights-event-name="project-download-word-counts-click"
+                    class="btn btn-primary"
+                    on:click={handleDownloadWordCounts}>Download Word Counts</button
+                >
+            {/if}
+        </div>
+    </div>
+    <div class="flex flex-col overflow-hidden p-4 pt-0 xl:flex-row">
+        <div class="xl:me-8">
             <ProjectViewTabs canOnlyViewProjectsInCompany={data.canOnlyViewProjectsInCompany} />
             {#if projectResponse?.counts?.notStarted + projectResponse?.counts?.inProgress + projectResponse?.counts?.inManagerReview + projectResponse?.counts?.inPublisherReview + projectResponse?.counts?.completed > 0}
-                <div class="mb-8 w-1/2 pe-8">
+                <div class="mb-8 w-1/2 pe-4 xl:w-full xl:pe-0">
                     <ProjectProgressBar
                         notStartedCount={projectResponse?.counts?.notStarted}
                         inProgressCount={projectResponse?.counts?.inProgress}
@@ -120,6 +118,8 @@
                 </div>
             {/if}
         </div>
-        <ProjectViewTableAndFilters />
+        <div class="flex w-full grow flex-col overflow-hidden">
+            <ProjectViewTableAndFilters />
+        </div>
     </div>
 {/await}

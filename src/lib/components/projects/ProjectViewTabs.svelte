@@ -23,17 +23,21 @@
     }
 </script>
 
-<div class="mt-4 flex ps-4">
+<div class="mt-4 flex ps-4 xl:mb-2 xl:mt-0 xl:ps-0">
     {#each tabs as tab, index (tab.name)}
-        <button
-            data-app-insights-event-name="projects-{tab.name}-tab-click"
-            class="me-4 {canOnlyViewProjectsInCompany ? 'hidden' : ''} py-2 text-lg {tab.current
-                ? 'border-b-4 border-primary'
-                : ''}"
-            on:click={() => setCurrentTab(index)}
-        >
-            {tab.name}
-        </button>
+        {#if !canOnlyViewProjectsInCompany}
+            <button
+                data-app-insights-event-name="projects-{tab.name}-tab-click"
+                class="me-4 {canOnlyViewProjectsInCompany ? 'hidden' : ''} py-2 text-lg {tab.current
+                    ? 'border-b-4 border-primary'
+                    : ''}"
+                on:click={() => setCurrentTab(index)}
+            >
+                {tab.name}
+            </button>
+        {:else}
+            <div class="hidden border-b-4 border-primary text-lg xl:flex">{tab.name}</div>
+        {/if}
     {/each}
 </div>
 <div class="flex">

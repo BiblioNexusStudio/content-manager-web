@@ -29,7 +29,11 @@
     }
 </script>
 
-<div class="my-4 grid {!canOnlyViewProjectsInCompany ? 'min-h-[192px]' : 'min-h-[96px]'}  w-full grid-cols-2 gap-x-8">
+<div
+    class="my-4 grid {!canOnlyViewProjectsInCompany
+        ? 'min-h-[192px]'
+        : 'min-h-[96px]'}  w-full grid-cols-2 gap-x-8 xl:grid-cols-1"
+>
     <div class="flex flex-col">
         <ViewTabSlot title="Title">
             <div>{$project?.name ?? ''}</div>
