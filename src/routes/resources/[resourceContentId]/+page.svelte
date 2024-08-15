@@ -66,7 +66,6 @@
     let assignUserModal: HTMLDialogElement;
     let publishModal: HTMLDialogElement;
     let addTranslationModal: HTMLDialogElement;
-    let confirmSendPublisherReviewModal: HTMLDialogElement;
 
     let assignToUserId: number | null = null;
     let newTranslationLanguageId: string | null = null;
@@ -78,6 +77,7 @@
     let canPublish = false;
     let canUnpublish = false;
     let canSendForManagerReview = false;
+    let canPullBackToManagerReview = false;
     let canSendForPublisherReview = false;
     let canAssignPublisherForReview = false;
     let _canCreateTranslation = false;
@@ -179,6 +179,8 @@
             currentUserIsAssigned &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationInProgress);
+
+        canPullBackToManagerReview = resourceContent.canPullBackToManagerReview;
 
         canSendForPublisherReview =
             $userCan(Permission.SendReviewContent) &&
@@ -370,8 +372,6 @@
         const currentResourceContentId = resourceContentId;
         $isPageTransacting = true;
 
-        confirmSendPublisherReviewModal?.close();
-
         const nextUpInfo = await callNextUpApi(currentResourceContentId);
 
         if (currentResourceContentId !== resourceContentId) {
@@ -416,6 +416,18 @@
                 createDraft: createDraft,
                 assignedUserId: assignToUserId,
             })
+        );
+    }
+
+    async function pullBackToManagerReview() {
+        await takeActionAndCallback(
+            async () =>
+                await postToApi(`/resources/content/${resourceContentId}/assign-editor`, {
+                    assignedUserId: $currentUser?.id,
+                }),
+            async () => {
+                window?.location?.reload();
+            }
         );
     }
 
@@ -544,6 +556,15 @@
                                 {/if}
                             </button>
                         {/if}
+                        {#if canPullBackToManagerReview}
+                            <button
+                                class="btn btn-primary ms-2"
+                                disabled={$isPageTransacting}
+                                on:click={pullBackToManagerReview}
+                            >
+                                Pull Back to Manager Review
+                            </button>
+                        {/if}
                         {#if canAssignPublisherForReview}
                             <button
                                 class="btn btn-primary ms-2"
@@ -581,7 +602,7 @@
                             <button
                                 class="btn btn-primary ms-2"
                                 disabled={$isPageTransacting}
-                                on:click={() => confirmSendPublisherReviewModal.showModal()}
+                                on:click={sendForPublisherReview}
                                 >Send to Publisher
                             </button>
                         {/if}
@@ -913,24 +934,6 @@
                         >Cancel</button
                     >
                 </div>
-            </div>
-        </div>
-    </dialog>
-
-    <dialog bind:this={confirmSendPublisherReviewModal} class="modal">
-        <div class="modal-box">
-            <h3 class="text-xl font-bold">Confirm Send to Publisher</h3>
-            {#if hasUnresolvedThreads}
-                <p class="pt-4 text-lg text-warning">This resource has unresolved comments.</p>
-            {/if}
-            <p class="py-4 text-lg">Have you completed your editing? Your assignment will be removed.</p>
-            <div class="modal-action pt-4">
-                <form method="dialog">
-                    <button class="btn btn-primary" on:click={sendForPublisherReview} disabled={$isPageTransacting}
-                        >Send to Publisher</button
-                    >
-                    <button class="btn btn-outline btn-primary">Cancel</button>
-                </form>
             </div>
         </div>
     </dialog>
