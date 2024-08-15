@@ -102,11 +102,11 @@
             {/if}
         </div>
     </div>
-    <div class="flex flex-col overflow-hidden p-4 pt-0 xl:flex-row">
-        <div class="xl:me-8">
+    <div class="flex flex-col overflow-hidden xl:flex-row">
+        <div class="px-4 xl:me-8">
             <ProjectViewTabs canOnlyViewProjectsInCompany={data.canOnlyViewProjectsInCompany} />
             {#if projectResponse?.counts?.notStarted + projectResponse?.counts?.inProgress + projectResponse?.counts?.inManagerReview + projectResponse?.counts?.inPublisherReview + projectResponse?.counts?.completed > 0}
-                <div class="mb-8 w-1/2 pe-4 xl:w-full xl:pe-0">
+                <div class="mb-4 w-1/2 pe-4 xl:w-full xl:pe-0">
                     <ProjectProgressBar
                         notStartedCount={projectResponse?.counts?.notStarted}
                         inProgressCount={projectResponse?.counts?.inProgress}
@@ -118,7 +118,7 @@
                 </div>
             {/if}
         </div>
-        <div class="flex w-full grow flex-col overflow-hidden">
+        <div class="flex w-full grow flex-col overflow-hidden px-4">
             <ProjectViewTableAndFilters />
         </div>
     </div>
