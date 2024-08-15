@@ -20,7 +20,7 @@
     }
 </script>
 
-<div class="my-4 grid min-h-[192px] w-full grid-cols-2 gap-x-8">
+<div class="my-4 grid min-h-[192px] w-full grid-cols-2 gap-x-8 xl:grid-cols-1">
     <div class="flex flex-col">
         <ViewTabSlot title="Projected Company Delivery Date">
             {#if $project?.started === null}
