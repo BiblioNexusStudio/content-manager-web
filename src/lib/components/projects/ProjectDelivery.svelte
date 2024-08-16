@@ -6,14 +6,14 @@
     import { updateProject } from '$lib/utils/projects';
 
     function updateProjectedCompanyDeliveryDate(date: string) {
-        if ($project) {
+        if ($project && date) {
             updateProject($project?.id, { projectedDeliveryDate: date });
             $project.projectedDeliveryDate = date;
         }
     }
 
     function updateProjectedPublishDate(date: string) {
-        if ($project) {
+        if ($project && date) {
             updateProject($project?.id, { projectedPublishDate: date });
             $project.projectedPublishDate = date;
         }

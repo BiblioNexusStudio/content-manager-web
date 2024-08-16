@@ -3,10 +3,10 @@
     import { onDestroy, onMount } from 'svelte';
     import type { DailyResourceDownloads } from '$lib/types/reporting';
 
-    export let amountsByMonth: DailyResourceDownloads[];
-    const months = amountsByMonth.map((d) => {
-        const utc = new Date(d.date).toUTCString();
-        return utc.substring(4, 11);
+    export let amountsByDay: DailyResourceDownloads[];
+    const days = amountsByDay.map((d) => {
+        const utc = new Date(d.date + 'Z').toUTCString();
+        return utc.substring(5, 11);
     });
 
     let chart: Chart | undefined;
@@ -21,7 +21,7 @@
     const chartData: ChartConfiguration = {
         type: 'bar',
         data: {
-            labels: months,
+            labels: days,
             datasets: [
                 {
                     label: 'Number of requests',
@@ -75,7 +75,7 @@
     };
 
     onMount(async () => {
-        updateChart(amountsByMonth);
+        updateChart(amountsByDay);
         chart = new Chart('dailyDownloadsChart', chartData);
     });
 
@@ -84,6 +84,4 @@
     });
 </script>
 
-<div class="flex flex-col">
-    <canvas class="!h-full !w-full" id="dailyDownloadsChart" />
-</div>
+<canvas id="dailyDownloadsChart" />
