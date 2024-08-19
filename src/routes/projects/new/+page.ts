@@ -6,7 +6,9 @@ import { Permission, userCan } from '$lib/stores/auth';
 import { sortByKey } from '$lib/utils/sorting';
 import { get } from 'svelte/store';
 
-export const load: PageLoad = async ({ fetch }) => {
+export const load: PageLoad = async ({ parent, fetch }) => {
+    await parent();
+
     if (get(userCan)(Permission.CreateProject)) {
         return {
             projectPlatforms: sortByKey(await getFromApi<ProjectPlatform[]>('/project-platforms', fetch), 'name'),
