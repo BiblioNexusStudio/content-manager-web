@@ -9,12 +9,12 @@ export function getReportingLinkData(): IReportingLinkData[] {
         {
             reportTitle: 'Aquiferization Progress Tracking',
             reportDescription: 'Line chart tracking monthly Aquiferization starts and completions',
-            reportLink: '/reporting/aquiferizations',
+            reportLink: '/reporting/monthly/aquiferizations',
         },
         {
             reportTitle: 'Daily Resource Item Downloads',
             reportDescription: 'Bar chart showing daily Resource Item downloads',
-            reportLink: '/reporting/bar-charts/daily-resource-downloads',
+            reportLink: '/reporting/daily-resource-item-requests',
         },
         {
             reportTitle: 'Recently Edited Resource Items',
@@ -24,7 +24,7 @@ export function getReportingLinkData(): IReportingLinkData[] {
         {
             reportTitle: 'Translation Progress Tracking',
             reportDescription: 'Line chart tracking monthly Translation starts and completions',
-            reportLink: '/reporting/translations',
+            reportLink: '/reporting/monthly/translations',
         },
         {
             reportTitle: 'Resource Items Downloaded',
@@ -32,4 +32,11 @@ export function getReportingLinkData(): IReportingLinkData[] {
             reportLink: '/reporting/lists/most-requested-resources',
         },
     ];
+}
+
+export function convertPascalCaseToHumanReadable(columnName: string): string {
+    return columnName
+        .split(/(?=[A-Z])/)
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
 }

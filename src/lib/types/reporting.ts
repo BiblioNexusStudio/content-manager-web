@@ -32,11 +32,6 @@ export interface MonthlyStartsAndCompletions {
     completions: StatusCountPerMonth[];
 }
 
-export interface DailyResourceDownloads {
-    amount: number;
-    date: Date;
-}
-
 export interface ResourceItemsSummary {
     aquiferizedResources: number;
     aquiferizedResourcesThisMonth: number;
@@ -49,6 +44,25 @@ export interface ResourceItemsSummary {
     totalResourcesTwoPlusLanguages: number;
     totalResourcesTwoPlusLanguagesThisMonth: number;
 }
+
+export enum DynamicReportType {
+    Table = 'Table',
+    BarChart = 'BarChart',
+    LineChart = 'LineChart',
+}
+
+export interface DynamicReport {
+    name: string;
+    description: string;
+    type: DynamicReportType;
+    acceptsDateRange: boolean;
+    acceptsLanguage: boolean;
+    acceptsParentResource: boolean;
+    columns: string[];
+    results: DynamicReportResult[];
+}
+
+export type DynamicReportResult = (string | number | boolean)[];
 
 export interface GenericReportRow {
     [key: string]: string | number;
