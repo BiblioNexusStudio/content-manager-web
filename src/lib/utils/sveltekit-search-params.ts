@@ -134,7 +134,7 @@ export type SubscribedSearchParams<Type> = Type extends Writable<infer X> ? X : 
 
 export function searchParameters<T extends object>(
     options: Options<T>,
-    { runLoadAgainWhenParamsChange }: { runLoadAgainWhenParamsChange: boolean }
+    { runLoadAgainWhenParamsChange }: { runLoadAgainWhenParamsChange: boolean | (keyof T)[] }
 ): Writable<LooseAutocomplete<T>> & {
     calculateUrlWithGivenChanges: (params: Partial<LooseAutocomplete<T>>) => string;
 } {
@@ -146,8 +146,10 @@ export function searchParameters<T extends object>(
             debouncedUpdateTimeout = setTimeout(() => {
                 const hash = $page.url.hash;
                 const query = new URLSearchParams($page.url.searchParams);
+                const changedParams: string[] = [];
                 const toBatch = (query: URLSearchParams) => {
                     for (const field of Object.keys(value)) {
+                        const initialQuery = query.toString();
                         if ((value as any)[field] == undefined) {
                             query.delete(field);
                             continue;
@@ -165,6 +167,9 @@ export function searchParameters<T extends object>(
                                 query.set(field as string, newValue);
                             }
                         }
+                        if (query.toString() !== initialQuery) {
+                            changedParams.push(field);
+                        }
                     }
                 };
                 batchedUpdates.add(toBatch);
@@ -174,7 +179,11 @@ export function searchParameters<T extends object>(
                         batched(query);
                     });
                     const queryAndHash = `?${query}${hash}`;
-                    if (runLoadAgainWhenParamsChange) {
+                    if (
+                        runLoadAgainWhenParamsChange === true ||
+                        (Array.isArray(runLoadAgainWhenParamsChange) &&
+                            runLoadAgainWhenParamsChange.some((param) => changedParams.includes(param.toString())))
+                    ) {
                         await goto(queryAndHash, GOTO_OPTIONS);
                     } else {
                         history.replaceState(history.state, '', queryAndHash);

@@ -12,7 +12,7 @@
     export let enableSelectAll = false;
     export let columns: column<T>[] = [];
     export let items: T[] = [];
-    export let idColumn: keyof T;
+    export let idColumn: keyof T | 'index';
     export let itemUrlPrefix: string | undefined = undefined;
     export let selectedItems: T[] = [];
     export let noItemsText = 'Your work is all done!';
@@ -57,18 +57,23 @@
                     />
                 </th>
             {/if}
-            {#each columns as { text, sortKey, itemKey } (itemKey)}
+            {#each columns as { text, sortKey, itemKey, width } (itemKey)}
                 {#if sortKey}
-                    <SortingTableHeaderCell {text} {sortKey} bind:currentSort={searchParams.sort} />
+                    <SortingTableHeaderCell
+                        {text}
+                        {sortKey}
+                        bind:currentSort={searchParams.sort}
+                        style={width ? `width: ${width}ch;` : ''}
+                    />
                 {:else}
-                    <th>{text}</th>
+                    <th style={width ? `width: ${width}ch;` : ''}>{text}</th>
                 {/if}
             {/each}
         </tr>
     </thead>
     <tbody>
-        {#each items as item (item[idColumn])}
-            {@const href = itemUrlPrefix && `${itemUrlPrefix}${item[idColumn] ?? ''}`}
+        {#each items as item, index (idColumn === 'index' ? index : item[idColumn])}
+            {@const href = itemUrlPrefix && `${itemUrlPrefix}${idColumn === 'index' ? '' : item[idColumn] ?? ''}`}
             <tr class="hover">
                 {#if enableSelectAll || enableSelect}
                     <TableCell class="w-4">
@@ -80,12 +85,14 @@
                         />
                     </TableCell>
                 {/if}
-                {#each columns as { itemKey, text } (itemKey)}
+                {#each columns as { itemKey, text, width } (itemKey)}
                     <slot {item} {href} {itemKey} columnText={text}>
                         {#if href !== undefined && itemKey}
-                            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                        {:else if itemKey}
-                            <TableCell>{item[itemKey] ?? ''}</TableCell>
+                            <LinkedTableCell style={width ? `width: ${width}ch;` : ''} {href}
+                                >{item[itemKey] ?? ''}</LinkedTableCell
+                            >
+                        {:else if itemKey !== undefined}
+                            <TableCell style={width ? `width: ${width}ch;` : ''}>{item[itemKey] ?? ''}</TableCell>
                         {/if}
                     </slot>
                 {/each}
