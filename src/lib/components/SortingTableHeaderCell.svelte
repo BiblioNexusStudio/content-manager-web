@@ -2,6 +2,7 @@
     export let text: string;
     export let sortKey: string;
     export let currentSort: string;
+    export let style = '';
 
     const determineCaret = (sortKey: string, currentSort: string): string => {
         if (currentSort === sortKey) return '↑';
@@ -15,7 +16,7 @@
     }
 </script>
 
-<th class="cursor-pointer select-none" on:click={toggleSort}>
+<th {style} class="cursor-pointer select-none" on:click={toggleSort}>
     {text}
     {#if determineCaret(sortKey, currentSort) === ''}
         <span class="text-sm opacity-50">↓</span>

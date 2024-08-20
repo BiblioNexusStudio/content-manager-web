@@ -7,9 +7,14 @@ import { get } from 'svelte/store';
 import { sideBarHiddenOnPage } from '$lib/stores/app';
 import { buildQueryString, searchParametersForLoad, ssp } from '$lib/utils/sveltekit-search-params';
 
+export const _defaultTableRowsPerPage = 100;
+
 export const _searchParamsConfig = {
+    paginationStart: ssp.number(0),
+    paginationEnd: ssp.number(_defaultTableRowsPerPage),
     startDate: ssp.string(''),
     endDate: ssp.string(''),
+    sort: ssp.string(''),
 };
 
 export const load: PageLoad = async ({ params, url, parent, fetch }) => {

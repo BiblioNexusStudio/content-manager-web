@@ -71,7 +71,11 @@ function mixSearchAndOptions<T>(searchParams: URLSearchParams, options?: Options
             }
             const value = searchParams?.get(key);
             let actualValue;
-            if (value == undefined && optionsKey?.defaultValue != undefined) {
+            if (
+                (value === undefined || value === null) &&
+                optionsKey?.defaultValue !== undefined &&
+                optionsKey?.defaultValue !== null
+            ) {
                 actualValue = optionsKey.defaultValue;
             } else {
                 actualValue = fnToCall(value);
@@ -134,7 +138,7 @@ export type SubscribedSearchParams<Type> = Type extends Writable<infer X> ? X : 
 
 export function searchParameters<T extends object>(
     options: Options<T>,
-    { runLoadAgainWhenParamsChange }: { runLoadAgainWhenParamsChange: boolean }
+    { runLoadAgainWhenParamsChange }: { runLoadAgainWhenParamsChange: boolean | (keyof T)[] }
 ): Writable<LooseAutocomplete<T>> & {
     calculateUrlWithGivenChanges: (params: Partial<LooseAutocomplete<T>>) => string;
 } {
@@ -146,9 +150,11 @@ export function searchParameters<T extends object>(
             debouncedUpdateTimeout = setTimeout(() => {
                 const hash = $page.url.hash;
                 const query = new URLSearchParams($page.url.searchParams);
+                const changedParams: string[] = [];
                 const toBatch = (query: URLSearchParams) => {
                     for (const field of Object.keys(value)) {
-                        if ((value as any)[field] == undefined) {
+                        const initialQuery = query.toString();
+                        if ((value as any)[field] === undefined || (value as any)[field] === null) {
                             query.delete(field);
                             continue;
                         }
@@ -159,11 +165,18 @@ export function searchParameters<T extends object>(
                         }
                         const newValue = fnToCall((value as any)[field]);
                         if (optionsKey && typeof optionsKey === 'object') {
-                            if (newValue == undefined || newValue === fnToCall(optionsKey.defaultValue)) {
+                            if (
+                                newValue === undefined ||
+                                newValue === null ||
+                                newValue === fnToCall(optionsKey.defaultValue)
+                            ) {
                                 query.delete(field as string);
                             } else {
                                 query.set(field as string, newValue);
                             }
+                        }
+                        if (query.toString() !== initialQuery) {
+                            changedParams.push(field);
                         }
                     }
                 };
@@ -174,7 +187,11 @@ export function searchParameters<T extends object>(
                         batched(query);
                     });
                     const queryAndHash = `?${query}${hash}`;
-                    if (runLoadAgainWhenParamsChange) {
+                    if (
+                        runLoadAgainWhenParamsChange === true ||
+                        (Array.isArray(runLoadAgainWhenParamsChange) &&
+                            runLoadAgainWhenParamsChange.some((param) => changedParams.includes(param.toString())))
+                    ) {
                         await goto(queryAndHash, GOTO_OPTIONS);
                     } else {
                         history.replaceState(history.state, '', queryAndHash);

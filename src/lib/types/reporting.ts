@@ -55,7 +55,3 @@ export interface DynamicReport {
 }
 
 export type DynamicReportResult = (string | number | boolean)[];
-
-export interface GenericReportRow {
-    [key: string]: string | number;
-}
