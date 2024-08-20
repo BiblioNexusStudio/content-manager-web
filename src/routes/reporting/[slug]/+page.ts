@@ -8,8 +8,8 @@ import { sideBarHiddenOnPage } from '$lib/stores/app';
 import { buildQueryString, searchParametersForLoad, ssp } from '$lib/utils/sveltekit-search-params';
 
 export const _searchParamsConfig = {
-    startDate: ssp.string(new Date(Date.now() - 3 * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]!),
-    endDate: ssp.string(new Date().toISOString().split('T')[0]!),
+    startDate: ssp.string(''),
+    endDate: ssp.string(''),
 };
 
 export const load: PageLoad = async ({ params, url, parent, fetch }) => {

@@ -8,6 +8,7 @@
     import DatePicker from '$lib/components/DatePicker.svelte';
     import { Icon } from 'svelte-awesome';
     import refresh from 'svelte-awesome/icons/refresh';
+    import LineChart from './LineChart.svelte';
 
     export let data: PageData;
 
@@ -22,6 +23,18 @@
     }
 
     $: reportPromise = data.reportData!.promise;
+
+    $: maybeSetStartAndEndDate(reportPromise);
+
+    async function maybeSetStartAndEndDate(promise: typeof reportPromise) {
+        const reportData = await promise;
+        if (!startDate) {
+            startDate = reportData.startDate;
+        }
+        if (!endDate) {
+            endDate = reportData.endDate;
+        }
+    }
 </script>
 
 {#await reportPromise}
@@ -46,6 +59,10 @@
             {#if reportData.type === DynamicReportType.BarChart}
                 <div class="relative me-10 ms-5 flex-shrink overflow-hidden">
                     <BarChart report={reportData} />
+                </div>
+            {:else if reportData.type === DynamicReportType.LineChart}
+                <div class="relative me-10 ms-5 flex-shrink overflow-hidden">
+                    <LineChart report={reportData} />
                 </div>
             {:else}
                 <p>Unsupported report type</p>
