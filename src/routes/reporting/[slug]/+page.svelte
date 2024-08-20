@@ -12,21 +12,27 @@
     import ReportTable from './ReportTable.svelte';
     import { createListSorter } from '$lib/utils/sorting';
     import ReportTablePagination from './ReportTablePagination.svelte';
+    import Select from '$lib/components/Select.svelte';
 
     export let data: PageData;
 
     const searchParams = searchParameters(_searchParamsConfig, {
-        runLoadAgainWhenParamsChange: ['startDate', 'endDate'],
+        runLoadAgainWhenParamsChange: ['startDate', 'endDate', 'languageId', 'parentResourceId'],
     });
 
     let startDate = $searchParams.startDate;
     let endDate = $searchParams.endDate;
+    let languageId = $searchParams.languageId;
+    let parentResourceId = $searchParams.parentResourceId;
+
     let reportData: DynamicReport | undefined;
     let results: DynamicReportResult[] = [];
 
     function refetch() {
         $searchParams.startDate = startDate;
         $searchParams.endDate = endDate;
+        $searchParams.languageId = languageId;
+        $searchParams.parentResourceId = parentResourceId;
     }
 
     $: reportPromise = data.reportData!.promise;
@@ -72,17 +78,41 @@
                     />
                 {/if}
             </div>
-            {#if reportData.acceptsDateRange}
-                <div class="flex flex-row items-center space-x-2">
-                    <span>Date Range: </span>
-                    <DatePicker bind:date={startDate} />
-                    <span>-</span>
-                    <DatePicker bind:date={endDate} />
-                    <button class="btn btn-link" on:click={refetch}>
-                        <Icon data={refresh} />
-                    </button>
-                </div>
-            {/if}
+            <div class="flex flex-row space-x-6">
+                {#if reportData.acceptsLanguage}
+                    <Select
+                        bind:value={languageId}
+                        isNumber={true}
+                        class="select select-bordered min-w-[10rem]"
+                        options={[
+                            { value: 0, label: 'All Languages' },
+                            ...data.languages.map((l) => ({ value: l.id, label: l.englishDisplay })),
+                        ]}
+                    />
+                {/if}
+                {#if reportData.acceptsLanguage}
+                    <Select
+                        bind:value={parentResourceId}
+                        isNumber={true}
+                        class="select select-bordered min-w-[10rem]"
+                        options={[
+                            { value: 0, label: 'All Resources' },
+                            ...data.parentResources.map((t) => ({ value: t.id, label: t.displayName })),
+                        ]}
+                    />
+                {/if}
+                {#if reportData.acceptsDateRange}
+                    <div class="flex flex-row items-center space-x-2">
+                        <span>Date Range: </span>
+                        <DatePicker bind:date={startDate} />
+                        <span>-</span>
+                        <DatePicker bind:date={endDate} />
+                        <button class="btn btn-link" on:click={refetch}>
+                            <Icon data={refresh} />
+                        </button>
+                    </div>
+                {/if}
+            </div>
             <div>
                 {#if reportData.type === DynamicReportType.BarChart}
                     <div class="relative me-10 ms-5 flex-shrink overflow-hidden">

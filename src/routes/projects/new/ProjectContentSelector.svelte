@@ -17,7 +17,7 @@
     export let finalizedResourceIds: number[];
     export let isForAquiferization: boolean;
 
-    const { resourceTypes } = data;
+    const { parentResources } = data;
 
     $: bibleBooks = data.bibleBooks;
     let resourceTypeId: string | null = null;
@@ -107,7 +107,7 @@
                 class="select select-bordered"
                 options={[
                     { value: null, label: 'Select Resource' },
-                    ...(resourceTypes || []).map((r) => ({ value: r.id, label: r.displayName })),
+                    ...(parentResources || []).map((r) => ({ value: r.id, label: r.displayName })),
                 ]}
                 isNumber={true}
                 bind:value={resourceTypeId}

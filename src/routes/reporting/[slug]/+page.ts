@@ -12,6 +12,8 @@ export const _defaultTableRowsPerPage = 100;
 export const _searchParamsConfig = {
     paginationStart: ssp.number(0),
     paginationEnd: ssp.number(_defaultTableRowsPerPage),
+    languageId: ssp.number(0),
+    parentResourceId: ssp.number(0),
     startDate: ssp.string(''),
     endDate: ssp.string(''),
     sort: ssp.string(''),
@@ -27,6 +29,8 @@ export const load: PageLoad = async ({ params, url, parent, fetch }) => {
         const queryString = buildQueryString([
             { key: 'startDate', value: searchParams.startDate, ignoreIfEquals: '' },
             { key: 'endDate', value: searchParams.endDate, ignoreIfEquals: '' },
+            { key: 'languageId', value: searchParams.languageId, ignoreIfEquals: 0 },
+            { key: 'parentResourceId', value: searchParams.parentResourceId, ignoreIfEquals: 0 },
         ]);
         const reportData = getFromApiWithoutBlocking<DynamicReport>(
             `/reports/dynamic/${params.slug}?${queryString}`,

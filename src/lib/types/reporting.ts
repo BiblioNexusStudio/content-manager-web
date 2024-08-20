@@ -41,6 +41,11 @@ export enum DynamicReportType {
     LineChart = 'LineChart',
 }
 
+export interface BasicDynamicReport {
+    name: string;
+    slug: string;
+}
+
 export interface DynamicReport {
     name: string;
     description: string;

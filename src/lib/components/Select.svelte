@@ -5,10 +5,11 @@
     export let isNumber = false;
     export let value: string | number | null;
     export let disabled = false;
-    export let onChange: ((value: string | number | null) => void) | undefined = undefined;
+    export let onChange: ((value: string | number | null) => unknown) | undefined = undefined;
     export let appInsightsEventName: string | undefined = undefined;
 
     function handleChange(event: Event) {
+        const originalValue = value;
         const selectTarget = event.target as HTMLSelectElement;
         if (selectTarget.value === '' && options.some((o) => o.value === null)) {
             value = null;
@@ -17,7 +18,10 @@
         } else {
             value = selectTarget.value;
         }
-        onChange && onChange(value);
+        const shouldChange = onChange && onChange(value);
+        if (shouldChange === false) {
+            value = originalValue;
+        }
     }
 </script>
 

@@ -134,7 +134,7 @@
                 class="select select-bordered min-w-[10rem] flex-grow"
                 options={[
                     { value: 0, label: $translate('page.resources.dropdowns.allResources.value') },
-                    ...data.resourceTypes.map((t) => ({ value: t.id, label: t.displayName })),
+                    ...data.parentResources.map((t) => ({ value: t.id, label: t.displayName })),
                 ]}
             />
             <Select
