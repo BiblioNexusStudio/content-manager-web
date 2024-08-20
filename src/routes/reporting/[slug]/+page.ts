@@ -1,6 +1,6 @@
-import type { DailyResourceDownloads } from '$lib/types/reporting';
 import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
 import type { PageLoad } from './$types';
+import type { DynamicReport } from '$lib/types/reporting';
 import { Permission, userCan } from '$lib/stores/auth';
 import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
@@ -23,15 +23,14 @@ export const load: PageLoad = async ({ params, url, parent, fetch }) => {
             { key: 'startDate', value: searchParams.startDate, ignoreIfEquals: '' },
             { key: 'endDate', value: searchParams.endDate, ignoreIfEquals: '' },
         ]);
-
-        const report = getFromApiWithoutBlocking<DailyResourceDownloads[]>(
-            `/reports/bar-charts/${params.barChartType}?${queryString}`,
+        const reportData = getFromApiWithoutBlocking<DynamicReport>(
+            `/reports/dynamic/${params.slug}?${queryString}`,
             fetch
         );
         return {
-            report,
+            reportData,
         };
     } else {
-        redirect(302, '/');
+        throw redirect(302, '/');
     }
 };

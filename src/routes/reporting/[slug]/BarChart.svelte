@@ -1,30 +1,43 @@
 ﻿<script lang="ts">
+    import type { DynamicReport, DynamicReportResult } from '$lib/types/reporting';
+    import { convertPascalCaseToHumanReadable } from '$lib/utils/reporting';
     import Chart, { type ChartConfiguration } from 'chart.js/auto';
     import { onDestroy, onMount } from 'svelte';
-    import type { DailyResourceDownloads } from '$lib/types/reporting';
 
-    export let amountsByDay: DailyResourceDownloads[];
-    const days = amountsByDay.map((d) => {
-        const utc = new Date(d.date + 'Z').toUTCString();
-        return utc.substring(5, 11);
+    export let report: DynamicReport;
+
+    let yColumn = report.columns[1];
+    let xType =
+        typeof report.results[0]?.[0] === 'number'
+            ? ('number' as const)
+            : typeof report.results[0]?.[0] === 'string' && !isNaN(Date.parse(report.results[0]?.[0]))
+            ? ('date' as const)
+            : ('string' as const);
+
+    const xLabels = report.results.map(([x, _y]) => {
+        if (xType === 'date') {
+            const utc = new Date(x + 'Z').toUTCString();
+            return utc.substring(5, 11);
+        } else {
+            return x;
+        }
     });
 
     let chart: Chart | undefined;
 
-    const updateChart = (totalsData: DailyResourceDownloads[]) => {
-        var amounts = totalsData.map((item) => item.amount);
+    const updateChart = (data: DynamicReportResult[]) => {
         if (chartData.data.datasets[0]) {
-            chartData.data.datasets[0].data = amounts;
+            chartData.data.datasets[0].data = data.map((item) => item[1] as number);
         }
     };
 
     const chartData: ChartConfiguration = {
         type: 'bar',
         data: {
-            labels: days,
+            labels: xLabels,
             datasets: [
                 {
-                    label: 'Number of requests',
+                    label: convertPascalCaseToHumanReadable(yColumn ?? 'unknown'),
                     data: [],
                     backgroundColor: ['#0174a3'],
                     borderColor: ['#817556'],
@@ -75,8 +88,8 @@
     };
 
     onMount(async () => {
-        updateChart(amountsByDay);
-        chart = new Chart('dailyDownloadsChart', chartData);
+        updateChart(report.results);
+        chart = new Chart('bar-chart', chartData);
     });
 
     onDestroy(() => {
@@ -84,4 +97,8 @@
     });
 </script>
 
-<canvas id="dailyDownloadsChart" />
+{#if report.results.length}
+    <canvas id="bar-chart" />
+{:else}
+    <p>No data available.</p>
+{/if}
