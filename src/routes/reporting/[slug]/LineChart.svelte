@@ -6,7 +6,7 @@
 
     export let report: DynamicReport;
 
-    let yColumn = report.columns[1];
+    let yColumns = report.columns.slice(1);
     let xType =
         typeof report.results[0]?.[0] === 'number'
             ? ('number' as const)
@@ -23,21 +23,25 @@
         }
     });
 
+    const colorMap = {
+        borderColor: ['#36A2EB', '#FF6384'],
+        backgroundColor: ['#9BD0F5', '#FFB1C1'],
+    };
+
     let chart: Chart | undefined;
 
     const chartData: ChartConfiguration = {
-        type: 'bar',
+        type: 'line',
         data: {
             labels: xLabels,
-            datasets: [
-                {
-                    label: convertPascalCaseToHumanReadable(yColumn ?? 'unknown'),
-                    data: report.results.map((item) => item[1] as number),
-                    backgroundColor: ['#0174a3'],
-                    borderColor: ['#817556'],
-                    borderWidth: 1,
-                },
-            ],
+            datasets: yColumns.map((column, index) => ({
+                label: convertPascalCaseToHumanReadable(column),
+                data: report.results.map((item) => item[index + 1] as number),
+                backgroundColor: colorMap.backgroundColor[index % colorMap.backgroundColor.length],
+                borderColor: colorMap.borderColor[index % colorMap.borderColor.length],
+                fill: false,
+                tension: 0,
+            })),
         },
         options: {
             animation: {
@@ -49,16 +53,7 @@
                 duration: 0,
             },
             plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: {
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        boxWidth: 6,
-                        boxHeight: 6,
-                    },
-                },
+                legend: { display: true, position: 'bottom' },
             },
             elements: {
                 line: {
@@ -82,7 +77,7 @@
     };
 
     onMount(async () => {
-        chart = new Chart('bar-chart', chartData);
+        chart = new Chart('line-chart', chartData);
     });
 
     onDestroy(() => {
@@ -91,7 +86,7 @@
 </script>
 
 {#if report.results.length}
-    <canvas id="bar-chart" />
+    <canvas id="line-chart" />
 {:else}
     <p>No data available.</p>
 {/if}
