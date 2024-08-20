@@ -8,9 +8,6 @@ inputs:
     api-token:
         description: API token for deployment
         required: true
-    html-diff-ts-deploy-key:
-        description: Deploy key to allow access to htmldiff-ts repo
-        required: true
     override-output-url:
         description: Overrides the output deployed-url
         required: false
@@ -52,15 +49,6 @@ runs:
           with:
               node-version: 18.16.0
               cache: yarn
-        - name: Configure private repo access
-          env:
-              SSH_PRIVATE_KEY: ${{ inputs.html-diff-ts-deploy-key }}
-          run: |
-              mkdir -p ~/.ssh
-              echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-              chmod 600 ~/.ssh/id_rsa
-              ssh-keyscan github.com >> ~/.ssh/known_hosts
-          shell: bash
         - name: Install dependencies
           run: yarn install --frozen-lockfile
           shell: bash
