@@ -71,7 +71,11 @@ function mixSearchAndOptions<T>(searchParams: URLSearchParams, options?: Options
             }
             const value = searchParams?.get(key);
             let actualValue;
-            if (value == undefined && optionsKey?.defaultValue != undefined) {
+            if (
+                (value === undefined || value === null) &&
+                optionsKey?.defaultValue !== undefined &&
+                optionsKey?.defaultValue !== null
+            ) {
                 actualValue = optionsKey.defaultValue;
             } else {
                 actualValue = fnToCall(value);
@@ -150,7 +154,7 @@ export function searchParameters<T extends object>(
                 const toBatch = (query: URLSearchParams) => {
                     for (const field of Object.keys(value)) {
                         const initialQuery = query.toString();
-                        if ((value as any)[field] == undefined) {
+                        if ((value as any)[field] === undefined || (value as any)[field] === null) {
                             query.delete(field);
                             continue;
                         }
@@ -161,7 +165,11 @@ export function searchParameters<T extends object>(
                         }
                         const newValue = fnToCall((value as any)[field]);
                         if (optionsKey && typeof optionsKey === 'object') {
-                            if (newValue == undefined || newValue === fnToCall(optionsKey.defaultValue)) {
+                            if (
+                                newValue === undefined ||
+                                newValue === null ||
+                                newValue === fnToCall(optionsKey.defaultValue)
+                            ) {
                                 query.delete(field as string);
                             } else {
                                 query.set(field as string, newValue);
