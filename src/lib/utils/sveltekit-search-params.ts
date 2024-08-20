@@ -150,10 +150,8 @@ export function searchParameters<T extends object>(
             debouncedUpdateTimeout = setTimeout(() => {
                 const hash = $page.url.hash;
                 const query = new URLSearchParams($page.url.searchParams);
-                const changedParams: string[] = [];
                 const toBatch = (query: URLSearchParams) => {
                     for (const field of Object.keys(value)) {
-                        const initialQuery = query.toString();
                         if ((value as any)[field] === undefined || (value as any)[field] === null) {
                             query.delete(field);
                             continue;
@@ -175,9 +173,6 @@ export function searchParameters<T extends object>(
                                 query.set(field as string, newValue);
                             }
                         }
-                        if (query.toString() !== initialQuery) {
-                            changedParams.push(field);
-                        }
                     }
                 };
                 batchedUpdates.add(toBatch);
@@ -190,7 +185,11 @@ export function searchParameters<T extends object>(
                     if (
                         runLoadAgainWhenParamsChange === true ||
                         (Array.isArray(runLoadAgainWhenParamsChange) &&
-                            runLoadAgainWhenParamsChange.some((param) => changedParams.includes(param.toString())))
+                            runLoadAgainWhenParamsChange.some(
+                                (param) =>
+                                    query.get(param as string) !==
+                                    new URLSearchParams(window.location.search).get(param as string)
+                            ))
                     ) {
                         await goto(queryAndHash, GOTO_OPTIONS);
                     } else {

@@ -12,7 +12,8 @@
 
     function calculateColumnWidths(reportData: DynamicReport): number[] {
         return reportData.columns.map((column, index) => {
-            const maxLength = Math.max(column.length, ...reportData.results.map((row) => String(row[index]).length));
+            const lengths = [column.length, ...reportData.results.map((row) => String(row[index]).length)];
+            const maxLength = lengths.reduce((max, current) => (current > max ? current : max), 0);
             return maxLength * 0.75;
         });
     }

@@ -39,6 +39,7 @@
 
     $: initializeFromReport(reportPromise);
     $: handleSort(reportData, $searchParams.sort);
+    $: handleBadPagination(reportData);
 
     async function initializeFromReport(promise: typeof reportPromise) {
         reportData = await promise;
@@ -60,6 +61,13 @@
             results = reportData?.results;
         }
     }
+
+    function handleBadPagination(reportData: DynamicReport | undefined) {
+        if (reportData && $searchParams.paginationStart >= reportData.results.length) {
+            $searchParams.paginationStart = 0;
+            $searchParams.paginationEnd = _defaultTableRowsPerPage;
+        }
+    }
 </script>
 
 {#await reportPromise}
@@ -69,7 +77,7 @@
         <div class="flex max-h-screen flex-col space-y-4 p-4">
             <div class="flex items-center justify-between">
                 <h1 class="text-3xl capitalize">{reportData.name}</h1>
-                {#if reportData.type === DynamicReportType.Table}
+                {#if reportData.type === DynamicReportType.Table && reportData.results.length > _defaultTableRowsPerPage}
                     <ReportTablePagination
                         bind:paginationStart={$searchParams.paginationStart}
                         bind:paginationEnd={$searchParams.paginationEnd}
@@ -83,7 +91,7 @@
                     <Select
                         bind:value={languageId}
                         isNumber={true}
-                        class="select select-bordered min-w-[10rem]"
+                        class="select select-bordered min-w-[10rem] flex-shrink"
                         options={[
                             { value: 0, label: 'All Languages' },
                             ...data.languages.map((l) => ({ value: l.id, label: l.englishDisplay })),
@@ -94,7 +102,7 @@
                     <Select
                         bind:value={parentResourceId}
                         isNumber={true}
-                        class="select select-bordered min-w-[10rem]"
+                        class="select select-bordered min-w-[10rem] flex-shrink"
                         options={[
                             { value: 0, label: 'All Resources' },
                             ...data.parentResources.map((t) => ({ value: t.id, label: t.displayName })),
@@ -107,10 +115,12 @@
                         <DatePicker bind:date={startDate} />
                         <span>-</span>
                         <DatePicker bind:date={endDate} />
-                        <button class="btn btn-link" on:click={refetch}>
-                            <Icon data={refresh} />
-                        </button>
                     </div>
+                {/if}
+                {#if reportData.acceptsDateRange || reportData.acceptsLanguage || reportData.acceptsParentResource}
+                    <button class="btn btn-link !mx-1" on:click={refetch}>
+                        <Icon data={refresh} />
+                    </button>
                 {/if}
             </div>
             <div>
