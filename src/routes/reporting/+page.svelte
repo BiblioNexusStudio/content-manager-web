@@ -9,11 +9,13 @@
     import ReportSummaryCard from '$lib/components/reporting/ReportSummaryCard.svelte';
     import MultipleSelect from '$lib/components/MultipleSelect.svelte';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
+    import type { BasicDynamicReport } from '$lib/types/reporting';
 
     export let data: PageData;
 
     $: summaryPromise = data.summary!.promise;
     $: resourceItemsSummaryPromise = data.resourceItemsSummary!.promise;
+    $: reportsPromise = data.reports!.promise;
 
     const defaultSelection = 'default';
 
@@ -23,12 +25,17 @@
     const reportingLinkData = getReportingLinkData();
 
     let selectedChart = 'TotalResourcesAreaChart';
+
+    function dynamicReports(reports: BasicDynamicReport[]) {
+        return reports.filter(({ slug }) => !reportingLinkData.some(({ reportLink }) => reportLink.includes(slug)));
+    }
 </script>
 
-{#await Promise.all([summaryPromise, resourceItemsSummaryPromise])}
+{#await Promise.all([summaryPromise, resourceItemsSummaryPromise, reportsPromise])}
     <CenteredSpinnerFullScreen />
-{:then [summary, resourceItemsSummary]}
+{:then [summary, resourceItemsSummary, reports]}
     {@const languages = summary.languages.sort()}
+    {@const filteredReports = dynamicReports(reports)}
 
     <div class="overflow-y-scroll">
         <div class="mx-4 mb-4 mt-4 text-3xl">Reporting</div>
@@ -116,6 +123,25 @@
                 />
             </div>
         </div>
+
+        {#if filteredReports.length}
+            <div class="mx-4 mb-4 grid-cols-3">
+                <span class="me-2">View Report: </span>
+                <Select
+                    class="select select-bordered max-w-[14rem] flex-grow"
+                    value=""
+                    onChange={(slug) => {
+                        window.open(`/reporting/${slug}`, '_blank');
+                        return false;
+                    }}
+                    isNumber={false}
+                    options={[
+                        { value: '', label: 'Select Report' },
+                        ...filteredReports.map(({ name, slug }) => ({ value: slug, label: name })),
+                    ]}
+                />
+            </div>
+        {/if}
 
         <div class="mx-4 mb-4 grid grid-cols-3 gap-4">
             {#each reportingLinkData as link (link.reportLink)}

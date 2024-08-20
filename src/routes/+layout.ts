@@ -19,7 +19,7 @@ export const load: LayoutLoad = async ({ url, fetch }) => {
         throw error(401, 'Unauthenticated');
     }
 
-    const [languages, resourceTypes, resourceContentStatuses, currentUser] = await Promise.all([
+    const [languages, parentResources, resourceContentStatuses, currentUser] = await Promise.all([
         getFromApi<Language[]>('/languages', fetch),
         getFromApi<ResourceType[]>('/resources/parent-resources', fetch),
         getFromApi<ResourceContentStatus[]>('/resources/content/statuses', fetch),
@@ -39,7 +39,7 @@ export const load: LayoutLoad = async ({ url, fetch }) => {
 
     return {
         languages: sortByKey(languages, 'englishDisplay') as Language[],
-        resourceTypes: resourceTypes as ResourceType[],
+        parentResources: parentResources as ResourceType[],
         resourceContentStatuses: resourceContentStatuses as ResourceContentStatus[],
         currentUser: currentUser as CurrentUser,
         users: sortByKey(users, 'name'),
