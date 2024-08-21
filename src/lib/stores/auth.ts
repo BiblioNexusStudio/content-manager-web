@@ -1,4 +1,4 @@
-﻿import { type Writable, writable, derived } from 'svelte/store';
+﻿import { type Writable, writable, derived, get } from 'svelte/store';
 import { Auth0Client, createAuth0Client, User as Auth0User } from '@auth0/auth0-spa-js';
 import config from '$lib/config';
 import type { CurrentUser } from '$lib/types/base';
@@ -10,6 +10,9 @@ export const isAuthenticatedStore: Writable<boolean | undefined> = writable(unde
 export const currentUser: Writable<CurrentUser | null> = writable(null);
 
 export function setCurrentUser(user: CurrentUser | null) {
+    if (user) {
+        window.clarity?.('identify', get(profile)?.email ?? user.id.toString(), undefined, undefined, user.name);
+    }
     currentUser.set(user);
 }
 
