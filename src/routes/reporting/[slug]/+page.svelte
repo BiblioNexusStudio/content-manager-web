@@ -114,9 +114,9 @@
                 {#if reportData.acceptsDateRange}
                     <div class="flex flex-row items-center space-x-2">
                         <span>Date Range: </span>
-                        <DatePicker bind:date={startDate} />
+                        <DatePicker bind:date={startDate} latestDate={endDate} />
                         <span>-</span>
-                        <DatePicker bind:date={endDate} />
+                        <DatePicker bind:date={endDate} earliestDate={startDate} />
                     </div>
                 {/if}
                 {#if reportData.acceptsDateRange || reportData.acceptsLanguage || reportData.acceptsParentResource}
