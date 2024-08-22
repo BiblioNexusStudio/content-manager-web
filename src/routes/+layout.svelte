@@ -10,16 +10,18 @@
     import ProjectsIcon from '$lib/icons/ProjectsIcon.svelte';
     import { navigating, page } from '$app/stores';
     import { _ as translate } from 'svelte-i18n';
-    import { logout, profile, Permission, userCan } from '$lib/stores/auth';
+    import { logout, profile, Permission, userCan, currentUser } from '$lib/stores/auth';
     import { log } from '$lib/logger';
     import { sideBarHiddenOnPage } from '$lib/stores/app';
     import type { Navigation } from '@sveltejs/kit';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
     import config from '$lib/config';
+    import type { CurrentUser } from '$lib/types/base';
 
     $: userFullName = $profile?.name ?? ' '; // set to avoid flashing undefined
 
     $: log.pageView($page.route.id ?? '');
+    $: syncToClarity($page.route.id ?? '', $currentUser);
 
     let customTransitionPages = [/\/resources\/\d+/];
     let menuElement: HTMLUListElement;
@@ -28,6 +30,25 @@
         return customTransitionPages.some((pageRegex) => {
             return navigation.from?.url.toString().match(pageRegex) && navigation.to?.url.toString().match(pageRegex);
         });
+    }
+
+    function syncToClarity(routeId: string, currentUser: CurrentUser | null) {
+        if (currentUser) {
+            const tryIdentify = () => {
+                if (window.clarity) {
+                    window.clarity(
+                        'identify',
+                        $profile?.email ?? currentUser.id.toString(),
+                        undefined,
+                        routeId,
+                        currentUser.name
+                    );
+                } else {
+                    setTimeout(tryIdentify, 100);
+                }
+            };
+            tryIdentify();
+        }
     }
 
     let sidebarNavigation = [
