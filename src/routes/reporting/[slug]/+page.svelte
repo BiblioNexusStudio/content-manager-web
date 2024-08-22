@@ -29,6 +29,16 @@
     let results: DynamicReportResult[] = [];
 
     function refetch() {
+        if (
+            startDate !== $searchParams.startDate ||
+            endDate !== $searchParams.endDate ||
+            languageId !== $searchParams.languageId ||
+            parentResourceId !== $searchParams.parentResourceId
+        ) {
+            $searchParams.paginationStart = 0;
+            $searchParams.paginationEnd = _defaultTableRowsPerPage;
+        }
+
         $searchParams.startDate = startDate;
         $searchParams.endDate = endDate;
         $searchParams.languageId = languageId;
@@ -39,7 +49,6 @@
 
     $: initializeFromReport(reportPromise);
     $: handleSort(reportData, $searchParams.sort);
-    $: handleBadPagination(reportData);
 
     async function initializeFromReport(promise: typeof reportPromise) {
         reportData = await promise;
@@ -59,13 +68,6 @@
             results = sortReportTable(reportData.results, currentSort);
         } else if (reportData) {
             results = reportData?.results;
-        }
-    }
-
-    function handleBadPagination(reportData: DynamicReport | undefined) {
-        if (reportData && $searchParams.paginationStart >= reportData.results.length) {
-            $searchParams.paginationStart = 0;
-            $searchParams.paginationEnd = _defaultTableRowsPerPage;
         }
     }
 </script>
