@@ -17,6 +17,7 @@
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
     import config from '$lib/config';
     import type { CurrentUser } from '$lib/types/base';
+    import { onMount } from 'svelte';
 
     $: userFullName = $profile?.name ?? ' '; // set to avoid flashing undefined
 
@@ -108,6 +109,10 @@
             element = element.parentNode as HTMLElement;
         }
     }
+
+    onMount(() => {
+        window.dispatchEvent(new Event('svelte-app-loaded')); // tell the app.html to show the page
+    });
 </script>
 
 <svelte:head>
