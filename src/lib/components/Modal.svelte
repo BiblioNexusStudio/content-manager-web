@@ -6,7 +6,7 @@
     export let open: boolean | undefined = undefined;
     export let description: string | undefined = undefined;
     export let header: string;
-    export let primaryButtonText: string | undefined = undefined;
+    export let primaryButtonText: string | undefined | null = undefined;
     export let primaryButtonOnClick: (() => Promise<void>) | (() => void) | undefined = undefined;
     export let primaryButtonDisabled = false;
     export let isError = false;
@@ -80,6 +80,10 @@
                     {/if}
                 </button>
                 <button class="btn btn-outline btn-primary" disabled={isTransacting} on:click={close}>Cancel</button>
+            </div>
+        {:else}
+            <div class="flex w-full flex-row space-x-2 pt-4">
+                <slot name="additional-buttons" />
             </div>
         {/if}
     </div>

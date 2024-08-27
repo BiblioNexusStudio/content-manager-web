@@ -1,4 +1,5 @@
 ﻿import { Mark } from '@tiptap/core';
+import type { ContentNode, ResourceReference } from './types';
 
 export const resourceReferenceMark = Mark.create({
     name: 'resourceReference',
@@ -45,3 +46,24 @@ export const resourceReferenceMark = Mark.create({
         ];
     },
 });
+
+export const parseResourceReferences = (tiptap: { doc: ContentNode }): ResourceReference[] => {
+    const references: ResourceReference[] = [];
+
+    const traverseContent = (node: ContentNode) => {
+        if (node.type === 'text' && node.marks) {
+            node.marks.forEach((mark) => {
+                if (mark.type === 'resourceReference' && mark.attrs?.resourceId && mark.attrs?.resourceType) {
+                    references.push({ resourceId: mark.attrs.resourceId, resourceType: mark.attrs.resourceType });
+                }
+            });
+        }
+
+        if (node.content) {
+            node.content.forEach(traverseContent);
+        }
+    };
+
+    traverseContent(tiptap.doc);
+    return references;
+};

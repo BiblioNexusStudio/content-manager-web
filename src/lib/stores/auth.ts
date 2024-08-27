@@ -55,6 +55,7 @@ export enum Permission {
     EditContent = 'edit:content',
     EditProjects = 'edit:projects',
     EditBibleReferences = 'edit:content-bible-references',
+    EditResourceReferences = 'edit:content-resource-references',
     PublishContent = 'publish:content',
     ReadProjects = 'read:projects',
     ReadProjectsInCompany = 'read:projects-in-company',

@@ -18,11 +18,16 @@
     import config from '$lib/config';
     import type { CurrentUser } from '$lib/types/base';
     import { onMount } from 'svelte';
+    import { parentResources } from '$lib/stores/parent-resources';
+    import type { LayoutData } from './$types';
+
+    export let data: LayoutData;
 
     $: userFullName = $profile?.name ?? ' '; // set to avoid flashing undefined
 
     $: log.pageView($page.route.id ?? '');
     $: syncToClarity($page.route.id ?? '', $currentUser);
+    $: $parentResources = data.parentResources;
 
     let customTransitionPages = [/\/resources\/\d+/];
     let menuElement: HTMLUListElement;

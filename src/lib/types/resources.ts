@@ -1,14 +1,6 @@
 import type { Language, ResourceContentStatusEnum } from './base';
 import type { CommentThreadsResponse } from '$lib/types/comments';
 
-export enum ResourceTypeEnum {
-    cbbterTranslationGuide = 'Translation Guide (SRV)',
-    tyndaleBibleDictionary = 'Bible Dictionary (Tyndale)',
-    tyndaleStudyNotes = 'Study Notes (Tyndale)',
-    ubsImages = 'Images (UBS)',
-    videoBibleDictionary = 'Videos (Video Bible Dictionary)',
-}
-
 export enum MediaTypeEnum {
     audio = 'Audio',
     video = 'Video',
