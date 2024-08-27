@@ -1,5 +1,6 @@
 ﻿import { Mark } from '@tiptap/core';
 import { v4 as uuid } from 'uuid';
+import type { ContentNode, VerseReference } from './types';
 
 export const bibleReferenceMark = Mark.create({
     name: 'bibleReference',
@@ -58,24 +59,6 @@ export const bibleReferenceMark = Mark.create({
         ];
     },
 });
-
-interface VerseReference {
-    startVerse: string | number;
-    endVerse: string | number;
-}
-
-interface ContentNode {
-    type: string;
-    marks?: MarkType[];
-    content?: ContentNode[];
-}
-
-interface MarkType {
-    type: string;
-    attrs?: {
-        verses?: VerseReference[];
-    };
-}
 
 export const parseBibleReferences = (tiptap: { doc: ContentNode }): VerseReference[] => {
     const references: VerseReference[] = [];

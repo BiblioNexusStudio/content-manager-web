@@ -22,6 +22,7 @@
     import { onMount } from 'svelte';
     import LinkBibleReferenceButton from './LinkBibleReferenceButton.svelte';
     import { Permission, userCan } from '$lib/stores/auth';
+    import LinkResourceReferenceButton from './LinkResourceReferenceButton.svelte';
 
     export let editor: Editor | undefined;
     export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined;
@@ -36,7 +37,8 @@
     const isPageTransacting = getIsPageTransactingContext();
 
     $: canEditBibleReferences = $userCan(Permission.EditBibleReferences);
-    $: widthRequired = (canEditBibleReferences ? 30 : 0) + 475 + aiButtonWidth;
+    $: canEditResourceReferences = $userCan(Permission.EditResourceReferences);
+    $: widthRequired = (canEditBibleReferences ? 30 : 0) + (canEditResourceReferences ? 30 : 0) + 475 + aiButtonWidth;
 
     let outerDiv: HTMLDivElement | null = null;
     let isCommentBoxOpen = false;
@@ -257,6 +259,9 @@
                         languageId={resourceContent.language.id}
                         {editor}
                     />
+                {/if}
+                {#if canEditResourceReferences}
+                    <LinkResourceReferenceButton resourceContentId={resourceContent.resourceContentId} {editor} />
                 {/if}
             {/if}
             <Tooltip

@@ -49,6 +49,7 @@
 
     $: disabled =
         $isPageTransacting ||
+        getMarkAttributes(editor.state, 'resourceReference')?.resourceId ||
         (editor.state.selection.empty && !getMarkAttributes(editor.state, 'bibleReference')?.verses);
 
     $: selectedBook = bibleBooks?.find((b) => b.number === bookId);
@@ -350,7 +351,7 @@
                 {#if isTransactingRemove}
                     <span class="loading loading-spinner" />
                 {:else}
-                    Remove
+                    Remove Link
                 {/if}
             </button>
         {/if}
