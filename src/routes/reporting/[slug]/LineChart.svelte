@@ -73,6 +73,8 @@
                     },
                 },
             },
+            responsive: true,
+            maintainAspectRatio: false,
         },
     };
 

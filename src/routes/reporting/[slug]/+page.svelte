@@ -76,7 +76,7 @@
     <CenteredSpinner />
 {:then _}
     {#if reportData}
-        <div class="flex max-h-screen flex-col space-y-4 p-4">
+        <div class="flex h-full max-h-screen flex-col space-y-4 p-4">
             <div class="flex items-center justify-between">
                 <h1 class="text-3xl capitalize">{reportData.name}</h1>
                 {#if reportData.type === DynamicReportType.Table && reportData.results.length > _defaultTableRowsPerPage}
@@ -126,23 +126,25 @@
                 {/if}
             </div>
             {#if reportData.type === DynamicReportType.BarChart}
-                <div class="relative me-10 ms-5 flex-shrink overflow-hidden">
+                <div class="relative me-10 ms-5 h-full flex-shrink overflow-hidden">
                     <BarChart report={reportData} />
                 </div>
             {:else if reportData.type === DynamicReportType.LineChart}
-                <div class="relative me-10 ms-5 flex-shrink overflow-hidden">
+                <div class="relative me-10 ms-5 h-full flex-shrink overflow-hidden">
                     <LineChart report={reportData} />
                 </div>
             {:else if reportData.type === DynamicReportType.Table}
-                <div class="relative flex-shrink overflow-hidden">
-                    <ReportTable
-                        {searchParams}
-                        report={reportData}
-                        sortedAndPaginatedResults={results.slice(
-                            $searchParams.paginationStart,
-                            $searchParams.paginationEnd
-                        )}
-                    />
+                <div>
+                    <div class="relative flex-shrink overflow-hidden">
+                        <ReportTable
+                            {searchParams}
+                            report={reportData}
+                            sortedAndPaginatedResults={results.slice(
+                                $searchParams.paginationStart,
+                                $searchParams.paginationEnd
+                            )}
+                        />
+                    </div>
                 </div>
             {:else}
                 <p>Unsupported report type</p>
