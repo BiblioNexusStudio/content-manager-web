@@ -78,6 +78,8 @@
                     },
                 },
             },
+            responsive: true,
+            maintainAspectRatio: false,
         },
     };
 
