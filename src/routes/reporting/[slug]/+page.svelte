@@ -125,30 +125,28 @@
                     </button>
                 {/if}
             </div>
-            <div>
-                {#if reportData.type === DynamicReportType.BarChart}
-                    <div class="relative me-10 ms-5 flex-shrink overflow-hidden">
-                        <BarChart report={reportData} />
-                    </div>
-                {:else if reportData.type === DynamicReportType.LineChart}
-                    <div class="relative me-10 ms-5 flex-shrink overflow-hidden">
-                        <LineChart report={reportData} />
-                    </div>
-                {:else if reportData.type === DynamicReportType.Table}
-                    <div class="relative flex-shrink overflow-hidden">
-                        <ReportTable
-                            {searchParams}
-                            report={reportData}
-                            sortedAndPaginatedResults={results.slice(
-                                $searchParams.paginationStart,
-                                $searchParams.paginationEnd
-                            )}
-                        />
-                    </div>
-                {:else}
-                    <p>Unsupported report type</p>
-                {/if}
-            </div>
+            {#if reportData.type === DynamicReportType.BarChart}
+                <div class="relative me-10 ms-5 flex-shrink overflow-hidden">
+                    <BarChart report={reportData} />
+                </div>
+            {:else if reportData.type === DynamicReportType.LineChart}
+                <div class="relative me-10 ms-5 flex-shrink overflow-hidden">
+                    <LineChart report={reportData} />
+                </div>
+            {:else if reportData.type === DynamicReportType.Table}
+                <div class="relative flex-shrink overflow-hidden">
+                    <ReportTable
+                        {searchParams}
+                        report={reportData}
+                        sortedAndPaginatedResults={results.slice(
+                            $searchParams.paginationStart,
+                            $searchParams.paginationEnd
+                        )}
+                    />
+                </div>
+            {:else}
+                <p>Unsupported report type</p>
+            {/if}
         </div>
     {/if}
 {/await}
