@@ -23,7 +23,7 @@
             isTransactingAdd = false;
             isTransactingRemove = false;
             searchQuery = '';
-            isError = false;
+            errorMessage = null;
         }
     }
 
@@ -44,7 +44,7 @@
     let referenceResource: ResourceReference | null = null;
     let searchQuery = '';
     let resourceSearchResults: ResourceReference[] | null = null;
-    let isError = false;
+    let errorMessage: string | null = null;
 
     $: disabled =
         $isPageTransacting ||
@@ -53,7 +53,7 @@
 
     async function removeLink() {
         isTransactingRemove = true;
-        isError = false;
+        errorMessage = null;
         try {
             await deleteIfOnlyOneReference();
 
@@ -68,7 +68,7 @@
 
             isModalOpen = false;
         } catch (e) {
-            isError = true;
+            errorMessage = 'Error occurred, try again';
             throw e;
         } finally {
             isTransactingRemove = false;
@@ -77,7 +77,7 @@
 
     async function addLink() {
         isTransactingAdd = true;
-        isError = false;
+        errorMessage = null;
         try {
             const prType = $parentResources.find((p) => p.id === parentResourceId)?.code;
             if (prType && referenceResource?.resourceId) {
@@ -96,7 +96,7 @@
                     .run();
             }
         } catch (e) {
-            isError = true;
+            errorMessage = 'Error occurred, try again';
             throw e;
         } finally {
             isTransactingAdd = false;
@@ -127,23 +127,27 @@
             existingReference = true;
             parentResourceId = prId;
             isLoading = true;
-            isError = false;
+            errorMessage = null;
             isModalOpen = true;
-            try {
-                referenceResource = await getFromApi<ResourceReference>(
-                    `/resources/resource-references?parentResourceId=${parentResourceId}&resourceId=${parseInt(
-                        mark.resourceId.toString()
-                    )}`
-                );
-            } catch (e) {
-                isError = true;
-                throw e;
-            } finally {
+            const resourceIdNumber = parseInt(mark.resourceId.toString());
+            if (resourceIdNumber) {
+                try {
+                    referenceResource = await getFromApi<ResourceReference>(
+                        `/resources/resource-references?parentResourceId=${parentResourceId}&resourceId=${resourceIdNumber}`
+                    );
+                } catch (e) {
+                    errorMessage = 'Error occurred, try again';
+                    throw e;
+                } finally {
+                    isLoading = false;
+                }
+            } else {
+                errorMessage = 'Unable to load resource details. Invalid resource link.';
                 isLoading = false;
             }
         } else {
             existingReference = false;
-            isError = false;
+            errorMessage = null;
             isModalOpen = true;
         }
     }
@@ -162,13 +166,13 @@
     async function search() {
         if (searchQuery.length > 2) {
             isLoading = true;
-            isError = false;
+            errorMessage = null;
             try {
                 resourceSearchResults = await getFromApi<ResourceReference[]>(
                     `/resources/resource-references/search?parentResourceId=${parentResourceId}&query=${searchQuery}`
                 );
             } catch (e) {
-                isError = true;
+                errorMessage = 'Error searching, try again';
                 throw e;
             } finally {
                 isLoading = false;
@@ -222,8 +226,8 @@
     bind:open={isModalOpen}
     header="Associate Resource Item"
 >
-    {#if isError}
-        <span class="text-xs text-error">Error occurred, try again</span>
+    {#if errorMessage}
+        <span class="w-full pb-2 text-center text-xs text-error">{errorMessage}</span>
     {/if}
     {#if isLoading && existingReference}
         <CenteredSpinner />
