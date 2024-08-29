@@ -11,6 +11,7 @@
     import type { ProjectResource } from '$lib/types/projects';
     import { browser } from '$app/environment';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
+    import { goto } from '$app/navigation';
 
     export let data: PageData;
     const { users: dataUsers } = data;
@@ -122,4 +123,10 @@
             <ProjectViewTableAndFilters />
         </div>
     </div>
+{:catch error}
+    {#if error.status === 404}
+        {#await goto('/projects')}
+            <CenteredSpinnerFullScreen />
+        {/await}
+    {/if}
 {/await}
