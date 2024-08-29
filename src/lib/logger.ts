@@ -66,7 +66,13 @@ export const log = {
             // eslint-disable-next-line
             console.error(error);
 
-            if (logToAppInsights) {
+            let statusCode: number | undefined;
+
+            if ('status' in error) {
+                statusCode = error.status;
+            }
+
+            if (logToAppInsights && statusCode !== 404) {
                 appInsights.trackException(
                     { exception: error },
                     {
