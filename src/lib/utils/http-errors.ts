@@ -37,7 +37,7 @@ export class TokenMissingError extends Error {
     message = 'Auth token is missing.';
 }
 
-function isApiErrorWithStatus(error: unknown, status: number): error is ApiError {
+export function isApiErrorWithStatus(error: unknown, status: number): error is ApiError {
     return error instanceof ApiError && error.status === status;
 }
 

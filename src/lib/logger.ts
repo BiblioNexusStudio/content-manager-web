@@ -3,7 +3,13 @@ import config from '$lib/config';
 import { browser } from '$app/environment';
 import { isAuthenticatedStore, profile } from './stores/auth';
 import { get } from 'svelte/store';
-import type { ApiError, AuthUninitializedError, FetchError, TokenMissingError } from './utils/http-errors';
+import {
+    isApiErrorWithStatus,
+    ApiError,
+    AuthUninitializedError,
+    FetchError,
+    TokenMissingError,
+} from './utils/http-errors';
 
 const appInsights = new ApplicationInsights({
     config: {
@@ -66,13 +72,7 @@ export const log = {
             // eslint-disable-next-line
             console.error(error);
 
-            let statusCode: number | undefined;
-
-            if ('status' in error) {
-                statusCode = error.status;
-            }
-
-            if (logToAppInsights && statusCode !== 404) {
+            if (logToAppInsights && isApiErrorWithStatus(error, 404)) {
                 appInsights.trackException(
                     { exception: error },
                     {
