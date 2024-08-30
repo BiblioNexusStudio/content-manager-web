@@ -72,7 +72,7 @@ export const log = {
             // eslint-disable-next-line
             console.error(error);
 
-            if (logToAppInsights && isApiErrorWithStatus(error, 404)) {
+            if (logToAppInsights && !isApiErrorWithStatus(error, 404)) {
                 appInsights.trackException(
                     { exception: error },
                     {
