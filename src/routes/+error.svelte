@@ -1,11 +1,6 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import { goto } from '$app/navigation';
-    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
-
-    onMount(() => {
-        goto('/');
-    });
+    import { page } from '$app/stores';
+    import ErrorMessage from '$lib/components/ErrorMessage.svelte';
 </script>
 
-<CenteredSpinnerFullScreen />
+<ErrorMessage uncastError={$page?.error} />

@@ -13,7 +13,7 @@
     import { createListSorter } from '$lib/utils/sorting';
     import ReportTablePagination from './ReportTablePagination.svelte';
     import Select from '$lib/components/Select.svelte';
-    import { goto } from '$app/navigation';
+    import ErrorMessage from '$lib/components/ErrorMessage.svelte';
 
     export let data: PageData;
 
@@ -153,9 +153,5 @@
         </div>
     {/if}
 {:catch error}
-    {#if error.status === 404}
-        {#await goto('/reporting')}
-            <CenteredSpinner />
-        {/await}
-    {/if}
+    <ErrorMessage uncastError={error} gotoPath={'/reporting'} />
 {/await}

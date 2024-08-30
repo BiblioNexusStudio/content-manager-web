@@ -10,6 +10,7 @@
     import MultipleSelect from '$lib/components/MultipleSelect.svelte';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
     import type { BasicDynamicReport } from '$lib/types/reporting';
+    import ErrorMessage from '$lib/components/ErrorMessage.svelte';
 
     export let data: PageData;
 
@@ -153,4 +154,6 @@
             {/each}
         </div>
     </div>
+{:catch error}
+    <ErrorMessage uncastError={error} />
 {/await}

@@ -11,7 +11,7 @@
     import type { ProjectResource } from '$lib/types/projects';
     import { browser } from '$app/environment';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
-    import { goto } from '$app/navigation';
+    import ErrorMessage from '$lib/components/ErrorMessage.svelte';
 
     export let data: PageData;
     const { users: dataUsers } = data;
@@ -124,9 +124,5 @@
         </div>
     </div>
 {:catch error}
-    {#if error.status === 404}
-        {#await goto('/projects')}
-            <CenteredSpinnerFullScreen />
-        {/await}
-    {/if}
+    <ErrorMessage uncastError={error} gotoPath="/projects" />
 {/await}

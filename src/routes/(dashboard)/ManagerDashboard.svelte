@@ -22,6 +22,7 @@
         userWordCountColumns,
     } from './manager-dashboard-columns';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
+    import ErrorMessage from '$lib/components/ErrorMessage.svelte';
 
     export let data: PageData;
     let search = '';
@@ -447,6 +448,8 @@
             </div>
         {/if}
     </div>
+{:catch error}
+    <ErrorMessage uncastError={error} />
 {/await}
 
 <Modal

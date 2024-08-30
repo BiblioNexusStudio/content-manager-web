@@ -3,6 +3,7 @@
     import ProjectTable from '$lib/components/projects/ProjectTable.svelte';
     import type { ProjectStatusTab } from '$lib/types/projects';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
+    import ErrorMessage from '$lib/components/ErrorMessage.svelte';
 
     export let data: PageData;
 
@@ -32,4 +33,6 @@
             {languages}
         />
     </div>
+{:catch error}
+    <ErrorMessage uncastError={error} />
 {/await}

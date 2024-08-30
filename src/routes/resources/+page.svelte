@@ -12,6 +12,7 @@
     import type { BibleBook } from '$lib/types/base';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
+    import ErrorMessage from '$lib/components/ErrorMessage.svelte';
 
     export let data: PageData;
 
@@ -260,4 +261,6 @@
             {/if}
         {/await}
     </div>
+{:catch error}
+    <ErrorMessage uncastError={error} />
 {/await}
