@@ -52,6 +52,7 @@
     import { log } from '$lib/logger';
     import { createIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
+    import ErrorMessage from '$lib/components/ErrorMessage.svelte';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
@@ -776,11 +777,7 @@
     <InlineComment {commentStores} />
     <VersePopout language={resourceContent.language} />
 {:catch error}
-    {#if error.status === 404}
-        {#await goto('/resources')}
-            <CenteredSpinnerFullScreen />
-        {/await}
-    {/if}
+    <ErrorMessage uncastError={error} gotoPath={'/resources'} />
 {/await}
 
 {#key resourceContentId}

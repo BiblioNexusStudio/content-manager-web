@@ -26,6 +26,7 @@
     import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
     import { filterBoolean } from '$lib/utils/array';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
+    import ErrorMessage from '$lib/components/ErrorMessage.svelte';
 
     enum Tab {
         myWork = 'my-work',
@@ -405,6 +406,8 @@
             </div>
         </div>
     </div>
+{:catch error}
+    <ErrorMessage uncastError={error} />
 {/await}
 
 <Modal

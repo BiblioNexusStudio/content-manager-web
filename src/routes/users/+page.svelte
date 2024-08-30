@@ -10,6 +10,7 @@
     import { patchToApi } from '$lib/utils/http-service';
     import { createIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
+    import ErrorMessage from '$lib/components/ErrorMessage.svelte';
 
     export let data: PageData;
 
@@ -144,4 +145,6 @@
         description="An error occurred disabling the user. Please try again later."
         bind:open={isShowingErrorModal}
     />
+{:catch error}
+    <ErrorMessage uncastError={error} />
 {/await}
