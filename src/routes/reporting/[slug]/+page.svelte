@@ -13,6 +13,7 @@
     import { createListSorter } from '$lib/utils/sorting';
     import ReportTablePagination from './ReportTablePagination.svelte';
     import Select from '$lib/components/Select.svelte';
+    import { goto } from '$app/navigation';
 
     export let data: PageData;
 
@@ -150,5 +151,11 @@
                 <p>Unsupported report type</p>
             {/if}
         </div>
+    {/if}
+{:catch error}
+    {#if error.status === 404}
+        {#await goto('/reporting')}
+            <CenteredSpinner />
+        {/await}
     {/if}
 {/await}

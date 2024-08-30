@@ -775,6 +775,12 @@
 
     <InlineComment {commentStores} />
     <VersePopout language={resourceContent.language} />
+{:catch error}
+    {#if error.status === 404}
+        {#await goto('/resources')}
+            <CenteredSpinnerFullScreen />
+        {/await}
+    {/if}
 {/await}
 
 {#key resourceContentId}

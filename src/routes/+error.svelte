@@ -1,5 +1,11 @@
 <script lang="ts">
-    import { page } from '$app/stores';
+    import { onMount } from 'svelte';
+    import { goto } from '$app/navigation';
+    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
+
+    onMount(() => {
+        goto('/');
+    });
 </script>
 
-<h1>{$page.error?.message}</h1>
+<CenteredSpinnerFullScreen />
