@@ -36,7 +36,7 @@
         "@types/uuid": "^9.0.8",
         "chart.js": "^4.4.0",
         "daisyui": "^4.6.0",
-        "htmldiff-ts": "BiblioNexusStudio/htmldiff-ts#1.0.6",
+        "htmldiff-ts": "https://github.com/BiblioNexusStudio/htmldiff-ts#1.0.6",
         "svelte": "^4.0.5",
         "svelte-awesome": "^3.2.1",
         "svelte-i18n": "^3.7.0",
