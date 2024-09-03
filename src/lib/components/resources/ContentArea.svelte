@@ -75,6 +75,13 @@
         </div>
     </div>
     <div class="flex flex-col items-end space-y-2">
+        {#if resourceContent.assignedUser}
+            <div class="flex text-xl">
+                Assigned: {resourceContent.assignedUser.name}
+            </div>
+        {:else if resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress || resourceContent.status === ResourceContentStatusEnum.TranslationInProgress}
+            <div class="flex text-xl">Assigned: External User</div>
+        {/if}
         <div class="flex">
             {#if sidebarHistoryAvailable && resourceContent.mediaType === MediaTypeEnum.text}
                 <Tooltip
@@ -124,12 +131,5 @@
                 </button>
             </Tooltip>
         </div>
-        {#if resourceContent.assignedUser}
-            <div class="flex text-xl">
-                Assigned: {resourceContent.assignedUser.name}
-            </div>
-        {:else if resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress || resourceContent.status === ResourceContentStatusEnum.TranslationInProgress}
-            <div class="flex text-xl">Assigned: External User</div>
-        {/if}
     </div>
 </div>
