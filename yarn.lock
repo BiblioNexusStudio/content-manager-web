@@ -3176,9 +3176,9 @@ html-encoding-sniffer@^3.0.0:
   dependencies:
     whatwg-encoding "^2.0.0"
 
-htmldiff-ts@BiblioNexusStudio/htmldiff-ts#1.0.6:
+"htmldiff-ts@https://github.com/BiblioNexusStudio/htmldiff-ts#1.0.6":
   version "1.0.0"
-  resolved "git+ssh://git@github.com/BiblioNexusStudio/htmldiff-ts.git#957ad928d9309a1aaff3db25384aa190b45e3742"
+  resolved "https://github.com/BiblioNexusStudio/htmldiff-ts#957ad928d9309a1aaff3db25384aa190b45e3742"
 
 http-cache-semantics@^4.0.0:
   version "4.1.1"
