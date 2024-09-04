@@ -732,7 +732,7 @@
                                     {machineTranslationStore}
                                 />
                                 {#if mediaType === MediaTypeEnum.text}
-                                    <div class="flex h-10 flex-row items-center px-[0.75rem] text-sm text-gray-500">
+                                    <div class="flex h-10 flex-row items-center px-3 text-sm text-gray-500">
                                         Word count: {$sidebarContentStore.selected.wordCount}
                                     </div>
                                 {/if}
