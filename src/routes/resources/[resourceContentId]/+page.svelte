@@ -777,7 +777,7 @@
     <InlineComment {commentStores} />
     <VersePopout language={resourceContent.language} />
 {:catch error}
-    <ErrorMessage uncastError={error} gotoPath={'/resources'} />
+    <ErrorMessage uncastError={error} />
 {/await}
 
 {#key resourceContentId}
