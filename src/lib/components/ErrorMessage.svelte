@@ -32,7 +32,7 @@
 {#if didNotRedirect}
     <div class="flex h-[calc(100vh-39px)] w-full items-center justify-center">
         <div class="flex grow flex-col items-center">
-            <h1 class="text-4xl">Unknown Error</h1>
+            <h1 class="text-4xl">An error occurred</h1>
             <button on:click={() => goto(gotoPath)} class="btn btn-primary mt-4 capitalize">{buttonText}</button>
         </div>
     </div>
