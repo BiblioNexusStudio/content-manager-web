@@ -647,8 +647,8 @@
                     ? 'w-4/5 pe-3'
                     : 'w-2/5 pe-3'}"
             >
-                <div class="h-full rounded-md bg-base-200 p-4">
-                    <div class="mx-auto flex h-full w-full max-w-4xl flex-col space-y-[0.9375rem]">
+                <div class="h-full rounded-md bg-base-200 px-4 pt-4 pb-1">
+                    <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
                         <div class="flex flex-row items-center">
                             <input
                                 bind:value={$editableDisplayNameStore}
@@ -662,7 +662,7 @@
                                 <div class="me-2 font-semibold text-gray-700">Draft</div>
                             {/if}
                         </div>
-                        <div class="w-full flex-grow">
+                        <div class="w-full flex-grow mt-[0.9375rem]">
                             <Content
                                 bind:selectedStepNumber
                                 {editableDisplayNameStore}
@@ -693,8 +693,8 @@
                 class="h-full overflow-hidden {$sidebarContentStore.animateOpen && 'transition-[width]'}
                 {!$sidebarContentStore.isOpen ? 'w-0' : isShowingSupplementalSidebar ? 'w-2/5 ps-3' : 'w-1/2 ps-3'}"
             >
-                <div class="flex h-full w-full flex-col rounded-md border border-base-300 p-4">
-                    <div class="mx-auto flex h-full w-full max-w-4xl flex-col space-y-4">
+                <div class="flex h-full w-full flex-col rounded-md border border-base-300 px-4 pt-4 pb-1">
+                    <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
                         <Select
                             value={$sidebarContentStore.selected?.idForSelection ?? null}
                             onChange={sidebarContentStore.selectSnapshotOrVersion}
@@ -706,7 +706,7 @@
                         />
                         {#if $sidebarContentStore.isOpen}
                             {#if $sidebarContentStore.selected}
-                                <div class="flex h-6 w-full flex-row items-center">
+                                <div class="flex h-6 w-full flex-row items-center my-4">
                                     <div class="overflow-hidden text-ellipsis whitespace-nowrap text-lg">
                                         {$sidebarContentStore.selected.displayName}
                                     </div>
@@ -732,7 +732,7 @@
                                     {machineTranslationStore}
                                 />
                                 {#if mediaType === MediaTypeEnum.text}
-                                    <div class="flex h-10 flex-row items-center text-sm text-gray-500">
+                                    <div class="flex h-10 flex-row items-center text-sm text-gray-500 px-[0.75rem]">
                                         Word count: {$sidebarContentStore.selected.wordCount}
                                     </div>
                                 {/if}
