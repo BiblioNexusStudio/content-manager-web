@@ -38,13 +38,13 @@
     };
 </script>
 
-<div class="my-6 flex w-full justify-between">
+<div class="my-1 flex w-full justify-between">
     <div class="flex flex-col">
-        <div class="mb-2 flex text-xl">
-            <h1 class="me-4 text-3xl font-bold">{resourceContent.englishLabel}</h1>
+        <div class="text-md mb-1 flex">
+            <h1 class="me-4 font-bold">{resourceContent.englishLabel}</h1>
             <div class="flex items-end">{resourceContent.parentResourceName}</div>
         </div>
-        <div class="flex text-xl">
+        <div class="text-md flex">
             <div class="me-4">
                 {resourceContent.language.englishDisplay}
             </div>
@@ -60,7 +60,7 @@
                         class="border-[#17b26a] text-[#17b26a]"
                         text="Published"
                     >
-                        <Icon data={checkCircleO} style="height: 20px; width: auto; color: #17b26a;" />
+                        <Icon data={checkCircleO} style="height: 18px; width: auto; color: #17b26a;" />
                     </Tooltip>
                 {:else}
                     <Tooltip
@@ -68,19 +68,19 @@
                         class="border-[#485467] text-[#485467]"
                         text="Not Published"
                     >
-                        <Icon data={ban} style="height: 20px; width: auto; color: #485467;" />
+                        <Icon data={ban} style="height: 18px; width: auto; color: #485467;" />
                     </Tooltip>
                 {/if}
             </div>
         </div>
     </div>
-    <div class="flex flex-col items-end space-y-2">
+    <div class="flex flex-col items-end space-y-1">
         {#if resourceContent.assignedUser}
-            <div class="flex text-xl">
+            <div class="text-md flex">
                 Assigned: {resourceContent.assignedUser.name}
             </div>
         {:else if resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress || resourceContent.status === ResourceContentStatusEnum.TranslationInProgress}
-            <div class="flex text-xl">Assigned: External User</div>
+            <div class="text-md flex">Assigned: External User</div>
         {/if}
         <div class="flex">
             {#if sidebarHistoryAvailable && resourceContent.mediaType === MediaTypeEnum.text}
