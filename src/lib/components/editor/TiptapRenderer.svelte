@@ -5,6 +5,7 @@
     import { extensions } from '../tiptap/extensions';
     import type { CommentStores } from '$lib/stores/comments';
     import type { ScriptDirection } from '$lib/types/base';
+    import { scrollPosition, isSyncScrollEnabled } from '$lib/stores/scrollSync';
 
     export let languageScriptDirection: ScriptDirection | undefined;
     export let tiptapJson: TiptapContentItem | undefined;
@@ -16,10 +17,42 @@
     export let isLoading = false;
     export let commentStores: CommentStores;
 
+    let use_scroll_top = false; // toggle this to use percent based scroll
+    let syncScrollElement: HTMLDivElement | undefined;
     let element: HTMLDivElement | undefined;
 
     $: updateEditor(tiptapJson);
     $: enableOrDisableEditing(canEdit);
+
+    $: {
+        if (syncScrollElement && $isSyncScrollEnabled) {
+
+            if ( use_scroll_top ) {
+                syncScrollElement.scrollTop = $scrollPosition;
+            } else {
+                const scrollHeight = syncScrollElement.scrollHeight;
+                const clientHeight = syncScrollElement.clientHeight;
+    
+                syncScrollElement.scrollTop = ($scrollPosition/100) * (scrollHeight - clientHeight);
+            }
+
+        }
+    }
+
+    const handleScroll = () => {
+        if (syncScrollElement) {
+            if ( use_scroll_top ) {
+                $scrollPosition = syncScrollElement.scrollTop;
+            } else {
+                const scrollHeight = syncScrollElement.scrollHeight;
+                const clientHeight = syncScrollElement.clientHeight;
+                const scrollTop    = syncScrollElement.scrollTop;
+                
+                $scrollPosition = (scrollTop / (scrollHeight - clientHeight))*100;
+            }
+
+        }
+    };
 
     function updateEditor(tiptapJson: TiptapContentItem | undefined) {
         if (tiptapJson && editor) {
@@ -63,7 +96,11 @@
 </script>
 
 <div class="relative grow">
-    <div class="absolute bottom-0 left-0 right-0 top-0 overflow-y-auto rounded-md border border-base-300 bg-white">
+    <div
+        bind:this={syncScrollElement}
+        on:scroll={handleScroll}
+        class="absolute bottom-0 left-0 right-0 top-0 overflow-y-auto rounded-md border border-base-300 bg-white"
+    >
         {#if isLoading}
             <div class="absolute h-full w-full">
                 <div class="loading loading-infinity loading-lg absolute left-1/2 top-1/2 text-primary" />
