@@ -10,6 +10,6 @@
 
 <button
     data-app-insights-event-name="exit-button-click"
-    class="btn btn-outline btn-primary border-2 font-extrabold"
+    class="btn btn-outline btn-primary btn-sm border-2 font-extrabold"
     on:click={goBack}>Exit</button
 >

@@ -516,9 +516,9 @@
         on:introend={() => (shouldTransition = false)}
         in:fly={{ x: '100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 350 : 0 }}
         out:fly={{ x: '-100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 250 : 0 }}
-        class="px-8 pt-4"
+        class="px-8 pt-1"
     >
-        <div class="flex w-full items-center justify-between border-b-2 pb-2">
+        <div class="flex w-full items-center justify-between border-b-[1px]">
             <div class="me-2 flex place-items-center">
                 <ExitButton defaultPathIfNoHistory="/resources" />
                 <CurrentTranslations
@@ -546,7 +546,7 @@
                     <div class="flex flex-wrap justify-end">
                         {#if canAssign || canSendBack}
                             <button
-                                class="btn btn-primary ms-2"
+                                class="btn btn-primary btn-sm ms-2"
                                 disabled={$isPageTransacting}
                                 on:click={openAssignUserModal}
                             >
@@ -559,7 +559,7 @@
                         {/if}
                         {#if canPullBackToManagerReview}
                             <button
-                                class="btn btn-primary ms-2"
+                                class="btn btn-primary btn-sm ms-2"
                                 disabled={$isPageTransacting}
                                 on:click={pullBackToManagerReview}
                             >
@@ -568,7 +568,7 @@
                         {/if}
                         {#if canAssignPublisherForReview}
                             <button
-                                class="btn btn-primary ms-2"
+                                class="btn btn-primary btn-sm ms-2"
                                 disabled={$isPageTransacting}
                                 on:click={openAssignReviewModal}
                                 >{isInReview ? 'Assign' : 'Review'}
@@ -576,7 +576,7 @@
                         {/if}
                         {#if canPublish}
                             <button
-                                class="btn btn-primary ms-2"
+                                class="btn btn-primary btn-sm ms-2"
                                 disabled={$isPageTransacting}
                                 on:click={() => publishOrOpenModal(resourceContent.status)}
                                 >Publish
@@ -585,7 +585,7 @@
                         {#if canUnpublish}
                             <button
                                 data-app-insights-event-name="resource-unpublish-click"
-                                class="btn btn-primary ms-2"
+                                class="btn btn-primary btn-sm ms-2"
                                 disabled={$isPageTransacting}
                                 on:click={unpublish}
                                 >Unpublish
@@ -593,7 +593,7 @@
                         {/if}
                         {#if canSendForManagerReview}
                             <button
-                                class="btn btn-primary ms-2"
+                                class="btn btn-primary btn-sm ms-2"
                                 disabled={$isPageTransacting}
                                 on:click={sendForManagerReview}
                                 >Send to Review
@@ -601,7 +601,7 @@
                         {/if}
                         {#if canSendForPublisherReview}
                             <button
-                                class="btn btn-primary ms-2"
+                                class="btn btn-primary btn-sm ms-2"
                                 disabled={$isPageTransacting}
                                 on:click={sendForPublisherReview}
                                 >Send to Publisher
@@ -609,7 +609,7 @@
                         {/if}
                         {#if canAquiferize}
                             <button
-                                class="btn btn-primary ms-2"
+                                class="btn btn-primary btn-sm ms-2"
                                 disabled={$isPageTransacting}
                                 on:click={openAquiferizeModal}
                                 >{#if isInTranslationWorkflow}
@@ -636,7 +636,7 @@
             bind:openedSupplementalSideBar
         />
 
-        <div class="flex h-[calc(100vh-245px)]">
+        <div class="flex h-[calc(100vh-170px)]">
             <div
                 class="h-full {$sidebarContentStore.animateOpen &&
                     'transition-[width]'} {!$sidebarContentStore.isOpen && !isShowingSupplementalSidebar
@@ -647,7 +647,7 @@
                     ? 'w-4/5 pe-3'
                     : 'w-2/5 pe-3'}"
             >
-                <div class="h-full rounded-md bg-base-200 px-4 pb-1 pt-4">
+                <div class="h-full rounded-md bg-base-200 px-4 pb-0.5 pt-4">
                     <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
                         <div class="flex flex-row items-center">
                             <input
