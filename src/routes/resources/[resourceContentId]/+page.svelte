@@ -53,6 +53,7 @@
     import { createIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
     import ErrorMessage from '$lib/components/ErrorMessage.svelte';
+    import SyncScrollLockToggle from '$lib/components/editor/SyncScrollLockToggle.svelte';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
@@ -732,8 +733,11 @@
                                     {machineTranslationStore}
                                 />
                                 {#if mediaType === MediaTypeEnum.text}
-                                    <div class="flex h-10 flex-row items-center px-3 text-sm text-gray-500">
-                                        Word count: {$sidebarContentStore.selected.wordCount}
+                                    <div
+                                        class="flex h-10 flex-row items-center justify-between px-3 text-sm text-gray-500"
+                                    >
+                                        <span>Word count: {$sidebarContentStore.selected.wordCount}</span>
+                                        <SyncScrollLockToggle />
                                     </div>
                                 {/if}
                             {:else if $sidebarContentStore.isLoading}
