@@ -1,4 +1,4 @@
-export interface IReportingLinkData {
+interface IReportingLinkData {
     reportTitle: string;
     reportDescription: string;
     reportLink: string;
