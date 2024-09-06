@@ -14,7 +14,7 @@ export interface ContentNode {
     content?: ContentNode[];
 }
 
-export interface MarkType {
+interface MarkType {
     type: string;
     attrs?: {
         verses?: VerseReference[];

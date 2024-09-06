@@ -21,7 +21,7 @@ const RTL_REGEX = new RegExp('^[^' + LTR + ']*[' + RTL + ']');
 const LTR_REGEX = new RegExp('^[^' + RTL + ']*[' + LTR + ']');
 
 // Source: https://github.com/facebook/lexical/blob/429e3eb5b5a244026fa4776650aabe3c8e17536b/packages/lexical/src/LexicalUtils.ts#L163
-export function getNodeTextDirection(text: string) {
+function getNodeTextDirection(text: string) {
     if (text.length == 0) {
         return undefined;
     }
@@ -115,13 +115,11 @@ function updateNodeAttributesWithDir(
 
     return modified ? tr : null;
 }
-
-export interface TextDirectionOptions {
+interface TextDirectionOptions {
     types: string[];
     defaultDirection?: ScriptDirection;
 }
-
-export const TextDirection = Extension.create<TextDirectionOptions>({
+const TextDirection = Extension.create<TextDirectionOptions>({
     name: 'textDirection',
 
     addOptions() {
