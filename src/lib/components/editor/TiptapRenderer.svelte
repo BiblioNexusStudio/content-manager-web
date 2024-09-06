@@ -25,7 +25,7 @@
 
     $: {
         if (syncScrollElement && $isSyncScrollEnabled) {
-            if (! $isSyncScrollPercent) {
+            if (!$isSyncScrollPercent) {
                 syncScrollElement.scrollTop = $scrollPosition;
             } else {
                 const scrollHeight = syncScrollElement.scrollHeight;
@@ -38,7 +38,7 @@
 
     const handleScroll = () => {
         if (syncScrollElement) {
-            if (! $isSyncScrollPercent) {
+            if (!$isSyncScrollPercent) {
                 $scrollPosition = syncScrollElement.scrollTop;
             } else {
                 const scrollHeight = syncScrollElement.scrollHeight;

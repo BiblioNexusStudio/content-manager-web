@@ -7,5 +7,5 @@
     class="btn h-auto min-h-0 p-1"
     class:btn-primary={$isSyncScrollPercent}
 >
-&percnt;
+    &percnt;
 </button>
