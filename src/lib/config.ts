@@ -2,7 +2,7 @@ import * as env from '$env/static/public';
 
 export default env as unknown as Configuration;
 
-export interface Configuration {
+interface Configuration {
     PUBLIC_APPLICATION_INSIGHTS_CONNECTION_STRING: string;
     PUBLIC_ENV: string;
     PUBLIC_COMMIT_SHA: string;

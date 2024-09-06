@@ -23,7 +23,7 @@ const GOTO_OPTIONS = {
     replaceState: true,
 };
 
-export type EncodeAndDecodeOptions<T = any> = {
+type EncodeAndDecodeOptions<T = any> = {
     encode: (value: T) => string | undefined;
     decode: (value: string | null) => T | null;
     defaultValue: T;

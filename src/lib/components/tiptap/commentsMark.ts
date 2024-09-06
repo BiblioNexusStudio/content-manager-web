@@ -2,8 +2,7 @@
 import { v4 as uuid } from 'uuid';
 import type { EditorState } from '@tiptap/pm/state';
 import type { CommentStores } from '$lib/stores/comments';
-
-export interface CommentsMarkOptions {
+interface CommentsMarkOptions {
     render: boolean;
     commentStores: CommentStores | undefined;
 }

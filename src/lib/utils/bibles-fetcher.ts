@@ -7,8 +7,7 @@ export interface BasicBible {
     languageId: number;
     isLanguageDefault: boolean;
 }
-
-export const fetchBibles = async (): Promise<BasicBible[]> => {
+const fetchBibles = async (): Promise<BasicBible[]> => {
     try {
         return (await getFromApi<BasicBible[]>('/bibles')) ?? [];
     } catch (error) {
