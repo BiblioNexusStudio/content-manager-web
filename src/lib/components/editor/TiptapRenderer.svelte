@@ -5,7 +5,7 @@
     import { extensions } from '../tiptap/extensions';
     import type { CommentStores } from '$lib/stores/comments';
     import type { ScriptDirection } from '$lib/types/base';
-    import { scrollPosition, isSyncScrollEnabled } from '$lib/stores/scrollSync';
+    import { scrollPosition, isSyncScrollEnabled, isSyncScrollPercent } from '$lib/stores/scrollSync';
 
     export let languageScriptDirection: ScriptDirection | undefined;
     export let tiptapJson: TiptapContentItem | undefined;
@@ -17,7 +17,6 @@
     export let isLoading = false;
     export let commentStores: CommentStores;
 
-    let use_scroll_top = true; // toggle this to use percent based scroll
     let syncScrollElement: HTMLDivElement | undefined;
     let element: HTMLDivElement | undefined;
 
@@ -26,7 +25,7 @@
 
     $: {
         if (syncScrollElement && $isSyncScrollEnabled) {
-            if (use_scroll_top) {
+            if (! $isSyncScrollPercent) {
                 syncScrollElement.scrollTop = $scrollPosition;
             } else {
                 const scrollHeight = syncScrollElement.scrollHeight;
@@ -39,7 +38,7 @@
 
     const handleScroll = () => {
         if (syncScrollElement) {
-            if (use_scroll_top) {
+            if (! $isSyncScrollPercent) {
                 $scrollPosition = syncScrollElement.scrollTop;
             } else {
                 const scrollHeight = syncScrollElement.scrollHeight;

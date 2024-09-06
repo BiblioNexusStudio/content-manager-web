@@ -54,6 +54,7 @@
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
     import ErrorMessage from '$lib/components/ErrorMessage.svelte';
     import SyncScrollLockToggle from '$lib/components/editor/SyncScrollLockToggle.svelte';
+    import SyncScrollTypeToggle from '$lib/components/editor/SyncScrollTypeToggle.svelte';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
@@ -737,7 +738,10 @@
                                         class="flex h-10 flex-row items-center justify-between px-3 text-sm text-gray-500"
                                     >
                                         <span>Word count: {$sidebarContentStore.selected.wordCount}</span>
-                                        <SyncScrollLockToggle />
+                                        <div class="flex gap-2">
+                                            <SyncScrollTypeToggle />
+                                            <SyncScrollLockToggle />
+                                        </div>
                                     </div>
                                 {/if}
                             {:else if $sidebarContentStore.isLoading}
