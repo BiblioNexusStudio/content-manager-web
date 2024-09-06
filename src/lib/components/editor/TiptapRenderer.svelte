@@ -17,7 +17,7 @@
     export let isLoading = false;
     export let commentStores: CommentStores;
 
-    let use_scroll_top = false; // toggle this to use percent based scroll
+    let use_scroll_top = true; // toggle this to use percent based scroll
     let syncScrollElement: HTMLDivElement | undefined;
     let element: HTMLDivElement | undefined;
 
@@ -26,31 +26,28 @@
 
     $: {
         if (syncScrollElement && $isSyncScrollEnabled) {
-
-            if ( use_scroll_top ) {
+            if (use_scroll_top) {
                 syncScrollElement.scrollTop = $scrollPosition;
             } else {
                 const scrollHeight = syncScrollElement.scrollHeight;
                 const clientHeight = syncScrollElement.clientHeight;
-    
-                syncScrollElement.scrollTop = ($scrollPosition/100) * (scrollHeight - clientHeight);
-            }
 
+                syncScrollElement.scrollTop = ($scrollPosition / 100) * (scrollHeight - clientHeight);
+            }
         }
     }
 
     const handleScroll = () => {
         if (syncScrollElement) {
-            if ( use_scroll_top ) {
+            if (use_scroll_top) {
                 $scrollPosition = syncScrollElement.scrollTop;
             } else {
                 const scrollHeight = syncScrollElement.scrollHeight;
                 const clientHeight = syncScrollElement.clientHeight;
-                const scrollTop    = syncScrollElement.scrollTop;
-                
-                $scrollPosition = (scrollTop / (scrollHeight - clientHeight))*100;
-            }
+                const scrollTop = syncScrollElement.scrollTop;
 
+                $scrollPosition = (scrollTop / (scrollHeight - clientHeight)) * 100;
+            }
         }
     };
 

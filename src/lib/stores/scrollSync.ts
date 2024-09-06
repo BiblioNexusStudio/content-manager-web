@@ -33,14 +33,14 @@ export const isSyncScrollEnabled = writable(true);
 //         subscribe,
 //         setScrollableDiv,
 //         handleScroll,
-        // updateScrollPosition: (scrollableDiv: HTMLDivElement) => {
-        //     const scrollHeight = scrollableDiv.scrollHeight;
-        //     const clientHeight = scrollableDiv.clientHeight;
+// updateScrollPosition: (scrollableDiv: HTMLDivElement) => {
+//     const scrollHeight = scrollableDiv.scrollHeight;
+//     const clientHeight = scrollableDiv.clientHeight;
 
-        //     scrollableDiv.scrollTop = percentage;
+//     scrollableDiv.scrollTop = percentage;
 
-        //     // scrollableDiv.scrollTop = percentage * (scrollHeight - clientHeight);
-        // }
+//     // scrollableDiv.scrollTop = percentage * (scrollHeight - clientHeight);
+// }
 //     };
 // };
 
