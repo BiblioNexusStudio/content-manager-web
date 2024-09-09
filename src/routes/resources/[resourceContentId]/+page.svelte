@@ -53,7 +53,7 @@
     import { createIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
     import ErrorMessage from '$lib/components/ErrorMessage.svelte';
-    import SyncScrollLockToggle from '$lib/components/editor/SyncScrollLockToggle.svelte';
+    import ScrollSyncLockToggle from '$lib/components/editor/ScrollSyncLockToggle.svelte';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
@@ -738,7 +738,7 @@
                                     >
                                         <span>Word count: {$sidebarContentStore.selected.wordCount}</span>
                                         <div class="flex gap-2">
-                                            <SyncScrollLockToggle />
+                                            <ScrollSyncLockToggle />
                                         </div>
                                     </div>
                                 {/if}

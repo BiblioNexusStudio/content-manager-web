@@ -5,7 +5,7 @@
     import { extensions } from '../tiptap/extensions';
     import type { CommentStores } from '$lib/stores/comments';
     import type { ScriptDirection } from '$lib/types/base';
-    import { scrollPosition, isSyncScrollEnabled, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
+    import { scrollPosition, isScrollSyncEnabled, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
 
     export let languageScriptDirection: ScriptDirection | undefined;
     export let tiptapJson: TiptapContentItem | undefined;
@@ -17,30 +17,30 @@
     export let isLoading = false;
     export let commentStores: CommentStores;
 
-    let syncScrollElement: HTMLDivElement | undefined;
+    let scrollSyncElement: HTMLDivElement | undefined;
     let element: HTMLDivElement | undefined;
 
     $: updateEditor(tiptapJson);
     $: enableOrDisableEditing(canEdit);
 
     $: {
-        if (syncScrollElement && $isSyncScrollEnabled && $scrollSyncSourceDiv != syncScrollElement) {
-            const scrollHeight = syncScrollElement.scrollHeight;
-            const clientHeight = syncScrollElement.clientHeight;
+        if (scrollSyncElement && $isScrollSyncEnabled && $scrollSyncSourceDiv != scrollSyncElement) {
+            const scrollHeight = scrollSyncElement.scrollHeight;
+            const clientHeight = scrollSyncElement.clientHeight;
 
-            syncScrollElement.scrollTop = ($scrollPosition / 100) * (scrollHeight - clientHeight);
+            scrollSyncElement.scrollTop = ($scrollPosition / 100) * (scrollHeight - clientHeight);
         }
     }
 
-    const handleScrollSync = () => {
-        $scrollSyncSourceDiv = syncScrollElement;
+    const setScrollSyncElement = () => {
+        $scrollSyncSourceDiv = scrollSyncElement;
     };
 
     const handleScroll = () => {
-        if (syncScrollElement) {
-            const scrollHeight = syncScrollElement.scrollHeight;
-            const clientHeight = syncScrollElement.clientHeight;
-            const scrollTop = syncScrollElement.scrollTop;
+        if (scrollSyncElement) {
+            const scrollHeight = scrollSyncElement.scrollHeight;
+            const clientHeight = scrollSyncElement.clientHeight;
+            const scrollTop = scrollSyncElement.scrollTop;
 
             $scrollPosition = (scrollTop / (scrollHeight - clientHeight)) * 100;
         }
@@ -89,9 +89,9 @@
 
 <div class="relative grow">
     <div
-        bind:this={syncScrollElement}
+        bind:this={scrollSyncElement}
         on:scroll={handleScroll}
-        on:mouseenter={handleScrollSync}
+        on:mouseenter={setScrollSyncElement}
         role="button"
         tabindex="0"
         class="absolute bottom-0 left-0 right-0 top-0 overflow-y-auto rounded-md border border-base-300 bg-white"
