@@ -24,7 +24,12 @@
     $: enableOrDisableEditing(canEdit);
 
     $: {
-        if (scrollSyncElement && $isScrollSyncEnabled && $scrollSyncSourceDiv != scrollSyncElement) {
+        if (
+            $isScrollSyncEnabled &&
+            scrollSyncElement &&
+            $scrollSyncSourceDiv &&
+            $scrollSyncSourceDiv != scrollSyncElement
+        ) {
             const scrollHeight = scrollSyncElement.scrollHeight;
             const clientHeight = scrollSyncElement.clientHeight;
 
