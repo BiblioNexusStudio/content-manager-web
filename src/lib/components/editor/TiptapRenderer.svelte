@@ -33,7 +33,7 @@
             const scrollHeight = scrollSyncElement.scrollHeight;
             const clientHeight = scrollSyncElement.clientHeight;
 
-            scrollSyncElement.scrollTop = ($scrollPosition / 100) * (scrollHeight - clientHeight);
+            scrollSyncElement.scrollTop = $scrollPosition * (scrollHeight - clientHeight);
         }
     }
 
@@ -47,7 +47,7 @@
             const clientHeight = scrollSyncElement.clientHeight;
             const scrollTop = scrollSyncElement.scrollTop;
 
-            $scrollPosition = (scrollTop / (scrollHeight - clientHeight)) * 100;
+            $scrollPosition = Math.round((scrollTop / (scrollHeight - clientHeight)) * 10000) / 10000;
         }
     };
 
