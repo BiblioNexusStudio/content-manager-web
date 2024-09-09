@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-    import { onDestroy } from 'svelte';
+    import { onDestroy, tick } from 'svelte';
     import type { TiptapContentItem } from '$lib/types/resources';
     import HtmlDiffWorker from '../../../workers/html-differ.ts?worker';
     import CenteredSpinner from '../CenteredSpinner.svelte';
@@ -8,6 +8,7 @@
     import { log } from '$lib/logger';
     import { Editor } from '@tiptap/core';
     import type { ScriptDirection } from '$lib/types/base';
+    import { scrollPosition, isScrollSyncEnabled, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
 
     export let tiptapJson: TiptapContentItem | undefined;
     export let currentTiptapJsonForDiffing: TiptapContentItem | undefined;
@@ -21,6 +22,7 @@
     let currentTiptapJsonString: string | undefined;
     let previousBaseHtmlWithTextDirection: string | undefined;
     let baseHtmlWithTextDirection: string | undefined;
+    let scrollSyncElement: HTMLDivElement | undefined;
 
     function calculateBaseHtmlWithTextDirection(tiptapJson: TiptapContentItem | undefined) {
         if (tiptapJson) {
@@ -68,9 +70,11 @@
 
                 // Spin up a web worker since the HTML diffing is CPU intensive and causes UI stutters if on the main thread.
                 diffWorker = new HtmlDiffWorker();
-                diffWorker.onmessage = (event) => {
+                diffWorker.onmessage = async (event) => {
                     if (event.data.success) {
                         diffedHtml = event.data.success;
+                        await tick();
+                        setScroll($scrollPosition);
                     } else if (event.data.error) {
                         log.exception(event.data.error);
                     }
@@ -82,11 +86,47 @@
         750
     );
 
+    $: {
+        if ($isScrollSyncEnabled && $scrollSyncSourceDiv && $scrollSyncSourceDiv != scrollSyncElement) {
+            setScroll($scrollPosition);
+        }
+    }
+
+    const setScroll = (scrollPosition: number) => {
+        if (scrollSyncElement) {
+            const scrollHeight = scrollSyncElement.scrollHeight;
+            const clientHeight = scrollSyncElement.clientHeight;
+
+            scrollSyncElement.scrollTop = scrollPosition * (scrollHeight - clientHeight);
+        }
+    };
+
+    const setScrollSyncElement = () => {
+        $scrollSyncSourceDiv = scrollSyncElement;
+    };
+
+    const handleScroll = () => {
+        if (scrollSyncElement) {
+            const scrollHeight = scrollSyncElement.scrollHeight;
+            const clientHeight = scrollSyncElement.clientHeight;
+            const scrollTop = scrollSyncElement.scrollTop;
+
+            $scrollPosition = Math.round((scrollTop / (scrollHeight - clientHeight)) * 10000) / 10000;
+        }
+    };
+
     onDestroy(() => diffWorker && diffWorker.terminate());
 </script>
 
 <div class="relative grow">
-    <div class="absolute bottom-0 left-0 right-0 top-0 overflow-y-scroll rounded-md border border-base-300 bg-white">
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <div
+        bind:this={scrollSyncElement}
+        on:scroll={handleScroll}
+        on:mouseenter={setScrollSyncElement}
+        on:focus={setScrollSyncElement}
+        class="absolute bottom-0 left-0 right-0 top-0 overflow-y-scroll rounded-md border border-base-300 bg-white"
+    >
         {#if diffedHtml}
             <div
                 dir={languageScriptDirection?.toLowerCase()}

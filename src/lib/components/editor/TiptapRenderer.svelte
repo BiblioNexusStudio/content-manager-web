@@ -5,6 +5,7 @@
     import { extensions } from '../tiptap/extensions';
     import type { CommentStores } from '$lib/stores/comments';
     import type { ScriptDirection } from '$lib/types/base';
+    import { scrollPosition, isScrollSyncEnabled, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
 
     export let languageScriptDirection: ScriptDirection | undefined;
     export let tiptapJson: TiptapContentItem | undefined;
@@ -16,10 +17,39 @@
     export let isLoading = false;
     export let commentStores: CommentStores;
 
+    let scrollSyncElement: HTMLDivElement | undefined;
     let element: HTMLDivElement | undefined;
 
     $: updateEditor(tiptapJson);
     $: enableOrDisableEditing(canEdit);
+
+    $: {
+        if (
+            $isScrollSyncEnabled &&
+            scrollSyncElement &&
+            $scrollSyncSourceDiv &&
+            $scrollSyncSourceDiv != scrollSyncElement
+        ) {
+            const scrollHeight = scrollSyncElement.scrollHeight;
+            const clientHeight = scrollSyncElement.clientHeight;
+
+            scrollSyncElement.scrollTop = $scrollPosition * (scrollHeight - clientHeight);
+        }
+    }
+
+    const setScrollSyncElement = () => {
+        $scrollSyncSourceDiv = scrollSyncElement;
+    };
+
+    const handleScroll = () => {
+        if (scrollSyncElement) {
+            const scrollHeight = scrollSyncElement.scrollHeight;
+            const clientHeight = scrollSyncElement.clientHeight;
+            const scrollTop = scrollSyncElement.scrollTop;
+
+            $scrollPosition = Math.round((scrollTop / (scrollHeight - clientHeight)) * 10000) / 10000;
+        }
+    };
 
     function updateEditor(tiptapJson: TiptapContentItem | undefined) {
         if (tiptapJson && editor) {
@@ -63,7 +93,14 @@
 </script>
 
 <div class="relative grow">
-    <div class="absolute bottom-0 left-0 right-0 top-0 overflow-y-auto rounded-md border border-base-300 bg-white">
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <div
+        bind:this={scrollSyncElement}
+        on:scroll={handleScroll}
+        on:mouseenter={setScrollSyncElement}
+        on:focus={setScrollSyncElement}
+        class="absolute bottom-0 left-0 right-0 top-0 overflow-y-auto rounded-md border border-base-300 bg-white"
+    >
         {#if isLoading}
             <div class="absolute h-full w-full">
                 <div class="loading loading-infinity loading-lg absolute left-1/2 top-1/2 text-primary" />
