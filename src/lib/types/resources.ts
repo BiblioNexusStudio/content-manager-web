@@ -32,39 +32,6 @@ export interface VerseReference {
     verse: number;
 }
 
-interface TextContent {
-    type: string;
-    text: string;
-}
-
-interface Paragraph {
-    type: string;
-    content: TextContent[];
-}
-
-interface Heading {
-    type: string;
-    attrs: {
-        level: number;
-    };
-    content: TextContent[];
-}
-
-interface BulletList {
-    type: string;
-    content: ListItem[];
-}
-
-interface ListItem {
-    type: string;
-    content: Paragraph[];
-}
-
-export interface Tiptap {
-    type: string;
-    content: (Heading | Paragraph | BulletList)[];
-}
-
 export interface TiptapContentItem {
     stepNumber?: number;
     tiptap: object;
@@ -91,7 +58,7 @@ export interface AssociatedResource {
     englishLabel: string;
 }
 
-export interface ResourceContentAssignedUser {
+interface ResourceContentAssignedUser {
     id: number;
     name: string;
     companyId: number;
@@ -139,7 +106,7 @@ export interface ResourceContentNextUpInfo {
     nextUpResourceContentId: number | null;
 }
 
-export interface ParentResourceLicenseInfo {
+interface ParentResourceLicenseInfo {
     title: string;
     copyright: {
         dates?: string | null;
@@ -150,7 +117,7 @@ export interface ParentResourceLicenseInfo {
     showAdaptationNoticeForNonEnglish: boolean;
 }
 
-export interface SingleLicenseInfo {
+interface SingleLicenseInfo {
     name: string;
     url?: string | null;
 }

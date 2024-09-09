@@ -276,7 +276,7 @@
                     <CenteredSpinner />
                 </div>
             {:else if resourceSearchResults}
-                <ul class="max-h-56 w-full space-y-4 overflow-y-scroll rounded-md border px-4 py-3">
+                <ul class="max-h-56 w-full space-y-4 overflow-y-auto rounded-md border px-4 py-3">
                     {#each resourceSearchResults as searchResult (searchResult.resourceId)}
                         <li>
                             <button on:click={() => selectSearchResult(searchResult)}

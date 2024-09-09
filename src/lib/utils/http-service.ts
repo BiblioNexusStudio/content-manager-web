@@ -123,15 +123,6 @@ export async function deleteToApi<T = never>(
     return JSON.parse(text);
 }
 
-export async function putToApi<T = never>(path: string, body: RequestBody | undefined = undefined): Promise<T | null> {
-    const response = await rawApiFetch(path, null, { body: body || {}, method: 'PUT' });
-    const text = await response.text();
-    if (text === '') {
-        return null;
-    }
-    return JSON.parse(text);
-}
-
 // To deal with Auth0 weirdness, this does the following:
 // 1. try to get the token normally
 //   a. if the token is expired, get the token bypassing the cache
