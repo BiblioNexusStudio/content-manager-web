@@ -5,7 +5,7 @@
     import { extensions } from '../tiptap/extensions';
     import type { CommentStores } from '$lib/stores/comments';
     import type { ScriptDirection } from '$lib/types/base';
-    import { scrollPosition, isSyncScrollEnabled, isSyncScrollPercent, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
+    import { scrollPosition, isSyncScrollEnabled, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
 
     export let languageScriptDirection: ScriptDirection | undefined;
     export let tiptapJson: TiptapContentItem | undefined;
@@ -24,35 +24,25 @@
     $: enableOrDisableEditing(canEdit);
 
     $: {
-        if (syncScrollElement 
-        && $isSyncScrollEnabled 
-        && $scrollSyncSourceDiv != syncScrollElement) {
-            if (!$isSyncScrollPercent) {
-                syncScrollElement.scrollTop = $scrollPosition;
-            } else {
-                const scrollHeight = syncScrollElement.scrollHeight;
-                const clientHeight = syncScrollElement.clientHeight;
+        if (syncScrollElement && $isSyncScrollEnabled && $scrollSyncSourceDiv != syncScrollElement) {
+            const scrollHeight = syncScrollElement.scrollHeight;
+            const clientHeight = syncScrollElement.clientHeight;
 
-                syncScrollElement.scrollTop = ($scrollPosition / 100) * (scrollHeight - clientHeight);
-            }
+            syncScrollElement.scrollTop = ($scrollPosition / 100) * (scrollHeight - clientHeight);
         }
     }
 
     const handleScrollSync = () => {
         $scrollSyncSourceDiv = syncScrollElement;
-    }
+    };
 
     const handleScroll = () => {
         if (syncScrollElement) {
-            if (!$isSyncScrollPercent) {
-                $scrollPosition = syncScrollElement.scrollTop;
-            } else {
-                const scrollHeight = syncScrollElement.scrollHeight;
-                const clientHeight = syncScrollElement.clientHeight;
-                const scrollTop = syncScrollElement.scrollTop;
+            const scrollHeight = syncScrollElement.scrollHeight;
+            const clientHeight = syncScrollElement.clientHeight;
+            const scrollTop = syncScrollElement.scrollTop;
 
-                $scrollPosition = (scrollTop / (scrollHeight - clientHeight)) * 100;
-            }
+            $scrollPosition = (scrollTop / (scrollHeight - clientHeight)) * 100;
         }
     };
 
