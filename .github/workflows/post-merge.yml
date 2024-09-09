@@ -36,7 +36,7 @@ jobs:
             url: ${{ steps.deploy.outputs.deployed-url }}
         steps:
             - name: Checkout source code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v4.1.7
             - uses: ./.github/actions/build-and-deploy-to-env
               id: deploy
               with:
@@ -55,7 +55,7 @@ jobs:
             url: ${{ steps.deploy.outputs.deployed-url }}
         steps:
             - name: Checkout source code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v4.1.7
             - uses: ./.github/actions/build-and-deploy-to-env
               id: deploy
               with:
@@ -77,7 +77,7 @@ jobs:
             url: ${{ steps.deploy.outputs.deployed-url }}
         steps:
             - name: Checkout source code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v4.1.7
             - uses: ./.github/actions/build-and-deploy-to-env
               id: deploy
               with:

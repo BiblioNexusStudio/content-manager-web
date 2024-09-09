@@ -11,11 +11,11 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout source code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v4.1.7
               with:
                   ref: ${{ github.event.pull_request.head.sha }}
             - name: Use Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v4.0.3
               with:
                   node-version: 18.16.0
                   cache: yarn
@@ -40,7 +40,7 @@ jobs:
             url: ${{ steps.deploy.outputs.deployed-url }}
         steps:
             - name: Checkout source code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v4.1.7
               with:
                   ref: ${{ github.event.pull_request.head.sha }}
             - uses: ./.github/actions/build-and-deploy-to-env
