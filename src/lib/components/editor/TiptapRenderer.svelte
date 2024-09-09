@@ -93,12 +93,12 @@
 </script>
 
 <div class="relative grow">
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div
         bind:this={scrollSyncElement}
         on:scroll={handleScroll}
         on:mouseenter={setScrollSyncElement}
-        role="button"
-        tabindex="0"
+        on:focus={setScrollSyncElement}
         class="absolute bottom-0 left-0 right-0 top-0 overflow-y-auto rounded-md border border-base-300 bg-white"
     >
         {#if isLoading}
