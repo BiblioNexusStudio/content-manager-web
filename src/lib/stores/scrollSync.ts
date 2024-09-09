@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
 
-export const scrollPosition = writable(0);
-export const isSyncScrollEnabled = writable(true);
-export const isSyncScrollPercent = writable(false);
+export const scrollPosition = writable<number>(0);
+export const isSyncScrollEnabled = writable<boolean>(true);
+export const isSyncScrollPercent = writable<boolean>(false);
+export const scrollSyncSourceDiv = writable<HTMLDivElement | undefined>();

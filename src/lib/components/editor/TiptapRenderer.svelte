@@ -5,7 +5,7 @@
     import { extensions } from '../tiptap/extensions';
     import type { CommentStores } from '$lib/stores/comments';
     import type { ScriptDirection } from '$lib/types/base';
-    import { scrollPosition, isSyncScrollEnabled, isSyncScrollPercent } from '$lib/stores/scrollSync';
+    import { scrollPosition, isSyncScrollEnabled, isSyncScrollPercent, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
 
     export let languageScriptDirection: ScriptDirection | undefined;
     export let tiptapJson: TiptapContentItem | undefined;
@@ -24,7 +24,9 @@
     $: enableOrDisableEditing(canEdit);
 
     $: {
-        if (syncScrollElement && $isSyncScrollEnabled) {
+        if (syncScrollElement 
+        && $isSyncScrollEnabled 
+        && $scrollSyncSourceDiv != syncScrollElement) {
             if (!$isSyncScrollPercent) {
                 syncScrollElement.scrollTop = $scrollPosition;
             } else {
@@ -34,6 +36,10 @@
                 syncScrollElement.scrollTop = ($scrollPosition / 100) * (scrollHeight - clientHeight);
             }
         }
+    }
+
+    const handleScrollSync = () => {
+        $scrollSyncSourceDiv = syncScrollElement;
     }
 
     const handleScroll = () => {
@@ -95,6 +101,9 @@
     <div
         bind:this={syncScrollElement}
         on:scroll={handleScroll}
+        on:mouseenter={handleScrollSync}
+        role="button"
+        tabindex="0"
         class="absolute bottom-0 left-0 right-0 top-0 overflow-y-auto rounded-md border border-base-300 bg-white"
     >
         {#if isLoading}
