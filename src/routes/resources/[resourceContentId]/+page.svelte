@@ -54,6 +54,7 @@
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
     import ErrorMessage from '$lib/components/ErrorMessage.svelte';
     import ScrollSyncLockToggle from '$lib/components/editor/ScrollSyncLockToggle.svelte';
+    import { scrollPosition } from '$lib/stores/scrollSync';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
@@ -253,6 +254,8 @@
                 }
             }
         }
+
+        $scrollPosition = 0;
     });
 
     onDestroy(resetSaveState);
