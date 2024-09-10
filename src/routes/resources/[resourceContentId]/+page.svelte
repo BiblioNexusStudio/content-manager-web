@@ -29,7 +29,7 @@
     import { Icon } from 'svelte-awesome';
     import TranslationSelector from './TranslationSelector.svelte';
     import { createAutosaveStore } from '$lib/utils/auto-save-store';
-    import { onDestroy } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import Modal from '$lib/components/Modal.svelte';
     import createChangeTrackingStore from '$lib/utils/change-tracking-store';
     import { get, type Readable, type Writable } from 'svelte/store';
@@ -256,6 +256,12 @@
         }
 
         $scrollPosition = 0;
+    });
+
+    onMount(() => {
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
     });
 
     onDestroy(resetSaveState);
