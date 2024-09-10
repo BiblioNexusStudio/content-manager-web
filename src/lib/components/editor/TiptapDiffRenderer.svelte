@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-    import { onDestroy, tick } from 'svelte';
+    import { onDestroy, onMount, tick } from 'svelte';
     import type { TiptapContentItem } from '$lib/types/resources';
     import HtmlDiffWorker from '../../../workers/html-differ.ts?worker';
     import CenteredSpinner from '../CenteredSpinner.svelte';
@@ -114,6 +114,12 @@
             $scrollPosition = Math.round((scrollTop / (scrollHeight - clientHeight)) * 10000) / 10000;
         }
     };
+
+    onMount(async () => {
+        if (scrollSyncElement) {
+            scrollSyncElement.scrollTop = 0;
+        }
+    });
 
     onDestroy(() => diffWorker && diffWorker.terminate());
 </script>

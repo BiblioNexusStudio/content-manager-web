@@ -62,6 +62,10 @@
     }
 
     onMount(async () => {
+        if (scrollSyncElement) {
+            scrollSyncElement.scrollTop = 0;
+        }
+
         editor = new Editor({
             element,
             editable: canEdit,
