@@ -27,17 +27,9 @@
         for (const reference of references) {
             let bibleTextsReference: BibleTextsReference | null;
             if (instanceOfPassageReference(reference)) {
-                bibleTextsReference = await fetchAndFormat(
-                    reference.startVerseId.toString(),
-                    reference.endVerseId.toString(),
-                    language
-                );
+                bibleTextsReference = await fetchAndFormat(reference.startVerseId, reference.endVerseId, language);
             } else {
-                bibleTextsReference = await fetchAndFormat(
-                    reference.verseId.toString(),
-                    reference.verseId.toString(),
-                    language
-                );
+                bibleTextsReference = await fetchAndFormat(reference.verseId, reference.verseId, language);
             }
 
             if (bibleTextsReference) bibleTextsReferences.push(bibleTextsReference);
@@ -59,7 +51,11 @@
                     <div class="text-lg font-semibold" dir="auto">{fetched.bible?.name}</div>
                     {#each fetched.bibleTextsReferences as bibleTextsReference, i (bibleTextsReference)}
                         <div>
-                            <BibleTextReference {bibleTextsReference} collapsible={true} isOpen={i === 0} />
+                            <BibleTextReference
+                                bibleTextsReferences={[bibleTextsReference]}
+                                collapsible={true}
+                                isOpen={i === 0}
+                            />
                         </div>
                     {/each}
                 {/if}

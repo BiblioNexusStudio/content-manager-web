@@ -26,12 +26,12 @@ export const bibleReferenceMark = Mark.create({
                     const bnType = (node as HTMLElement).getAttribute('data-bnType');
                     if (bnType === 'bibleReference') {
                         return {
-                            verses: [
-                                {
-                                    startVerse: (node as HTMLElement).getAttribute('data-startVerse'),
-                                    endVerse: (node as HTMLElement).getAttribute('data-endVerse'),
-                                },
-                            ],
+                            verses: (
+                                JSON.parse((node as HTMLElement).getAttribute('data-verses') ?? '[]') as [
+                                    number,
+                                    number,
+                                ][]
+                            ).map(([startVerse, endVerse]) => ({ startVerse, endVerse })),
                         };
                     }
 
@@ -42,18 +42,18 @@ export const bibleReferenceMark = Mark.create({
     },
     renderHTML({ HTMLAttributes }) {
         const spanId = `bibleref-${uuid()}`;
-        const startVerse = HTMLAttributes.verses[0].startVerse;
-        const endVerse = HTMLAttributes.verses[0].endVerse;
+        const verses = (HTMLAttributes.verses as { startVerse: number | string; endVerse: number | string }[]).map(
+            ({ startVerse, endVerse }) => [parseInt(startVerse.toString()), parseInt(endVerse.toString())]
+        );
 
         return [
             'span',
             {
                 id: spanId,
                 'data-bnType': 'bibleReference',
-                'data-startVerse': startVerse,
-                'data-endVerse': endVerse,
+                'data-verses': JSON.stringify(verses),
                 style: 'color: green',
-                onClick: `onBibleReferenceClick('${spanId}', '${startVerse}', '${endVerse}')`,
+                onClick: `onBibleReferenceClick('${spanId}', ${JSON.stringify(verses)})`,
             },
             0,
         ];

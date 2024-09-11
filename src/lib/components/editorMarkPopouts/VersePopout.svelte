@@ -12,11 +12,11 @@
     let show = false;
     let container: HTMLDivElement | undefined;
     let bubblingClick = false;
-    let bibleTextsReference: BibleTextsReference | null;
+    let bibleTextsReferences: BibleTextsReference[] | null;
     let failedFetch = false;
 
     onMount(() => {
-        window.onBibleReferenceClick = async (spanId, startVerse, endVerse) => {
+        window.onBibleReferenceClick = async (spanId, verses) => {
             // Because of the response caching used, there can still be a very slight delay when loading
             // a resource that's already cached. The timeout and duplicated show = true prevents some jank
             // when switching back and forth between references.
@@ -24,20 +24,25 @@
             show = false;
             failedFetch = false;
             const timeout = setTimeout(() => {
-                bibleTextsReference = null;
+                bibleTextsReferences = null;
                 show = true;
             }, 100);
 
             markSpan = document.getElementById(spanId);
 
-            // I don't think the extra const is really needed here, but out of an abundance of caution...
-            const fetchResponse = await fetchAndFormat(startVerse, endVerse, language);
-            if (!fetchResponse) {
+            const responses: BibleTextsReference[] = [];
+            for (const [startVerse, endVerse] of verses) {
+                const fetchResponse = await fetchAndFormat(startVerse, endVerse, language);
+                if (fetchResponse) {
+                    responses.push(fetchResponse);
+                }
+            }
+            if (responses.length) {
                 failedFetch = true;
             }
             clearTimeout(timeout);
             show = true;
-            bibleTextsReference = fetchResponse;
+            bibleTextsReferences = responses;
         };
     });
 
@@ -55,11 +60,11 @@
 
 <svelte:window on:click={onAnyClick} />
 
-{#if bibleTextsReference}
+{#if bibleTextsReferences?.length}
     <MarkPopout bind:show bind:markSpan bind:container>
         <div class="overflow-y-auto" dir="auto">
             <div class="m-4 flex flex-col justify-center space-y-2">
-                <BibleTextReference {bibleTextsReference} />
+                <BibleTextReference {bibleTextsReferences} />
             </div>
         </div>
     </MarkPopout>
