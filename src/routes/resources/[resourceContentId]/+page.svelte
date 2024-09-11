@@ -54,7 +54,7 @@
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
     import ErrorMessage from '$lib/components/ErrorMessage.svelte';
     import ScrollSyncLockToggle from '$lib/components/editor/ScrollSyncLockToggle.svelte';
-    import { scrollPosition } from '$lib/stores/scrollSync';
+    import { scrollPosition, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
@@ -241,6 +241,11 @@
     const isPageTransacting = createIsPageTransactingContext();
 
     beforeNavigate(async ({ to, cancel }) => {
+        if ($scrollSyncSourceDiv) {
+            $scrollSyncSourceDiv.scrollTop = 0;
+        }
+        $scrollPosition = 0;
+
         // beforeNavigate runs synchronously, but we can work around the limitation by always canceling the
         // navigation up front, and then conditionally doing a `goto` if the save is successful.
         // See https://github.com/sveltejs/kit/issues/4421#issuecomment-1129879937
@@ -254,8 +259,6 @@
                 }
             }
         }
-
-        $scrollPosition = 0;
     });
 
     onMount(() => {
