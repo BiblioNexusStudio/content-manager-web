@@ -10,7 +10,7 @@ declare global {
 
     declare interface Window {
         onInlineCommentClick: ((threadId: number, spanId: string) => void) | undefined;
-        onBibleReferenceClick: ((spanId: string, startVerse: string, endVerse: string) => void) | undefined;
+        onBibleReferenceClick: ((spanId: string, verses: [number, number][]) => void) | undefined;
         clarity?: (
             action: 'identify',
             customId: string,

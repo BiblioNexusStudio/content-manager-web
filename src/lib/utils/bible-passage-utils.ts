@@ -4,11 +4,12 @@ export interface Verse {
     verse: number;
 }
 
-export function parseVerseId(verseId: string) {
+export function parseVerseId(verseId: number) {
+    const verseString = verseId.toString();
     return {
-        bookId: Number(verseId.substring(1, 4)),
-        chapter: Number(verseId.substring(4, 7)),
-        verse: Number(verseId.substring(7, 10)),
+        bookId: Number(verseString.substring(1, 4)),
+        chapter: Number(verseString.substring(4, 7)),
+        verse: Number(verseString.substring(7, 10)),
     };
 }
 

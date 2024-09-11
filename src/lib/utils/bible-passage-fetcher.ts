@@ -3,8 +3,8 @@ import { fetchBibleBookTexts, type BibleBookTexts } from '$lib/utils/bible-book-
 import { parseVerseId, type Verse } from './bible-passage-utils';
 
 export async function fetchBiblePassages(
-    startVerseId: string,
-    endVerseId: string,
+    startVerseId: number,
+    endVerseId: number,
     languageId: number
 ): Promise<BibleBookTexts[]> {
     const start = parseVerseId(startVerseId);
