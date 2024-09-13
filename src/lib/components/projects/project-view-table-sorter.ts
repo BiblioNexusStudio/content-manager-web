@@ -11,7 +11,7 @@ export enum SortName {
 export function createProjectViewListSorter<T extends ProjectResource>() {
     return createListSorter<T>({
         [SortName.Title]: {
-            primarySortKeys: ['englishLabel'],
+            primarySortKeys: ['sortOrder', 'englishLabel'],
         },
         [SortName.Assigned]: {
             primarySortKeys: ['assignedUserName'],
