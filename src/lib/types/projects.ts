@@ -31,6 +31,7 @@ export interface ProjectResource {
     parentResourceName: string | null;
     resourceContentId: number | null;
     statusDisplayName: string | null;
+    sortOrder: number | null;
     wordCount: number | null;
 }
 
