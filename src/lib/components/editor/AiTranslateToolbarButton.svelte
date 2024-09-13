@@ -131,6 +131,7 @@
         const response = await postToApi<{ id: number }>(`/resources/content/machine-translation`, {
             resourceContentVersionId: resourceContent.resourceContentVersionId,
             sourceId: 1,
+            displayName: $editableDisplayNameStore,
             content: editor.getHTML(),
         });
 
