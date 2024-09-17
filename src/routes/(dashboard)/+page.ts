@@ -140,7 +140,7 @@ export interface ResourcePendingReview {
     daysSinceStatusChange: number;
     wordCount: number | null;
     daysSinceContentUpdated: number | null;
-    reviewLevel: ResourceContentVersionReviewLevel | null;
+    reviewLevel: ResourceContentVersionReviewLevel;
     sortOrder: number;
 }
 
