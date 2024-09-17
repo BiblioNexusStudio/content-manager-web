@@ -47,3 +47,20 @@ export const projectColumns: column<Project>[] = [
     { text: 'Days', itemKey: 'days', sortKey: SortName.Days },
     { text: 'Progress', sortKey: undefined },
 ];
+
+export const communityPendingContentsColumns: column<ResourcePendingReview>[] = [
+    { text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title },
+    { text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined },
+    { text: 'Language', itemKey: 'languageEnglishDisplay', sortKey: SortName.Language },
+    { text: 'Last Edit (Days)', itemKey: 'daysSinceContentUpdated', sortKey: undefined },
+    {
+        text: 'Days Pending',
+        itemKey: 'daysSinceStatusChange',
+        sortKey: SortName.Days,
+    },
+    {
+        text: 'Source Words',
+        itemKey: 'wordCount',
+        sortKey: SortName.WordCount,
+    },
+];

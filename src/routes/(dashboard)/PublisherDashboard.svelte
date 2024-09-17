@@ -19,6 +19,7 @@
         assignedContentsColumns,
         reviewPendingContentsColumns,
         projectColumns,
+        communityPendingContentsColumns,
     } from './publisher-dashboard-columns';
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
@@ -27,23 +28,28 @@
     import { filterBoolean } from '$lib/utils/array';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
     import ErrorMessage from '$lib/components/ErrorMessage.svelte';
+    import { ResourceContentVersionReviewLevel } from '$lib/types/resources';
 
     enum Tab {
         myWork = 'my-work',
         reviewPending = 'review-pending',
         myProjects = 'my-projects',
+        community = 'community',
     }
 
     let assignedContents: ResourceAssignedToSelf[] = [];
     let reviewPendingContents: ResourcePendingReview[] = [];
     let assignedProjects: Project[] = [];
+    let communityPendingContents: ResourcePendingReview[] = [];
     let currentAssignedContents: ResourceAssignedToSelf[] = [];
     let currentReviewPendingContents: ResourcePendingReview[] = [];
     let currentAssignedProjects: Project[] = [];
+    let currentCommunityPendingContents: ResourcePendingReview[] = [];
 
     const sortAssignedResourceData = createPublisherDashboardMyWorkSorter();
     const sortPendingData = createPublisherDashboardReviewPendingSorter();
     const sortAssignedProjectData = createPublisherDashboardProjectsSorter();
+    // todo sort community
 
     export let data: PageData;
 
@@ -61,8 +67,10 @@
 
     let selectedReviewContentIds: number[] = [];
     let selectedInProgressContentIds: number[] = [];
+    let selectedCommunityReviewContentIds: number[] = [];
     let selectedMyWorkTableItems: ResourceAssignedToSelf[] = [];
     let selectedReviewPendingTableItems: ResourcePendingReview[] = [];
+    let selectedCommunityPendingTableItems: ResourcePendingReview[] = [];
     let assignToUserId: number | null = null;
     let isAssignContentModalOpen = false;
     let isConfirmPublishModalOpen = false;
@@ -74,6 +82,7 @@
     function resetSelection() {
         selectedMyWorkTableItems = [];
         selectedReviewPendingTableItems = [];
+        selectedCommunityPendingTableItems = [];
     }
 
     function shouldAssignAsInProgress(status: ResourceContentStatusEnum | null) {
@@ -90,6 +99,7 @@
 
         selectedInProgressContentIds = [];
         selectedReviewContentIds = [];
+        selectedCommunityReviewContentIds = [];
 
         selectedMyWorkTableItems.forEach((item) => {
             if (shouldAssignAsInProgress(item.statusValue)) {
@@ -101,6 +111,10 @@
 
         selectedReviewPendingTableItems.forEach((item) => {
             selectedReviewContentIds.push(item.id);
+        });
+
+        selectedCommunityPendingTableItems.forEach((item) => {
+            selectedCommunityReviewContentIds.push(item.id);
         });
 
         const inProgessAssignments =
@@ -118,8 +132,16 @@
                   })
                 : Promise.resolve(null);
 
+        const inReviewCommunityAssignments =
+            selectedCommunityReviewContentIds.length > 0
+                ? postToApi<null>('/resources/content/assign-publisher-review', {
+                      assignedUserId: assignToUserId,
+                      contentIds: selectedCommunityReviewContentIds,
+                  })
+                : Promise.resolve(null);
+
         try {
-            await Promise.all([inProgessAssignments, inReviewAssignments]);
+            await Promise.all([inProgessAssignments, inReviewAssignments, inReviewCommunityAssignments]);
             isTransacting = false;
             window.location.reload();
         } catch {
@@ -155,6 +177,14 @@
             data.publisherDashboard!.reviewPendingResourceContent.promise,
             data.publisherDashboard!.assignedProjects.promise,
         ]);
+
+        communityPendingContents = reviewPendingContents.filter((item) => {
+            return item.reviewLevel === ResourceContentVersionReviewLevel.community;
+        });
+
+        reviewPendingContents = reviewPendingContents.filter((item) => {
+            return item.reviewLevel != ResourceContentVersionReviewLevel.community;
+        });
     };
 
     $: nonPublisherReviewSelected = selectedMyWorkTableItems.some(
@@ -225,6 +255,10 @@
             currentAssignedProjects = assignedProjects.filter((ap) =>
                 ap.name.toLowerCase().includes(search.toLowerCase())
             );
+        } else if (tab == Tab.community) {
+            currentCommunityPendingContents = communityPendingContents.filter((crpc) =>
+                crpc.englishLabel.toLowerCase().includes(search.toLowerCase())
+            );
         }
     };
 
@@ -256,9 +290,16 @@
                     class="tab {$searchParams.tab === Tab.myProjects && 'tab-active'}"
                     >My Projects ({assignedProjects.length})</button
                 >
+                <button
+                    on:click={selectTab(Tab.community)}
+                    role="tab"
+                    class="tab {$searchParams.tab === Tab.community && 'tab-active'}"
+                >
+                    Community Pending ({communityPendingContents.length})
+                </button>
             </div>
         </div>
-        {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending}
+        {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending || $searchParams.tab === Tab.community}
             <div class="mt-4 flex space-x-4">
                 <input
                     class="input input-bordered max-w-xs focus:outline-none"
@@ -276,22 +317,26 @@
                         ]}
                     />
                 {/if}
-                <Select
-                    class="select select-bordered max-w-[14rem] flex-grow"
-                    bind:value={$searchParams.project}
-                    onChange={resetSelection}
-                    options={[
-                        { value: '', label: 'Project' },
-                        ...projectNamesForContents(
-                            $searchParams.tab === Tab.myWork ? assignedContents : reviewPendingContents
-                        ).map((p) => ({ value: p, label: p })),
-                    ]}
-                />
+                {#if $searchParams.tab != Tab.community}
+                    <Select
+                        class="select select-bordered max-w-[14rem] flex-grow"
+                        bind:value={$searchParams.project}
+                        onChange={resetSelection}
+                        options={[
+                            { value: '', label: 'Project' },
+                            ...projectNamesForContents(
+                                $searchParams.tab === Tab.myWork ? assignedContents : reviewPendingContents
+                            ).map((p) => ({ value: p, label: p })),
+                        ]}
+                    />
+                {/if}
                 <button
                     data-app-insights-event-name="publisher-dashboard-bulk-assign-click"
                     class="btn btn-primary"
                     on:click={() => (isAssignContentModalOpen = true)}
-                    disabled={selectedReviewPendingTableItems.length === 0 && selectedMyWorkTableItems.length === 0}
+                    disabled={selectedReviewPendingTableItems.length === 0 &&
+                        selectedMyWorkTableItems.length === 0 &&
+                        selectedCommunityPendingTableItems.length === 0}
                     >Assign
                 </button>
                 {#if $searchParams.tab === Tab.myWork}
@@ -396,6 +441,30 @@
                                     showLegend={false}
                                 />
                             </td>
+                        {:else if href !== undefined && itemKey}
+                            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                        {:else if itemKey}
+                            <TableCell>{item[itemKey] ?? ''}</TableCell>
+                        {/if}
+                    </Table>
+                {:else if $searchParams.tab === Tab.community}
+                    <Table
+                        enableSelectAll={true}
+                        columns={communityPendingContentsColumns}
+                        items={sortPendingData(currentCommunityPendingContents, $searchParams.sort)}
+                        idColumn="id"
+                        itemUrlPrefix="/resources/"
+                        bind:searchParams={$searchParams}
+                        bind:selectedItems={selectedCommunityPendingTableItems}
+                        noItemsText="No items pending review."
+                        searchable={true}
+                        bind:searchText={search}
+                        let:item
+                        let:href
+                        let:itemKey
+                    >
+                        {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                            <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
                         {:else if href !== undefined && itemKey}
                             <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                         {:else if itemKey}

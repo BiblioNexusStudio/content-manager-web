@@ -174,3 +174,8 @@ export interface Assignment {
     assignedUserId: number;
     resourceContentId: number;
 }
+
+export enum ResourceContentVersionReviewLevel {
+    community = 'Community',
+    professional = 'Professional',
+}
