@@ -5,6 +5,7 @@ import { get } from 'svelte/store';
 import type { ResourceContentStatusEnum } from '$lib/types/base';
 import { redirect } from '@sveltejs/kit';
 import type { ProjectResourceStatusCounts } from '$lib/types/projects';
+import type { ResourceContentVersionReviewLevel } from '$lib/types/resources';
 
 export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
@@ -139,6 +140,7 @@ export interface ResourcePendingReview {
     daysSinceStatusChange: number;
     wordCount: number | null;
     daysSinceContentUpdated: number | null;
+    reviewLevel: ResourceContentVersionReviewLevel;
     sortOrder: number;
 }
 
