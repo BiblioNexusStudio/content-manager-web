@@ -49,7 +49,6 @@
     const sortAssignedResourceData = createPublisherDashboardMyWorkSorter();
     const sortPendingData = createPublisherDashboardReviewPendingSorter();
     const sortAssignedProjectData = createPublisherDashboardProjectsSorter();
-    // todo sort community
 
     export let data: PageData;
 
@@ -65,9 +64,6 @@
         { runLoadAgainWhenParamsChange: false }
     );
 
-    let selectedReviewContentIds: number[] = [];
-    let selectedInProgressContentIds: number[] = [];
-    let selectedCommunityReviewContentIds: number[] = [];
     let selectedMyWorkTableItems: ResourceAssignedToSelf[] = [];
     let selectedReviewPendingTableItems: ResourcePendingReview[] = [];
     let selectedCommunityPendingTableItems: ResourcePendingReview[] = [];
@@ -95,11 +91,10 @@
     }
 
     async function assignContent() {
-        isTransacting = true;
+        let selectedReviewContentIds: number[] = [];
+        let selectedInProgressContentIds: number[] = [];
 
-        selectedInProgressContentIds = [];
-        selectedReviewContentIds = [];
-        selectedCommunityReviewContentIds = [];
+        isTransacting = true;
 
         selectedMyWorkTableItems.forEach((item) => {
             if (shouldAssignAsInProgress(item.statusValue)) {
@@ -114,7 +109,7 @@
         });
 
         selectedCommunityPendingTableItems.forEach((item) => {
-            selectedCommunityReviewContentIds.push(item.id);
+            selectedReviewContentIds.push(item.id);
         });
 
         const inProgessAssignments =
@@ -132,16 +127,8 @@
                   })
                 : Promise.resolve(null);
 
-        const inReviewCommunityAssignments =
-            selectedCommunityReviewContentIds.length > 0
-                ? postToApi<null>('/resources/content/assign-publisher-review', {
-                      assignedUserId: assignToUserId,
-                      contentIds: selectedCommunityReviewContentIds,
-                  })
-                : Promise.resolve(null);
-
         try {
-            await Promise.all([inProgessAssignments, inReviewAssignments, inReviewCommunityAssignments]);
+            await Promise.all([inProgessAssignments, inReviewAssignments]);
             isTransacting = false;
             window.location.reload();
         } catch {
