@@ -27,24 +27,3 @@ jobs:
               run: yarn run lint:ci
             - name: Test
               run: yarn run test
-
-    # This will deploy to a "preview environment" in Azure Static Web Apps
-    # which means each PR will get its own environment. This means multiple PRs
-    # can be tested at the same time.
-    deploy_to_dev_preview:
-        name: Deploy to dev preview
-        runs-on: ubuntu-latest
-        needs: lint_and_test
-        environment:
-            name: dev-preview
-            url: ${{ steps.deploy.outputs.deployed-url }}
-        steps:
-            - name: Checkout source code
-              uses: actions/checkout@v4.1.7
-              with:
-                  ref: ${{ github.event.pull_request.head.sha }}
-            - uses: ./.github/actions/build-and-deploy-to-env
-              id: deploy
-              with:
-                  environment: dev
-                  api-token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_DEV }}
