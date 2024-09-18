@@ -46,6 +46,7 @@
     let endChapter = 0;
     let endVerse = 0;
     let isError = false;
+    let updateAssociation = false;
 
     $: disabled =
         $isPageTransacting ||
@@ -69,7 +70,9 @@
         isError = false;
         try {
             const currentMark = editor.getAttributes('bibleReference');
-            await deleteIfOnlyOneReference(currentMark);
+            if (updateAssociation) {
+                await deleteIfOnlyOneReference(currentMark);
+            }
 
             const { from, to } = editor.state.selection;
             editor
@@ -101,7 +104,12 @@
                 const currentMark = editor.getAttributes('bibleReference');
 
                 if (currentMark.verses) {
-                    await Promise.all([deleteIfOnlyOneReference(currentMark), addReference(startVerseId, endVerseId)]);
+                    if (updateAssociation) {
+                        await Promise.all([
+                            deleteIfOnlyOneReference(currentMark),
+                            addReference(startVerseId, endVerseId),
+                        ]);
+                    }
 
                     const { from, to } = editor.state.selection;
                     editor
@@ -119,7 +127,9 @@
                         .setTextSelection({ from, to })
                         .run();
                 } else {
-                    await addReference(startVerseId, endVerseId);
+                    if (updateAssociation) {
+                        await addReference(startVerseId, endVerseId);
+                    }
 
                     editor
                         .chain()
@@ -344,6 +354,14 @@
                 </div>
             </div>
         {/if}
+        <label class="flex items-center">
+            <input type="checkbox" class="mr-2" bind:checked={updateAssociation} />
+            {#if existingReference}
+                <span>Update resource's Bible reference association</span>
+            {:else}
+                <span>Associate Bible reference with this resource</span>
+            {/if}
+        </label>
     {/await}
     <svelte:fragment slot="additional-buttons">
         {#if existingReference}
