@@ -729,6 +729,9 @@
                                             <input
                                                 type="checkbox"
                                                 bind:checked={isShowingDiffs}
+                                                data-app-insights-event-name="resource-differences-toggled-{isShowingDiffs
+                                                    ? 'off'
+                                                    : 'on'}"
                                                 class="checkbox no-animation checkbox-sm me-2"
                                             />
                                             <span class="label-text text-xs">Differences</span>
