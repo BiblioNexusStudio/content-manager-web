@@ -60,35 +60,32 @@
         />
     </div>
 
-    <div class="w-full overflow-scroll rounded-md border">
-        <Table
-            columns={projectViewTableColumns}
-            items={projectViewSorter(items, $searchParams.sort)}
-            idColumn="resourceContentId"
-            enableSelectAll={false}
-            enableSelect={false}
-            searchable={false}
-            bind:searchParams={$searchParams}
-            itemUrlPrefix="/resources/"
-            noItemsText="No items found."
-            let:item
-            let:href
-            let:itemKey
-        >
-            {#if itemKey === 'assignedUserName'}
-                <td>
-                    <LinkedTableCell {href}
-                        >{item[itemKey] ??
-                            (item['statusDisplayName']?.includes('In Progress')
-                                ? 'External User'
-                                : '')}</LinkedTableCell
-                    >
-                </td>
-            {:else if href !== undefined && itemKey}
-                <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-            {:else if itemKey}
-                <TableCell>{item[itemKey] ?? ''}</TableCell>
-            {/if}
-        </Table>
-    </div>
+    <Table
+        class="rounded-md border"
+        columns={projectViewTableColumns}
+        items={projectViewSorter(items, $searchParams.sort)}
+        idColumn="resourceContentId"
+        enableSelectAll={false}
+        enableSelect={false}
+        searchable={false}
+        bind:searchParams={$searchParams}
+        itemUrlPrefix="/resources/"
+        noItemsText="No items found."
+        let:item
+        let:href
+        let:itemKey
+    >
+        {#if itemKey === 'assignedUserName'}
+            <td>
+                <LinkedTableCell {href}
+                    >{item[itemKey] ??
+                        (item['statusDisplayName']?.includes('In Progress') ? 'External User' : '')}</LinkedTableCell
+                >
+            </td>
+        {:else if href !== undefined && itemKey}
+            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+        {:else if itemKey}
+            <TableCell>{item[itemKey] ?? ''}</TableCell>
+        {/if}
+    </Table>
 {/if}
