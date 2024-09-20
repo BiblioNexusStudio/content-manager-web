@@ -250,7 +250,7 @@ export function searchParameters<T extends object>(
     };
 }
 
-interface Param {
+export interface Param {
     key: string;
     value: string | number;
     ignoreIfEquals?: string | number;
