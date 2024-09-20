@@ -64,7 +64,7 @@
             }));
 
         let activeProjects = listData.filter((p) => p.isStarted && !p.isCompleted);
-        let recentlyFinishedProjects = listData.filter((p) => p.isStarted && p.isCompleted);
+        let recentlyFinishedProjects = listData.filter((p) => p.isCompleted);
         let notStartedProjects = listData.filter((p) => !p.isStarted);
 
         notStartedCount = notStartedProjects.length;
