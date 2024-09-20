@@ -63,8 +63,8 @@
                 daysForSorting: project.days === null || isProjectClosed(project) ? Infinity : project.days,
             }));
 
-        let activeProjects = listData.filter((p) => p.isStarted && p.counts.completed !== p.itemCount);
-        let recentlyFinishedProjects = listData.filter((p) => p.isStarted && p.counts.completed === p.itemCount);
+        let activeProjects = listData.filter((p) => p.isStarted && !p.isCompleted);
+        let recentlyFinishedProjects = listData.filter((p) => p.isStarted && p.isCompleted);
         let notStartedProjects = listData.filter((p) => !p.isStarted);
 
         notStartedCount = notStartedProjects.length;
