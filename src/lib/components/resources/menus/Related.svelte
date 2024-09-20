@@ -24,12 +24,17 @@
 
 <div class="dropdown ms-1">
     <button
+        tabindex="0"
         class="btn btn-ghost ms-2 whitespace-nowrap px-1 hover:bg-[#e6f6fc]"
         data-app-insights-event-name="related-content-menu-click"
     >
         Related Content
     </button>
-    <div class="menu dropdown-content z-[1] mt-4 max-h-72 w-auto rounded-box border bg-base-100 pt-4 shadow">
+    <div
+        role="button"
+        tabindex="0"
+        class="menu dropdown-content z-[1] mt-4 max-h-72 w-auto rounded-box border bg-base-100 pt-4 shadow"
+    >
         <div class="flex flex-col overflow-y-auto px-8">
             {#each relatedContent as resource, i (i)}
                 <div class="mb-4 me-2 flex">
