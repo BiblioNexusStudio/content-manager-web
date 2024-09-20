@@ -45,6 +45,7 @@
     const switchTabs = (tab: Tab) => {
         if ($searchParams.tab !== tab) {
             $searchParams.tab = tab;
+            $searchParams.sort = '-' + SortName.Days;
         }
     };
 
@@ -73,8 +74,9 @@
     let visibleMyWorkContents: ResourceAssignedToSelf[] = [];
     let myHistoryContents: ResourceAssignedToSelfHistory[] = [];
     let visibleMyHistoryContents: ResourceAssignedToSelfHistory[] = [];
-    let scrollingDiv: HTMLDivElement | undefined;
-    $: $searchParams.sort && scrollingDiv && (scrollingDiv.scrollTop = 0);
+    // eslint-disable-next-line
+    let table: Table<any> | null;
+    $: $searchParams.sort && table?.resetScroll();
     $: setTabContents($searchParams.tab, search);
 
     const loadContents = async () => {
@@ -126,51 +128,53 @@
                 >
             {/if}
         </div>
-        <div bind:this={scrollingDiv} class="my-4 max-h-full flex-grow overflow-y-auto">
-            {#if $searchParams.tab === Tab.myWork}
-                <Table
-                    columns={myWorkColumns}
-                    items={sortMyWorkData(visibleMyWorkContents, $searchParams.sort)}
-                    idColumn="id"
-                    itemUrlPrefix="/resources/"
-                    bind:searchParams={$searchParams}
-                    noItemsText="Your work is all done!"
-                    let:item
-                    let:href
-                    let:itemKey
-                >
-                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                    {:else if href !== undefined && itemKey}
-                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                    {:else if itemKey}
-                        <TableCell>{item[itemKey] ?? ''}</TableCell>
-                    {/if}
-                </Table>
-            {:else if $searchParams.tab === Tab.myHistory}
-                <Table
-                    columns={myHistoryColumns}
-                    items={sortMyHistoryData(visibleMyHistoryContents, $searchParams.sort)}
-                    idColumn="id"
-                    itemUrlPrefix="/resources/"
-                    bind:searchParams={$searchParams}
-                    noItemsText="Your work is all done!"
-                    let:item
-                    let:href
-                    let:itemKey
-                >
-                    {#if itemKey === 'lastActionTime' && item[itemKey] !== null}
-                        <LinkedTableCell {href}
-                            >{utcDateTimeStringToDateTime(item[itemKey]).toLocaleDateString()}</LinkedTableCell
-                        >
-                    {:else if href !== undefined && itemKey}
-                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                    {:else if itemKey}
-                        <TableCell>{item[itemKey] ?? ''}</TableCell>
-                    {/if}
-                </Table>
-            {/if}
-        </div>
+        {#if $searchParams.tab === Tab.myWork}
+            <Table
+                bind:this={table}
+                class="my-4"
+                columns={myWorkColumns}
+                items={sortMyWorkData(visibleMyWorkContents, $searchParams.sort)}
+                idColumn="id"
+                itemUrlPrefix="/resources/"
+                bind:searchParams={$searchParams}
+                noItemsText="Your work is all done!"
+                let:item
+                let:href
+                let:itemKey
+            >
+                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                {:else if href !== undefined && itemKey}
+                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey}
+                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+                {/if}
+            </Table>
+        {:else if $searchParams.tab === Tab.myHistory}
+            <Table
+                bind:this={table}
+                class="my-4"
+                columns={myHistoryColumns}
+                items={sortMyHistoryData(visibleMyHistoryContents, $searchParams.sort)}
+                idColumn="id"
+                itemUrlPrefix="/resources/"
+                bind:searchParams={$searchParams}
+                noItemsText="No history items"
+                let:item
+                let:href
+                let:itemKey
+            >
+                {#if itemKey === 'lastActionTime' && item[itemKey] !== null}
+                    <LinkedTableCell {href}
+                        >{utcDateTimeStringToDateTime(item[itemKey]).toLocaleDateString()}</LinkedTableCell
+                    >
+                {:else if href !== undefined && itemKey}
+                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey}
+                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+                {/if}
+            </Table>
+        {/if}
     </div>
 {:catch error}
     <ErrorMessage uncastError={error} />
