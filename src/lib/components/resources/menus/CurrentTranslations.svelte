@@ -33,13 +33,17 @@
 </script>
 
 <div class="dropdown ms-2">
-    <button class="btn btn-ghost flex flex-nowrap px-1 hover:bg-[#e6f6fc]">
+    <button tabindex="0" class="btn btn-ghost flex flex-nowrap px-1 hover:bg-[#e6f6fc]">
         <span data-app-insights-event-name="translations-menu-click">Translations</span>
         <span class="flex h-6 w-6 items-center justify-center rounded-full border border-blue-300 bg-blue-50"
             >{numberOfTranslations}</span
         >
     </button>
-    <div class="menu dropdown-content z-[1] mt-4 flex w-auto flex-col rounded-box border bg-base-100 px-4 pt-4 shadow">
+    <div
+        role="button"
+        tabindex="0"
+        class="menu dropdown-content z-[1] mt-4 flex w-auto flex-col rounded-box border bg-base-100 px-4 pt-4 shadow"
+    >
         {#if canCreateTranslation && englishTranslation?.hasPublished && languages.length !== translations.length}
             <div class="mb-4 mt-2 flex flex-col place-items-end border-y px-4 py-3">
                 <button
