@@ -254,11 +254,7 @@
                 {/if}
                 <div class="divider divider-horizontal w-0" />
                 {#if canEditBibleReferences}
-                    <LinkBibleReferenceButton
-                        resourceContentId={resourceContent.resourceContentId}
-                        languageId={resourceContent.language.id}
-                        {editor}
-                    />
+                    <LinkBibleReferenceButton {resourceContent} languageId={resourceContent.language.id} {editor} />
                 {/if}
                 {#if canEditResourceReferences}
                     <LinkResourceReferenceButton resourceContentId={resourceContent.resourceContentId} {editor} />
