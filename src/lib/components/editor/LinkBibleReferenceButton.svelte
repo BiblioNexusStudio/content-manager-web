@@ -201,7 +201,8 @@
             const { startVerse: startVerseId, endVerse: endVerseId } = mark.verses[0];
             const parsedStart = parseVerseId(startVerseId.toString());
             const parsedEnd = parseVerseId(endVerseId.toString());
-            updateAssociation = referenceExistsAlready(startVerseId.toString(), endVerseId.toString());
+            updateAssociation =
+                languageId === 1 && referenceExistsAlready(startVerseId.toString(), endVerseId.toString());
             isRange = startVerseId !== endVerseId;
             bookId = parsedStart.bookId;
             startChapter = parsedStart.chapter;
@@ -367,14 +368,16 @@
                 </div>
             </div>
         {/if}
-        <label class="flex items-center">
-            <input type="checkbox" class="mr-2" bind:checked={updateAssociation} />
-            {#if existingReference}
-                <span>Update resource's Bible reference association</span>
-            {:else}
-                <span>Associate Bible reference with this resource</span>
-            {/if}
-        </label>
+        {#if languageId == 1}
+            <label class="flex items-center">
+                <input type="checkbox" class="mr-2" bind:checked={updateAssociation} />
+                {#if existingReference}
+                    <span>Update resource's Bible reference association</span>
+                {:else}
+                    <span>Associate Bible reference with this resource</span>
+                {/if}
+            </label>
+        {/if}
     {/await}
     <svelte:fragment slot="additional-buttons">
         {#if existingReference}
