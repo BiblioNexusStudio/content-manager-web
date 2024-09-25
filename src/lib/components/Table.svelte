@@ -8,7 +8,8 @@
     import CenteredSpinner from './CenteredSpinner.svelte';
     import { _ as translate } from 'svelte-i18n';
 
-    export let searchParams: SubscribedSearchParams<ReturnType<typeof searchParameters<{ sort: string }>>>;
+    export let searchParams: SubscribedSearchParams<ReturnType<typeof searchParameters<{ sort: string }>>> | undefined =
+        undefined;
 
     export let enableSelect = false;
     export let enableSelectAll = false;
@@ -28,6 +29,7 @@
     export let itemsPerPage: number | undefined = undefined;
 
     let scrollingDiv: HTMLDivElement | null = null;
+    let internalSort = '';
 
     $: itemsPerPage && (currentPage = 1);
 
@@ -81,12 +83,21 @@
                     {/if}
                     {#each columns as { text, sortKey, itemKey, width } (itemKey)}
                         {#if sortKey}
-                            <SortingTableHeaderCell
-                                {text}
-                                {sortKey}
-                                bind:currentSort={searchParams.sort}
-                                style={width ? `width: ${width}ch;` : ''}
-                            />
+                            {#if searchParams}
+                                <SortingTableHeaderCell
+                                    {text}
+                                    {sortKey}
+                                    bind:currentSort={searchParams.sort}
+                                    style={width ? `width: ${width}ch;` : ''}
+                                />
+                            {:else}
+                                <SortingTableHeaderCell
+                                    {text}
+                                    {sortKey}
+                                    bind:currentSort={internalSort}
+                                    style={width ? `width: ${width}ch;` : ''}
+                                />
+                            {/if}
                         {:else}
                             <th style={width ? `width: ${width}ch;` : ''}>{text}</th>
                         {/if}

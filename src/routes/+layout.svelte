@@ -68,7 +68,7 @@
             name: $translate('sidebar.resources.value'),
             icon: SquareStackIcon,
             href: '/resources',
-            hidden: !$userCan(Permission.ReadResources),
+            hidden: !$userCan(Permission.ReadResourceLists),
         },
         {
             name: $translate('sidebar.reporting.value'),
