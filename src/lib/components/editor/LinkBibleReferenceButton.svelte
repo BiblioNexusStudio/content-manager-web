@@ -11,6 +11,7 @@
     import { onMount } from 'svelte';
     import { deleteToApi, postToApi, getFromApi } from '$lib/utils/http-service';
     import { parseBibleReferences } from '../tiptap/bibleReferenceMark';
+    import type { ResourceContent } from '$lib/types/resources';
 
     const isPageTransacting = getIsPageTransactingContext();
     let bibleBooksPromise: Promise<BibleBook[] | null> | null = null;
@@ -25,13 +26,14 @@
             endVerse = 0;
             isRange = false;
             existingReference = false;
+            updateAssociation = false;
             isTransactingAdd = false;
             isTransactingRemove = false;
             isError = false;
         }
     }
 
-    export let resourceContentId: number;
+    export let resourceContent: ResourceContent;
     export let editor: Editor;
     export let languageId: number;
 
@@ -165,7 +167,7 @@
                 ).length === 1
             ) {
                 await deleteToApi('/resources/bible-references', {
-                    resourceContentId,
+                    resourceContentId: resourceContent.resourceContentId,
                     startVerseId: parseInt(currentMark.verses[0].startVerse.toString()),
                     endVerseId: parseInt(currentMark.verses[0].endVerse.toString()),
                 });
@@ -176,11 +178,20 @@
     async function addReference(startVerseId: string, endVerseId: string) {
         if (languageId === 1) {
             await postToApi('/resources/bible-references', {
-                resourceContentId,
+                resourceContentId: resourceContent.resourceContentId,
                 startVerseId: parseInt(startVerseId),
                 endVerseId: parseInt(endVerseId),
             });
         }
+    }
+
+    function referenceExistsAlready(start: string, end: string) {
+        if (start === end) {
+            return resourceContent.verseReferences.some((v) => v.verseId.toString() === start);
+        }
+        return resourceContent.passageReferences.some(
+            (v) => v.startVerseId.toString() === start && v.endVerseId.toString() === end
+        );
     }
 
     function openModal() {
@@ -190,6 +201,7 @@
             const { startVerse: startVerseId, endVerse: endVerseId } = mark.verses[0];
             const parsedStart = parseVerseId(startVerseId.toString());
             const parsedEnd = parseVerseId(endVerseId.toString());
+            updateAssociation = referenceExistsAlready(startVerseId.toString(), endVerseId.toString());
             isRange = startVerseId !== endVerseId;
             bookId = parsedStart.bookId;
             startChapter = parsedStart.chapter;
@@ -198,6 +210,7 @@
             endVerse = parsedEnd.verse;
         } else {
             existingReference = false;
+            updateAssociation = false;
             isRange = false;
             bookId = 0;
             startChapter = 0;
