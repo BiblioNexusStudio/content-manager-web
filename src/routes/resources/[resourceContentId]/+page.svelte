@@ -4,7 +4,6 @@
     import { beforeNavigate, goto } from '$app/navigation';
     import {
         type ContentTranslation,
-        type MachineTranslation,
         MediaTypeEnum,
         type ResourceContent,
         type TiptapContentItem,
@@ -45,7 +44,7 @@
     import type { CommentThreadsResponse } from '$lib/types/comments';
     import { createSidebarContentStore } from './sidebar-content-store';
     import CommentsSidebar from '$lib/components/comments/CommentsSidebar.svelte';
-    import { createMachineTranslationStore, type MachineTranslationStore } from '$lib/stores/machineTranslation';
+    import { createMachineTranslationStore } from '$lib/stores/machineTranslation';
     import MachineTranslationRating from '$lib/components/MachineTranslationRating.svelte';
     import { fly } from 'svelte/transition';
     import BibleReferencesSidebar from './BibleReferencesSidebar.svelte';
@@ -59,8 +58,6 @@
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
     let removeAllInlineThreads: Readable<() => void>;
-    let machineTranslationStore: MachineTranslationStore;
-    let machineTranslation: Writable<MachineTranslation>;
     let promptForMachineTranslationRating: Writable<boolean>;
 
     let errorModal: HTMLDialogElement;
@@ -115,6 +112,10 @@
     $: resourceContentPromise = data.resourceContent.promise;
     $: handleFetchedResource(data.resourceContent.promise);
     $: hasUnresolvedThreads = $commentThreads?.threads.some((x) => !x.resolved && x.id !== -1) || false;
+
+    const machineTranslationStore = createMachineTranslationStore();
+    const machineTranslations = machineTranslationStore.machineTranslations;
+    $: firstMachineTranslation = $machineTranslations.get(0);
 
     async function handleFetchedResource(resourceContentPromise: Promise<ResourceContent>) {
         resourceContent = await resourceContentPromise;
@@ -212,13 +213,12 @@
         }
         editableDisplayNameStore.setOriginalAndCurrent(resourceContent.displayName);
 
-        machineTranslationStore = createMachineTranslationStore();
+        machineTranslationStore.resetStore();
         promptForMachineTranslationRating = machineTranslationStore.promptForRating;
-        machineTranslation = machineTranslationStore.machineTranslation;
-        if (resourceContent.machineTranslation !== null) {
-            machineTranslation.set(resourceContent.machineTranslation);
-            promptForMachineTranslationRating.set(!$machineTranslation.userRating);
-        }
+        const machineTranslationsMap = new Map(resourceContent.machineTranslations.map((mt) => [mt.contentIndex, mt]));
+        machineTranslationStore.machineTranslations.set(machineTranslationsMap);
+        firstMachineTranslation = machineTranslationsMap.get(0);
+        promptForMachineTranslationRating.set(!firstMachineTranslation?.userRating);
 
         commentStores = createCommentStores();
         commentThreads = commentStores.commentThreads;
@@ -854,11 +854,12 @@
                     Choose an Editor
                 {/if}
             </h3>
-            {#if $promptForMachineTranslationRating && $userIsEqual($machineTranslation?.userId)}
+            {#if $promptForMachineTranslationRating && $userIsEqual(firstMachineTranslation?.userId) && (!Array.isArray(resourceContent?.content) || resourceContent?.content.length === 1)}
                 <div class="mb-8 flex flex-col justify-start gap-4">
                     <div class="font-semibold text-error">Please rate the AI translation before reassigning.</div>
                     <div>
                         <MachineTranslationRating
+                            itemIndex={0}
                             {machineTranslationStore}
                             showingInPrompt={true}
                             improvementHorizontalPositionPx={0}
