@@ -539,13 +539,10 @@
     }
 
     async function handleCommunityTranslate() {
-        if (!$currentUser) {
-            return window.location.reload();
-        }
-
         $isPageTransacting = true;
 
-        newTranslationLanguageId = $currentUser.languageId;
+        newTranslationLanguageId = $currentUser?.languageId ?? null;
+
         await createTranslation();
     }
 
