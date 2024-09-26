@@ -4,13 +4,29 @@
     import type { MachineTranslation } from '$lib/types/resources';
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
 
-    export let itemIndex: number;
+    export let itemIndex: number | null = null;
     export let machineTranslationStore: MachineTranslationStore;
     export let showingInPrompt = false;
     export let improvementHorizontalPositionPx = 60;
 
     let store = machineTranslationStore.machineTranslations;
-    $: machineTranslation = $store.get(itemIndex)!;
+    let machineTranslation: MachineTranslation = {
+        id: 0,
+        contentIndex: 0,
+        userId: 0,
+        userRating: 0,
+        improveClarity: false,
+        improveConsistency: false,
+        improveTone: false,
+    };
+    let translationsMissingRatings: MachineTranslation[] | null = null;
+
+    function syncMachineTranslationFromStore(store: Map<number, MachineTranslation>) {
+        if (itemIndex !== null) {
+            machineTranslation = store.get(itemIndex)!;
+        }
+    }
+
     let promptForRating = machineTranslationStore.promptForRating;
     let showImprovements = false;
     let showImprovementsDiv: HTMLDivElement;
@@ -18,6 +34,9 @@
     let ratedFromPrompt = false;
     let currentComponentUpdating = false; // needed since we have multiple MachineTranslationRating components on one page
 
+    // if promptForRating is set we'll need to recalculate translationsMissingRatings
+    $: $promptForRating && (translationsMissingRatings = null);
+    $: syncMachineTranslationFromStore($store);
     $: updateMachineTranslation(machineTranslation);
 
     async function updateMachineTranslation(data: MachineTranslation) {
@@ -30,13 +49,46 @@
             return;
         }
 
-        machineTranslationStore.debounce(async () => {
-            await patchToApi(`/resources/content/machine-translation/${machineTranslation.id}`, { ...data });
-        });
-        machineTranslationStore.machineTranslations.update((machineTranslations) =>
-            machineTranslations.set(itemIndex, data)
-        );
+        if (showingInPrompt) {
+            translationsMissingRatings ||= [...$store.values()].filter((mt) => !mt.userRating);
+            machineTranslationStore.debounce(async () => {
+                await Promise.all(
+                    translationsMissingRatings!.map((mt) =>
+                        patchToApi(`/resources/content/machine-translation/${mt.id}`, { ...data })
+                    )
+                );
+            });
+            machineTranslationStore.machineTranslations.update((machineTranslations) => {
+                for (const translation of translationsMissingRatings!) {
+                    machineTranslations.set(
+                        translation.contentIndex,
+                        mergeDataIntoMachineTranslation(data, translation)
+                    );
+                }
+                return machineTranslations;
+            });
+        } else {
+            machineTranslationStore.debounce(async () => {
+                await patchToApi(`/resources/content/machine-translation/${machineTranslation.id}`, { ...data });
+            });
+            machineTranslationStore.machineTranslations.update((machineTranslations) =>
+                machineTranslations.set(
+                    itemIndex!,
+                    mergeDataIntoMachineTranslation(data, machineTranslations.get(itemIndex!)!)
+                )
+            );
+        }
         currentComponentUpdating = false;
+    }
+
+    function mergeDataIntoMachineTranslation(data: MachineTranslation, machineTranslation: MachineTranslation) {
+        return {
+            ...machineTranslation,
+            userRating: data.userRating,
+            improveClarity: data.improveClarity,
+            improveConsistency: data.improveConsistency,
+            improveTone: data.improveTone,
+        } as MachineTranslation;
     }
 
     const onRating = async (e: MouseEvent, newRating: number) => {
@@ -48,7 +100,7 @@
         if (showingInPrompt) {
             ratedFromPrompt = true;
         } else {
-            $promptForRating = false;
+            $promptForRating = [...$store.values()].some((mt) => !mt.userRating);
         }
     };
 
@@ -56,7 +108,7 @@
         if (showImprovementsDiv) {
             showImprovements = showImprovementsDiv.contains(e.target as Node);
         } else if (ratedFromPrompt) {
-            $promptForRating = false;
+            $promptForRating = [...$store.values()].some((mt) => !mt.userRating);
         }
     };
 
