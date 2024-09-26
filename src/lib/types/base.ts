@@ -84,6 +84,8 @@ export interface CurrentUser extends BasicUser {
     permissions: Permission[];
     roles: UserRole[];
     company: { id: number };
+    languageId: number | null;
+    hasAssignedContent: boolean;
 }
 
 export interface BibleBook {
