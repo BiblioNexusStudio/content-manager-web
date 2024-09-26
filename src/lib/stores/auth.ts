@@ -67,6 +67,7 @@ export enum Permission {
     ReadAllUsers = 'read:all-users',
     ReviewContent = 'review:content',
     SendReviewContent = 'send-review:content',
+    SendReviewCommunityContent = 'send-review:community-content',
     ReadCompanyContentAssignments = 'read:company-content-assignments',
     AiSimplify = 'ai:simplify',
     AiTranslate = 'ai:translate',
