@@ -24,6 +24,7 @@
     import { Permission, userCan } from '$lib/stores/auth';
     import LinkResourceReferenceButton from './LinkResourceReferenceButton.svelte';
 
+    export let itemIndex: number;
     export let editor: Editor | undefined;
     export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined;
     export let commentStores: CommentStores;
@@ -287,6 +288,7 @@
                 {editableDisplayNameStore}
                 {resourceContent}
                 {machineTranslationStore}
+                {itemIndex}
                 bind:isLoading
             />
         </div>

@@ -15,6 +15,7 @@
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
     import { streamAiContent } from '$lib/utils/ai-streaming-content';
 
+    export let itemIndex: number;
     export let editor: Editor;
     export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined;
     export let resourceContent: ResourceContent;
@@ -35,9 +36,10 @@
 
     let isErrorModalOpen = false;
     let isTranslating = false;
-    let machineTranslation = machineTranslationStore.machineTranslation;
-    $: showTranslateButton = canShowAnything && !$machineTranslation.id;
-    $: showRating = canShowAnything && !showTranslateButton && $userIsEqual($machineTranslation.userId);
+    let machineTranslations = machineTranslationStore.machineTranslations;
+    $: machineTranslation = $machineTranslations.get(itemIndex);
+    $: showTranslateButton = canShowAnything && !machineTranslation?.id;
+    $: showRating = canShowAnything && !showTranslateButton && $userIsEqual(machineTranslation?.userId);
 
     const postToTranslate = async (content: string, prompt: string | null = null) => {
         return rawPostToApi('/ai/translate', {
@@ -131,14 +133,23 @@
         const response = await postToApi<{ id: number }>(`/resources/content/machine-translation`, {
             resourceContentVersionId: resourceContent.resourceContentVersionId,
             sourceId: 1,
+            contentIndex: itemIndex,
             displayName: $editableDisplayNameStore,
             content: editor.getHTML(),
         });
 
         machineTranslationStore.promptForRating.set(true);
-        machineTranslation.update((x) => {
-            return { ...x, id: response!.id, userId: $currentUser!.id };
-        });
+        machineTranslationStore.machineTranslations.update((machineTranslations) =>
+            machineTranslations.set(itemIndex, {
+                id: response!.id,
+                userId: $currentUser!.id,
+                contentIndex: 0,
+                userRating: 0,
+                improveClarity: false,
+                improveConsistency: false,
+                improveTone: false,
+            })
+        );
     }
 </script>
 
@@ -164,7 +175,7 @@
     {/if}
 {:else if showRating}
     <div bind:this={innerElement} class="mx-2">
-        <MachineTranslationRating {machineTranslationStore} />
+        <MachineTranslationRating {itemIndex} {machineTranslationStore} />
     </div>
 {/if}
 
