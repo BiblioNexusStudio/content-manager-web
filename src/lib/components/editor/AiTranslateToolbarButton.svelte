@@ -138,18 +138,18 @@
             content: editor.getHTML(),
         });
 
-        machineTranslationStore.promptForRating.set(true);
         machineTranslationStore.machineTranslations.update((machineTranslations) =>
             machineTranslations.set(itemIndex, {
                 id: response!.id,
                 userId: $currentUser!.id,
-                contentIndex: 0,
+                contentIndex: itemIndex,
                 userRating: 0,
                 improveClarity: false,
                 improveConsistency: false,
                 improveTone: false,
             })
         );
+        machineTranslationStore.promptForRating.set(true);
     }
 </script>
 
