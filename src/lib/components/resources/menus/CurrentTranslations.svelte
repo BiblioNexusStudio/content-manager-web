@@ -68,7 +68,7 @@
                     </div>
                 </div>
             {/if}
-            {#if project}
+            {#if project && !project.isComplete}
                 <div
                     class="mb-4 flex items-center justify-between px-4"
                     data-app-insights-event-name="translations-project-menu-click"

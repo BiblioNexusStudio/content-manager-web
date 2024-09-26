@@ -99,7 +99,7 @@ export interface ResourceContent {
     snapshots: BasicSnapshot[];
     versions: BasicVersion[];
     commentThreads: CommentThreadsResponse;
-    machineTranslation: MachineTranslation | null;
+    machineTranslations: MachineTranslation[];
 }
 
 export interface ResourceContentNextUpInfo {
@@ -159,11 +159,13 @@ export interface Version {
 export interface Project {
     id: number;
     name: string;
+    isComplete: boolean;
 }
 
 export interface MachineTranslation {
     id: number;
     userId: number;
+    contentIndex: 0;
     userRating?: number;
     improveClarity?: boolean;
     improveTone?: boolean;

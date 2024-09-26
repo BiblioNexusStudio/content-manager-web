@@ -182,8 +182,9 @@
             ].includes(i.statusValue)
     );
 
-    let scrollingDiv: HTMLDivElement | undefined;
-    $: $searchParams.sort && scrollingDiv && (scrollingDiv.scrollTop = 0);
+    // eslint-disable-next-line
+    let table: Table<any> | null;
+    $: $searchParams.sort && table?.resetScroll();
     $: clearStaleSearchParams($searchParams.tab, assignedContents, reviewPendingContents);
 
     // Handle situation where project/status is set in the searchParams but is no longer valid. E.g. saved bookmark
@@ -353,113 +354,119 @@
             </div>
         {/if}
         <div class="flex flex-row space-x-4 overflow-y-hidden">
-            <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-auto">
-                {#if $searchParams.tab === Tab.myWork}
-                    <Table
-                        enableSelectAll={true}
-                        columns={assignedContentsColumns}
-                        items={sortAssignedResourceData(currentAssignedContents, $searchParams.sort)}
-                        idColumn="id"
-                        itemUrlPrefix="/resources/"
-                        bind:searchParams={$searchParams}
-                        bind:selectedItems={selectedMyWorkTableItems}
-                        noItemsText="Your work is all done!"
-                        searchable={true}
-                        bind:searchText={search}
-                        let:item
-                        let:href
-                        let:itemKey
-                    >
-                        {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                            <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                        {:else if href !== undefined && itemKey}
-                            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                        {:else if itemKey}
-                            <TableCell>{item[itemKey] ?? ''}</TableCell>
-                        {/if}
-                    </Table>
-                {:else if $searchParams.tab === Tab.reviewPending}
-                    <Table
-                        enableSelectAll={true}
-                        columns={reviewPendingContentsColumns}
-                        items={sortPendingData(currentReviewPendingContents, $searchParams.sort)}
-                        idColumn="id"
-                        itemUrlPrefix="/resources/"
-                        bind:searchParams={$searchParams}
-                        bind:selectedItems={selectedReviewPendingTableItems}
-                        noItemsText="No items pending review."
-                        searchable={true}
-                        bind:searchText={search}
-                        let:item
-                        let:href
-                        let:itemKey
-                    >
-                        {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                            <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                        {:else if href !== undefined && itemKey}
-                            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                        {:else if itemKey}
-                            <TableCell>{item[itemKey] ?? ''}</TableCell>
-                        {/if}
-                    </Table>
-                {:else if $searchParams.tab === Tab.myProjects}
-                    <Table
-                        enableSelectAll={false}
-                        columns={projectColumns}
-                        items={sortAssignedProjectData(currentAssignedProjects, $searchParams.sort)}
-                        idColumn="id"
-                        itemUrlPrefix="/projects/"
-                        bind:searchParams={$searchParams}
-                        noItemsText="No projects assigned to you."
-                        searchable={true}
-                        let:item
-                        let:href
-                        let:itemKey
-                        let:columnText
-                    >
-                        {#if columnText === 'Progress'}
-                            <td>
-                                <ProjectProgressBar
-                                    notStartedCount={item?.counts?.notStarted ?? 0}
-                                    inProgressCount={item?.counts?.inProgress ?? 0}
-                                    inManagerReviewCount={item?.counts?.inManagerReview ?? 0}
-                                    inPublisherReviewCount={item?.counts?.inPublisherReview ?? 0}
-                                    completeCount={item?.counts?.completed ?? 0}
-                                    showLegend={false}
-                                />
-                            </td>
-                        {:else if href !== undefined && itemKey}
-                            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                        {:else if itemKey}
-                            <TableCell>{item[itemKey] ?? ''}</TableCell>
-                        {/if}
-                    </Table>
-                {:else if $searchParams.tab === Tab.community}
-                    <Table
-                        enableSelectAll={true}
-                        columns={communityPendingContentsColumns}
-                        items={sortPendingData(currentCommunityPendingContents, $searchParams.sort)}
-                        idColumn="id"
-                        itemUrlPrefix="/resources/"
-                        bind:searchParams={$searchParams}
-                        bind:selectedItems={selectedCommunityPendingTableItems}
-                        noItemsText="No items pending review."
-                        searchable={true}
-                        bind:searchText={search}
-                        let:item
-                        let:href
-                        let:itemKey
-                    >
-                        {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                            <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                        {:else if href !== undefined && itemKey}
-                            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                        {:else if itemKey}
-                            <TableCell>{item[itemKey] ?? ''}</TableCell>
-                        {/if}
-                    </Table>
-                {/if}
-            </div>
+            {#if $searchParams.tab === Tab.myWork}
+                <Table
+                    bind:this={table}
+                    class="my-4"
+                    enableSelectAll={true}
+                    columns={assignedContentsColumns}
+                    items={sortAssignedResourceData(currentAssignedContents, $searchParams.sort)}
+                    idColumn="id"
+                    itemUrlPrefix="/resources/"
+                    bind:searchParams={$searchParams}
+                    bind:selectedItems={selectedMyWorkTableItems}
+                    noItemsText="Your work is all done!"
+                    searchable={true}
+                    bind:searchText={search}
+                    let:item
+                    let:href
+                    let:itemKey
+                >
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                </Table>
+            {:else if $searchParams.tab === Tab.reviewPending}
+                <Table
+                    bind:this={table}
+                    class="my-4"
+                    enableSelectAll={true}
+                    columns={reviewPendingContentsColumns}
+                    items={sortPendingData(currentReviewPendingContents, $searchParams.sort)}
+                    idColumn="id"
+                    itemUrlPrefix="/resources/"
+                    bind:searchParams={$searchParams}
+                    bind:selectedItems={selectedReviewPendingTableItems}
+                    noItemsText="No items pending review."
+                    searchable={true}
+                    bind:searchText={search}
+                    let:item
+                    let:href
+                    let:itemKey
+                >
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                </Table>
+            {:else if $searchParams.tab === Tab.myProjects}
+                <Table
+                    bind:this={table}
+                    class="my-4"
+                    enableSelectAll={false}
+                    columns={projectColumns}
+                    items={sortAssignedProjectData(currentAssignedProjects, $searchParams.sort)}
+                    idColumn="id"
+                    itemUrlPrefix="/projects/"
+                    bind:searchParams={$searchParams}
+                    noItemsText="No projects assigned to you."
+                    searchable={true}
+                    let:item
+                    let:href
+                    let:itemKey
+                    let:columnText
+                >
+                    {#if columnText === 'Progress'}
+                        <td>
+                            <ProjectProgressBar
+                                notStartedCount={item?.counts?.notStarted ?? 0}
+                                inProgressCount={item?.counts?.inProgress ?? 0}
+                                inManagerReviewCount={item?.counts?.inManagerReview ?? 0}
+                                inPublisherReviewCount={item?.counts?.inPublisherReview ?? 0}
+                                completeCount={item?.counts?.completed ?? 0}
+                                showLegend={false}
+                            />
+                        </td>
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                </Table>
+            {:else if $searchParams.tab === Tab.community}
+                <Table
+                    bind:this={table}
+                    class="my-4"
+                    enableSelectAll={true}
+                    columns={communityPendingContentsColumns}
+                    items={sortPendingData(currentCommunityPendingContents, $searchParams.sort)}
+                    idColumn="id"
+                    itemUrlPrefix="/resources/"
+                    bind:searchParams={$searchParams}
+                    bind:selectedItems={selectedCommunityPendingTableItems}
+                    noItemsText="No items pending review."
+                    searchable={true}
+                    bind:searchText={search}
+                    let:item
+                    let:href
+                    let:itemKey
+                >
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                </Table>
+            {/if}
         </div>
     </div>
 {:catch error}

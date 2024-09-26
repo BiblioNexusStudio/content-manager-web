@@ -2,7 +2,7 @@ import type { PageLoad } from './$types';
 import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
 import { Permission, userCan } from '$lib/stores/auth';
 import { get } from 'svelte/store';
-import type { ResourceContentStatusEnum } from '$lib/types/base';
+import type { BibleBook, ResourceContentStatusEnum } from '$lib/types/base';
 import { redirect } from '@sveltejs/kit';
 import type { ProjectResourceStatusCounts } from '$lib/types/projects';
 import type { ResourceContentVersionReviewLevel } from '$lib/types/resources';
@@ -43,6 +43,14 @@ export const load: PageLoad = async ({ parent, fetch }) => {
                 assignedUsersWordCount,
             },
         };
+    } else if (get(userCan)(Permission.CreateCommunityContent)) {
+        const assignedResourceContent = fetchAssignedResourceContent(fetch);
+        const assignedResourceHistoryContent = getFromApiWithoutBlocking<ResourceAssignedToSelfHistory[]>(
+            '/resources/content/assigned-to-self/history',
+            fetch
+        );
+        const bibleBooks = getFromApiWithoutBlocking<BibleBook[]>('/bibles/1/books', fetch);
+        return { communityReviewerDashboard: { assignedResourceContent, assignedResourceHistoryContent, bibleBooks } };
     } else if (get(userCan)(Permission.EditContent)) {
         const assignedResourceContent = fetchAssignedResourceContent(fetch);
         const assignedResourceHistoryContent = getFromApiWithoutBlocking<ResourceAssignedToSelfHistory[]>(
@@ -111,6 +119,18 @@ export interface ResourceAssignedToSelf {
     daysSinceContentUpdated: number | null;
     sortOrder: number;
     lastAssignedUser: ResourceUser | null;
+}
+
+export interface ResourceThatNeedsTranslationResponse {
+    total: number;
+    resourceContents: ResourceThatNeedsTranslation[];
+}
+
+export interface ResourceThatNeedsTranslation {
+    id: number;
+    englishLabel: string;
+    parentResourceName: string;
+    wordCount: number | null;
 }
 
 export interface ResourceAssignedToSelfHistory {

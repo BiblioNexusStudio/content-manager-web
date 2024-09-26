@@ -48,15 +48,9 @@
         { runLoadAgainWhenParamsChange: false }
     );
 
-    const searchParamsForUserWordCount = searchParameters(
-        {
-            sort: ssp.string(SortName.Days),
-            tab: ssp.string(Tab.myWork),
-            assignedUserId: ssp.number(0),
-            project: ssp.string(''),
-        },
-        { runLoadAgainWhenParamsChange: false }
-    );
+    let userWordCountParams = {
+        sort: SortName.User,
+    };
 
     let assignToUserId: number | null = null;
     let isAssignContentModalOpen = false;
@@ -265,13 +259,13 @@
         }
     }
 
-    let scrollingDiv: HTMLDivElement | undefined;
-    let userWordCountScrollingDiv: HTMLDivElement | undefined;
-    $: $searchParamsForUserWordCount.sort &&
-        $searchParamsForUserWordCount.tab &&
-        userWordCountScrollingDiv &&
-        (userWordCountScrollingDiv.scrollTop = 0);
-    $: $searchParams.sort && $searchParams.tab && scrollingDiv && (scrollingDiv.scrollTop = 0);
+    // eslint-disable-next-line
+    let table: Table<any> | null;
+    // eslint-disable-next-line
+    let userWordCountTable: Table<any> | null;
+
+    $: userWordCountParams.sort && userWordCountTable?.resetScroll();
+    $: $searchParams.sort && $searchParams.tab && table?.resetScroll();
 
     let selectedCount = 0;
     let selectedWordCount = 0;
@@ -385,15 +379,49 @@
         </div>
 
         {#if $searchParams.tab === Tab.myWork}
-            <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-auto">
+            <Table
+                bind:this={table}
+                class="my-4"
+                enableSelectAll={true}
+                columns={assignedContentsColumns}
+                items={sortAssignedData(currentMyWorkContents, $searchParams.sort)}
+                itemUrlPrefix="/resources/"
+                idColumn="id"
+                bind:searchParams={$searchParams}
+                bind:selectedItems={selectedMyWorkContents}
+                noItemsText="Your work is all done!"
+                searchable={true}
+                bind:searchText={search}
+                let:item
+                let:href
+                let:itemKey
+            >
+                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                    <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                        >{item[itemKey] ?? ''}</LinkedTableCell
+                    >
+                {:else if itemKey === 'lastAssignedUser'}
+                    <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
+                {:else if href !== undefined && itemKey}
+                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey}
+                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+                {/if}
+            </Table>
+        {:else if $searchParams.tab === Tab.toAssign}
+            <div class="flex h-full flex-[2] grow flex-col gap-4 overflow-y-hidden xl:flex-row">
                 <Table
+                    bind:this={table}
+                    class="my-4 max-h-[500px] xl:grow"
                     enableSelectAll={true}
-                    columns={assignedContentsColumns}
-                    items={sortAssignedData(currentMyWorkContents, $searchParams.sort)}
-                    itemUrlPrefix="/resources/"
+                    columns={toAssignContentsColumns}
+                    items={sortAssignedData(currentToAssignContents, $searchParams.sort)}
                     idColumn="id"
                     bind:searchParams={$searchParams}
-                    bind:selectedItems={selectedMyWorkContents}
+                    bind:selectedItems={selectedToAssignContents}
+                    itemUrlPrefix="/resources/"
                     noItemsText="Your work is all done!"
                     searchable={true}
                     bind:searchText={search}
@@ -407,97 +435,60 @@
                         <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
                             >{item[itemKey] ?? ''}</LinkedTableCell
                         >
-                    {:else if itemKey === 'lastAssignedUser'}
-                        <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
                     {:else if href !== undefined && itemKey}
                         <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                     {:else if itemKey}
                         <TableCell>{item[itemKey] ?? ''}</TableCell>
                     {/if}
                 </Table>
-            </div>
-        {:else if $searchParams.tab === Tab.toAssign}
-            <div class="flex h-full flex-[2] grow flex-col gap-4 overflow-y-hidden xl:flex-row">
-                <div bind:this={scrollingDiv} class="my-4 max-h-[500px] overflow-y-scroll xl:max-h-full xl:grow">
-                    <Table
-                        enableSelectAll={true}
-                        columns={toAssignContentsColumns}
-                        items={sortAssignedData(currentToAssignContents, $searchParams.sort)}
-                        idColumn="id"
-                        bind:searchParams={$searchParams}
-                        bind:selectedItems={selectedToAssignContents}
-                        itemUrlPrefix="/resources/"
-                        noItemsText="Your work is all done!"
-                        searchable={true}
-                        bind:searchText={search}
-                        let:item
-                        let:href
-                        let:itemKey
-                    >
-                        {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                            <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                        {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
-                            <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
-                                >{item[itemKey] ?? ''}</LinkedTableCell
-                            >
-                        {:else if href !== undefined && itemKey}
-                            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                        {:else if itemKey}
-                            <TableCell>{item[itemKey] ?? ''}</TableCell>
-                        {/if}
-                    </Table>
-                </div>
                 {#if userWordCounts.length > 0}
-                    <div
-                        bind:this={userWordCountScrollingDiv}
-                        class="my-4 w-full overflow-y-scroll xl:max-h-full xl:max-w-[275px]"
-                    >
-                        <Table
-                            columns={userWordCountColumns}
-                            items={sortUserWordCountData(userWordCounts, $searchParamsForUserWordCount.sort)}
-                            idColumn="userId"
-                            noItemsText="No Users Found."
-                            bind:searchParams={$searchParamsForUserWordCount}
-                        ></Table>
-                    </div>
+                    <Table
+                        bind:this={userWordCountTable}
+                        class="my-4 w-full xl:max-w-[275px]"
+                        columns={userWordCountColumns}
+                        items={sortUserWordCountData(userWordCounts, userWordCountParams.sort)}
+                        idColumn="userId"
+                        noItemsText="No Users Found."
+                        bind:searchParams={userWordCountParams}
+                    ></Table>
                 {/if}
             </div>
         {:else if $searchParams.tab === Tab.manage}
-            <div bind:this={scrollingDiv} class="my-4 max-h-full flex-[2] overflow-y-auto">
-                <Table
-                    enableSelectAll={true}
-                    columns={manageContentsColumns}
-                    items={sortAndFilterManageData(currentManageContents, $searchParams)}
-                    idColumn="id"
-                    bind:searchParams={$searchParams}
-                    bind:selectedItems={selectedManageContents}
-                    itemUrlPrefix="/resources/"
-                    noItemsText={$searchParams.assignedUserId === 0
-                        ? 'Your work is all done!'
-                        : 'Nothing assigned to this user.'}
-                    searchable={true}
-                    bind:searchText={search}
-                    let:item
-                    let:href
-                    let:itemKey
-                >
-                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                    {:else if itemKey === 'assignedUser' && item[itemKey] !== null && item[itemKey]?.name !== null}
-                        <LinkedTableCell {href}>{item[itemKey]?.name}</LinkedTableCell>
-                    {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
-                        <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
-                            >{item[itemKey] ?? ''}</LinkedTableCell
-                        >
-                    {:else if itemKey === 'lastAssignedUser'}
-                        <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
-                    {:else if href !== undefined && itemKey}
-                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                    {:else if itemKey}
-                        <TableCell>{item[itemKey] ?? ''}</TableCell>
-                    {/if}
-                </Table>
-            </div>
+            <Table
+                bind:this={table}
+                class="my-4"
+                enableSelectAll={true}
+                columns={manageContentsColumns}
+                items={sortAndFilterManageData(currentManageContents, $searchParams)}
+                idColumn="id"
+                bind:searchParams={$searchParams}
+                bind:selectedItems={selectedManageContents}
+                itemUrlPrefix="/resources/"
+                noItemsText={$searchParams.assignedUserId === 0
+                    ? 'Your work is all done!'
+                    : 'Nothing assigned to this user.'}
+                searchable={true}
+                bind:searchText={search}
+                let:item
+                let:href
+                let:itemKey
+            >
+                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                {:else if itemKey === 'assignedUser' && item[itemKey] !== null && item[itemKey]?.name !== null}
+                    <LinkedTableCell {href}>{item[itemKey]?.name}</LinkedTableCell>
+                {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                    <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                        >{item[itemKey] ?? ''}</LinkedTableCell
+                    >
+                {:else if itemKey === 'lastAssignedUser'}
+                    <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
+                {:else if href !== undefined && itemKey}
+                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey}
+                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+                {/if}
+            </Table>
         {/if}
     </div>
 {:catch error}

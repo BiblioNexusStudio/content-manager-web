@@ -24,6 +24,7 @@
     import { Permission, userCan } from '$lib/stores/auth';
     import LinkResourceReferenceButton from './LinkResourceReferenceButton.svelte';
 
+    export let itemIndex: number;
     export let editor: Editor | undefined;
     export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined;
     export let commentStores: CommentStores;
@@ -254,11 +255,7 @@
                 {/if}
                 <div class="divider divider-horizontal w-0" />
                 {#if canEditBibleReferences}
-                    <LinkBibleReferenceButton
-                        resourceContentId={resourceContent.resourceContentId}
-                        languageId={resourceContent.language.id}
-                        {editor}
-                    />
+                    <LinkBibleReferenceButton {resourceContent} languageId={resourceContent.language.id} {editor} />
                 {/if}
                 {#if canEditResourceReferences}
                     <LinkResourceReferenceButton resourceContentId={resourceContent.resourceContentId} {editor} />
@@ -291,6 +288,7 @@
                 {editableDisplayNameStore}
                 {resourceContent}
                 {machineTranslationStore}
+                {itemIndex}
                 bind:isLoading
             />
         </div>

@@ -70,6 +70,7 @@ export enum UserRole {
     Publisher = 'Publisher',
     Admin = 'Admin',
     ReportViewer = 'ReportViewer',
+    CommunityReviewer = 'CommunityReviewer',
 }
 
 export interface User extends BasicUser {

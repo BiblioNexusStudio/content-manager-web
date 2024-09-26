@@ -63,8 +63,8 @@
                 daysForSorting: project.days === null || isProjectClosed(project) ? Infinity : project.days,
             }));
 
-        let activeProjects = listData.filter((p) => p.isStarted && p.counts.completed !== p.itemCount);
-        let recentlyFinishedProjects = listData.filter((p) => p.isStarted && p.counts.completed === p.itemCount);
+        let activeProjects = listData.filter((p) => p.isStarted && !p.isCompleted);
+        let recentlyFinishedProjects = listData.filter((p) => p.isCompleted);
         let notStartedProjects = listData.filter((p) => !p.isStarted);
 
         notStartedCount = notStartedProjects.length;
@@ -124,37 +124,36 @@
         {/if}
     </div>
 </div>
-<div class="mx-4 max-h-full flex-[2] overflow-y-scroll">
-    <Table
-        columns={$userCan(Permission.ReadProjects) ? projectTableColumns : projectTableColumnsWithManager}
-        items={sortProjectListData(listData, $searchParams.sort)}
-        idColumn="id"
-        enableSelectAll={false}
-        enableSelect={false}
-        searchText={projectSearchValue}
-        searchable={true}
-        bind:searchParams={$searchParams}
-        itemUrlPrefix="/projects/"
-        let:item
-        let:href
-        let:itemKey
-        let:columnText
-    >
-        {#if columnText === 'Progress'}
-            <td>
-                <ProjectProgressBar
-                    notStartedCount={item.counts.notStarted}
-                    inProgressCount={item.counts.inProgress}
-                    inManagerReviewCount={item.counts.inManagerReview}
-                    inPublisherReviewCount={item.counts.inPublisherReview}
-                    completeCount={item.counts.completed}
-                    showLegend={false}
-                />
-            </td>
-        {:else if href !== undefined && itemKey}
-            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-        {:else if itemKey}
-            <TableCell>{item[itemKey] ?? ''}</TableCell>
-        {/if}
-    </Table>
-</div>
+<Table
+    class="mx-4"
+    columns={$userCan(Permission.ReadProjects) ? projectTableColumns : projectTableColumnsWithManager}
+    items={sortProjectListData(listData, $searchParams.sort)}
+    idColumn="id"
+    enableSelectAll={false}
+    enableSelect={false}
+    searchText={projectSearchValue}
+    searchable={true}
+    bind:searchParams={$searchParams}
+    itemUrlPrefix="/projects/"
+    let:item
+    let:href
+    let:itemKey
+    let:columnText
+>
+    {#if columnText === 'Progress'}
+        <td>
+            <ProjectProgressBar
+                notStartedCount={item.counts.notStarted}
+                inProgressCount={item.counts.inProgress}
+                inManagerReviewCount={item.counts.inManagerReview}
+                inPublisherReviewCount={item.counts.inPublisherReview}
+                completeCount={item.counts.completed}
+                showLegend={false}
+            />
+        </td>
+    {:else if href !== undefined && itemKey}
+        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+    {:else if itemKey}
+        <TableCell>{item[itemKey] ?? ''}</TableCell>
+    {/if}
+</Table>
