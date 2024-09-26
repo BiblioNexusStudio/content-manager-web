@@ -54,6 +54,7 @@
     import ErrorMessage from '$lib/components/ErrorMessage.svelte';
     import ScrollSyncLockToggle from '$lib/components/editor/ScrollSyncLockToggle.svelte';
     import { scrollPosition, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
+    import { isApiErrorWithMessage } from '$lib/utils/http-errors';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
@@ -68,7 +69,7 @@
     let addTranslationModal: HTMLDialogElement;
 
     let assignToUserId: number | null = null;
-    let newTranslationLanguageId: string | null = null;
+    let newTranslationLanguageId: number | null = null;
     let currentUserIsAssigned = false;
     let canMakeContentEdits = false;
     let canAquiferize = false;
@@ -94,6 +95,8 @@
     let openedSupplementalSideBar = OpenedSupplementalSideBar.None;
     let shouldTransition = false;
     let resourceContent: ResourceContent | undefined;
+    let canCommunityTranslate = false;
+    let canCommunitySendToPublisher = false;
 
     export let data: PageData;
 
@@ -236,6 +239,17 @@
         } else {
             $commentThreads = null;
         }
+
+        canCommunityTranslate =
+            $userCan(Permission.CreateCommunityContent) &&
+            !resourceContent.contentTranslations.find((x) => x.languageId === $currentUser?.languageId) &&
+            resourceContent.status == ResourceContentStatusEnum.Complete &&
+            $currentUser?.hasAssignedContent === false;
+
+        canCommunitySendToPublisher =
+            $userCan(Permission.SendReviewCommunityContent) &&
+            resourceContent.status == ResourceContentStatusEnum.TranslationInProgress &&
+            currentUserIsAssigned;
     }
 
     const isPageTransacting = createIsPageTransactingContext();
@@ -335,6 +349,10 @@
             await callback(response);
             $isPageTransacting = false;
         } catch (error) {
+            if (isApiErrorWithMessage(error, 'User can only create one translation at a time')) {
+                window.location.reload();
+            }
+
             errorModal.showModal();
             $isPageTransacting = false;
             throw error;
@@ -476,7 +494,7 @@
                 await postToApi<{ resourceContentId: number }>(
                     `/resources/content/${englishContentTranslation?.contentId}/create-translation`,
                     {
-                        languageId: parseInt(newTranslationLanguageId!),
+                        languageId: newTranslationLanguageId,
                         useDraft: createTranslationFromDraft,
                     }
                 ),
@@ -519,6 +537,26 @@
             return users;
         }
         return users?.filter((u) => $userIsInCompany(u.company.id)) ?? null;
+    }
+
+    async function handleCommunityTranslate() {
+        if (!$currentUser) {
+            return window.location.reload();
+        }
+
+        $isPageTransacting = true;
+
+        newTranslationLanguageId = $currentUser.languageId;
+        await createTranslation();
+    }
+
+    async function handleCommunitySendToPublisher() {
+        $isPageTransacting = true;
+
+        await takeActionAndCallback(
+            async () => await postToApi(`/resources/content/${resourceContentId}/send-for-publisher-review-community`),
+            async () => goto(`/`)
+        );
     }
 </script>
 
@@ -633,6 +671,22 @@
                                     Create Draft
                                 {/if}</button
                             >
+                        {/if}
+                        {#if canCommunityTranslate}
+                            <button
+                                class="btn btn-primary btn-sm ms-2"
+                                disabled={$isPageTransacting}
+                                on:click={handleCommunityTranslate}
+                                >Translate
+                            </button>
+                        {/if}
+                        {#if canCommunitySendToPublisher}
+                            <button
+                                class="btn btn-primary btn-sm ms-2"
+                                disabled={$isPageTransacting}
+                                on:click={handleCommunitySendToPublisher}
+                                >Send to Publisher
+                            </button>
                         {/if}
                     </div>
                 </div>
