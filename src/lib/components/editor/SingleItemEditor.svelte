@@ -20,7 +20,7 @@
 
     let editor: Editor | undefined = undefined;
     let tiptapJson = $editableContentStore[itemIndex];
-    let isLoading: boolean;
+    let isLoading = false;
 
     const isPageTransacting = getIsPageTransactingContext();
 
@@ -53,6 +53,7 @@
         {resourceContent}
         {machineTranslationStore}
         {editableDisplayNameStore}
+        {itemIndex}
         bind:isLoading
     />
 

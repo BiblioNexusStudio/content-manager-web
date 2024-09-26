@@ -4,18 +4,21 @@
     import type { MachineTranslation } from '$lib/types/resources';
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
 
+    export let itemIndex: number;
     export let machineTranslationStore: MachineTranslationStore;
     export let showingInPrompt = false;
     export let improvementHorizontalPositionPx = 60;
 
-    let machineTranslation = machineTranslationStore.machineTranslation;
+    let store = machineTranslationStore.machineTranslations;
+    $: machineTranslation = $store.get(itemIndex)!;
     let promptForRating = machineTranslationStore.promptForRating;
     let showImprovements = false;
     let showImprovementsDiv: HTMLDivElement;
     let skipFirstPatch = true; // prevent reactive function from running on load
     let ratedFromPrompt = false;
+    let currentComponentUpdating = false; // needed since we have multiple MachineTranslationRating components on one page
 
-    $: updateMachineTranslation($machineTranslation);
+    $: updateMachineTranslation(machineTranslation);
 
     async function updateMachineTranslation(data: MachineTranslation) {
         if (skipFirstPatch) {
@@ -23,14 +26,23 @@
             return;
         }
 
+        if (!currentComponentUpdating) {
+            return;
+        }
+
         machineTranslationStore.debounce(async () => {
-            await patchToApi(`/resources/content/machine-translation/${$machineTranslation.id}`, { ...data });
+            await patchToApi(`/resources/content/machine-translation/${machineTranslation.id}`, { ...data });
         });
+        machineTranslationStore.machineTranslations.update((machineTranslations) =>
+            machineTranslations.set(itemIndex, data)
+        );
+        currentComponentUpdating = false;
     }
 
     const onRating = async (e: MouseEvent, newRating: number) => {
         e.stopPropagation();
 
+        currentComponentUpdating = true;
         showImprovements = newRating < 5;
 
         if (showingInPrompt) {
@@ -47,16 +59,22 @@
             $promptForRating = false;
         }
     };
+
+    function indicateCurrentComponentUpdating() {
+        currentComponentUpdating = true;
+    }
 </script>
 
 <svelte:window on:click={onAnyClick} />
+
 {#if showingInPrompt}
-    <StarRating callback={onRating} bind:rating={$machineTranslation.userRating} />
+    <StarRating callback={onRating} bind:rating={machineTranslation.userRating} />
 {:else}
     <div class="tooltip tooltip-primary" data-tip="Rate AI translation">
-        <StarRating callback={onRating} bind:rating={$machineTranslation.userRating} />
+        <StarRating callback={onRating} bind:rating={machineTranslation.userRating} />
     </div>
 {/if}
+
 {#if showImprovements}
     <div
         bind:this={showImprovementsDiv}
@@ -66,19 +84,22 @@
         <div class="mt-2 flex flex-wrap gap-2">
             <input
                 type="checkbox"
-                bind:checked={$machineTranslation.improveClarity}
+                on:change={indicateCurrentComponentUpdating}
+                bind:checked={machineTranslation.improveClarity}
                 aria-label="Clarity"
                 class="btn btn-outline btn-primary btn-sm"
             />
             <input
                 type="checkbox"
-                bind:checked={$machineTranslation.improveTone}
+                on:change={indicateCurrentComponentUpdating}
+                bind:checked={machineTranslation.improveTone}
                 aria-label="Tone/Style"
                 class="btn btn-outline btn-primary btn-sm"
             />
             <input
                 type="checkbox"
-                bind:checked={$machineTranslation.improveConsistency}
+                on:change={indicateCurrentComponentUpdating}
+                bind:checked={machineTranslation.improveConsistency}
                 aria-label="Consistency"
                 class="btn btn-outline btn-primary btn-sm"
             />

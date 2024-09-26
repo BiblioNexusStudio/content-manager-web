@@ -4,14 +4,7 @@ import type { MachineTranslation } from '$lib/types/resources';
 export type MachineTranslationStore = ReturnType<typeof createMachineTranslationStore>;
 
 export function createMachineTranslationStore() {
-    const machineTranslation: Writable<MachineTranslation> = writable({
-        id: 0,
-        userId: 0,
-        userRating: 0,
-        improveClarity: false,
-        improveConsistency: false,
-        improveTone: false,
-    });
+    const machineTranslations: Writable<Map<number, MachineTranslation>> = writable(new Map());
 
     const promptForRating: Writable<boolean> = writable(false);
 
@@ -22,8 +15,12 @@ export function createMachineTranslationStore() {
     };
 
     return {
-        machineTranslation,
+        machineTranslations,
         promptForRating,
         debounce,
+        resetStore: () => {
+            machineTranslations.set(new Map());
+            promptForRating.set(false);
+        },
     };
 }
