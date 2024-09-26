@@ -165,7 +165,7 @@ export interface Project {
 export interface MachineTranslation {
     id: number;
     userId: number;
-    contentIndex: 0;
+    contentIndex: number;
     userRating?: number;
     improveClarity?: boolean;
     improveTone?: boolean;

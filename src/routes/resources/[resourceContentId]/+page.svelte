@@ -59,7 +59,6 @@
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
     let removeAllInlineThreads: Readable<() => void>;
-    let promptForMachineTranslationRating: Writable<boolean>;
 
     let errorModal: HTMLDialogElement;
     let autoSaveErrorModal: HTMLDialogElement;
@@ -117,8 +116,7 @@
     $: hasUnresolvedThreads = $commentThreads?.threads.some((x) => !x.resolved && x.id !== -1) || false;
 
     const machineTranslationStore = createMachineTranslationStore();
-    const machineTranslations = machineTranslationStore.machineTranslations;
-    $: firstMachineTranslation = $machineTranslations.get(0);
+    const promptForMachineTranslationRating = machineTranslationStore.promptForRating;
 
     async function handleFetchedResource(resourceContentPromise: Promise<ResourceContent>) {
         resourceContent = await resourceContentPromise;
@@ -217,11 +215,12 @@
         editableDisplayNameStore.setOriginalAndCurrent(resourceContent.displayName);
 
         machineTranslationStore.resetStore();
-        promptForMachineTranslationRating = machineTranslationStore.promptForRating;
-        const machineTranslationsMap = new Map(resourceContent.machineTranslations.map((mt) => [mt.contentIndex, mt]));
-        machineTranslationStore.machineTranslations.set(machineTranslationsMap);
-        firstMachineTranslation = machineTranslationsMap.get(0);
-        promptForMachineTranslationRating.set(!firstMachineTranslation?.userRating);
+        machineTranslationStore.machineTranslations.set(
+            new Map(resourceContent.machineTranslations.map((mt) => [mt.contentIndex, mt]))
+        );
+        promptForMachineTranslationRating.set(
+            resourceContent.machineTranslations.some((mt) => !mt.userRating && $userIsEqual(mt.userId))
+        );
 
         commentStores = createCommentStores();
         commentThreads = commentStores.commentThreads;
@@ -908,12 +907,11 @@
                     Choose an Editor
                 {/if}
             </h3>
-            {#if $promptForMachineTranslationRating && $userIsEqual(firstMachineTranslation?.userId) && (!Array.isArray(resourceContent?.content) || resourceContent?.content.length === 1)}
+            {#if $promptForMachineTranslationRating}
                 <div class="mb-8 flex flex-col justify-start gap-4">
                     <div class="font-semibold text-error">Please rate the AI translation before reassigning.</div>
                     <div>
                         <MachineTranslationRating
-                            itemIndex={0}
                             {machineTranslationStore}
                             showingInPrompt={true}
                             improvementHorizontalPositionPx={0}
