@@ -100,6 +100,7 @@ export interface ResourceContent {
     versions: BasicVersion[];
     commentThreads: CommentThreadsResponse;
     machineTranslations: MachineTranslation[];
+    reviewLevel: ResourceContentVersionReviewLevel;
 }
 
 export interface ResourceContentNextUpInfo {

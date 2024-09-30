@@ -10,6 +10,7 @@
         type ResourceContentNextUpInfo,
         OpenedSupplementalSideBar,
         type Assignment,
+        ResourceContentVersionReviewLevel,
     } from '$lib/types/resources';
     import { getFromApi, patchToApi, postToApi } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
@@ -177,7 +178,8 @@
             $userCan(Permission.AssignContent) &&
             currentUserIsAssigned &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview);
+                resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview) &&
+            resourceContent.reviewLevel != ResourceContentVersionReviewLevel.community;
 
         canSendForManagerReview =
             $userCan(Permission.AssignContent) &&
