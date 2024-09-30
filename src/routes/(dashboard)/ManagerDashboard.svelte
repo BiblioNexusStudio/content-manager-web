@@ -43,6 +43,7 @@
             tab: ssp.string(Tab.myWork),
             assignedUserId: ssp.number(0),
             project: ssp.string(''),
+            lastAssigned: ssp.string(''),
         },
         { runLoadAgainWhenParamsChange: false }
     );
@@ -61,9 +62,13 @@
     $: !isErrorModalOpen && (customErrorMessage = null);
 
     let myWorkProjectNames: string[] = [];
+    let myWorkLastAssignedNames: string[] = [];
     let toAssignProjectNames: string[] = [];
+    let toAssignLastAssignedNames: string[] = [];
     let manageProjectNames: string[] = [];
+    let manageLastAssignedNames: string[] = [];
     let currentProjectNames: string[] = [];
+    let currentLastAssignedNames: string[] = [];
     let myWorkContents: ResourceAssignedToSelf[] = [];
     let currentMyWorkContents: ResourceAssignedToSelf[] = [];
     let selectedMyWorkContents: ResourceAssignedToSelf[] = [];
@@ -78,30 +83,45 @@
 
     let userWordCounts: UserWordCount[] = [];
 
-    const setTabContents = (tab: string, assignedUserId: number, toAssignProjectName: string, search: string) => {
+    const setTabContents = (
+        tab: string,
+        assignedUserId: number,
+        toAssignProjectName: string,
+        lastAssignedName: string,
+        search: string
+    ) => {
         if (tab === Tab.myWork) {
             currentMyWorkContents = myWorkContents.filter(
                 (x) =>
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
-                    (toAssignProjectName === '' || x.projectName === toAssignProjectName)
+                    (toAssignProjectName === '' || x.projectName === toAssignProjectName) &&
+                    (lastAssignedName === '' || x.lastAssignedUser?.name === lastAssignedName)
             );
         } else if (tab === Tab.toAssign) {
             currentToAssignContents = toAssignContents.filter(
                 (x) =>
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
-                    (toAssignProjectName === '' || x.projectName === toAssignProjectName)
+                    (toAssignProjectName === '' || x.projectName === toAssignProjectName) &&
+                    (lastAssignedName === '' || x.lastAssignedUser?.name === lastAssignedName)
             );
         } else if (tab === Tab.manage) {
             currentManageContents = manageContents.filter(
                 (x) =>
                     (assignedUserId === 0 || x.assignedUser.id === assignedUserId) &&
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
-                    (toAssignProjectName === '' || x.projectName === toAssignProjectName)
+                    (toAssignProjectName === '' || x.projectName === toAssignProjectName) &&
+                    (lastAssignedName === '' || x.lastAssignedUser?.name === lastAssignedName)
             );
         }
     };
 
-    $: setTabContents($searchParams.tab, $searchParams.assignedUserId, $searchParams.project, search);
+    $: setTabContents(
+        $searchParams.tab,
+        $searchParams.assignedUserId,
+        $searchParams.project,
+        $searchParams.lastAssigned,
+        search
+    );
     $: anyRowSelected =
         selectedMyWorkContents.length > 0 || selectedToAssignContents.length > 0 || selectedManageContents.length > 0;
     $: nonManagerReviewSelected = selectedMyWorkContents.some(
@@ -126,8 +146,19 @@
         ]);
 
         myWorkProjectNames = Array.from(new Set(filterBoolean(myWorkContents.map((c) => c.projectName)))).sort();
+        myWorkLastAssignedNames = Array.from(
+            new Set(filterBoolean(myWorkContents.map((c) => c.lastAssignedUser?.name)))
+        ).sort();
+
         toAssignProjectNames = Array.from(new Set(filterBoolean(toAssignContents.map((c) => c.projectName)))).sort();
+        toAssignLastAssignedNames = Array.from(
+            new Set(filterBoolean(toAssignContents.map((c) => c.lastAssignedUser?.name)))
+        ).sort();
+
         manageProjectNames = Array.from(new Set(filterBoolean(manageContents.map((c) => c.projectName)))).sort();
+        manageLastAssignedNames = Array.from(
+            new Set(filterBoolean(manageContents.map((c) => c.lastAssignedUser?.name)))
+        ).sort();
 
         // Handle situation where project is set in the searchParams but is no longer valid. E.g. saved bookmark
         // or forced refresh after assign that removed all of them.
@@ -138,15 +169,26 @@
         ) {
             $searchParams.project = '';
         }
+
+        if (
+            ($searchParams.tab === Tab.toAssign && !toAssignLastAssignedNames.includes($searchParams.lastAssigned)) ||
+            ($searchParams.tab === Tab.manage && !manageLastAssignedNames.includes($searchParams.lastAssigned)) ||
+            ($searchParams.tab === Tab.myWork && !myWorkLastAssignedNames.includes($searchParams.lastAssigned))
+        ) {
+            $searchParams.lastAssigned = '';
+        }
     };
 
-    const switchProjectNames = (tab: string) => {
+    const switchProjectAndLastAssignedNames = (tab: string) => {
         if (tab === Tab.myWork) {
             currentProjectNames = myWorkProjectNames;
+            currentLastAssignedNames = myWorkLastAssignedNames;
         } else if (tab === Tab.toAssign) {
             currentProjectNames = toAssignProjectNames;
+            currentLastAssignedNames = toAssignLastAssignedNames;
         } else if (tab === Tab.manage) {
             currentProjectNames = manageProjectNames;
+            currentLastAssignedNames = manageLastAssignedNames;
         }
     };
 
@@ -246,7 +288,7 @@
     }
 
     $: calculateSelectedCounts(selectedMyWorkContents, selectedToAssignContents, selectedManageContents);
-    $: switchProjectNames($searchParams.tab);
+    $: switchProjectAndLastAssignedNames($searchParams.tab);
 </script>
 
 {#await loadContents()}
@@ -284,6 +326,16 @@
                 onChange={resetSelections}
                 isNumber={false}
                 options={[{ value: '', label: 'Project' }, ...currentProjectNames.map((p) => ({ value: p, label: p }))]}
+            />
+            <Select
+                class="select select-bordered max-w-[14rem] flex-grow"
+                bind:value={$searchParams.lastAssigned}
+                onChange={resetSelections}
+                isNumber={false}
+                options={[
+                    { value: '', label: 'Last Assigned' },
+                    ...currentLastAssignedNames.map((n) => ({ value: n, label: n })),
+                ]}
             />
             {#if $searchParams.tab === Tab.manage}
                 <Select
