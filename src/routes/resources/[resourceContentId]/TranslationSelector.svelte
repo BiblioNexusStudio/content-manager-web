@@ -4,7 +4,7 @@
 
     export let allLanguages: Language[];
     export let existingTranslations: ContentTranslation[];
-    export let selectedLanguageId: string | null;
+    export let selectedLanguageId: number | null;
 
     const languagesToShow = allLanguages.filter((x) => existingTranslations.every((et) => et.languageId !== x.id));
 </script>
