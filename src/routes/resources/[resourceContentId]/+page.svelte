@@ -91,7 +91,6 @@
     let isNewDraftStatus = false;
     let mediaType: MediaTypeEnum | undefined;
     let selectedStepNumber: number | undefined;
-    let isShowingDiffs = false;
     let openedSupplementalSideBar = OpenedSupplementalSideBar.None;
     let shouldTransition = false;
     let resourceContent: ResourceContent | undefined;
@@ -763,7 +762,7 @@
                         <Select
                             value={$sidebarContentStore.selected?.idForSelection ?? null}
                             onChange={sidebarContentStore.selectSnapshotOrVersion}
-                            class="select select-bordered select-sm"
+                            class="select select-bordered select-sm mb-4"
                             options={sidebarContentStore.allSnapshotAndPublishedVersionOptions.map((s) => ({
                                 value: s.value,
                                 label: s.label,
@@ -771,29 +770,10 @@
                         />
                         {#if $sidebarContentStore.isOpen}
                             {#if $sidebarContentStore.selected}
-                                <div class="my-4 flex h-6 w-full flex-row items-center">
-                                    <div class="overflow-hidden text-ellipsis whitespace-nowrap text-lg">
-                                        {$sidebarContentStore.selected.displayName}
-                                    </div>
-                                    <div class="grow"></div>
-                                    <div class="text-lg">
-                                        <label class="label cursor-pointer py-0">
-                                            <input
-                                                type="checkbox"
-                                                bind:checked={isShowingDiffs}
-                                                data-app-insights-event-name="resource-differences-toggled-{isShowingDiffs
-                                                    ? 'off'
-                                                    : 'on'}"
-                                                class="checkbox no-animation checkbox-sm me-2"
-                                            />
-                                            <span class="label-text text-xs">Differences</span>
-                                        </label>
-                                    </div>
-                                </div>
                                 <Content
                                     bind:selectedStepNumber
-                                    isComparingToCurrent={isShowingDiffs}
                                     {editableContentStore}
+                                    sidebarIsOpen={$sidebarContentStore.isOpen}
                                     snapshotOrVersion={$sidebarContentStore.selected}
                                     {resourceContent}
                                     {commentStores}

@@ -18,10 +18,11 @@
     export let wordCountsByStep: number[] | undefined;
     export let resourceContent: ResourceContent;
     export let snapshotOrVersion: Snapshot | Version | undefined;
-    export let isComparingToCurrent: boolean;
+    export let sidebarIsOpen: boolean;
     export let selectedStepNumber: number | undefined;
     export let commentStores: CommentStores;
     export let machineTranslationStore: MachineTranslationStore;
+    let isComparingToCurrent: boolean;
 
     onMount(() => (selectedStepNumber ||= 1));
 
@@ -92,6 +93,28 @@
                             <Icon data={arrowCircleRight} scale={1.5} />
                         </button>
                     {/if}
+                </div>
+            </div>
+        {/if}
+
+        {#if sidebarIsOpen && snapshotOrVersion !== undefined}
+            <div class="flex h-6 w-full flex-row items-center">
+                <div class="overflow-hidden text-ellipsis whitespace-nowrap text-lg">
+                    {snapshotOrVersion?.displayName}
+                </div>
+                <div class="grow"></div>
+                <div class="text-lg">
+                    <label class="label cursor-pointer py-0">
+                        <input
+                            type="checkbox"
+                            bind:checked={isComparingToCurrent}
+                            data-app-insights-event-name="resource-differences-toggled-{isComparingToCurrent
+                                ? 'off'
+                                : 'on'}"
+                            class="checkbox no-animation checkbox-sm me-2"
+                        />
+                        <span class="label-text text-xs">Differences</span>
+                    </label>
                 </div>
             </div>
         {/if}

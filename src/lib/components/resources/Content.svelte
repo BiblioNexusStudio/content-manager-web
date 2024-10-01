@@ -23,7 +23,7 @@
     export let wordCountsByStep: number[] | undefined = undefined;
     export let snapshotOrVersion: Snapshot | Version | undefined = undefined;
     export let selectedStepNumber: number | undefined;
-    export let isComparingToCurrent = false;
+    export let sidebarIsOpen = false;
     export let commentStores: CommentStores;
     export let machineTranslationStore: MachineTranslationStore;
 
@@ -37,7 +37,7 @@
     <Video content={videoContent} />
 {:else if resourceContent.mediaType === MediaTypeEnum.text}
     <Text
-        {isComparingToCurrent}
+        {sidebarIsOpen}
         bind:selectedStepNumber
         {snapshotOrVersion}
         {resourceContent}
