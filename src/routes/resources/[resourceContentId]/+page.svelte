@@ -244,7 +244,7 @@
             $userCan(Permission.CreateCommunityContent) &&
             !resourceContent.contentTranslations.find((x) => x.languageId === $currentUser?.languageId) &&
             resourceContent.hasPublishedVersion === true &&
-            $currentUser?.CanBeAssignedContent === true;
+            $currentUser?.canBeAssignedContent === true;
 
         canCommunitySendToPublisher =
             $userCan(Permission.SendReviewCommunityContent) &&
