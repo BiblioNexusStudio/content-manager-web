@@ -40,6 +40,7 @@
     $: if (items) {
         selectedItems = [];
     }
+    $: showingPaginator = !isLoading && currentPage && totalPages;
 
     export function resetScroll() {
         if (scrollingDiv) {
@@ -66,7 +67,10 @@
 </script>
 
 <div class="flex max-h-full flex-1 flex-col overflow-y-hidden {$$props.class}">
-    <div bind:this={scrollingDiv} class="overflow-y-scroll">
+    <div
+        bind:this={scrollingDiv}
+        class="overflow-y-scroll rounded-md border {showingPaginator && 'rounded-b-none border-b-0'}"
+    >
         <table class="table table-pin-rows">
             <thead>
                 <tr class="bg-base-200">
@@ -157,8 +161,8 @@
         </table>
     </div>
 
-    {#if !isLoading && currentPage && totalPages}
-        <div class="grid w-full grid-cols-3 bg-base-200 p-2">
+    {#if showingPaginator}
+        <div class="grid w-full grid-cols-3 rounded-b-md border bg-base-200 p-2">
             <button
                 class="btn btn-outline self-center justify-self-start"
                 class:btn-disabled={currentPage === 1}

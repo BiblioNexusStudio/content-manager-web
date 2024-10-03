@@ -227,7 +227,9 @@
                 </table>
             </div>
             {#if resourceContentsOrNull}
-                <div class="mx-4 mb-2 grid grid-cols-3 rounded-md rounded-t-none border-[1px] border-t-0 p-2">
+                <div
+                    class="mx-4 mb-2 grid grid-cols-3 rounded-md rounded-t-none border-[1px] border-t-0 bg-base-200 p-2"
+                >
                     <a
                         class="btn btn-outline self-center justify-self-start"
                         class:btn-disabled={$searchParams.page === 1}
