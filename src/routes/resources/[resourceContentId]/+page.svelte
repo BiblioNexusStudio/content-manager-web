@@ -544,7 +544,22 @@
 
         newTranslationLanguageId = $currentUser?.languageId ?? null;
 
-        await createTranslation();
+        await takeActionAndCallback<{ resourceContentId: number } | null>(
+            async () =>
+                await postToApi<{ resourceContentId: number }>(
+                    `/resources/content/${englishContentTranslation?.contentId}/create-translation`,
+                    {
+                        languageId: newTranslationLanguageId,
+                        useDraft: createTranslationFromDraft,
+                    }
+                ),
+            async (response) => {
+                if ($currentUser) {
+                    $currentUser.canBeAssignedContent = false;
+                }
+                await goto(`/resources/${response?.resourceContentId}`);
+            }
+        );
     }
 
     async function handleCommunitySendToPublisher() {
@@ -552,7 +567,12 @@
 
         await takeActionAndCallback(
             async () => await postToApi(`/resources/content/${resourceContentId}/send-for-publisher-review-community`),
-            async () => goto(`/`)
+            async () => {
+                if ($currentUser) {
+                    $currentUser.canBeAssignedContent = true;
+                }
+                await goto(`/`);
+            }
         );
     }
 </script>
