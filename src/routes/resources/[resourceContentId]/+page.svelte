@@ -62,6 +62,7 @@
     let removeAllInlineThreads: Readable<() => void>;
 
     let errorModal: HTMLDialogElement;
+    let errorModalMessage = 'An error occurred while saving. Please try again.';
     let autoSaveErrorModal: HTMLDialogElement;
     let aquiferizeModal: HTMLDialogElement;
     let assignUserModal: HTMLDialogElement;
@@ -350,7 +351,10 @@
             $isPageTransacting = false;
         } catch (error) {
             if (isApiErrorWithMessage(error, 'User can only create one translation at a time')) {
-                window.location.reload();
+                errorModalMessage = 'You can only create one translation at a time.';
+                canCommunityTranslate = false;
+            } else {
+                errorModalMessage = 'An error occurred while saving. Please try again.';
             }
 
             errorModal.showModal();
@@ -1020,7 +1024,7 @@
                 <button class="btn btn-circle btn-ghost btn-sm absolute right-2 top-2">✕</button>
             </form>
             <h3 class="text-xl font-bold">Error</h3>
-            <p class="py-4 text-lg font-medium">An error occurred while saving. Please try again.</p>
+            <p class="py-4 text-lg font-medium">{errorModalMessage}</p>
         </div>
     </dialog>
 
