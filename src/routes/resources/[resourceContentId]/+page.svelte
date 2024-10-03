@@ -769,7 +769,9 @@
                             }))}
                         />
                         {#if $sidebarContentStore.isOpen}
-                            {#if $sidebarContentStore.selected}
+                            {#if $sidebarContentStore.isLoading}
+                                <CenteredSpinner />
+                            {:else if $sidebarContentStore.selected}
                                 <Content
                                     bind:selectedStepNumber
                                     {editableContentStore}
@@ -789,8 +791,6 @@
                                         </div>
                                     </div>
                                 {/if}
-                            {:else if $sidebarContentStore.isLoading}
-                                <CenteredSpinner />
                             {:else}
                                 Error fetching...
                             {/if}
