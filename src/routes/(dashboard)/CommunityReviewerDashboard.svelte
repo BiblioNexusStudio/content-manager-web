@@ -162,7 +162,7 @@
                 >
             </div>
         </div>
-        <div class="flex gap-4">
+        <div class="flex gap-4 overflow-x-auto">
             {#if $searchParams.tab === Tab.resources}
                 <input
                     class="input input-bordered max-w-xs focus:outline-none"
