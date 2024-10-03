@@ -182,7 +182,7 @@
                     appInsightsEventName="resources-resources-filter-selection"
                     bind:value={parentResourceId}
                     isNumber={true}
-                    class="select select-bordered min-w-[10rem] flex-grow"
+                    class="select select-bordered min-w-[10rem]"
                     options={[
                         { value: 0, label: $translate('page.resources.dropdowns.allResources.value') },
                         ...data.parentResources.map((t) => ({ value: t.id, label: t.displayName })),
@@ -190,7 +190,7 @@
                 />
                 <Select
                     appInsightsEventName="resources-book-filter-selection"
-                    class="select select-bordered min-w-[9rem] flex-grow"
+                    class="select select-bordered min-w-[9rem]"
                     options={[
                         { value: '', label: 'Select Book' },
                         ...(bibleBooks || []).map((b) => ({ value: b.code, label: b.localizedName })),
