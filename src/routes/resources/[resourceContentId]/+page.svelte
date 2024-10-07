@@ -521,13 +521,20 @@
         }
     }
 
+    function applyMetadataContentFields(tiptap: TiptapContentItem[]) {
+        const originalContent = (resourceContent?.content ?? []) as TiptapContentItem[];
+        return tiptap.map((item, index) => ({ ...originalContent[index], ...item }));
+    }
+
     async function patchData() {
         const displayName = get(editableDisplayNameStore);
         const content = get(editableContentStore);
         await patchToApi(`/resources/content/${resourceContentId}`, {
             displayName,
             wordCount: calculateWordCount(wordCountsByStep),
-            ...(mediaType === MediaTypeEnum.text ? { content: stripOutRtlVerseReferenceMarkers(content) } : null),
+            ...(mediaType === MediaTypeEnum.text
+                ? { content: applyMetadataContentFields(stripOutRtlVerseReferenceMarkers(content)) }
+                : null),
         });
 
         editableDisplayNameStore.setOriginalOnly(displayName);
