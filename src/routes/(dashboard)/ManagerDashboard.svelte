@@ -14,7 +14,7 @@
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
     import { log } from '$lib/logger';
     import Tooltip from '$lib/components/Tooltip.svelte';
-    import { filterBoolean, filterDuplicatesByKey } from '$lib/utils/array';
+    import { filterBoolean, filterDuplicatesByKey, sortByKey } from '$lib/utils/array';
     import Table from '$lib/components/Table.svelte';
     import {
         assignedContentsColumns,
@@ -145,18 +145,18 @@
         ]);
 
         myWorkProjectNames = Array.from(new Set(filterBoolean(myWorkContents.map((c) => c.projectName)))).sort();
-        myWorkLastAssignedUsers = filterDuplicatesByKey(
-            'id',
-            filterBoolean(myWorkContents.map((c) => c.lastAssignedUser))
-        ).sort();
+        myWorkLastAssignedUsers = sortByKey(
+            'name',
+            filterDuplicatesByKey('id', filterBoolean(myWorkContents.map((c) => c.lastAssignedUser)))
+        );
 
         toAssignProjectNames = Array.from(new Set(filterBoolean(toAssignContents.map((c) => c.projectName)))).sort();
 
         manageProjectNames = Array.from(new Set(filterBoolean(manageContents.map((c) => c.projectName)))).sort();
-        manageLastAssignedUsers = filterDuplicatesByKey(
-            'id',
-            filterBoolean(manageContents.map((c) => c.lastAssignedUser))
-        ).sort();
+        manageLastAssignedUsers = sortByKey(
+            'name',
+            filterDuplicatesByKey('id', filterBoolean(manageContents.map((c) => c.lastAssignedUser)))
+        );
 
         // Handle situation where project is set in the searchParams but is no longer valid. E.g. saved bookmark
         // or forced refresh after assign that removed all of them.
