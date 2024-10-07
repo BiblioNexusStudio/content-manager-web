@@ -170,9 +170,9 @@
 
         if (
             ($searchParams.tab === Tab.manage &&
-                !manageLastAssignedUsers.filter((u) => u.id === $searchParams.lastAssignedId)) ||
+                manageLastAssignedUsers.filter((u) => u.id === $searchParams.lastAssignedId).length === 0) ||
             ($searchParams.tab === Tab.myWork &&
-                !myWorkLastAssignedUsers.filter((u) => u.id === $searchParams.lastAssignedId))
+                myWorkLastAssignedUsers.filter((u) => u.id === $searchParams.lastAssignedId).length === 0)
         ) {
             $searchParams.lastAssignedId = 0;
         }
@@ -298,7 +298,7 @@
     <div class="flex flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Manager Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
-            <div role="tablist" class="tabs-bordered tabs w-fit">
+            <div role="tablist" class="tabs tabs-bordered w-fit">
                 <button
                     on:click={() => switchTabs(Tab.myWork)}
                     role="tab"
@@ -333,7 +333,7 @@
                     class="select select-bordered max-w-[14rem] flex-grow"
                     bind:value={$searchParams.lastAssignedId}
                     onChange={resetSelections}
-                    isNumber={false}
+                    isNumber={true}
                     options={[
                         { value: 0, label: 'Last Assigned' },
                         ...currentLastAssignedUsers.map((n) => ({ value: n.id, label: n.name })),
