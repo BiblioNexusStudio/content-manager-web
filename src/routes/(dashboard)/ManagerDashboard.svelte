@@ -7,13 +7,14 @@
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
+    import type { BasicUser } from '$lib/types/base';
     import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
     import Modal from '$lib/components/Modal.svelte';
     import { postToApi } from '$lib/utils/http-service';
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
     import { log } from '$lib/logger';
     import Tooltip from '$lib/components/Tooltip.svelte';
-    import { filterBoolean } from '$lib/utils/array';
+    import { filterBoolean, filterDuplicatesByKey } from '$lib/utils/array';
     import Table from '$lib/components/Table.svelte';
     import {
         assignedContentsColumns,
@@ -43,7 +44,7 @@
             tab: ssp.string(Tab.myWork),
             assignedUserId: ssp.number(0),
             project: ssp.string(''),
-            lastAssigned: ssp.string(''),
+            lastAssignedId: ssp.number(0),
         },
         { runLoadAgainWhenParamsChange: false }
     );
@@ -62,12 +63,12 @@
     $: !isErrorModalOpen && (customErrorMessage = null);
 
     let myWorkProjectNames: string[] = [];
-    let myWorkLastAssignedNames: string[] = [];
+    let myWorkLastAssignedUsers: BasicUser[] = [];
     let toAssignProjectNames: string[] = [];
     let manageProjectNames: string[] = [];
-    let manageLastAssignedNames: string[] = [];
+    let manageLastAssignedUsers: BasicUser[] = [];
     let currentProjectNames: string[] = [];
-    let currentLastAssignedNames: string[] = [];
+    let currentLastAssignedUsers: BasicUser[] = [];
     let myWorkContents: ResourceAssignedToSelf[] = [];
     let currentMyWorkContents: ResourceAssignedToSelf[] = [];
     let selectedMyWorkContents: ResourceAssignedToSelf[] = [];
@@ -86,7 +87,7 @@
         tab: string,
         assignedUserId: number,
         toAssignProjectName: string,
-        lastAssignedName: string,
+        lastAssignedId: number,
         search: string
     ) => {
         if (tab === Tab.myWork) {
@@ -94,7 +95,7 @@
                 (x) =>
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
                     (toAssignProjectName === '' || x.projectName === toAssignProjectName) &&
-                    (lastAssignedName === '' || x.lastAssignedUser?.name === lastAssignedName)
+                    (lastAssignedId === 0 || x.lastAssignedUser?.id === lastAssignedId)
             );
         } else if (tab === Tab.toAssign) {
             currentToAssignContents = toAssignContents.filter(
@@ -108,7 +109,7 @@
                     (assignedUserId === 0 || x.assignedUser.id === assignedUserId) &&
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
                     (toAssignProjectName === '' || x.projectName === toAssignProjectName) &&
-                    (lastAssignedName === '' || x.lastAssignedUser?.name === lastAssignedName)
+                    (lastAssignedId === 0 || x.lastAssignedUser?.id === lastAssignedId)
             );
         }
     };
@@ -117,7 +118,7 @@
         $searchParams.tab,
         $searchParams.assignedUserId,
         $searchParams.project,
-        $searchParams.lastAssigned,
+        $searchParams.lastAssignedId,
         search
     );
     $: anyRowSelected =
@@ -144,15 +145,17 @@
         ]);
 
         myWorkProjectNames = Array.from(new Set(filterBoolean(myWorkContents.map((c) => c.projectName)))).sort();
-        myWorkLastAssignedNames = Array.from(
-            new Set(filterBoolean(myWorkContents.map((c) => c.lastAssignedUser?.name)))
+        myWorkLastAssignedUsers = filterDuplicatesByKey(
+            'id',
+            Array.from(new Set(filterBoolean(myWorkContents.map((c) => c.lastAssignedUser))))
         ).sort();
 
         toAssignProjectNames = Array.from(new Set(filterBoolean(toAssignContents.map((c) => c.projectName)))).sort();
 
         manageProjectNames = Array.from(new Set(filterBoolean(manageContents.map((c) => c.projectName)))).sort();
-        manageLastAssignedNames = Array.from(
-            new Set(filterBoolean(manageContents.map((c) => c.lastAssignedUser?.name)))
+        manageLastAssignedUsers = filterDuplicatesByKey(
+            'id',
+            Array.from(new Set(filterBoolean(manageContents.map((c) => c.lastAssignedUser))))
         ).sort();
 
         // Handle situation where project is set in the searchParams but is no longer valid. E.g. saved bookmark
@@ -166,22 +169,24 @@
         }
 
         if (
-            ($searchParams.tab === Tab.manage && !manageLastAssignedNames.includes($searchParams.lastAssigned)) ||
-            ($searchParams.tab === Tab.myWork && !myWorkLastAssignedNames.includes($searchParams.lastAssigned))
+            ($searchParams.tab === Tab.manage &&
+                !manageLastAssignedUsers.filter((u) => u.id === $searchParams.lastAssignedId)) ||
+            ($searchParams.tab === Tab.myWork &&
+                !myWorkLastAssignedUsers.filter((u) => u.id === $searchParams.lastAssignedId))
         ) {
-            $searchParams.lastAssigned = '';
+            $searchParams.lastAssignedId = 0;
         }
     };
 
     const switchProjectAndLastAssignedNames = (tab: string) => {
         if (tab === Tab.myWork) {
             currentProjectNames = myWorkProjectNames;
-            currentLastAssignedNames = myWorkLastAssignedNames;
+            currentLastAssignedUsers = myWorkLastAssignedUsers;
         } else if (tab === Tab.toAssign) {
             currentProjectNames = toAssignProjectNames;
         } else if (tab === Tab.manage) {
             currentProjectNames = manageProjectNames;
-            currentLastAssignedNames = manageLastAssignedNames;
+            currentLastAssignedUsers = manageLastAssignedUsers;
         }
     };
 
@@ -190,7 +195,7 @@
 
         $searchParams.tab = tab;
         $searchParams.assignedUserId = 0;
-        $searchParams.lastAssigned = '';
+        $searchParams.lastAssignedId = 0;
 
         $searchParams.project = '';
         resetSelections();
@@ -326,12 +331,12 @@
             {#if $searchParams.tab === Tab.manage || $searchParams.tab === Tab.myWork}
                 <Select
                     class="select select-bordered max-w-[14rem] flex-grow"
-                    bind:value={$searchParams.lastAssigned}
+                    bind:value={$searchParams.lastAssignedId}
                     onChange={resetSelections}
                     isNumber={false}
                     options={[
-                        { value: '', label: 'Last Assigned' },
-                        ...currentLastAssignedNames.map((n) => ({ value: n, label: n })),
+                        { value: 0, label: 'Last Assigned' },
+                        ...currentLastAssignedUsers.map((n) => ({ value: n.id, label: n.name })),
                     ]}
                 />
             {/if}

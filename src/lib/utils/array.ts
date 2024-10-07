@@ -5,3 +5,7 @@ export function filterBoolean<T>(items: (T | undefined | null | false)[] | undef
     }
     return items.filter(Boolean) as T[];
 }
+
+export function filterDuplicatesByKey<T>(key: keyof T, items: T[]): T[] {
+    return items.filter((item, index, self) => index === self.findIndex((p) => p[key] === item[key]));
+}
