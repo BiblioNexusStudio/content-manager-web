@@ -147,7 +147,7 @@
         myWorkProjectNames = Array.from(new Set(filterBoolean(myWorkContents.map((c) => c.projectName)))).sort();
         myWorkLastAssignedUsers = filterDuplicatesByKey(
             'id',
-            Array.from(new Set(filterBoolean(myWorkContents.map((c) => c.lastAssignedUser))))
+            filterBoolean(myWorkContents.map((c) => c.lastAssignedUser))
         ).sort();
 
         toAssignProjectNames = Array.from(new Set(filterBoolean(toAssignContents.map((c) => c.projectName)))).sort();
@@ -155,7 +155,7 @@
         manageProjectNames = Array.from(new Set(filterBoolean(manageContents.map((c) => c.projectName)))).sort();
         manageLastAssignedUsers = filterDuplicatesByKey(
             'id',
-            Array.from(new Set(filterBoolean(manageContents.map((c) => c.lastAssignedUser))))
+            filterBoolean(manageContents.map((c) => c.lastAssignedUser))
         ).sort();
 
         // Handle situation where project is set in the searchParams but is no longer valid. E.g. saved bookmark
@@ -298,7 +298,7 @@
     <div class="flex flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Manager Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
-            <div role="tablist" class="tabs-bordered tabs w-fit">
+            <div role="tablist" class="tabs tabs-bordered w-fit">
                 <button
                     on:click={() => switchTabs(Tab.myWork)}
                     role="tab"
