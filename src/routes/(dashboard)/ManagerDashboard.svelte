@@ -64,7 +64,6 @@
     let myWorkProjectNames: string[] = [];
     let myWorkLastAssignedNames: string[] = [];
     let toAssignProjectNames: string[] = [];
-    let toAssignLastAssignedNames: string[] = [];
     let manageProjectNames: string[] = [];
     let manageLastAssignedNames: string[] = [];
     let currentProjectNames: string[] = [];
@@ -101,8 +100,7 @@
             currentToAssignContents = toAssignContents.filter(
                 (x) =>
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
-                    (toAssignProjectName === '' || x.projectName === toAssignProjectName) &&
-                    (lastAssignedName === '' || x.lastAssignedUser?.name === lastAssignedName)
+                    (toAssignProjectName === '' || x.projectName === toAssignProjectName)
             );
         } else if (tab === Tab.manage) {
             currentManageContents = manageContents.filter(
@@ -151,9 +149,6 @@
         ).sort();
 
         toAssignProjectNames = Array.from(new Set(filterBoolean(toAssignContents.map((c) => c.projectName)))).sort();
-        toAssignLastAssignedNames = Array.from(
-            new Set(filterBoolean(toAssignContents.map((c) => c.lastAssignedUser?.name)))
-        ).sort();
 
         manageProjectNames = Array.from(new Set(filterBoolean(manageContents.map((c) => c.projectName)))).sort();
         manageLastAssignedNames = Array.from(
@@ -171,7 +166,6 @@
         }
 
         if (
-            ($searchParams.tab === Tab.toAssign && !toAssignLastAssignedNames.includes($searchParams.lastAssigned)) ||
             ($searchParams.tab === Tab.manage && !manageLastAssignedNames.includes($searchParams.lastAssigned)) ||
             ($searchParams.tab === Tab.myWork && !myWorkLastAssignedNames.includes($searchParams.lastAssigned))
         ) {
@@ -185,7 +179,6 @@
             currentLastAssignedNames = myWorkLastAssignedNames;
         } else if (tab === Tab.toAssign) {
             currentProjectNames = toAssignProjectNames;
-            currentLastAssignedNames = toAssignLastAssignedNames;
         } else if (tab === Tab.manage) {
             currentProjectNames = manageProjectNames;
             currentLastAssignedNames = manageLastAssignedNames;
@@ -327,16 +320,18 @@
                 isNumber={false}
                 options={[{ value: '', label: 'Project' }, ...currentProjectNames.map((p) => ({ value: p, label: p }))]}
             />
-            <Select
-                class="select select-bordered max-w-[14rem] flex-grow"
-                bind:value={$searchParams.lastAssigned}
-                onChange={resetSelections}
-                isNumber={false}
-                options={[
-                    { value: '', label: 'Last Assigned' },
-                    ...currentLastAssignedNames.map((n) => ({ value: n, label: n })),
-                ]}
-            />
+            {#if $searchParams.tab === Tab.manage || $searchParams.tab === Tab.myWork}
+                <Select
+                    class="select select-bordered max-w-[14rem] flex-grow"
+                    bind:value={$searchParams.lastAssigned}
+                    onChange={resetSelections}
+                    isNumber={false}
+                    options={[
+                        { value: '', label: 'Last Assigned' },
+                        ...currentLastAssignedNames.map((n) => ({ value: n, label: n })),
+                    ]}
+                />
+            {/if}
             {#if $searchParams.tab === Tab.manage}
                 <Select
                     class="select select-bordered max-w-[14rem] flex-grow"
