@@ -189,6 +189,9 @@
         if ($searchParams.tab === tab) return;
 
         $searchParams.tab = tab;
+        $searchParams.assignedUserId = 0;
+        $searchParams.lastAssigned = '';
+
         $searchParams.project = '';
         resetSelections();
     };
@@ -290,7 +293,7 @@
     <div class="flex flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Manager Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
-            <div role="tablist" class="tabs-bordered tabs w-fit">
+            <div role="tablist" class="tabs tabs-bordered w-fit">
                 <button
                     on:click={() => switchTabs(Tab.myWork)}
                     role="tab"
