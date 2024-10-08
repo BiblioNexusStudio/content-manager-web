@@ -14,6 +14,8 @@
     import { extensions } from '../tiptap/extensions';
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
     import { streamAiContent } from '$lib/utils/ai-streaming-content';
+    import { getFromApi } from '$lib/utils/http-service';
+    import type { Snapshot, TipTapContent } from '$lib/types/resources';
 
     export let itemIndex: number;
     export let editor: Editor;
@@ -37,9 +39,18 @@
     let isErrorModalOpen = false;
     let isTranslating = false;
     let machineTranslations = machineTranslationStore.machineTranslations;
+    let isRetranslateModalOpen = false;
+    let retranslateReason = '';
+    let retranslateModelIsTransacting = false;
     $: machineTranslation = $machineTranslations.get(itemIndex);
     $: showTranslateButton = canShowAnything && !machineTranslation?.id;
     $: showRating = canShowAnything && !showTranslateButton && $userIsEqual(machineTranslation?.userId);
+    $: translatedLessThan24HoursAgo = resourceContent.machineTranslations.some(
+        (mt) => mt.contentIndex === itemIndex && isLessThanOneHourAgo(mt.created ?? '')
+    );
+    $: retranslationReasonIsPresent = resourceContent.machineTranslations.some(
+        (mt) => mt.retranslationReason?.length && mt.retranslationReason?.length > 0
+    );
 
     const postToTranslate = async (content: string, prompt: string | null = null) => {
         return rawPostToApi('/ai/translate', {
@@ -100,8 +111,23 @@
         editor.commands.setContent(fullContent);
     };
 
-    const onClick = async () => {
-        const originalHtml = generateHTML(editor.getJSON(), extensions(false, undefined, false, undefined));
+    const onClick = async (retranslating = false) => {
+        let content = editor.getJSON();
+
+        if (retranslating) {
+            const snapshotId = resourceContent.snapshots
+                .sort((a, b) => a.created.localeCompare(b.created))
+                .find((s) => s.id)?.id;
+
+            const snapshot = await getFromApi<Snapshot>(`/resources/content/snapshots/${snapshotId}`);
+
+            if (snapshot) {
+                content = snapshot.content as TipTapContent;
+                content = content[itemIndex].tiptap;
+            }
+        }
+
+        const originalHtml = generateHTML(content, extensions(false, undefined, false, undefined));
         const originalDisplayName = $editableDisplayNameStore;
         try {
             $isPageTransacting = true;
@@ -126,7 +152,24 @@
                 isTranslating = false;
                 isLoading = false;
             }
+
+            if (!retranslating) {
+                translatedLessThan24HoursAgo = true;
+                retranslationReasonIsPresent = false;
+            } else {
+                translatedLessThan24HoursAgo = false;
+                retranslationReasonIsPresent = true;
+            }
         }
+    };
+
+    const openRetranslateModal = () => {
+        isRetranslateModalOpen = true;
+    };
+
+    const onRetranslateClick = () => {
+        isRetranslateModalOpen = false;
+        onClick(true);
     };
 
     async function createMachineTranslation() {
@@ -136,6 +179,7 @@
             contentIndex: itemIndex,
             displayName: $editableDisplayNameStore,
             content: editor.getHTML(),
+            retranslationReason: retranslateReason || null,
         });
 
         machineTranslationStore.machineTranslations.update((machineTranslations) =>
@@ -150,6 +194,20 @@
             })
         );
         machineTranslationStore.promptForRating.set(true);
+    }
+
+    function isLessThanOneHourAgo(datetime: string): boolean {
+        if (datetime) {
+            const inputDate = new Date(datetime);
+            const currentDate = new Date();
+
+            const differenceInMilliseconds = currentDate.getTime() - inputDate.getTime();
+
+            const differenceInMinutes = differenceInMilliseconds / (1000 * 60);
+
+            return differenceInMinutes <= 60;
+        }
+        return false;
     }
 </script>
 
@@ -169,14 +227,35 @@
                 data-app-insights-event-name="editor-toolbar-translate-click"
                 class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
                 disabled={$isPageTransacting}
-                on:click={onClick}><TranslateIcon /></button
+                on:click={() => onClick()}><TranslateIcon /></button
             >
         </Tooltip>
     {/if}
 {:else if showRating}
-    <div bind:this={innerElement} class="mx-2">
+    <div bind:this={innerElement} class="mx-2 flex items-center">
         <MachineTranslationRating {itemIndex} {machineTranslationStore} />
     </div>
+    {#if translatedLessThan24HoursAgo && !retranslationReasonIsPresent}
+        {#if isTranslating}
+            <div bind:this={innerElement} class="flex w-[42px] justify-center">
+                <div class="loading loading-infinity loading-md text-primary" />
+            </div>
+        {:else}
+            <Tooltip
+                position={{ right: '2.2rem' }}
+                class="flex border-primary align-middle text-primary"
+                text="Retranslate with AI"
+            >
+                <button
+                    bind:this={innerElement}
+                    data-app-insights-event-name="editor-toolbar-retranslate-click"
+                    class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
+                    disabled={$isPageTransacting}
+                    on:click={openRetranslateModal}><TranslateIcon /></button
+                >
+            </Tooltip>
+        {/if}
+    {/if}
 {/if}
 
 <Modal
@@ -185,3 +264,16 @@
     isError={true}
     description="An error occurred creating the translation. Please try again. If the problem persists, please contact support."
 />
+
+<Modal header="Retranslate" bind:open={isRetranslateModalOpen} bind:isTransacting={retranslateModelIsTransacting}>
+    <div class="mb-4">
+        A resource can only be retranslated once. Any edits or comments on this page will be lost. Please enter the
+        reason you are retranslating this resource
+    </div>
+    <textarea class="mb-4 h-32 w-full rounded-lg border p-2" bind:value={retranslateReason} maxlength="200" />
+    <div class="flex w-full justify-end">
+        <button class="btn btn-primary" disabled={retranslateReason.length < 25} on:click={onRetranslateClick}
+            >Retranslate</button
+        >
+    </div>
+</Modal>

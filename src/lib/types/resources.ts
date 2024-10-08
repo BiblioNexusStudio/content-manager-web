@@ -49,7 +49,13 @@ export interface ImageContentItem {
     displayName: string;
 }
 
-type Content = ImageContentItem | VideoContentItem | TiptapContentItem[];
+export type Content = ImageContentItem | VideoContentItem | TiptapContentItem[];
+
+export interface TipTapContent {
+    [key: number]: {
+        tiptap: object;
+    };
+}
 
 export interface AssociatedResource {
     contentId: number | null;
@@ -171,6 +177,8 @@ export interface MachineTranslation {
     improveClarity?: boolean;
     improveTone?: boolean;
     improveConsistency?: boolean;
+    created?: string;
+    retranslationReason?: string;
 }
 
 export interface Assignment {
