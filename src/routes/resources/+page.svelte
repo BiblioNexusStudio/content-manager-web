@@ -191,7 +191,10 @@
         {#await resourceContentDataPromise}
             <CenteredSpinner />
         {:then resourceContentsOrNull}
-            <div class="mx-4 flex-1 overflow-auto rounded-md rounded-b-none border-[1px]">
+            <div
+                class="mx-4 flex-1 overflow-auto rounded-md border-[1px]
+                {resourceContentsOrNull?.resourceContents.length ? 'rounded-b-none' : 'mb-4'}"
+            >
                 <table class="table table-pin-rows">
                     <thead>
                         <tr class="bg-gray-100">
