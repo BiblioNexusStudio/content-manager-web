@@ -16,6 +16,7 @@
                   value: ProjectStatusTab.recentlyFinished,
               },
               { name: 'Not Started', count: notStartedCount, value: ProjectStatusTab.notStarted },
+              { name: 'Reporting', count: null, value: ProjectStatusTab.reporting },
           ]
         : [
               { name: 'Active', count: activeCount, value: ProjectStatusTab.active },

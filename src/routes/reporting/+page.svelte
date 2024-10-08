@@ -4,7 +4,7 @@
     import TranslatedResourcesBarChart from '$lib/charts/TranslatedResourcesBarChart.svelte';
     import { _ as translate } from 'svelte-i18n';
     import Select from '$lib/components/Select.svelte';
-    import { getReportingLinkData } from '$lib/utils/reporting';
+    import { getAllReportingUiLinksAndApiPaths, reportingUiLinks } from '$lib/utils/reporting';
     import ReportingLink from '$lib/components/reporting/ReportingLink.svelte';
     import ReportSummaryCard from '$lib/components/reporting/ReportSummaryCard.svelte';
     import MultipleSelect from '$lib/components/MultipleSelect.svelte';
@@ -23,12 +23,12 @@
     let selectedLanguages: string[] = [];
     let selectedResource: string = defaultSelection;
 
-    const reportingLinkData = getReportingLinkData();
-
     let selectedChart = 'TotalResourcesAreaChart';
 
     function dynamicReports(reports: BasicDynamicReport[]) {
-        return reports.filter(({ slug }) => !reportingLinkData.some(({ reportLink }) => reportLink.includes(slug)));
+        return reports.filter(
+            ({ slug }) => !getAllReportingUiLinksAndApiPaths().some((reportLink) => reportLink.includes(slug))
+        );
     }
 </script>
 
@@ -145,7 +145,7 @@
         {/if}
 
         <div class="mx-4 mb-4 grid grid-cols-3 gap-4">
-            {#each reportingLinkData as link (link.reportLink)}
+            {#each reportingUiLinks.reports as link (link.reportLink)}
                 <ReportingLink
                     reportTitle={link.reportTitle}
                     reportDescription={link.reportDescription}
