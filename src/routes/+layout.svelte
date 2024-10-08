@@ -145,7 +145,7 @@
 {#if $sideBarHiddenOnPage}
     <slot />
 {:else}
-    <div class="">
+    <div class="h-full">
         <div class="flex h-[39px] place-items-center bg-neutral px-4">
             <div class="dropdown-start dropdown dropdown-bottom">
                 <div tabindex="0" role="button" class="btn btn-link btn-xs m-1 text-white"><MenuIcon /></div>
@@ -196,7 +196,7 @@
         {#if $navigating && !isCustomTransitionNavigation($navigating)}
             <CenteredSpinnerFullScreen />
         {:else}
-            <div class="flex max-h-[calc(100vh-39px)] w-full flex-col">
+            <div class="flex h-full max-h-[calc(100vh-39px)] w-full flex-col">
                 <slot />
             </div>
         {/if}
