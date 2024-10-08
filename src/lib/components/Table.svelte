@@ -35,6 +35,8 @@
     let isTopScrollable = false;
     let isBottomScrollable = false;
     let internalSort = '';
+    let headerRow: HTMLTableRowElement | undefined;
+    let headerRowHeight = 0;
 
     $: itemsPerPage && (currentPage = 1);
 
@@ -72,6 +74,7 @@
 
     async function checkScrollable() {
         await tick();
+        headerRowHeight = headerRow?.getBoundingClientRect().height ?? 0;
         if (scrollingDiv) {
             isRightScrollable =
                 scrollingDiv.scrollWidth > scrollingDiv.clientWidth &&
@@ -117,10 +120,10 @@
 
 <div class="relative flex max-h-full w-full flex-col overflow-x-hidden overflow-y-hidden {$$props.class}">
     <div
-        class="pointer-events-none absolute inset-0 top-[2.78rem] z-10"
+        class="pointer-events-none absolute inset-0 z-10"
         style="box-shadow:{calculateScrollShadows({
             isTopScrollable,
-        })}"
+        })}; top: {headerRowHeight}px;"
     ></div>
     <div
         class="pointer-events-none absolute inset-0 z-10 rounded-md"
@@ -136,7 +139,7 @@
     >
         <table class="table table-pin-rows">
             <thead>
-                <tr class="bg-base-200">
+                <tr class="bg-base-200" bind:this={headerRow}>
                     {#if enableSelectAll}
                         <th>
                             <input

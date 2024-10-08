@@ -53,6 +53,7 @@ export interface DynamicReport {
     acceptsDateRange: boolean;
     acceptsLanguage: boolean;
     acceptsParentResource: boolean;
+    acceptsCompany: boolean;
     startDate: string;
     endDate: string;
     columns: string[];
