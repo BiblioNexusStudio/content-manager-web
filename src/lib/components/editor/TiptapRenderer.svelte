@@ -28,7 +28,7 @@
             $isScrollSyncEnabled &&
             scrollSyncElement &&
             $scrollSyncSourceDiv &&
-            $scrollSyncSourceDiv != scrollSyncElement
+            $scrollSyncSourceDiv !== scrollSyncElement
         ) {
             const scrollHeight = scrollSyncElement.scrollHeight;
             const clientHeight = scrollSyncElement.clientHeight;

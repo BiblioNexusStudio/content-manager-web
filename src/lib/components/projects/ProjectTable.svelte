@@ -68,8 +68,8 @@
                 const matchesSearchValue = [project.name].some((field) =>
                     field.toLowerCase().includes(lowerCaseSearchValue)
                 );
-                const matchesCompany = filterByCompany == null || filterByCompany == project.company;
-                const matchesLanguage = filterByLanguage == null || filterByLanguage == project.language;
+                const matchesCompany = filterByCompany === null || filterByCompany === project.company;
+                const matchesLanguage = filterByLanguage === null || filterByLanguage === project.language;
 
                 if (matchesCompany && matchesLanguage && lowerCaseSearchValue.length === 0) {
                     return true;

@@ -68,7 +68,7 @@
     const updateChart = (data: ChartDataset[]) => {
         if (languagesToColors) {
             for (let i = 0; i < data.length; i++) {
-                data[i]!.backgroundColor = languagesToColors.find((lc) => lc.language == data[i]!.label)?.color;
+                data[i]!.backgroundColor = languagesToColors.find((lc) => lc.language === data[i]!.label)?.color;
             }
         }
 
