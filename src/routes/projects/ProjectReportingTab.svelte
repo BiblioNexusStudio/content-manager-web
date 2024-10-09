@@ -216,30 +216,37 @@
             />
         </div>
         <div class="flex min-h-40 flex-grow flex-row gap-4">
-            <div class="relative h-full w-full flex-1 overflow-x-hidden">
-                {#if activeProjectsPerCompany == null || companyCompletedItemsPerMonth === null}
-                    <CenteredSpinner />
-                {:else}
-                    <BarChart
-                        dataPoints={calculateCompletedItemsDataPoints(
-                            companyCompletedItemsPerMonth,
-                            companyPerformanceMetricsResourceSize
-                        )}
-                        yLabel="Completed Items"
-                    />
-                {/if}
+            <div class="flex w-full flex-col gap-2">
+                <div class="text-lg font-bold">Total Completed Items</div>
+                <div class="relative flex-1 overflow-x-hidden">
+                    {#if activeProjectsPerCompany === null || companyCompletedItemsPerMonth === null}
+                        <CenteredSpinner />
+                    {:else}
+                        <BarChart
+                            dataPoints={calculateCompletedItemsDataPoints(
+                                companyCompletedItemsPerMonth,
+                                companyPerformanceMetricsResourceSize
+                            )}
+                            yLabel="Completed Items"
+                        />
+                    {/if}
+                </div>
             </div>
-            <div class="relative h-full w-full flex-1 overflow-x-hidden">
-                {#if activeProjectsPerCompany == null || companyAverageDaysInWorkflow === null}
-                    <CenteredSpinner />
-                {:else}
-                    <LineChart
-                        lines={calculateAverageDaysInWorkflowLines(
-                            companyAverageDaysInWorkflow,
-                            companyPerformanceMetricsResourceSize
-                        )}
-                    />
-                {/if}
+
+            <div class="flex w-full flex-col gap-2">
+                <div class="text-lg font-bold">Average Days in Workflow</div>
+                <div class="relative flex-1 overflow-x-hidden">
+                    {#if activeProjectsPerCompany === null || companyAverageDaysInWorkflow === null}
+                        <CenteredSpinner />
+                    {:else}
+                        <LineChart
+                            lines={calculateAverageDaysInWorkflowLines(
+                                companyAverageDaysInWorkflow,
+                                companyPerformanceMetricsResourceSize
+                            )}
+                        />
+                    {/if}
+                </div>
             </div>
         </div>
     </div>
