@@ -173,6 +173,7 @@ export interface MachineTranslation {
     improveConsistency?: boolean;
     created?: string;
     retranslationReason?: string;
+    hadRetranslation?: boolean;
 }
 
 export interface Assignment {
