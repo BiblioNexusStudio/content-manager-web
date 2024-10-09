@@ -135,7 +135,7 @@
     ></div>
     <div
         bind:this={scrollingDiv}
-        class="overflow-x-scroll overflow-y-scroll rounded-md border {showingPaginator && 'rounded-b-none border-b-0'}"
+        class="overflow-x-auto overflow-y-auto rounded-md border {showingPaginator && 'rounded-b-none border-b-0'}"
     >
         <table class="table table-pin-rows">
             <thead>

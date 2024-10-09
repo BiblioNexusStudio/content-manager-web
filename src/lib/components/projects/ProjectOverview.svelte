@@ -31,8 +31,8 @@
 
 <div
     class="my-4 grid {!canOnlyViewProjectsInCompany
-        ? 'min-h-[192px]'
-        : 'min-h-[96px]'}  w-full grid-cols-2 gap-x-8 xl:grid-cols-1"
+        ? 'min-h-48'
+        : 'min-h-24'}  w-full grid-cols-2 gap-x-8 xl:grid-cols-1"
 >
     <div class="flex flex-col">
         <ViewTabSlot title="Title">
