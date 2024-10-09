@@ -56,7 +56,7 @@
     import ScrollSyncLockToggle from '$lib/components/editor/ScrollSyncLockToggle.svelte';
     import { scrollPosition, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
     import { isApiErrorWithMessage } from '$lib/utils/http-errors';
-    import { isLeftToRight } from '$lib/stores/resourceEditor';
+    import { isEditorPaneOnLeft } from '$lib/stores/resourceEditor';
     import ContentEditorSwapButton from '$lib/components/editor/ContentEditorSwapButton.svelte';
 
     let commentStores: CommentStores;
@@ -743,9 +743,9 @@
                     : !$sidebarContentStore.isOpen && isShowingSupplementalSidebar
                     ? 'w-4/5'
                     : 'w-2/5'}"
-                class:order-first={!$isLeftToRight}
-                class:pe-3={!$isLeftToRight}
-                class:ps-3={$isLeftToRight}
+                class:order-first={!$isEditorPaneOnLeft}
+                class:pe-3={!$isEditorPaneOnLeft}
+                class:ps-3={$isEditorPaneOnLeft}
             >
                 <div class="h-full rounded-md bg-base-200 px-4 pb-0.5 pt-4">
                     <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
@@ -796,9 +796,9 @@
                     : isShowingSupplementalSidebar
                     ? 'w-2/5'
                     : 'w-1/2'}"
-                class:order-first={$isLeftToRight}
-                class:ps-3={!$isLeftToRight}
-                class:pe-3={$isLeftToRight}
+                class:order-first={$isEditorPaneOnLeft}
+                class:ps-3={!$isEditorPaneOnLeft}
+                class:pe-3={$isEditorPaneOnLeft}
             >
                 <div class="flex h-full w-full flex-col rounded-md border border-base-300 px-4 pb-1 pt-4">
                     <div class="mx-auto flex h-full w-full max-w-4xl flex-col">

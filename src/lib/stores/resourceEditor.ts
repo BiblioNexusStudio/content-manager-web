@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
 
-export const isLeftToRight = writable<boolean>((localStorage.getItem('isLeftToRight') || 'true') === 'true');
+export const isEditorPaneOnLeft = writable<boolean>((localStorage.getItem('isEditorPaneOnLeft') || 'true') === 'true');
 
-isLeftToRight.subscribe((value) => {
-    localStorage.setItem('isLeftToRight', value ? 'true' : 'false');
+isEditorPaneOnLeft.subscribe((value) => {
+    localStorage.setItem('isEditorPaneOnLeft', value ? 'true' : 'false');
 });
