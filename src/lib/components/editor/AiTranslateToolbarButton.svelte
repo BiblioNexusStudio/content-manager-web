@@ -48,7 +48,7 @@
         (mt) => mt.contentIndex === itemIndex && isLessThanOneHourAgo(mt.created ?? '')
     );
     $: retranslationReasonIsPresent = resourceContent.machineTranslations.some(
-        (mt) => mt.retranslationReason?.length && mt.retranslationReason?.length > 0
+        (mt) => mt.retranslationReason?.length && mt.retranslationReason?.length > 0 && mt.contentIndex === itemIndex
     );
 
     const postToTranslate = async (content: string, prompt: string | null = null) => {
