@@ -5,6 +5,7 @@
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
     import ErrorMessage from '$lib/components/ErrorMessage.svelte';
     import ProjectTableTabs from '$lib/components/projects/ProjectTableTabs.svelte';
+    import ProjectReportingTab from './ProjectReportingTab.svelte';
 
     export let data: PageData;
 
@@ -42,8 +43,10 @@
             bind:currentTab
         />
 
+        <ProjectReportingTab isShowing={currentTab === ProjectStatusTab.reporting} companies={companiesResponse} />
+
         <ProjectTable
-            isShowing={true}
+            isShowing={currentTab !== ProjectStatusTab.reporting}
             {activeProjects}
             {recentlyFinishedProjects}
             {notStartedProjects}

@@ -200,11 +200,11 @@
                                 <slot {item} {href} {itemKey} columnText={text}>
                                     {#if href !== undefined && itemKey}
                                         <LinkedTableCell style={width ? `width: ${width}ch;` : ''} {href}
-                                            >{item[itemKey] ?? ''}</LinkedTableCell
+                                            >{item[itemKey]?.toLocaleString() ?? ''}</LinkedTableCell
                                         >
                                     {:else if itemKey !== undefined}
                                         <TableCell style={width ? `width: ${width}ch;` : ''}
-                                            >{item[itemKey] ?? ''}</TableCell
+                                            >{item[itemKey]?.toLocaleString() ?? ''}</TableCell
                                         >
                                     {/if}
                                 </slot>

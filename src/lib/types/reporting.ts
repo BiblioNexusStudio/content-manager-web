@@ -60,4 +60,4 @@ export interface DynamicReport {
     results: DynamicReportResult[];
 }
 
-export type DynamicReportResult = (string | number | boolean)[];
+export type DynamicReportResult = (string | number | boolean | null)[];

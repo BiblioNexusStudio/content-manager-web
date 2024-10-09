@@ -18,6 +18,42 @@ export interface ProjectListResponse {
     daysForSorting?: number;
 }
 
+export interface ActiveProjectsPerCompanyResponse {
+    company: string;
+    activeProjectCount: number;
+    lateProjectCount: number;
+    itemCount: number;
+    largeItemCount: number;
+    wordCount: number;
+    notStartedItemCount: number;
+    inProgressItemCount: number;
+    inManagerReviewItemCount: number;
+    inPublisherReviewItemCount: number;
+    completedItemCount: number;
+}
+
+export interface CompanyAverageDaysInWorkflowResponse {
+    month: string;
+
+    shortResourcesDaysToStart: number | null;
+    shortResourcesDaysWithPartner: number | null;
+    shortResourcesDaysTotal: number | null;
+
+    longResourcesDaysToStart: number | null;
+    longResourcesDaysWithPartner: number | null;
+    longResourcesDaysTotal: number | null;
+
+    daysToStart: number | null;
+    daysWithPartner: number | null;
+    daysTotal: number | null;
+}
+
+export interface CompanyCompletedItemsPerMonthResponse {
+    month: string;
+    longResourceCount: number;
+    shortResourceCount: number;
+}
+
 export interface ProjectResourceStatusCounts {
     notStarted: number;
     inProgress: number;
@@ -64,5 +100,5 @@ export enum ProjectStatusTab {
     active = 'active',
     recentlyFinished = 'recently-finished',
     notStarted = 'not-started',
-    none = 'none',
+    reporting = 'reporting',
 }
