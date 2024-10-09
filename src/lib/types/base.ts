@@ -30,6 +30,8 @@ export enum ResourceContentStatusEnum {
     TranslationManagerReview = 'TranslationManagerReview',
 }
 
+export const companiesToIgnore = ['BiblioNexus', 'Temp - Deleted Users', 'N/A'];
+
 export const statusColorMap: Record<ResourceContentStatusEnum, string> = {
     [ResourceContentStatusEnum.None]: '#6e7580',
     [ResourceContentStatusEnum.New]: '#6e7580',

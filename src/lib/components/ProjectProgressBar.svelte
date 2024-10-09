@@ -18,7 +18,7 @@
     const completeWidth = getWidth(completeCount);
 </script>
 
-<div class="flex w-full flex-col">
+<div class="flex w-full flex-col {$$props.class}">
     <div class="flex h-4 w-full flex-row border border-black">
         <div class="bg-neutral" style={`width: ${completeWidth}%`}></div>
         <div class="bg-primary" style={`width: ${inPublisherReviewWidth}%`}></div>

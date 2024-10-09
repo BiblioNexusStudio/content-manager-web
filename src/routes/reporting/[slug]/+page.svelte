@@ -14,17 +14,19 @@
     import ReportTablePagination from './ReportTablePagination.svelte';
     import Select from '$lib/components/Select.svelte';
     import ErrorMessage from '$lib/components/ErrorMessage.svelte';
+    import { companiesToIgnore } from '$lib/types/base';
 
     export let data: PageData;
 
     const searchParams = searchParameters(_searchParamsConfig, {
-        runLoadAgainWhenParamsChange: ['startDate', 'endDate', 'languageId', 'parentResourceId'],
+        runLoadAgainWhenParamsChange: ['startDate', 'endDate', 'languageId', 'parentResourceId', 'companyId'],
     });
 
     let startDate = $searchParams.startDate;
     let endDate = $searchParams.endDate;
     let languageId = $searchParams.languageId;
     let parentResourceId = $searchParams.parentResourceId;
+    let companyId = $searchParams.companyId;
 
     let reportData: DynamicReport | undefined;
     let results: DynamicReportResult[] = [];
@@ -34,7 +36,8 @@
             startDate !== $searchParams.startDate ||
             endDate !== $searchParams.endDate ||
             languageId !== $searchParams.languageId ||
-            parentResourceId !== $searchParams.parentResourceId
+            parentResourceId !== $searchParams.parentResourceId ||
+            companyId !== $searchParams.companyId
         ) {
             $searchParams.paginationStart = 0;
             $searchParams.paginationEnd = _defaultTableRowsPerPage;
@@ -44,9 +47,11 @@
         $searchParams.endDate = endDate;
         $searchParams.languageId = languageId;
         $searchParams.parentResourceId = parentResourceId;
+        $searchParams.companyId = companyId;
     }
 
     $: reportPromise = data.reportData!.promise;
+    $: companiesPromise = data.companies.promise;
 
     $: initializeFromReport(reportPromise);
     $: handleSort(reportData, $searchParams.sort);
@@ -73,9 +78,9 @@
     }
 </script>
 
-{#await reportPromise}
+{#await Promise.all([reportPromise, companiesPromise])}
     <CenteredSpinner />
-{:then _}
+{:then [_, companies]}
     {#if reportData}
         <div class="flex h-full max-h-screen flex-col space-y-4 p-4">
             <div class="flex items-center justify-between">
@@ -101,7 +106,7 @@
                         ]}
                     />
                 {/if}
-                {#if reportData.acceptsLanguage}
+                {#if reportData.acceptsParentResource}
                     <Select
                         bind:value={parentResourceId}
                         isNumber={true}
@@ -109,6 +114,19 @@
                         options={[
                             { value: 0, label: 'All Resources' },
                             ...data.parentResources.map((t) => ({ value: t.id, label: t.displayName })),
+                        ]}
+                    />
+                {/if}
+                {#if reportData.acceptsCompany}
+                    <Select
+                        bind:value={companyId}
+                        isNumber={true}
+                        class="select select-bordered min-w-[10rem] flex-shrink"
+                        options={[
+                            { value: 0, label: 'Select Company' },
+                            ...companies
+                                .filter((c) => !companiesToIgnore.includes(c.name))
+                                .map((c) => ({ value: c.id, label: c.name })),
                         ]}
                     />
                 {/if}
@@ -120,7 +138,7 @@
                         <DatePicker bind:date={endDate} earliestDate={startDate} />
                     </div>
                 {/if}
-                {#if reportData.acceptsDateRange || reportData.acceptsLanguage || reportData.acceptsParentResource}
+                {#if reportData.acceptsDateRange || reportData.acceptsLanguage || reportData.acceptsParentResource || reportData.acceptsCompany}
                     <button class="btn btn-link !mx-1" on:click={refetch}>
                         <Icon data={refresh} />
                     </button>

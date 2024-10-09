@@ -9,45 +9,37 @@
 
     let tabs = $userCan(Permission.ReadProjects)
         ? [
-              { name: 'Active', current: true, count: activeCount, value: ProjectStatusTab.active },
+              { name: 'Active', count: activeCount, value: ProjectStatusTab.active },
               {
                   name: 'Recently Finished',
-                  current: false,
                   count: recentlyFinishedCount,
                   value: ProjectStatusTab.recentlyFinished,
               },
-              { name: 'Not Started', current: false, count: notStartedCount, value: ProjectStatusTab.notStarted },
+              { name: 'Not Started', count: notStartedCount, value: ProjectStatusTab.notStarted },
+              { name: 'Reporting', count: null, value: ProjectStatusTab.reporting },
           ]
         : [
-              { name: 'Active', current: true, count: activeCount, value: ProjectStatusTab.active },
+              { name: 'Active', count: activeCount, value: ProjectStatusTab.active },
               {
                   name: 'Recently Finished',
-                  current: false,
                   count: recentlyFinishedCount,
                   value: ProjectStatusTab.recentlyFinished,
               },
           ];
-    $: currentTab = tabs.find((tab) => tab.current)!.value;
-
-    function setCurrentTab(index: number) {
-        tabs = tabs.map((tab, i) => {
-            return {
-                ...tab,
-                current: i === index,
-            };
-        });
-    }
 </script>
 
 <div role="tablist" class="tabs tabs-bordered w-fit">
-    {#each tabs as tab, index (tab.name)}
+    {#each tabs as tab (tab.value)}
         <button
             data-app-insights-event-name="projects-{tab.name}-tab-click"
             role="tab"
-            class="tab {tab.current ? 'tab-active' : ''}"
-            on:click={() => setCurrentTab(index)}
+            class="tab {tab.value === currentTab ? 'tab-active' : ''}"
+            on:click={() => (currentTab = tab.value)}
         >
-            {tab.name} ({tab.count})
+            {tab.name}
+            {#if tab.count !== null}
+                ({tab.count})
+            {/if}
         </button>
     {/each}
 </div>

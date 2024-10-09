@@ -3,11 +3,9 @@
     export let projectSearchValue = '';
 </script>
 
-<div class="h-full">
-    <input
-        type="text"
-        class="h-full w-full rounded-md border-[1px] py-2 ps-4 text-sm focus:outline-none"
-        placeholder={$translate('page.resources.searchBox.value')}
-        bind:value={projectSearchValue}
-    />
-</div>
+<input
+    type="text"
+    class="input input-bordered w-full"
+    placeholder={$translate('page.resources.searchBox.value')}
+    bind:value={projectSearchValue}
+/>

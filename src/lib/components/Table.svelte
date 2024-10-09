@@ -1,4 +1,5 @@
 <script lang="ts" generics="T">
+    import { onMount, tick } from 'svelte';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
@@ -18,7 +19,7 @@
     export let idColumn: keyof T | 'index';
     export let itemUrlPrefix: string | undefined = undefined;
     export let selectedItems: T[] = [];
-    export let noItemsText = 'Your work is all done!';
+    export let noItemsText: string;
     export let searchable = false;
     export let searchText: string | undefined = undefined;
     export let noItemsAfterSearchText = 'No results.';
@@ -29,7 +30,13 @@
     export let itemsPerPage: number | undefined = undefined;
 
     let scrollingDiv: HTMLDivElement | null = null;
+    let isLeftScrollable = false;
+    let isRightScrollable = false;
+    let isTopScrollable = false;
+    let isBottomScrollable = false;
     let internalSort = '';
+    let headerRow: HTMLTableRowElement | undefined;
+    let headerRowHeight = 0;
 
     $: itemsPerPage && (currentPage = 1);
 
@@ -64,16 +71,75 @@
             selectedItems = selectedItems.filter((_, i) => i !== index);
         }
     }
+
+    async function checkScrollable() {
+        await tick();
+        headerRowHeight = headerRow?.getBoundingClientRect().height ?? 0;
+        if (scrollingDiv) {
+            isRightScrollable =
+                scrollingDiv.scrollWidth > scrollingDiv.clientWidth &&
+                scrollingDiv.scrollLeft < scrollingDiv.scrollWidth - scrollingDiv.clientWidth;
+            isLeftScrollable = scrollingDiv.scrollLeft > 0;
+            isTopScrollable = scrollingDiv.scrollTop > 0;
+            isBottomScrollable =
+                scrollingDiv.scrollHeight > scrollingDiv.clientHeight &&
+                scrollingDiv.scrollTop < scrollingDiv.scrollHeight - scrollingDiv.clientHeight;
+        }
+    }
+
+    $: scrollingDiv && items && checkScrollable();
+
+    function calculateScrollShadows({
+        isRightScrollable,
+        isLeftScrollable,
+        isTopScrollable,
+        isBottomScrollable,
+    }: {
+        isRightScrollable?: boolean;
+        isLeftScrollable?: boolean;
+        isTopScrollable?: boolean;
+        isBottomScrollable?: boolean;
+    }): string {
+        const shadows = [];
+        if (isRightScrollable) shadows.push('inset -5px 0 5px -5px rgba(0,0,0,0.3)');
+        if (isLeftScrollable) shadows.push('inset 5px 0 5px -5px rgba(0,0,0,0.3)');
+        if (isTopScrollable) shadows.push('inset 0 5px 5px -5px rgba(0,0,0,0.3)');
+        if (isBottomScrollable) shadows.push('inset 0 -5px 5px -5px rgba(0,0,0,0.3)');
+        return shadows.join(', ');
+    }
+
+    onMount(() => {
+        window.addEventListener('resize', checkScrollable);
+        scrollingDiv?.addEventListener('scroll', checkScrollable);
+        return () => {
+            window.removeEventListener('resize', checkScrollable);
+            scrollingDiv?.removeEventListener('scroll', checkScrollable);
+        };
+    });
 </script>
 
-<div class="flex max-h-full flex-1 flex-col overflow-y-hidden {$$props.class}">
+<div class="relative flex max-h-full w-full flex-col overflow-x-hidden overflow-y-hidden {$$props.class}">
+    <div
+        class="pointer-events-none absolute inset-0 z-10"
+        style="box-shadow:{calculateScrollShadows({
+            isTopScrollable,
+        })}; top: {headerRowHeight}px;"
+    ></div>
+    <div
+        class="pointer-events-none absolute inset-0 z-10 rounded-md"
+        style="box-shadow:{calculateScrollShadows({
+            isLeftScrollable,
+            isRightScrollable,
+            isBottomScrollable,
+        })}"
+    ></div>
     <div
         bind:this={scrollingDiv}
-        class="overflow-y-scroll rounded-md border {showingPaginator && 'rounded-b-none border-b-0'}"
+        class="overflow-x-scroll overflow-y-scroll rounded-md border {showingPaginator && 'rounded-b-none border-b-0'}"
     >
         <table class="table table-pin-rows">
             <thead>
-                <tr class="bg-base-200">
+                <tr class="bg-base-200" bind:this={headerRow}>
                     {#if enableSelectAll}
                         <th>
                             <input
@@ -134,11 +200,11 @@
                                 <slot {item} {href} {itemKey} columnText={text}>
                                     {#if href !== undefined && itemKey}
                                         <LinkedTableCell style={width ? `width: ${width}ch;` : ''} {href}
-                                            >{item[itemKey] ?? ''}</LinkedTableCell
+                                            >{item[itemKey]?.toLocaleString() ?? ''}</LinkedTableCell
                                         >
                                     {:else if itemKey !== undefined}
                                         <TableCell style={width ? `width: ${width}ch;` : ''}
-                                            >{item[itemKey] ?? ''}</TableCell
+                                            >{item[itemKey]?.toLocaleString() ?? ''}</TableCell
                                         >
                                     {/if}
                                 </slot>

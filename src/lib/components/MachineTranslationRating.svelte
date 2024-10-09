@@ -23,7 +23,10 @@
 
     function syncMachineTranslationFromStore(store: Map<number, MachineTranslation>) {
         if (itemIndex !== null) {
-            machineTranslation = store.get(itemIndex)!;
+            const storedMachineTranslation = store.get(itemIndex);
+            if (storedMachineTranslation) {
+                machineTranslation = storedMachineTranslation;
+            }
         }
     }
 
