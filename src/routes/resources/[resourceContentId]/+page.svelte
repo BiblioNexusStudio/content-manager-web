@@ -56,6 +56,8 @@
     import ScrollSyncLockToggle from '$lib/components/editor/ScrollSyncLockToggle.svelte';
     import { scrollPosition, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
     import { isApiErrorWithMessage } from '$lib/utils/http-errors';
+    import { isLeftToRight } from '$lib/stores/resourceEditor';
+    import ContentEditorSwapButton from '$lib/components/editor/ContentEditorSwapButton.svelte';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
@@ -737,10 +739,13 @@
                     'transition-[width]'} {!$sidebarContentStore.isOpen && !isShowingSupplementalSidebar
                     ? 'w-full'
                     : $sidebarContentStore.isOpen && !isShowingSupplementalSidebar
-                    ? 'w-1/2 pe-3'
+                    ? 'w-1/2'
                     : !$sidebarContentStore.isOpen && isShowingSupplementalSidebar
-                    ? 'w-4/5 pe-3'
-                    : 'w-2/5 pe-3'}"
+                    ? 'w-4/5'
+                    : 'w-2/5'}"
+                class:order-first={!$isLeftToRight}
+                class:pe-3={!$isLeftToRight}
+                class:ps-3={$isLeftToRight}
             >
                 <div class="h-full rounded-md bg-base-200 px-4 pb-0.5 pt-4">
                     <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
@@ -785,8 +790,15 @@
             </div>
 
             <div
-                class="h-full overflow-hidden {$sidebarContentStore.animateOpen && 'transition-[width]'}
-                {!$sidebarContentStore.isOpen ? 'w-0' : isShowingSupplementalSidebar ? 'w-2/5 ps-3' : 'w-1/2 ps-3'}"
+                class="h-full overflow-hidden {$sidebarContentStore.animateOpen &&
+                    'transition-[width]'} {!$sidebarContentStore.isOpen
+                    ? 'w-0'
+                    : isShowingSupplementalSidebar
+                    ? 'w-2/5'
+                    : 'w-1/2'}"
+                class:order-first={$isLeftToRight}
+                class:ps-3={!$isLeftToRight}
+                class:pe-3={$isLeftToRight}
             >
                 <div class="flex h-full w-full flex-col rounded-md border border-base-300 px-4 pb-1 pt-4">
                     <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
@@ -818,6 +830,7 @@
                                     >
                                         <span>Word count: {$sidebarContentStore.selected.wordCount}</span>
                                         <div class="flex gap-2">
+                                            <ContentEditorSwapButton />
                                             <ScrollSyncLockToggle />
                                         </div>
                                     </div>
