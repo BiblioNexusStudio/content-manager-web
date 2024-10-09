@@ -148,7 +148,7 @@
     }
 </script>
 
-<div class="mb-4 flex h-full flex-col gap-4 overflow-y-auto {isShowing || 'hidden'}">
+<div class="mb-4 flex h-full flex-col gap-4 {isShowing || 'hidden'}">
     <div class="flex flex-row gap-4 pt-4">
         <div class="flex max-h-[50vh] max-w-[calc(100%-27rem)] flex-grow flex-col rounded border p-4 pt-2 shadow-lg">
             <div class="pb-2 text-lg font-bold">Active Projects per Company</div>
