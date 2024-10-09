@@ -1,5 +1,5 @@
 <script>
-    import ArrowsLetRight from '$lib/icons/ArrowsLetRight.svelte';
+    import ArrowsLeftRight from '$lib/icons/ArrowsLeftRight.svelte';
     import Tooltip from '../Tooltip.svelte';
     import { isLeftToRight } from '$lib/stores/resourceEditor';
 </script>
@@ -10,6 +10,6 @@
     text="Swap Editor Panes"
 >
     <button on:click={() => ($isLeftToRight = !$isLeftToRight)} class="btn mt-1 h-auto min-h-0 p-1">
-        <ArrowsLetRight />
+        <ArrowsLeftRight />
     </button>
 </Tooltip>
