@@ -1,31 +1,47 @@
 ﻿<script lang="ts">
     import Chart, { type ChartConfiguration } from 'chart.js/auto';
-    import { onDestroy, onMount } from 'svelte';
+    import { onDestroy, tick } from 'svelte';
 
     export let yLabel: string;
     export let dataPoints: { x: string; y: number }[];
 
-    const xLabels = dataPoints.map(({ x }) => x);
-
-    let renderedAlready = false;
-
-    // update chart when data changes
-    $: if (chart) {
-        chart.data.labels = dataPoints.map(({ x }) => x);
-        chart.data.datasets[0]!.data = dataPoints.map(({ y }) => y);
-        chart.update();
+    async function updateChart(inputYLabel: string, inputDataPoints: typeof dataPoints) {
+        if (dataPointsAreNullOrEmpty(inputDataPoints)) {
+            chart?.destroy();
+            chart = null;
+        } else {
+            if (!chart) {
+                await tick();
+                chartData.data.labels = [];
+                chartData.data.datasets[0]!.label = undefined;
+                chartData.data.datasets[0]!.data = [];
+                // eslint-disable-next-line
+                // @ts-ignore
+                chartData.options.animation.duration = 0;
+                chart = new Chart('bar-chart', chartData);
+            }
+            chart.data.labels = inputDataPoints.map(({ x }) => x);
+            chart.data.datasets[0]!.label = inputYLabel;
+            chart.data.datasets[0]!.data = inputDataPoints.map(({ y }) => y);
+            chart.update();
+            // eslint-disable-next-line
+            // @ts-ignore
+            chart.options.animation.duration = 750;
+        }
     }
 
-    let chart: Chart | undefined;
+    $: updateChart(yLabel, dataPoints);
+
+    let chart: Chart | null = null;
 
     const chartData: ChartConfiguration = {
         type: 'bar',
         data: {
-            labels: xLabels,
+            labels: [],
             datasets: [
                 {
-                    label: yLabel,
-                    data: dataPoints.map(({ y }) => y),
+                    label: undefined,
+                    data: [],
                     backgroundColor: ['#0174a3'],
                     borderColor: ['#817556'],
                     borderWidth: 1,
@@ -34,14 +50,6 @@
         },
         options: {
             animation: {
-                onComplete: function () {
-                    if (renderedAlready) {
-                        this.options.animation = {
-                            duration: 750,
-                        };
-                    }
-                    renderedAlready = true;
-                },
                 duration: 0,
             },
             plugins: {
@@ -82,12 +90,6 @@
     function dataPointsAreNullOrEmpty(inputDataPoints: typeof dataPoints) {
         return inputDataPoints.length === 0 || inputDataPoints.every((point) => point.y === null || point.y === 0);
     }
-
-    onMount(async () => {
-        if (!dataPointsAreNullOrEmpty(dataPoints)) {
-            chart = new Chart('bar-chart', chartData);
-        }
-    });
 
     onDestroy(() => {
         chart?.destroy();

@@ -1,43 +1,49 @@
 ﻿<script lang="ts">
     import Chart, { type ChartConfiguration } from 'chart.js/auto';
-    import { onDestroy, onMount } from 'svelte';
+    import { onDestroy, tick } from 'svelte';
 
     export let lines: { label: string; values: { x: string; y: number | null }[] }[];
 
-    const xLabels = lines[0]?.values.map(({ x }) => x) ?? [];
-
-    let renderedAlready = false;
-
-    // update chart when data changes
-    $: if (chart) {
-        chart.data.labels = lines[0]?.values.map(({ x }) => x) ?? [];
-        chart.data.datasets = calculateDatasets(lines);
-        chart.update();
+    async function updateChart(inputLines: typeof lines) {
+        if (lineDataIsNullOrEmpty(inputLines)) {
+            chart?.destroy();
+            chart = null;
+        } else {
+            if (!chart) {
+                await tick();
+                chartData.data.labels = [];
+                chartData.data.datasets = [];
+                // eslint-disable-next-line
+                // @ts-ignore
+                chartData.options.animation.duration = 0;
+                chart = new Chart('line-chart', chartData);
+            }
+            chart.data.labels = inputLines[0]?.values.map(({ x }) => x) ?? [];
+            chart.data.datasets = calculateDatasets(inputLines);
+            chart.update();
+            // eslint-disable-next-line
+            // @ts-ignore
+            chart.options.animation.duration = 750;
+        }
     }
+
+    $: updateChart(lines);
 
     const colorMap = {
         borderColor: ['#36A2EB', '#FF6384', '#4BC0C0'],
         backgroundColor: ['#9BD0F5', '#FFB1C1', '#A5D8D8'],
     };
 
-    let chart: Chart | undefined;
+    let chart: Chart | null = null;
 
     const chartData: ChartConfiguration = {
         type: 'line',
         data: {
-            labels: xLabels,
-            datasets: calculateDatasets(lines),
+            labels: [],
+            datasets: [],
         },
         options: {
             animation: {
-                onComplete: function () {
-                    if (renderedAlready) {
-                        this.options.animation = {
-                            duration: 750,
-                        };
-                    }
-                    renderedAlready = true;
-                },
                 duration: 0,
             },
             plugins: {
@@ -80,12 +86,6 @@
             tension: 0,
         }));
     }
-
-    onMount(async () => {
-        if (!lineDataIsNullOrEmpty(lines)) {
-            chart = new Chart('line-chart', chartData);
-        }
-    });
 
     onDestroy(() => {
         chart?.destroy();
