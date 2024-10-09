@@ -15,7 +15,7 @@
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
     import { streamAiContent } from '$lib/utils/ai-streaming-content';
     import { getFromApi } from '$lib/utils/http-service';
-    import type { Snapshot, TipTapContent } from '$lib/types/resources';
+    import type { Snapshot, TiptapContentItem } from '$lib/types/resources';
 
     export let itemIndex: number;
     export let editor: Editor;
@@ -41,11 +41,10 @@
     let machineTranslations = machineTranslationStore.machineTranslations;
     let isRetranslateModalOpen = false;
     let retranslateReason = '';
-    let retranslateModelIsTransacting = false;
     $: machineTranslation = $machineTranslations.get(itemIndex);
     $: showTranslateButton = canShowAnything && !machineTranslation?.id;
     $: showRating = canShowAnything && !showTranslateButton && $userIsEqual(machineTranslation?.userId);
-    $: translatedLessThan24HoursAgo = resourceContent.machineTranslations.some(
+    $: translatedLessThan1HourAgo = resourceContent.machineTranslations.some(
         (mt) => mt.contentIndex === itemIndex && isLessThanOneHourAgo(mt.created ?? '')
     );
     $: retranslationReasonIsPresent = resourceContent.machineTranslations.some(
@@ -111,7 +110,7 @@
         editor.commands.setContent(fullContent);
     };
 
-    const onClick = async (retranslating = false) => {
+    const executeTranslation = async (retranslating = false) => {
         let content = editor.getJSON();
 
         if (retranslating) {
@@ -122,7 +121,7 @@
             const snapshot = await getFromApi<Snapshot>(`/resources/content/snapshots/${snapshotId}`);
 
             if (snapshot) {
-                content = snapshot.content as TipTapContent;
+                content = snapshot.content as TiptapContentItem[];
                 content = content[itemIndex].tiptap;
             }
         }
@@ -154,10 +153,10 @@
             }
 
             if (!retranslating) {
-                translatedLessThan24HoursAgo = true;
+                translatedLessThan1HourAgo = true;
                 retranslationReasonIsPresent = false;
             } else {
-                translatedLessThan24HoursAgo = false;
+                translatedLessThan1HourAgo = false;
                 retranslationReasonIsPresent = true;
             }
         }
@@ -169,7 +168,7 @@
 
     const onRetranslateClick = () => {
         isRetranslateModalOpen = false;
-        onClick(true);
+        executeTranslation(true);
     };
 
     async function createMachineTranslation() {
@@ -211,53 +210,52 @@
     }
 </script>
 
-{#if showTranslateButton}
-    {#if isTranslating}
-        <div bind:this={innerElement} class="flex w-[42px] justify-center">
-            <div class="loading loading-infinity loading-md text-primary" />
-        </div>
-    {:else}
-        <Tooltip
-            position={{ right: '2.2rem' }}
-            class="flex border-primary align-middle text-primary"
-            text="Translate with AI"
-        >
-            <button
-                bind:this={innerElement}
-                data-app-insights-event-name="editor-toolbar-translate-click"
-                class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
-                disabled={$isPageTransacting}
-                on:click={() => onClick()}><TranslateIcon /></button
-            >
-        </Tooltip>
-    {/if}
-{:else if showRating}
-    <div bind:this={innerElement} class="mx-2 flex items-center">
-        <MachineTranslationRating {itemIndex} {machineTranslationStore} />
-    </div>
-    {#if translatedLessThan24HoursAgo && !retranslationReasonIsPresent}
+<div class="flex flex-row" bind:this={innerElement}>
+    {#if showTranslateButton}
         {#if isTranslating}
-            <div bind:this={innerElement} class="flex w-[42px] justify-center">
+            <div class="flex w-[42px] justify-center">
                 <div class="loading loading-infinity loading-md text-primary" />
             </div>
         {:else}
             <Tooltip
                 position={{ right: '2.2rem' }}
                 class="flex border-primary align-middle text-primary"
-                text="Retranslate with AI"
+                text="Translate with AI"
             >
                 <button
-                    bind:this={innerElement}
-                    data-app-insights-event-name="editor-toolbar-retranslate-click"
+                    data-app-insights-event-name="editor-toolbar-translate-click"
                     class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
                     disabled={$isPageTransacting}
-                    on:click={openRetranslateModal}><TranslateIcon /></button
+                    on:click={() => executeTranslation()}><TranslateIcon /></button
                 >
             </Tooltip>
         {/if}
+    {:else if showRating}
+        <div class="mx-2 flex items-center">
+            <MachineTranslationRating {itemIndex} {machineTranslationStore} />
+        </div>
+        {#if translatedLessThan1HourAgo && !retranslationReasonIsPresent}
+            {#if isTranslating}
+                <div class="flex w-[42px] justify-center">
+                    <div class="loading loading-infinity loading-md text-primary" />
+                </div>
+            {:else}
+                <Tooltip
+                    position={{ right: '2.2rem' }}
+                    class="flex border-primary align-middle text-primary"
+                    text="Retranslate with AI"
+                >
+                    <button
+                        data-app-insights-event-name="editor-toolbar-retranslate-click"
+                        class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
+                        disabled={$isPageTransacting}
+                        on:click={openRetranslateModal}><TranslateIcon /></button
+                    >
+                </Tooltip>
+            {/if}
+        {/if}
     {/if}
-{/if}
-
+</div>
 <Modal
     header="Error"
     bind:open={isErrorModalOpen}
@@ -265,15 +263,16 @@
     description="An error occurred creating the translation. Please try again. If the problem persists, please contact support."
 />
 
-<Modal header="Retranslate" bind:open={isRetranslateModalOpen} bind:isTransacting={retranslateModelIsTransacting}>
+<Modal
+    header="Retranslate"
+    bind:open={isRetranslateModalOpen}
+    primaryButtonText="Retranslate"
+    primaryButtonOnClick={onRetranslateClick}
+    primaryButtonDisabled={retranslateReason.length < 25}
+>
     <div class="mb-4">
         A resource can only be retranslated once. Any edits or comments on this page will be lost. Please enter the
-        reason you are retranslating this resource
+        reason you are retranslating this resource.
     </div>
     <textarea class="mb-4 h-32 w-full rounded-lg border p-2" bind:value={retranslateReason} maxlength="200" />
-    <div class="flex w-full justify-end">
-        <button class="btn btn-primary" disabled={retranslateReason.length < 25} on:click={onRetranslateClick}
-            >Retranslate</button
-        >
-    </div>
 </Modal>

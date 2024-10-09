@@ -51,12 +51,6 @@ export interface ImageContentItem {
 
 export type Content = ImageContentItem | VideoContentItem | TiptapContentItem[];
 
-export interface TipTapContent {
-    [key: number]: {
-        tiptap: object;
-    };
-}
-
 export interface AssociatedResource {
     contentId: number | null;
     mediaTypes: MediaTypeEnum[];
