@@ -42,7 +42,7 @@
         if (isShowing && activeProjectsPerCompany === null) {
             activeProjectsPerCompany = convertDynamicReportToResponseObjects<ActiveProjectsPerCompanyResponse>(
                 await getFromApi<DynamicReport>(reportApiPaths.activeProjectsByCompany)
-            );
+            ).filter((p) => !companiesToIgnore.includes(p.company));
         }
     }
 
