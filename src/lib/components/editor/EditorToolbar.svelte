@@ -200,7 +200,7 @@
     });
 </script>
 
-<div bind:this={outerDiv} class="min-h-6 flex items-center justify-between">
+<div bind:this={outerDiv} class="flex min-h-6 items-center justify-between">
     {#if editor}
         {@const commentOptions = getCommentOptions(editor)}
         {@const commentDisabled = commentOptions.disabled || $isPageTransacting}

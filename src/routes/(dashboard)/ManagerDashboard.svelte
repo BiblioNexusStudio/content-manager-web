@@ -298,7 +298,7 @@
     <div class="flex flex-col overflow-y-hidden px-4">
         <h1 class="pt-4 text-3xl">Manager Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
-            <div role="tablist" class="tabs-bordered tabs w-fit">
+            <div role="tablist" class="tabs tabs-bordered w-fit">
                 <button
                     on:click={() => switchTabs(Tab.myWork)}
                     role="tab"
@@ -417,7 +417,7 @@
             <div class="flex h-full flex-[2] grow flex-col gap-4 overflow-y-hidden xl:flex-row">
                 <Table
                     bind:this={table}
-                    class="my-4 max-h-[500px] xl:grow"
+                    class="my-4 max-h-[31.25rem] xl:grow"
                     enableSelectAll={true}
                     columns={toAssignContentsColumns}
                     items={sortAssignedData(currentToAssignContents, $searchParams.sort)}
