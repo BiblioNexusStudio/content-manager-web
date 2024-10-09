@@ -87,7 +87,7 @@
     );
 
     $: {
-        if ($isScrollSyncEnabled && $scrollSyncSourceDiv && $scrollSyncSourceDiv != scrollSyncElement) {
+        if ($isScrollSyncEnabled && $scrollSyncSourceDiv && $scrollSyncSourceDiv !== scrollSyncElement) {
             setScroll($scrollPosition);
         }
     }

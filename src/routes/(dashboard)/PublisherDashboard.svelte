@@ -170,7 +170,7 @@
         });
 
         reviewPendingContents = reviewPendingContents.filter((item) => {
-            return item.reviewLevel != ResourceContentVersionReviewLevel.community;
+            return item.reviewLevel !== ResourceContentVersionReviewLevel.community;
         });
     };
 
@@ -243,7 +243,7 @@
             currentAssignedProjects = assignedProjects.filter((ap) =>
                 ap.name.toLowerCase().includes(search.toLowerCase())
             );
-        } else if (tab == Tab.community) {
+        } else if (tab === Tab.community) {
             currentCommunityPendingContents = communityPendingContents.filter((crpc) =>
                 crpc.englishLabel.toLowerCase().includes(search.toLowerCase())
             );
@@ -294,7 +294,7 @@
                     bind:value={search}
                     placeholder="Search"
                 />
-                {#if $searchParams.tab == Tab.myWork}
+                {#if $searchParams.tab === Tab.myWork}
                     <Select
                         class="select select-bordered max-w-[14rem] flex-grow"
                         bind:value={$searchParams.status}
@@ -305,7 +305,7 @@
                         ]}
                     />
                 {/if}
-                {#if $searchParams.tab != Tab.community}
+                {#if $searchParams.tab !== Tab.community}
                     <Select
                         class="select select-bordered max-w-[14rem] flex-grow"
                         bind:value={$searchParams.project}
