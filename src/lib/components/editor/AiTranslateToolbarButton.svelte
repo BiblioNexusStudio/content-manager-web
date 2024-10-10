@@ -155,6 +155,12 @@
                 translatedLessThan1HourAgo = false;
                 retranslationReasonIsPresent = true;
             }
+
+            // make this a 60 minute timeout for production
+            setTimeout(() => {
+                translatedLessThan1HourAgo = false;
+                retranslationReasonIsPresent = true;
+            }, 300000);
         }
     };
 
@@ -200,7 +206,9 @@
 
             const differenceInMinutes = differenceInMilliseconds / (1000 * 60);
 
-            return differenceInMinutes <= 60;
+            //this needs to be changed back after qa testing.
+            //return differenceInMinutes <= 60;
+            return differenceInMinutes <= 5;
         }
         return false;
     }
@@ -262,7 +270,7 @@
     bind:open={isRetranslateModalOpen}
     primaryButtonText="Retranslate"
     primaryButtonOnClick={onRetranslateClick}
-    primaryButtonDisabled={retranslateReason.length < 25}
+    primaryButtonDisabled={retranslateReason.length < 1}
 >
     <div class="mb-4">
         A resource can only be retranslated once. Any edits or comments on this page will be lost. Please enter the
