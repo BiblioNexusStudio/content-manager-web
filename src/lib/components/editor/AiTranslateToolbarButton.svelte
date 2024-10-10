@@ -24,10 +24,6 @@
     export let isLoading: boolean;
     export let canEdit: boolean;
     export let machineTranslationStore: MachineTranslationStore;
-    export let innerElement: HTMLElement | null = null;
-    export let renderedWidth = 0;
-
-    $: renderedWidth = innerElement?.offsetWidth ?? 0;
 
     const canShowAnything =
         canEdit &&
@@ -210,8 +206,30 @@
     }
 </script>
 
-<div class="flex flex-row" bind:this={innerElement}>
-    {#if showTranslateButton}
+{#if showTranslateButton}
+    {#if isTranslating}
+        <div class="flex w-[42px] justify-center">
+            <div class="loading loading-infinity loading-md text-primary" />
+        </div>
+    {:else}
+        <Tooltip
+            position={{ right: '2.2rem' }}
+            class="flex border-primary align-middle text-primary"
+            text="Translate with AI"
+        >
+            <button
+                data-app-insights-event-name="editor-toolbar-translate-click"
+                class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
+                disabled={$isPageTransacting}
+                on:click={() => executeTranslation()}><TranslateIcon /></button
+            >
+        </Tooltip>
+    {/if}
+{:else if showRating}
+    <div class="mx-2 flex items-center">
+        <MachineTranslationRating {itemIndex} {machineTranslationStore} />
+    </div>
+    {#if translatedLessThan1HourAgo && !retranslationReasonIsPresent}
         {#if isTranslating}
             <div class="flex w-[42px] justify-center">
                 <div class="loading loading-infinity loading-md text-primary" />
@@ -220,42 +238,18 @@
             <Tooltip
                 position={{ right: '2.2rem' }}
                 class="flex border-primary align-middle text-primary"
-                text="Translate with AI"
+                text="Retranslate with AI"
             >
                 <button
-                    data-app-insights-event-name="editor-toolbar-translate-click"
+                    data-app-insights-event-name="editor-toolbar-retranslate-click"
                     class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
                     disabled={$isPageTransacting}
-                    on:click={() => executeTranslation()}><TranslateIcon /></button
+                    on:click={openRetranslateModal}><TranslateIcon /></button
                 >
             </Tooltip>
         {/if}
-    {:else if showRating}
-        <div class="mx-2 flex items-center">
-            <MachineTranslationRating {itemIndex} {machineTranslationStore} />
-        </div>
-        {#if translatedLessThan1HourAgo && !retranslationReasonIsPresent}
-            {#if isTranslating}
-                <div class="flex w-[42px] justify-center">
-                    <div class="loading loading-infinity loading-md text-primary" />
-                </div>
-            {:else}
-                <Tooltip
-                    position={{ right: '2.2rem' }}
-                    class="flex border-primary align-middle text-primary"
-                    text="Retranslate with AI"
-                >
-                    <button
-                        data-app-insights-event-name="editor-toolbar-retranslate-click"
-                        class="btn btn-link !no-animation btn-xs !bg-base-200 text-xl !no-underline"
-                        disabled={$isPageTransacting}
-                        on:click={openRetranslateModal}><TranslateIcon /></button
-                    >
-                </Tooltip>
-            {/if}
-        {/if}
     {/if}
-</div>
+{/if}
 <Modal
     header="Error"
     bind:open={isErrorModalOpen}

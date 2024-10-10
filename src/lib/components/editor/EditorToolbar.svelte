@@ -33,13 +33,11 @@
     export let isLoading: boolean;
     export let machineTranslationStore: MachineTranslationStore;
 
-    let aiButtonWidth: number;
-
     const isPageTransacting = getIsPageTransactingContext();
 
     $: canEditBibleReferences = $userCan(Permission.EditBibleReferences);
     $: canEditResourceReferences = $userCan(Permission.EditResourceReferences);
-    $: widthRequired = (canEditBibleReferences ? 30 : 0) + (canEditResourceReferences ? 30 : 0) + 475 + aiButtonWidth;
+    $: widthRequired = (canEditBibleReferences ? 30 : 0) + (canEditResourceReferences ? 30 : 0) + 653;
 
     let outerDiv: HTMLDivElement | null = null;
     let isCommentBoxOpen = false;
@@ -282,7 +280,6 @@
         </div>
         <div class="flex">
             <AiTranslateToolbarButton
-                bind:renderedWidth={aiButtonWidth}
                 {editor}
                 {canEdit}
                 {editableDisplayNameStore}
