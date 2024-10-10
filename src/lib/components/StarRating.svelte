@@ -14,8 +14,7 @@
     }
 
     const onClick = (e: MouseEvent, newRating: number) => {
-        rating = newRating;
-        callback(e, rating);
+        callback(e, newRating);
     };
 </script>
 

@@ -33,55 +33,48 @@
     let promptForRating = machineTranslationStore.promptForRating;
     let showImprovements = false;
     let showImprovementsDiv: HTMLDivElement;
-    let skipFirstPatch = true; // prevent reactive function from running on load
     let ratedFromPrompt = false;
-    let currentComponentUpdating = false; // needed since we have multiple MachineTranslationRating components on one page
 
     // if promptForRating is set we'll need to recalculate translationsMissingRatings
     $: $promptForRating && (translationsMissingRatings = null);
     $: syncMachineTranslationFromStore($store);
-    $: updateMachineTranslation(machineTranslation);
 
-    async function updateMachineTranslation(data: MachineTranslation) {
-        if (skipFirstPatch) {
-            skipFirstPatch = false;
-            return;
-        }
-
-        if (!currentComponentUpdating) {
-            return;
-        }
-
+    async function updateMachineTranslation() {
         if (showingInPrompt) {
             translationsMissingRatings ||= [...$store.values()].filter((mt) => !mt.userRating);
             machineTranslationStore.debounce(async () => {
-                await Promise.all(
-                    translationsMissingRatings!.map((mt) =>
-                        patchToApi(`/resources/content/machine-translation/${mt.id}`, { ...data })
-                    )
-                );
+                if ((machineTranslation.userRating ?? 0) > 0) {
+                    await Promise.all(
+                        translationsMissingRatings!.map((mt) =>
+                            patchToApi(`/resources/content/machine-translation/${mt.id}`, { ...machineTranslation })
+                        )
+                    );
+                }
             });
             machineTranslationStore.machineTranslations.update((machineTranslations) => {
                 for (const translation of translationsMissingRatings!) {
                     machineTranslations.set(
                         translation.contentIndex,
-                        mergeDataIntoMachineTranslation(data, translation)
+                        mergeDataIntoMachineTranslation(machineTranslation, translation)
                     );
                 }
                 return machineTranslations;
             });
         } else {
             machineTranslationStore.debounce(async () => {
-                await patchToApi(`/resources/content/machine-translation/${machineTranslation.id}`, { ...data });
+                if ((machineTranslation.userRating ?? 0) > 0) {
+                    await patchToApi(`/resources/content/machine-translation/${machineTranslation.id}`, {
+                        ...machineTranslation,
+                    });
+                }
             });
             machineTranslationStore.machineTranslations.update((machineTranslations) =>
                 machineTranslations.set(
                     itemIndex!,
-                    mergeDataIntoMachineTranslation(data, machineTranslations.get(itemIndex!)!)
+                    mergeDataIntoMachineTranslation(machineTranslation, machineTranslations.get(itemIndex!)!)
                 )
             );
         }
-        currentComponentUpdating = false;
     }
 
     function mergeDataIntoMachineTranslation(data: MachineTranslation, machineTranslation: MachineTranslation) {
@@ -97,7 +90,11 @@
     const onRating = async (e: MouseEvent, newRating: number) => {
         e.stopPropagation();
 
-        currentComponentUpdating = true;
+        if (machineTranslation.userRating !== newRating) {
+            machineTranslation.userRating = newRating;
+            updateMachineTranslation();
+        }
+
         showImprovements = newRating < 5;
 
         if (showingInPrompt) {
@@ -114,19 +111,15 @@
             $promptForRating = [...$store.values()].some((mt) => !mt.userRating);
         }
     };
-
-    function indicateCurrentComponentUpdating() {
-        currentComponentUpdating = true;
-    }
 </script>
 
 <svelte:window on:click={onAnyClick} />
 
 {#if showingInPrompt}
-    <StarRating callback={onRating} bind:rating={machineTranslation.userRating} />
+    <StarRating callback={onRating} rating={machineTranslation.userRating} />
 {:else}
     <div class="tooltip tooltip-primary" data-tip="Rate AI translation">
-        <StarRating callback={onRating} bind:rating={machineTranslation.userRating} />
+        <StarRating callback={onRating} rating={machineTranslation.userRating} />
     </div>
 {/if}
 
@@ -139,22 +132,22 @@
         <div class="mt-2 flex flex-wrap gap-2">
             <input
                 type="checkbox"
-                on:change={indicateCurrentComponentUpdating}
                 bind:checked={machineTranslation.improveClarity}
+                on:change={updateMachineTranslation}
                 aria-label="Clarity"
                 class="btn btn-outline btn-primary btn-sm"
             />
             <input
                 type="checkbox"
-                on:change={indicateCurrentComponentUpdating}
                 bind:checked={machineTranslation.improveTone}
+                on:change={updateMachineTranslation}
                 aria-label="Tone/Style"
                 class="btn btn-outline btn-primary btn-sm"
             />
             <input
                 type="checkbox"
-                on:change={indicateCurrentComponentUpdating}
                 bind:checked={machineTranslation.improveConsistency}
+                on:change={updateMachineTranslation}
                 aria-label="Consistency"
                 class="btn btn-outline btn-primary btn-sm"
             />
