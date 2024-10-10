@@ -33,6 +33,7 @@
     const isPageTransacting = getIsPageTransactingContext();
 
     let isErrorModalOpen = false;
+    let expiredRetranslationModalOpen = false;
     let isTranslating = false;
     let machineTranslations = machineTranslationStore.machineTranslations;
     let isRetranslateModalOpen = false;
@@ -110,11 +111,18 @@
         let content = editor.getJSON();
 
         if (retranslating) {
-            const snapshotId = resourceContent.snapshots
+            const localSnapshot = resourceContent.snapshots
                 .sort((a, b) => a.created.localeCompare(b.created))
-                .find((s) => s.id)?.id;
+                .find((s) => s.id);
 
-            const snapshot = await getFromApi<Snapshot>(`/resources/content/snapshots/${snapshotId}`);
+            if (!localSnapshot || !isLessThanOneHourAgo(localSnapshot.created)) {
+                translatedLessThan1HourAgo = false;
+                retranslationReasonIsPresent = true;
+                expiredRetranslationModalOpen = true;
+                return;
+            }
+
+            const snapshot = await getFromApi<Snapshot>(`/resources/content/snapshots/${localSnapshot.id}`);
 
             if (snapshot) {
                 content = snapshot.content as TiptapContentItem[];
@@ -155,12 +163,6 @@
                 translatedLessThan1HourAgo = false;
                 retranslationReasonIsPresent = true;
             }
-
-            // make this a 60 minute timeout for production
-            setTimeout(() => {
-                translatedLessThan1HourAgo = false;
-                retranslationReasonIsPresent = true;
-            }, 300000);
         }
     };
 
@@ -263,6 +265,13 @@
     bind:open={isErrorModalOpen}
     isError={true}
     description="An error occurred creating the translation. Please try again. If the problem persists, please contact support."
+/>
+
+<Modal
+    header="Error"
+    bind:open={expiredRetranslationModalOpen}
+    isError={true}
+    description="The retranslation period has expired after one hour."
 />
 
 <Modal
