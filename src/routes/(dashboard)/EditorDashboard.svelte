@@ -15,6 +15,8 @@
     import { download } from '$lib/utils/csv-download-handler';
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
     import ErrorMessage from '$lib/components/ErrorMessage.svelte';
+    import Select from '$lib/components/Select.svelte';
+    import { filterBoolean } from '$lib/utils/array';
 
     const sortMyWorkData = createEditorDashboardMyWorkSorter();
     const sortMyHistoryData = createEditorDashboardMyHistorySorter();
@@ -53,14 +55,17 @@
         {
             sort: ssp.string(`-${SortName.Days}`),
             tab: ssp.string(Tab.myWork),
+            project: ssp.string(''),
         },
         { runLoadAgainWhenParamsChange: false }
     );
 
-    const setTabContents = (tab: string, search: string) => {
+    const setTabContents = (tab: string, search: string, project: string) => {
         if (tab === Tab.myWork) {
-            visibleMyWorkContents = myWorkContents.filter((x) =>
-                x.englishLabel.toLowerCase().includes(search.toLowerCase())
+            visibleMyWorkContents = myWorkContents.filter(
+                (x) =>
+                    x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
+                    (!project || x.projectName === project)
             );
         } else if (tab === Tab.myHistory) {
             visibleMyHistoryContents = myHistoryContents.filter((x) =>
@@ -77,7 +82,7 @@
     // eslint-disable-next-line
     let table: Table<any> | null;
     $: $searchParams.sort && table?.resetScroll();
-    $: setTabContents($searchParams.tab, search);
+    $: setTabContents($searchParams.tab, search, $searchParams.project);
 
     const loadContents = async () => {
         [myWorkContents, myHistoryContents] = await Promise.all([
@@ -85,6 +90,15 @@
             data.editorDashboard!.assignedResourceHistoryContent.promise,
         ]);
     };
+
+    function projectNamesForContents(contents: ResourceAssignedToSelf[]) {
+        return Array.from(new Set(filterBoolean(contents.map((c) => c.projectName)))).sort();
+    }
+
+    function resetSelection() {
+        visibleMyWorkContents = [];
+        visibleMyHistoryContents = [];
+    }
 </script>
 
 {#await loadContents()}
@@ -111,10 +125,21 @@
         <div class="mt-4 flex gap-4">
             <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
             {#if $searchParams.tab === Tab.myWork}
+                <Select
+                    class="select select-bordered max-w-[14rem] flex-grow"
+                    bind:value={$searchParams.project}
+                    onChange={resetSelection}
+                    options={[
+                        { value: '', label: 'Project' },
+                        ...projectNamesForContents(myWorkContents).map((p) => ({ value: p, label: p })),
+                    ]}
+                />
+            {/if}
+            {#if $searchParams.tab === Tab.myWork}
                 <div class="my-1 ml-auto flex flex-col items-end justify-center">
-                    <div class="text-sm text-gray-500">Total Items: {myWorkContents.length}</div>
+                    <div class="text-sm text-gray-500">Total Items: {visibleMyWorkContents.length}</div>
                     <div class="text-sm text-gray-500">
-                        Total Source Words: {myWorkContents
+                        Total Source Words: {visibleMyWorkContents
                             .reduce((sum, x) => sum + (x?.wordCount ?? 0), 0)
                             .toLocaleString()}
                     </div>
@@ -138,6 +163,9 @@
                 itemUrlPrefix="/resources/"
                 bind:searchParams={$searchParams}
                 noItemsText="Your work is all done!"
+                searchable={true}
+                searchText={search}
+                noItemsAfterSearchText="No items found"
                 let:item
                 let:href
                 let:itemKey
@@ -160,6 +188,9 @@
                 itemUrlPrefix="/resources/"
                 bind:searchParams={$searchParams}
                 noItemsText="No history items"
+                searchable={true}
+                searchText={search}
+                noItemsAfterSearchText="No items found"
                 let:item
                 let:href
                 let:itemKey
