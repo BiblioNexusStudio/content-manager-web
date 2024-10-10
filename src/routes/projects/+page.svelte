@@ -31,7 +31,7 @@
 {#await Promise.all([projectPromise, companiesPromise])}
     <CenteredSpinnerFullScreen />
 {:then [_, companiesResponse]}
-    <div class="mx-4 flex h-full flex-col overflow-x-hidden overflow-y-hidden">
+    <div class="flex h-full flex-col overflow-y-auto overflow-x-hidden px-4">
         <div class="mb-6 mt-4 flex">
             <h1 class="my-auto text-3xl">Projects</h1>
         </div>
