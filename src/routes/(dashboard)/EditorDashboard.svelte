@@ -94,11 +94,6 @@
     function projectNamesForContents(contents: ResourceAssignedToSelf[]) {
         return Array.from(new Set(filterBoolean(contents.map((c) => c.projectName)))).sort();
     }
-
-    function resetSelection() {
-        visibleMyWorkContents = [];
-        visibleMyHistoryContents = [];
-    }
 </script>
 
 {#await loadContents()}
@@ -128,7 +123,6 @@
                 <Select
                     class="select select-bordered max-w-[14rem] flex-grow"
                     bind:value={$searchParams.project}
-                    onChange={resetSelection}
                     options={[
                         { value: '', label: 'Project' },
                         ...projectNamesForContents(myWorkContents).map((p) => ({ value: p, label: p })),
