@@ -33,6 +33,7 @@
     const isPageTransacting = getIsPageTransactingContext();
 
     let isErrorModalOpen = false;
+    let expiredRetranslationModalOpen = false;
     let isTranslating = false;
     let machineTranslations = machineTranslationStore.machineTranslations;
     let isRetranslateModalOpen = false;
@@ -110,11 +111,18 @@
         let content = editor.getJSON();
 
         if (retranslating) {
-            const snapshotId = resourceContent.snapshots
+            const localSnapshot = resourceContent.snapshots
                 .sort((a, b) => a.created.localeCompare(b.created))
-                .find((s) => s.id)?.id;
+                .find((s) => s.id);
 
-            const snapshot = await getFromApi<Snapshot>(`/resources/content/snapshots/${snapshotId}`);
+            if (!localSnapshot || !isLessThanOneHourAgo(localSnapshot.created)) {
+                translatedLessThan1HourAgo = false;
+                retranslationReasonIsPresent = true;
+                expiredRetranslationModalOpen = true;
+                return;
+            }
+
+            const snapshot = await getFromApi<Snapshot>(`/resources/content/snapshots/${localSnapshot.id}`);
 
             if (snapshot) {
                 content = snapshot.content as TiptapContentItem[];
@@ -200,7 +208,9 @@
 
             const differenceInMinutes = differenceInMilliseconds / (1000 * 60);
 
-            return differenceInMinutes <= 60;
+            //this needs to be changed back after qa testing.
+            //return differenceInMinutes <= 60;
+            return differenceInMinutes <= 5;
         }
         return false;
     }
@@ -258,11 +268,18 @@
 />
 
 <Modal
+    header="Error"
+    bind:open={expiredRetranslationModalOpen}
+    isError={true}
+    description="The retranslation period has expired after one hour."
+/>
+
+<Modal
     header="Retranslate"
     bind:open={isRetranslateModalOpen}
     primaryButtonText="Retranslate"
     primaryButtonOnClick={onRetranslateClick}
-    primaryButtonDisabled={retranslateReason.length < 25}
+    primaryButtonDisabled={retranslateReason.length < 1}
 >
     <div class="mb-4">
         A resource can only be retranslated once. Any edits or comments on this page will be lost. Please enter the
