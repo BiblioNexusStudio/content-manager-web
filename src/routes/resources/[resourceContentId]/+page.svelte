@@ -112,7 +112,7 @@
     let wordCountsByStep: number[] = [];
     let sidebarContentStore: ReturnType<typeof createSidebarContentStore>;
 
-    $: isShowingSupplementalSidebar = openedSupplementalSideBar != OpenedSupplementalSideBar.None;
+    $: isShowingSupplementalSidebar = openedSupplementalSideBar !== OpenedSupplementalSideBar.None;
     $: resourceContentId = data.resourceContentId;
     $: resourceContentPromise = data.resourceContent.promise;
     $: handleFetchedResource(data.resourceContent.promise);
@@ -181,7 +181,7 @@
             currentUserIsAssigned &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview) &&
-            resourceContent.reviewLevel != ResourceContentVersionReviewLevel.community;
+            resourceContent.reviewLevel !== ResourceContentVersionReviewLevel.community;
 
         canSendForManagerReview =
             $userCan(Permission.AssignContent) &&
@@ -251,7 +251,7 @@
 
         canCommunitySendToPublisher =
             $userCan(Permission.SendReviewCommunityContent) &&
-            resourceContent.status == ResourceContentStatusEnum.TranslationInProgress &&
+            resourceContent.status === ResourceContentStatusEnum.TranslationInProgress &&
             currentUserIsAssigned;
     }
 
@@ -930,7 +930,7 @@
                     Choose an Editor
                 {/if}
             </h3>
-            {#if $promptForMachineTranslationRating}
+            {#if $promptForMachineTranslationRating && currentUserIsAssigned}
                 <div class="mb-8 flex flex-col justify-start gap-4">
                     <div class="font-semibold text-error">Please rate the AI translation before reassigning.</div>
                     <div>

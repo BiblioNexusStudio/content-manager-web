@@ -42,7 +42,7 @@
         if (isShowing && activeProjectsPerCompany === null) {
             activeProjectsPerCompany = convertDynamicReportToResponseObjects<ActiveProjectsPerCompanyResponse>(
                 await getFromApi<DynamicReport>(reportApiPaths.activeProjectsByCompany)
-            );
+            ).filter((p) => !companiesToIgnore.includes(p.company));
         }
     }
 
@@ -148,7 +148,7 @@
     }
 </script>
 
-<div class="mb-4 flex h-full flex-col gap-4 overflow-y-auto {isShowing || 'hidden'}">
+<div class="mb-4 flex h-full flex-col gap-4 {isShowing || 'hidden'}">
     <div class="flex flex-row gap-4 pt-4">
         <div class="flex max-h-[50vh] max-w-[calc(100%-27rem)] flex-grow flex-col rounded border p-4 pt-2 shadow-lg">
             <div class="pb-2 text-lg font-bold">Active Projects per Company</div>
@@ -216,30 +216,37 @@
             />
         </div>
         <div class="flex min-h-40 flex-grow flex-row gap-4">
-            <div class="relative h-full w-full flex-1 overflow-x-hidden">
-                {#if activeProjectsPerCompany == null || companyCompletedItemsPerMonth === null}
-                    <CenteredSpinner />
-                {:else}
-                    <BarChart
-                        dataPoints={calculateCompletedItemsDataPoints(
-                            companyCompletedItemsPerMonth,
-                            companyPerformanceMetricsResourceSize
-                        )}
-                        yLabel="Completed Items"
-                    />
-                {/if}
+            <div class="flex w-full flex-col gap-2">
+                <div class="text-lg font-bold">Total Completed Items</div>
+                <div class="relative flex-1 overflow-x-hidden">
+                    {#if activeProjectsPerCompany === null || companyCompletedItemsPerMonth === null}
+                        <CenteredSpinner />
+                    {:else}
+                        <BarChart
+                            dataPoints={calculateCompletedItemsDataPoints(
+                                companyCompletedItemsPerMonth,
+                                companyPerformanceMetricsResourceSize
+                            )}
+                            yLabel="Completed Items"
+                        />
+                    {/if}
+                </div>
             </div>
-            <div class="relative h-full w-full flex-1 overflow-x-hidden">
-                {#if activeProjectsPerCompany == null || companyAverageDaysInWorkflow === null}
-                    <CenteredSpinner />
-                {:else}
-                    <LineChart
-                        lines={calculateAverageDaysInWorkflowLines(
-                            companyAverageDaysInWorkflow,
-                            companyPerformanceMetricsResourceSize
-                        )}
-                    />
-                {/if}
+
+            <div class="flex w-full flex-col gap-2">
+                <div class="text-lg font-bold">Average Days in Workflow</div>
+                <div class="relative flex-1 overflow-x-hidden">
+                    {#if activeProjectsPerCompany === null || companyAverageDaysInWorkflow === null}
+                        <CenteredSpinner />
+                    {:else}
+                        <LineChart
+                            lines={calculateAverageDaysInWorkflowLines(
+                                companyAverageDaysInWorkflow,
+                                companyPerformanceMetricsResourceSize
+                            )}
+                        />
+                    {/if}
+                </div>
             </div>
         </div>
     </div>

@@ -368,7 +368,7 @@
                 </div>
             </div>
         {/if}
-        {#if languageId == 1}
+        {#if languageId === 1}
             <label class="flex items-center">
                 <input type="checkbox" class="mr-2" bind:checked={updateAssociation} />
                 {#if existingReference}

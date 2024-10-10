@@ -22,7 +22,7 @@ const LTR_REGEX = new RegExp('^[^' + RTL + ']*[' + LTR + ']');
 
 // Source: https://github.com/facebook/lexical/blob/429e3eb5b5a244026fa4776650aabe3c8e17536b/packages/lexical/src/LexicalUtils.ts#L163
 function getNodeTextDirection(text: string) {
-    if (text.length == 0) {
+    if (text.length === 0) {
         return undefined;
     }
     if (RTL_REGEX.test(text)) {
