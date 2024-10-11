@@ -115,14 +115,14 @@
                 .sort((a, b) => a.created.localeCompare(b.created))
                 .find((s) => s.id);
 
-            if (!localSnapshot || !isLessThanOneHourAgo(localSnapshot.created)) {
+            if (!isLessThanOneHourAgo(machineTranslation?.created)) {
                 translatedLessThan1HourAgo = false;
                 retranslationReasonIsPresent = true;
                 expiredRetranslationModalOpen = true;
                 return;
             }
 
-            const snapshot = await getFromApi<Snapshot>(`/resources/content/snapshots/${localSnapshot.id}`);
+            const snapshot = await getFromApi<Snapshot>(`/resources/content/snapshots/${localSnapshot?.id}`);
 
             if (snapshot) {
                 content = snapshot.content as TiptapContentItem[];
@@ -194,12 +194,13 @@
                 improveClarity: false,
                 improveConsistency: false,
                 improveTone: false,
+                created: new Date().toISOString(),
             })
         );
         machineTranslationStore.promptForRating.set(true);
     }
 
-    function isLessThanOneHourAgo(datetime: string): boolean {
+    function isLessThanOneHourAgo(datetime: string | undefined): boolean {
         if (datetime) {
             const inputDate = new Date(datetime);
             const currentDate = new Date();
@@ -208,9 +209,7 @@
 
             const differenceInMinutes = differenceInMilliseconds / (1000 * 60);
 
-            //this needs to be changed back after qa testing.
-            //return differenceInMinutes <= 60;
-            return differenceInMinutes <= 5;
+            return differenceInMinutes <= 60;
         }
         return false;
     }
