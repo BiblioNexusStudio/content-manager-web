@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { Editor } from '@tiptap/core';
     import { postToApi, rawPostToApi } from '$lib/utils/http-service';
-    import type { ResourceContent } from '$lib/types/resources';
+    import type { MachineTranslation, ResourceContent } from '$lib/types/resources';
     import TranslateIcon from '$lib/icons/TranslateIcon.svelte';
     import Tooltip from '$lib/components/Tooltip.svelte';
     import MachineTranslationRating from '$lib/components/MachineTranslationRating.svelte';
@@ -47,6 +47,7 @@
     $: retranslationReasonIsPresent = resourceContent.machineTranslations.some(
         (mt) => mt.hadRetranslation && mt.contentIndex === itemIndex
     );
+    $: addTimeoutForRetranslateButtonRemoval(machineTranslation, translatedLessThan1HourAgo);
 
     const postToTranslate = async (content: string, prompt: string | null = null) => {
         return rawPostToApi('/ai/translate', {
@@ -159,6 +160,11 @@
             if (!retranslating) {
                 translatedLessThan1HourAgo = true;
                 retranslationReasonIsPresent = false;
+
+                setTimeout(() => {
+                    translatedLessThan1HourAgo = false;
+                    retranslationReasonIsPresent = true;
+                }, 1000 * 60);
             } else {
                 translatedLessThan1HourAgo = false;
                 retranslationReasonIsPresent = true;
@@ -200,18 +206,47 @@
         machineTranslationStore.promptForRating.set(true);
     }
 
+    function getDifferenceInMinutes(pastDate: Date, currentDate: Date): number {
+        const differenceInMilliseconds = currentDate.getTime() - pastDate.getTime();
+        return Math.floor(differenceInMilliseconds / 1000 / 60);
+    }
+
     function isLessThanOneHourAgo(datetime: string | undefined): boolean {
         if (datetime) {
-            const inputDate = new Date(datetime);
-            const currentDate = new Date();
+            const pastDate = new Date(datetime.endsWith('Z') ? datetime : datetime + 'Z');
+            const currentDateString = new Date().toISOString();
+            const currentDate = new Date(currentDateString);
 
-            const differenceInMilliseconds = currentDate.getTime() - inputDate.getTime();
-
-            const differenceInMinutes = differenceInMilliseconds / (1000 * 60);
+            const differenceInMinutes = getDifferenceInMinutes(pastDate, currentDate);
 
             return differenceInMinutes <= 60;
         }
         return false;
+    }
+
+    function addTimeoutForRetranslateButtonRemoval(
+        machineTranslation: MachineTranslation | undefined,
+        translatedLessThan1HourAgo: boolean
+    ) {
+        if (translatedLessThan1HourAgo && machineTranslation && machineTranslation.created) {
+            const pastDate = new Date(
+                machineTranslation.created.endsWith('Z') ? machineTranslation.created : machineTranslation.created + 'Z'
+            );
+            const currentDateString = new Date().toISOString();
+            const currentDate = new Date(currentDateString);
+
+            const differenceInMinutes = getDifferenceInMinutes(pastDate, currentDate);
+
+            if (differenceInMinutes <= 60) {
+                setTimeout(
+                    () => {
+                        translatedLessThan1HourAgo = false;
+                        retranslationReasonIsPresent = true;
+                    },
+                    1000 * (60 - differenceInMinutes)
+                );
+            }
+        }
     }
 </script>
 
