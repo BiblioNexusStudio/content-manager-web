@@ -25,7 +25,7 @@ export const load: LayoutLoad = async ({ url, fetch }) => {
         getFromApi<ParentResource[]>('/resources/parent-resources', fetch),
         getFromApi<ResourceContentStatus[]>('/resources/content/statuses', fetch),
         getFromApi<CurrentUser>('/users/self', fetch),
-        getFromApi<HelpDocumentResponse>('/help', fetch),
+        getFromApi<HelpDocumentResponse>('/help/aquifer-cms/documents', fetch),
     ]);
 
     let users: User[] | null = null;

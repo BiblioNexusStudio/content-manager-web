@@ -3,8 +3,7 @@ export interface HelpDocument {
     title: string;
     type: HelpDocumentType;
     url: string;
-    created_at: string;
-    updated_at: string;
+    enabled: boolean;
 }
 
 export enum HelpDocumentType {
