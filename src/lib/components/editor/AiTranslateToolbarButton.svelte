@@ -243,7 +243,7 @@
                         translatedLessThan1HourAgo = false;
                         retranslationReasonIsPresent = true;
                     },
-                    1000 * (60 - differenceInMinutes)
+                    (60 - differenceInMinutes) * 60 * 1000
                 );
             }
         }
