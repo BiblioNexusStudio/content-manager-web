@@ -14,17 +14,15 @@
     export let uncastError;
     export let gotoPath = '/';
 
+    let buttonText = '';
+    let errorMessage = '';
     let didNotRedirect = false;
-
-    let buttonText = gotoPath === '/' ? 'Go Home' : `Go To ${gotoPath.replace('/', '')}`;
-
     const error = uncastError as Error | FetchError | ApiError | TokenMissingError | AuthUninitializedError;
-
-    let errorMessage = 'An error occurred';
 
     function handleButtonClick() {
         if (isApiErrorWithStatus(error, 429)) {
-            // SvelteKit's goto function does not react to window.location.pathname;
+            // SvelteKit's goto function does not
+            // react to window.location.pathname;
             location.reload();
         }
 
@@ -35,10 +33,12 @@
         if (isApiErrorWithStatus(error, 404) || $page.status === 404) {
             goto(gotoPath);
         } else if (isApiErrorWithStatus(error, 429)) {
-            errorMessage = 'Rate limit exceeded.';
             buttonText = 'Refresh';
+            errorMessage = 'Rate limit exceeded.';
             didNotRedirect = true;
         } else {
+            errorMessage = 'An error occurred';
+            buttonText = gotoPath === '/' ? 'Go Home' : `Go To ${gotoPath.replace('/', '')}`;
             didNotRedirect = true;
         }
     });
