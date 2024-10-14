@@ -29,7 +29,7 @@
     </section>
 
     <section class="mb-4">
-         <h2 class="text-xl">How-To</h2>
+        <h2 class="text-xl">How-To</h2>
         <List documents={helpDocuments.howTos} />
     </section>
 </div>
