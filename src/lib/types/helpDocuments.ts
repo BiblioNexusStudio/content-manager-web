@@ -16,6 +16,4 @@ export enum HelpDocumentType {
 export interface HelpDocumentResponse {
     releases: HelpDocument[];
     howTos: HelpDocument[];
-    releasesCount: number;
-    howtosCount: number;
 }
