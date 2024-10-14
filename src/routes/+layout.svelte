@@ -20,6 +20,9 @@
     import { onMount } from 'svelte';
     import { parentResources } from '$lib/stores/parent-resources';
     import type { LayoutData } from './$types';
+    import QuestionMarkIcon from '$lib/icons/QuestionMarkIcon.svelte';
+    import HelpScreen from '$lib/components/help/HelpScreen.svelte';
+    import Tooltip from '$lib/components/Tooltip.svelte';
 
     export let data: LayoutData;
 
@@ -31,6 +34,7 @@
 
     let customTransitionPages = [/\/resources\/\d+/];
     let menuElement: HTMLUListElement;
+    let isShowHelpModal = false;
 
     function isCustomTransitionNavigation(navigation: Navigation) {
         return customTransitionPages.some((pageRegex) => {
@@ -191,12 +195,25 @@
                 </ul>
             </div>
             <div class="m-2 w-16"><a href="/"><img src={AquiferLogo} alt="Aquifer" /></a></div>
+            <div class="ml-auto">
+                <Tooltip position={{ right: '3rem', top: '0.25rem' }} class="ml-auto" text="Help">
+                    <button
+                        class="btn btn-neutral btn-xs m-1 border border-neutral-300 hover:border-primary hover:text-primary"
+                        on:click={() => (isShowHelpModal = !isShowHelpModal)}
+                    >
+                        <QuestionMarkIcon />
+                    </button>
+                </Tooltip>
+            </div>
         </div>
 
         {#if $navigating && !isCustomTransitionNavigation($navigating)}
             <CenteredSpinnerFullScreen />
         {:else}
-            <div class="flex h-full max-h-[calc(100vh-39px)] w-full flex-col">
+            <div class="relative flex h-full max-h-[calc(100vh-39px)] w-full flex-col">
+                {#if isShowHelpModal}
+                    <HelpScreen helpDocuments={data.helpDocuments} bind:isShowHelpModal />
+                {/if}
                 <slot />
             </div>
         {/if}

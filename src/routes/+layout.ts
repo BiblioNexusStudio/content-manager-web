@@ -7,6 +7,7 @@ import { initAuth0, Permission, setCurrentUser, userCan } from '$lib/stores/auth
 import { sortByKey } from '$lib/utils/sorting';
 import { get } from 'svelte/store';
 import { error } from '@sveltejs/kit';
+import type { HelpDocumentResponse } from '$lib/types/helpDocuments';
 
 export const ssr = false;
 
@@ -19,11 +20,12 @@ export const load: LayoutLoad = async ({ url, fetch }) => {
         throw error(401, 'Unauthenticated');
     }
 
-    const [languages, parentResources, resourceContentStatuses, currentUser] = await Promise.all([
+    const [languages, parentResources, resourceContentStatuses, currentUser, helpDocuments] = await Promise.all([
         getFromApi<Language[]>('/languages', fetch),
         getFromApi<ParentResource[]>('/resources/parent-resources', fetch),
         getFromApi<ResourceContentStatus[]>('/resources/content/statuses', fetch),
         getFromApi<CurrentUser>('/users/self', fetch),
+        getFromApi<HelpDocumentResponse>('/help', fetch),
     ]);
 
     let users: User[] | null = null;
@@ -41,6 +43,7 @@ export const load: LayoutLoad = async ({ url, fetch }) => {
         languages: sortByKey(languages, 'englishDisplay') as Language[],
         parentResources: parentResources as ParentResource[],
         resourceContentStatuses: resourceContentStatuses as ResourceContentStatus[],
+        helpDocuments: helpDocuments as HelpDocumentResponse,
         currentUser: currentUser as CurrentUser,
         users: sortByKey(users, 'name'),
     };
