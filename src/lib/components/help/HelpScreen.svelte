@@ -2,7 +2,6 @@
     import type { HelpDocumentResponse } from '$lib/types/helpDocuments';
     import { fly } from 'svelte/transition';
     import List from './List.svelte';
-    import Title from './Title.svelte';
 
     export let helpDocuments: HelpDocumentResponse;
     export let isShowHelpModal: boolean;
@@ -25,12 +24,12 @@
     </div>
 
     <section class="mb-4">
-        <Title>Recent Releases</Title>
+        <h2 class="text-xl">Recent Releases</h2>
         <List documents={helpDocuments.releases} />
     </section>
 
     <section class="mb-4">
-        <Title>How-To</Title>
+         <h2 class="text-xl">How-To</h2>
         <List documents={helpDocuments.howTos} />
     </section>
 </div>
