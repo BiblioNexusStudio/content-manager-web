@@ -161,10 +161,13 @@
                 translatedLessThan1HourAgo = true;
                 retranslationReasonIsPresent = false;
 
-                setTimeout(() => {
-                    translatedLessThan1HourAgo = false;
-                    retranslationReasonIsPresent = true;
-                }, 1000 * 60);
+                setTimeout(
+                    () => {
+                        translatedLessThan1HourAgo = false;
+                        retranslationReasonIsPresent = true;
+                    },
+                    60 * 60 * 1000
+                );
             } else {
                 translatedLessThan1HourAgo = false;
                 retranslationReasonIsPresent = true;
@@ -243,7 +246,7 @@
                         translatedLessThan1HourAgo = false;
                         retranslationReasonIsPresent = true;
                     },
-                    1000 * (60 - differenceInMinutes)
+                    (60 - differenceInMinutes) * 60 * 1000
                 );
             }
         }
