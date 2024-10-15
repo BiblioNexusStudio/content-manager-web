@@ -2,13 +2,29 @@
     import type { HelpDocumentResponse } from '$lib/types/helpDocuments';
     import { fly } from 'svelte/transition';
     import List from './List.svelte';
+    import { onMount } from 'svelte';
+    import { getFromApi } from '$lib/utils/http-service';
 
-    export let helpDocuments: HelpDocumentResponse;
+    let isLoading = true;
+    let helpDocuments: HelpDocumentResponse | null = null;
     export let isShowHelpModal: boolean;
 
     function close() {
         isShowHelpModal = false;
     }
+
+    async function fetechHelpDocuments(): Promise<HelpDocumentResponse | null> {
+        try {
+            let helpDocResponse = await getFromApi<HelpDocumentResponse>('/help/aquifer-cms/documents', fetch);
+            return helpDocResponse;
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    onMount(async () => {
+        helpDocuments = await fetechHelpDocuments();
+    });
 </script>
 
 <svelte:window
@@ -23,13 +39,79 @@
         <button class="btn btn-circle btn-ghost btn-sm" on:click={close}>✕</button>
     </div>
 
-    <section class="mb-4">
-        <h2 class="text-xl">Recent Releases</h2>
-        <List documents={helpDocuments.releases} />
-    </section>
+    {#if isLoading}
+        <section class="mb-4">
+            <h2 class="text-xl">Recent Releases</h2>
+            <ul class="flex flex-wrap gap-x-10 p-4">
+                <div class="flex h-32 w-20 flex-col gap-4">
+                    <div class="skeleton h-20 w-full"></div>
+                    <div class="skeleton h-4 w-full"></div>
+                    <div class="skeleton h-4 w-14"></div>
+                </div>
+                <div class="flex h-32 w-20 flex-col gap-4">
+                    <div class="skeleton h-20 w-full"></div>
+                    <div class="skeleton h-4 w-full"></div>
+                    <div class="skeleton h-4 w-14"></div>
+                </div>
+                <div class="flex h-32 w-20 flex-col gap-4">
+                    <div class="skeleton h-20 w-full"></div>
+                    <div class="skeleton h-4 w-full"></div>
+                    <div class="skeleton h-4 w-14"></div>
+                </div>
+                <div class="flex h-32 w-20 flex-col gap-4">
+                    <div class="skeleton h-20 w-full"></div>
+                    <div class="skeleton h-4 w-full"></div>
+                    <div class="skeleton h-4 w-14"></div>
+                </div>
+                <div class="flex h-32 w-20 flex-col gap-4">
+                    <div class="skeleton h-20 w-full"></div>
+                    <div class="skeleton h-4 w-full"></div>
+                    <div class="skeleton h-4 w-14"></div>
+                </div>
+            </ul>
+        </section>
 
-    <section class="mb-4">
-        <h2 class="text-xl">How-To</h2>
-        <List documents={helpDocuments.howTos} />
-    </section>
+        <section class="mb-4">
+            <h2 class="text-xl">How-To</h2>
+            <ul class="flex flex-wrap gap-x-10 p-4">
+                <div class="flex h-32 w-20 flex-col gap-4">
+                    <div class="skeleton h-20 w-full"></div>
+                    <div class="skeleton h-4 w-full"></div>
+                    <div class="skeleton h-4 w-14"></div>
+                </div>
+                <div class="flex h-32 w-20 flex-col gap-4">
+                    <div class="skeleton h-20 w-full"></div>
+                    <div class="skeleton h-4 w-full"></div>
+                    <div class="skeleton h-4 w-14"></div>
+                </div>
+                <div class="flex h-32 w-20 flex-col gap-4">
+                    <div class="skeleton h-20 w-full"></div>
+                    <div class="skeleton h-4 w-full"></div>
+                    <div class="skeleton h-4 w-14"></div>
+                </div>
+                <div class="flex h-32 w-20 flex-col gap-4">
+                    <div class="skeleton h-20 w-full"></div>
+                    <div class="skeleton h-4 w-full"></div>
+                    <div class="skeleton h-4 w-14"></div>
+                </div>
+                <div class="flex h-32 w-20 flex-col gap-4">
+                    <div class="skeleton h-20 w-full"></div>
+                    <div class="skeleton h-4 w-full"></div>
+                    <div class="skeleton h-4 w-14"></div>
+                </div>
+            </ul>
+        </section>
+    {:else if helpDocuments}
+        <section class="mb-4">
+            <h2 class="text-xl">Recent Releases</h2>
+            <List documents={helpDocuments?.releases} />
+        </section>
+
+        <section class="mb-4">
+            <h2 class="text-xl">How-To</h2>
+            <List documents={helpDocuments?.howTos} />
+        </section>
+    {:else}
+        <h2 class="text-xl">Something went wrong. Please try again later.</h2>
+    {/if}
 </div>

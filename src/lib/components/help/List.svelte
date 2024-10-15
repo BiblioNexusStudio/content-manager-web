@@ -2,7 +2,7 @@
     import Document from './Document.svelte';
     import type { HelpDocument } from '$lib/types/helpDocuments';
 
-    export let documents: HelpDocument[];
+    export let documents: HelpDocument[] = [];
 </script>
 
 <ul class="flex flex-wrap gap-x-10 p-4">

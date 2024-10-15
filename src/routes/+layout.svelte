@@ -212,7 +212,7 @@
         {:else}
             <div class="relative flex h-full max-h-[calc(100vh-39px)] w-full flex-col">
                 {#if isShowHelpModal}
-                    <HelpScreen helpDocuments={data.helpDocuments} bind:isShowHelpModal />
+                    <HelpScreen bind:isShowHelpModal />
                 {/if}
                 <slot />
             </div>
