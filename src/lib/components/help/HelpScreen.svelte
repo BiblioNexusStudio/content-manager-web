@@ -13,7 +13,7 @@
         isShowHelpModal = false;
     }
 
-    async function fetechHelpDocuments(): Promise<HelpDocumentResponse | null> {
+    async function fetchHelpDocuments(): Promise<HelpDocumentResponse | null> {
         try {
             let helpDocResponse = await getFromApi<HelpDocumentResponse>('/help/aquifer-cms/documents', fetch);
             return helpDocResponse;
@@ -23,7 +23,7 @@
     }
 
     onMount(async () => {
-        helpDocuments = await fetechHelpDocuments();
+        helpDocuments = await fetchHelpDocuments();
     });
 </script>
 
