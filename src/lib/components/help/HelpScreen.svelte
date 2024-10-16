@@ -33,7 +33,7 @@
     }}
 />
 
-<div class="absolute inset-0 z-50 bg-white p-8" transition:fly={{ duration: 250 }}>
+<div class="absolute inset-0 z-40 bg-white p-8" transition:fly={{ duration: 250 }}>
     <div class="flex items-center justify-between">
         <h1 class="mb-4 text-3xl">Help</h1>
         <button class="btn btn-circle btn-ghost btn-sm" on:click={close}>✕</button>
@@ -43,30 +43,25 @@
         <section class="mb-4">
             <h2 class="text-xl">Recent Releases</h2>
             <ul class="flex flex-wrap gap-x-10 p-4">
-                <div class="flex h-32 w-20 flex-col gap-4">
-                    <div class="skeleton h-20 w-full"></div>
-                    <div class="skeleton h-4 w-full"></div>
-                    <div class="skeleton h-4 w-14"></div>
+                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                    <span class="skeleton h-16 w-16"></span>
+                    <div class="skeleton h-4 w-3/4"></div>
                 </div>
-                <div class="flex h-32 w-20 flex-col gap-4">
-                    <div class="skeleton h-20 w-full"></div>
-                    <div class="skeleton h-4 w-full"></div>
-                    <div class="skeleton h-4 w-14"></div>
+                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                    <span class="skeleton h-16 w-16"></span>
+                    <div class="skeleton h-4 w-3/4"></div>
                 </div>
-                <div class="flex h-32 w-20 flex-col gap-4">
-                    <div class="skeleton h-20 w-full"></div>
-                    <div class="skeleton h-4 w-full"></div>
-                    <div class="skeleton h-4 w-14"></div>
+                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                    <span class="skeleton h-16 w-16"></span>
+                    <div class="skeleton h-4 w-3/4"></div>
                 </div>
-                <div class="flex h-32 w-20 flex-col gap-4">
-                    <div class="skeleton h-20 w-full"></div>
-                    <div class="skeleton h-4 w-full"></div>
-                    <div class="skeleton h-4 w-14"></div>
+                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                    <span class="skeleton h-16 w-16"></span>
+                    <div class="skeleton h-4 w-3/4"></div>
                 </div>
-                <div class="flex h-32 w-20 flex-col gap-4">
-                    <div class="skeleton h-20 w-full"></div>
-                    <div class="skeleton h-4 w-full"></div>
-                    <div class="skeleton h-4 w-14"></div>
+                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                    <span class="skeleton h-16 w-16"></span>
+                    <div class="skeleton h-4 w-3/4"></div>
                 </div>
             </ul>
         </section>
@@ -74,29 +69,33 @@
         <section class="mb-4">
             <h2 class="text-xl">How-To</h2>
             <ul class="flex flex-wrap gap-x-10 p-4">
-                <div class="flex h-32 w-20 flex-col gap-4">
-                    <div class="skeleton h-20 w-full"></div>
-                    <div class="skeleton h-4 w-full"></div>
+                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                    <span class="skeleton h-16 w-16"></span>
                     <div class="skeleton h-4 w-14"></div>
                 </div>
-                <div class="flex h-32 w-20 flex-col gap-4">
-                    <div class="skeleton h-20 w-full"></div>
-                    <div class="skeleton h-4 w-full"></div>
+                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                    <span class="skeleton h-16 w-16"></span>
+                    <div class="skeleton h-4 w-3/4"></div>
                     <div class="skeleton h-4 w-14"></div>
                 </div>
-                <div class="flex h-32 w-20 flex-col gap-4">
-                    <div class="skeleton h-20 w-full"></div>
-                    <div class="skeleton h-4 w-full"></div>
+                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                    <span class="skeleton h-16 w-16"></span>
+                    <div class="skeleton h-4 w-3/4"></div>
                     <div class="skeleton h-4 w-14"></div>
                 </div>
-                <div class="flex h-32 w-20 flex-col gap-4">
-                    <div class="skeleton h-20 w-full"></div>
-                    <div class="skeleton h-4 w-full"></div>
+                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                    <span class="skeleton h-16 w-16"></span>
+                    <div class="skeleton h-4 w-3/4"></div>
                     <div class="skeleton h-4 w-14"></div>
                 </div>
-                <div class="flex h-32 w-20 flex-col gap-4">
-                    <div class="skeleton h-20 w-full"></div>
-                    <div class="skeleton h-4 w-full"></div>
+                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                    <span class="skeleton h-16 w-16"></span>
+                    <div class="skeleton h-4 w-3/4"></div>
+                    <div class="skeleton h-4 w-14"></div>
+                </div>
+                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                    <span class="skeleton h-16 w-16"></span>
+                    <div class="skeleton h-4 w-3/4"></div>
                     <div class="skeleton h-4 w-14"></div>
                 </div>
             </ul>
