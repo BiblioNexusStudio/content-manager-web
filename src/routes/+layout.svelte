@@ -31,6 +31,7 @@
     $: log.pageView($page.route.id ?? '');
     $: syncToClarity($page.route.id ?? '', $currentUser);
     $: $parentResources = data.parentResources;
+    $: if ($navigating) isShowHelpModal = false;
 
     let customTransitionPages = [/\/resources\/\d+/];
     let menuElement: HTMLUListElement;

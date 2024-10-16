@@ -7,7 +7,7 @@
     export let document: HelpDocument;
 </script>
 
-<a href={document.url} class="overflow flex h-32 w-20 flex-col items-center hover:text-primary">
+<a href={document.url} target="_blank" class="overflow flex h-32 w-36 flex-col items-center hover:text-primary">
     <span class="w-16">
         {#if document.type === HelpDocumentType.HowTo}
             <WrenchScrewdriverSolidIcon />
