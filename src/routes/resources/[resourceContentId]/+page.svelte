@@ -58,6 +58,7 @@
     import { isApiErrorWithMessage } from '$lib/utils/http-errors';
     import { isEditorPaneOnLeft } from '$lib/stores/resourceEditor';
     import ContentEditorSwapButton from '$lib/components/editor/ContentEditorSwapButton.svelte';
+    import VersionStatusHistorySidebar from './VersionStatusHistorySidebar.svelte';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
@@ -869,6 +870,17 @@
                         visible={openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences}
                         language={resourceContent.language}
                         references={getSortedReferences(resourceContent)}
+                    />
+                </div>
+                <div
+                    class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
+                    OpenedSupplementalSideBar.VersionStatusHistory
+                        ? ''
+                        : 'hidden'}"
+                >
+                    <VersionStatusHistorySidebar
+                        visible={openedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory}
+                        resourceContentVersionId={resourceContent.resourceContentVersionId}
                     />
                 </div>
             </div>

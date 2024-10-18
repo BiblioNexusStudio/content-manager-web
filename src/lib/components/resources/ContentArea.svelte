@@ -12,6 +12,7 @@
     import BookSidebarIcon from '$lib/icons/BookSidebarIcon.svelte';
     import type { CommentStores } from '$lib/stores/comments';
     import { onMount } from 'svelte';
+    import PersonLinesIcon from '$lib/icons/PersonLinesIcon.svelte';
 
     export let resourceContent: ResourceContent;
     export let sidebarHistoryAvailable: boolean;
@@ -128,6 +129,22 @@
                     on:click={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.BibleReferences)}
                 >
                     <BookSidebarIcon />
+                </button>
+            </Tooltip>
+            <Tooltip
+                position={{ right: '3rem', top: '0.25rem' }}
+                class="border-[#485467] text-[#485467]"
+                text={openedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory
+                    ? 'Hide Status History'
+                    : 'Show Status History'}
+            >
+                <button
+                    data-app-insights-event-name="toggle-status-history-pane-click"
+                    class="btn btn-ghost btn-sm {openedSupplementalSideBar ===
+                        OpenedSupplementalSideBar.VersionStatusHistory && 'bg-[#e6f7fc]'}"
+                    on:click={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.VersionStatusHistory)}
+                >
+                    <PersonLinesIcon />
                 </button>
             </Tooltip>
         </div>

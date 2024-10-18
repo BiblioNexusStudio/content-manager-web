@@ -23,7 +23,7 @@
     }
 </script>
 
-<div class="my-4 grid min-h-48 w-full grid-cols-2 gap-x-8 xl:grid-cols-1">
+<div class="min-h-48 my-4 grid w-full grid-cols-2 gap-x-8 xl:grid-cols-1">
     <div class="flex flex-col">
         <ViewTabSlot title="Source Words">
             <div>{formatNumberWithCommas($project?.sourceWordCount ?? '0')}</div>
