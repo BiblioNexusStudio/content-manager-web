@@ -81,6 +81,10 @@
     }
 </script>
 
+<svelte:head>
+    <title>{$project?.name || 'Project'} | Aquifer Admin</title>
+</svelte:head>
+
 {#await projectPromise}
     <CenteredSpinnerFullScreen />
 {:then projectResponse}

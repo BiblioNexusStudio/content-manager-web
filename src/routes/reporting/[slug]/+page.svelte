@@ -78,6 +78,10 @@
     }
 </script>
 
+<svelte:head>
+    <title>{reportData?.name} | Aquifer Admin</title>
+</svelte:head>
+
 {#await Promise.all([reportPromise, companiesPromise])}
     <CenteredSpinner />
 {:then [_, companies]}
