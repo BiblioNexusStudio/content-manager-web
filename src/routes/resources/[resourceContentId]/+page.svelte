@@ -63,9 +63,7 @@
     let commentThreads: Writable<CommentThreadsResponse | null>;
     let removeAllInlineThreads: Readable<() => void>;
 
-    let errorModal: HTMLDialogElement;
-    let errorModalMessage = 'An error occurred while saving. Please try again.';
-    let autoSaveErrorModal: HTMLDialogElement;
+    let errorModalMessage: string | undefined = undefined;
     let aquiferizeModal: HTMLDialogElement;
     let assignUserModal: HTMLDialogElement;
     let publishModal: HTMLDialogElement;
@@ -270,7 +268,8 @@
             if ($isAuthenticatedStore) {
                 cancel();
                 if (!(await save(true))) {
-                    autoSaveErrorModal.showModal();
+                    errorModalMessage =
+                        'You have unsaved edits that could not be saved. Please ensure they save before navigating away.';
                 } else {
                     to?.url && (await goto(to.url));
                 }
@@ -352,16 +351,14 @@
             await callback(response);
             $isPageTransacting = false;
         } catch (error) {
+            $isPageTransacting = false;
             if (isApiErrorWithMessage(error, 'User can only create one translation at a time')) {
                 errorModalMessage = 'You can only create one translation at a time.';
                 canCommunityTranslate = false;
             } else {
                 errorModalMessage = 'An error occurred while saving. Please try again.';
+                throw error;
             }
-
-            errorModal.showModal();
-            $isPageTransacting = false;
-            throw error;
         }
     }
 
@@ -1042,25 +1039,5 @@
         </div>
     </dialog>
 
-    <dialog bind:this={errorModal} class="modal">
-        <div class="modal-box bg-error">
-            <form method="dialog">
-                <button class="btn btn-circle btn-ghost btn-sm absolute right-2 top-2">✕</button>
-            </form>
-            <h3 class="text-xl font-bold">Error</h3>
-            <p class="py-4 text-lg font-medium">{errorModalMessage}</p>
-        </div>
-    </dialog>
-
-    <dialog bind:this={autoSaveErrorModal} class="modal">
-        <div class="modal-box bg-error">
-            <form method="dialog">
-                <button class="btn btn-circle btn-ghost btn-sm absolute right-2 top-2">✕</button>
-            </form>
-            <h3 class="text-xl font-bold">Error</h3>
-            <p class="py-4 text-lg font-medium">
-                You have unsaved edits that could not be saved. Please ensure they save before navigating away.
-            </p>
-        </div>
-    </dialog>
+    <Modal header="Error" isError={true} bind:description={errorModalMessage} />
 {/key}
