@@ -112,6 +112,10 @@
     }
 </script>
 
+<svelte:head>
+    <title>Resources | Aquifer Admin</title>
+</svelte:head>
+
 {#await bibleBooksPromise}
     <CenteredSpinnerFullScreen />
 {:then bibleBooks}

@@ -32,6 +32,10 @@
     }
 </script>
 
+<svelte:head>
+    <title>Reporting | Aquifer Admin</title>
+</svelte:head>
+
 {#await Promise.all([summaryPromise, resourceItemsSummaryPromise, reportsPromise])}
     <CenteredSpinnerFullScreen />
 {:then [summary, resourceItemsSummary, reports]}
