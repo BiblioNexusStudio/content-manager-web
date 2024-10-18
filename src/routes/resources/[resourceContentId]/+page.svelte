@@ -64,10 +64,10 @@
     let removeAllInlineThreads: Readable<() => void>;
 
     let errorModalMessage: string | undefined = undefined;
+    let isAddTranslationModalOpen = false;
     let aquiferizeModal: HTMLDialogElement;
     let assignUserModal: HTMLDialogElement;
     let publishModal: HTMLDialogElement;
-    let addTranslationModal: HTMLDialogElement;
 
     let assignToUserId: number | null = null;
     let newTranslationLanguageId: number | null = null;
@@ -313,7 +313,7 @@
     function openAddTranslationModal() {
         createTranslationFromDraft = false;
         newTranslationLanguageId = null;
-        addTranslationModal.showModal();
+        isAddTranslationModalOpen = true;
     }
 
     async function callNextUpApi(resourceContentId: string) {
@@ -1003,41 +1003,33 @@
         </div>
     </dialog>
 
-    <dialog bind:this={addTranslationModal} class="modal">
-        <div class="modal-box">
-            <h3 class="w-full pb-4 text-center text-xl font-bold">Create translation</h3>
-            <div class="flex flex-col">
-                <TranslationSelector
-                    allLanguages={data.languages}
-                    existingTranslations={resourceContent?.contentTranslations ?? []}
-                    bind:selectedLanguageId={newTranslationLanguageId}
-                />
-                <div class="flex w-full flex-row space-x-2 pt-4">
-                    {#if englishContentTranslation?.hasDraft}
-                        <div>
-                            <label class="label cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    class="checkbox-primary checkbox me-2"
-                                    bind:checked={createTranslationFromDraft}
-                                />
-                                <span class="label-text">Create from Draft</span>
-                            </label>
-                        </div>
-                    {/if}
-                    <div class="flex-grow" />
-                    <button
-                        class="btn btn-primary"
-                        on:click={createTranslation}
-                        disabled={newTranslationLanguageId === null || $isPageTransacting}>Create</button
-                    >
-                    <button class="btn btn-outline btn-primary" on:click={() => addTranslationModal.close()}
-                        >Cancel</button
-                    >
+    <Modal
+        header="Create Translation"
+        bind:open={isAddTranslationModalOpen}
+        primaryButtonText="Create"
+        primaryButtonOnClick={createTranslation}
+        primaryButtonDisabled={newTranslationLanguageId === null || $isPageTransacting}
+    >
+        <TranslationSelector
+            allLanguages={data.languages}
+            existingTranslations={resourceContent?.contentTranslations ?? []}
+            bind:selectedLanguageId={newTranslationLanguageId}
+        />
+        <div slot="additional-buttons">
+            {#if englishContentTranslation?.hasDraft}
+                <div>
+                    <label class="label cursor-pointer">
+                        <input
+                            type="checkbox"
+                            class="checkbox-primary checkbox me-2"
+                            bind:checked={createTranslationFromDraft}
+                        />
+                        <span class="label-text">Create from Draft</span>
+                    </label>
                 </div>
-            </div>
+            {/if}
         </div>
-    </dialog>
+    </Modal>
 
     <Modal header="Error" isError={true} bind:description={errorModalMessage} />
 {/key}
