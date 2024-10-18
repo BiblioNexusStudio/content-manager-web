@@ -4,6 +4,7 @@ export interface HelpDocument {
     type: HelpDocumentType;
     url: string;
     enabled: boolean;
+    thumbnailUrl: string | null;
 }
 
 export enum HelpDocumentType {
