@@ -65,9 +65,9 @@
 
     let errorModalMessage: string | undefined = undefined;
     let isAddTranslationModalOpen = false;
+    let isPublishModalOpen = false;
     let aquiferizeModal: HTMLDialogElement;
     let assignUserModal: HTMLDialogElement;
-    let publishModal: HTMLDialogElement;
 
     let assignToUserId: number | null = null;
     let newTranslationLanguageId: number | null = null;
@@ -294,7 +294,7 @@
         assignToUserId = null;
         createDraft = false;
         if (status === ResourceContentStatusEnum.New || hasUnresolvedThreads) {
-            publishModal.showModal();
+            isPublishModalOpen = true;
         } else {
             publish();
         }
@@ -963,45 +963,39 @@
         </div>
     </dialog>
 
-    <dialog bind:this={publishModal} class="modal">
-        <div class="modal-box">
-            <h3 class="w-full pb-4 text-center text-xl font-bold">
-                {hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New
-                    ? 'Confirm Publish'
-                    : 'Choose Publish Option'}
-            </h3>
-            <div class="flex flex-col">
-                {#if hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New}
-                    <p class="py-4 text-lg text-warning">This resource has unresolved comments.</p>
-                {/if}
-                {#if resourceContent?.status === ResourceContentStatusEnum.New}
-                    <div class="form-control">
-                        <label class="label cursor-pointer justify-start space-x-2">
-                            <input type="checkbox" bind:checked={createDraft} class="checkbox" />
-                            <span class="label-text">Aquiferization Needed</span>
-                        </label>
-                    </div>
-                    <!-- svelte-ignore a11y-label-has-associated-control -->
-                    <label class="form-control">
-                        <div class="label">
-                            <span class="label-text">Aquiferization Assignment (optional)</span>
-                        </div>
-                        <UserSelector
-                            users={usersThatCanBeAssigned()}
-                            defaultLabel="Unassigned"
-                            disabled={!createDraft}
-                            bind:selectedUserId={assignToUserId}
-                        />
-                    </label>
-                {/if}
-                <div class="flex w-full flex-row space-x-2 pt-4">
-                    <div class="flex-grow" />
-                    <button class="btn btn-primary" on:click={publish} disabled={$isPageTransacting}>Publish</button>
-                    <button class="btn btn-outline btn-primary" on:click={() => publishModal.close()}>Cancel</button>
-                </div>
+    <Modal
+        header={hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New
+            ? 'Confirm Publish'
+            : 'Choose Publish Option'}
+        bind:open={isPublishModalOpen}
+        primaryButtonText="Publish"
+        primaryButtonOnClick={publish}
+        primaryButtonDisabled={$isPageTransacting}
+    >
+        {#if hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New}
+            <p class="py-4 text-lg text-warning">This resource has unresolved comments.</p>
+        {/if}
+        {#if resourceContent?.status === ResourceContentStatusEnum.New}
+            <div class="form-control">
+                <label class="label cursor-pointer justify-start space-x-2">
+                    <input type="checkbox" bind:checked={createDraft} class="checkbox" />
+                    <span class="label-text">Aquiferization Needed</span>
+                </label>
             </div>
-        </div>
-    </dialog>
+            <!-- svelte-ignore a11y-label-has-associated-control -->
+            <label class="form-control">
+                <div class="label">
+                    <span class="label-text">Aquiferization Assignment (optional)</span>
+                </div>
+                <UserSelector
+                    users={usersThatCanBeAssigned()}
+                    defaultLabel="Unassigned"
+                    disabled={!createDraft}
+                    bind:selectedUserId={assignToUserId}
+                />
+            </label>
+        {/if}
+    </Modal>
 
     <Modal
         header="Create Translation"
