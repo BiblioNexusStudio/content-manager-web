@@ -8,6 +8,10 @@
     export let data: PageData;
 </script>
 
+<svelte:head>
+    <title>Dashboard | Aquifer Admin</title>
+</svelte:head>
+
 {#if data.publisherDashboard}
     <PublisherDashboard {data} />
 {:else if data.editorDashboard}

@@ -257,7 +257,7 @@
     <CenteredSpinnerFullScreen />
 {:then _}
     <div class="flex flex-col overflow-y-hidden px-4">
-        <h1 class="pt-4 text-3xl">Publisher Dashboard</h1>
+        <h1 class="pt-4 text-3xl">Dashboard</h1>
         <div class="flex flex-row items-center pt-4">
             <div role="tablist" class="tabs-bordered tabs w-fit">
                 <button

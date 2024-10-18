@@ -28,6 +28,10 @@
     }
 </script>
 
+<svelte:head>
+    <title>Projects | Aquifer Admin</title>
+</svelte:head>
+
 {#await Promise.all([projectPromise, companiesPromise])}
     <CenteredSpinnerFullScreen />
 {:then [_, companiesResponse]}

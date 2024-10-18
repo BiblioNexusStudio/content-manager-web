@@ -1,45 +1,27 @@
 <script lang="ts">
+    import List from '$lib/components/help/List.svelte';
     import type { HelpDocumentResponse } from '$lib/types/helpDocuments';
     import { fly } from 'svelte/transition';
-    import List from './List.svelte';
-    import { onMount } from 'svelte';
-    import { getFromApi } from '$lib/utils/http-service';
+    import type { PageData } from './$types';
 
-    let isLoading = true;
+    export let data: PageData;
+
     let helpDocuments: HelpDocumentResponse | null = null;
-    export let isShowHelpModal: boolean;
 
-    function close() {
-        isShowHelpModal = false;
-    }
-
-    async function fetchHelpDocuments(): Promise<HelpDocumentResponse | null> {
-        try {
-            let helpDocResponse = await getFromApi<HelpDocumentResponse>('/help/aquifer-cms/documents', fetch);
-            return helpDocResponse;
-        } finally {
-            isLoading = false;
-        }
-    }
-
-    onMount(async () => {
-        helpDocuments = await fetchHelpDocuments();
-    });
+    const loadHelpContents = async () => {
+        helpDocuments = await data.helpContents.promise;
+    };
 </script>
 
-<svelte:window
-    on:keydown={(e) => {
-        if (e.key === 'Escape') close();
-    }}
-/>
+<svelte:head>
+    <title>Help | Aquifer Admin</title>
+</svelte:head>
 
-<div class="absolute inset-0 z-40 bg-white p-8" transition:fly={{ duration: 250 }}>
+<div class="absolute inset-0 bg-white p-8" transition:fly={{ duration: 250 }}>
     <div class="flex items-center justify-between">
         <h1 class="mb-4 text-3xl">Help</h1>
-        <button class="btn btn-circle btn-ghost btn-sm" on:click={close}>✕</button>
     </div>
-
-    {#if isLoading}
+    {#await loadHelpContents()}
         <section class="mb-4">
             <h2 class="text-xl">Recent Releases</h2>
             <ul class="flex flex-wrap gap-x-10 p-4">
@@ -100,7 +82,7 @@
                 </div>
             </ul>
         </section>
-    {:else if helpDocuments}
+    {:then}
         <section class="mb-4">
             <h2 class="text-xl">Recent Releases</h2>
             <List documents={helpDocuments?.releases} />
@@ -110,7 +92,7 @@
             <h2 class="text-xl">How-To</h2>
             <List documents={helpDocuments?.howTos} />
         </section>
-    {:else}
+    {:catch}
         <h2 class="text-xl">Something went wrong. Please try again later.</h2>
-    {/if}
+    {/await}
 </div>

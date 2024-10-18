@@ -591,6 +591,10 @@
     }
 </script>
 
+<svelte:head>
+    <title>{resourceContent?.englishLabel} | Aquifer Admin</title>
+</svelte:head>
+
 {#await resourceContentPromise}
     <CenteredSpinnerFullScreen />
 {:then resourceContent}

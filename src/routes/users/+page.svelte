@@ -63,6 +63,10 @@
     }
 </script>
 
+<svelte:head>
+    <title>Users | Aquifer Admin</title>
+</svelte:head>
+
 {#await loadContents()}
     <CenteredSpinnerFullScreen />
 {:then _}
