@@ -71,6 +71,10 @@
     }
 </script>
 
+<svelte:head>
+    <title>Create Project | Aquifer Admin</title>
+</svelte:head>
+
 <div class="relative flex h-screen flex-col overflow-hidden px-8 py-4 short:h-full short:overflow-auto">
     <div class="mb-4 flex flex-row items-center">
         <BackButton defaultPathIfNoHistory="/projects" />
