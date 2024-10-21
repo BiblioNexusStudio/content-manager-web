@@ -66,8 +66,8 @@
     let errorModalMessage: string | undefined = undefined;
     let isAddTranslationModalOpen = false;
     let isPublishModalOpen = false;
+    let isAssignUserModalOpen = false;
     let aquiferizeModal: HTMLDialogElement;
-    let assignUserModal: HTMLDialogElement;
 
     let assignToUserId: number | null = null;
     let newTranslationLanguageId: number | null = null;
@@ -302,7 +302,7 @@
 
     function openAssignUserModal() {
         assignToUserId = null;
-        assignUserModal.showModal();
+        isAssignUserModalOpen = true;
     }
 
     function openAssignReviewModal() {
@@ -922,46 +922,32 @@
         </div>
     </dialog>
 
-    <dialog bind:this={assignUserModal} class="modal">
-        <div class="modal-box">
-            <h3 class="w-full pb-4 text-center text-xl font-bold">
-                {#if isInTranslationWorkflow}
-                    Choose a Translator
-                {:else}
-                    Choose an Editor
-                {/if}
-            </h3>
-            {#if $promptForMachineTranslationRating && currentUserIsAssigned}
-                <div class="mb-8 flex flex-col justify-start gap-4">
-                    <div class="font-semibold text-error">Please rate the AI translation before reassigning.</div>
-                    <div>
-                        <MachineTranslationRating
-                            {machineTranslationStore}
-                            showingInPrompt={true}
-                            improvementHorizontalPositionPx={0}
-                        />
-                    </div>
-                </div>
-            {/if}
-            <div class="flex flex-col">
-                <UserSelector
-                    users={usersThatCanBeAssigned()}
-                    defaultLabel="Select User"
-                    bind:selectedUserId={assignToUserId}
-                    hideUser={resourceContent?.assignedUser}
-                />
-                <div class="flex w-full flex-row space-x-2 pt-4">
-                    <div class="flex-grow" />
-                    <button
-                        class="btn btn-primary"
-                        on:click={assignUser}
-                        disabled={assignToUserId === null || $isPageTransacting}>Assign</button
-                    >
-                    <button class="btn btn-outline btn-primary" on:click={() => assignUserModal.close()}>Cancel</button>
+    <Modal
+        header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
+        bind:open={isAssignUserModalOpen}
+        primaryButtonText="Assign"
+        primaryButtonOnClick={assignUser}
+        primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
+    >
+        {#if $promptForMachineTranslationRating && currentUserIsAssigned}
+            <div class="mb-8 flex flex-col justify-start gap-4">
+                <div class="font-semibold text-error">Please rate the AI translation before reassigning.</div>
+                <div>
+                    <MachineTranslationRating
+                        {machineTranslationStore}
+                        showingInPrompt={true}
+                        improvementHorizontalPositionPx={0}
+                    />
                 </div>
             </div>
-        </div>
-    </dialog>
+        {/if}
+        <UserSelector
+            users={usersThatCanBeAssigned()}
+            defaultLabel="Select User"
+            bind:selectedUserId={assignToUserId}
+            hideUser={resourceContent?.assignedUser}
+        />
+    </Modal>
 
     <Modal
         header={hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New
