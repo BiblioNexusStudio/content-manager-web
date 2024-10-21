@@ -4,9 +4,9 @@
     import HtmlDiffWorker from '../../../workers/html-differ.ts?worker';
     import CenteredSpinner from '../CenteredSpinner.svelte';
     import { debounce } from '$lib/utils/debounce';
-    import { extensions } from '../tiptap/extensions';
+    import { extensions } from '../tiptap/config';
     import { log } from '$lib/logger';
-    import { Editor } from '@tiptap/core';
+    import { Editor } from 'aquifer-tiptap';
     import type { ScriptDirection } from '$lib/types/base';
     import { scrollPosition, isScrollSyncEnabled, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
 

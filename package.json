@@ -21,19 +21,8 @@
         "@microsoft/applicationinsights-web": "^3.0.2",
         "@sveltejs/kit": "^1.29.1",
         "@tailwindcss/typography": "^0.5.15",
-        "@tiptap/core": "^2.1.12",
-        "@tiptap/extension-character-count": "^2.1.12",
-        "@tiptap/extension-highlight": "^2.1.12",
-        "@tiptap/extension-image": "^2.1.12",
-        "@tiptap/extension-link": "^2.1.12",
-        "@tiptap/extension-subscript": "^2.1.12",
-        "@tiptap/extension-superscript": "^2.1.12",
-        "@tiptap/extension-text-style": "^2.1.12",
-        "@tiptap/extension-underline": "^2.1.12",
-        "@tiptap/html": "^2.1.12",
-        "@tiptap/pm": "^2.1.12",
-        "@tiptap/starter-kit": "^2.1.12",
         "@types/uuid": "^9.0.8",
+        "aquifer-tiptap": "https://github.com/BiblioNexusStudio/aquifer-tiptap#1.0.0",
         "chart.js": "^4.4.0",
         "daisyui": "^4.6.0",
         "htmldiff-ts": "https://github.com/BiblioNexusStudio/htmldiff-ts#1.0.6",
@@ -42,6 +31,9 @@
         "svelte-i18n": "^3.7.0",
         "tailwindcss": "^3.4.13",
         "uuid": "^9.0.1"
+    },
+    "resolutions": {
+        "prosemirror-model": "1.22.3"
     },
     "devDependencies": {
         "@testing-library/jest-dom": "^5.16.5",

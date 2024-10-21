@@ -3,7 +3,7 @@
     import type { ResourceContent, TiptapContentItem } from '$lib/types/resources';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
     import TiptapRenderer from './TiptapRenderer.svelte';
-    import type { Editor } from '@tiptap/core';
+    import type { Editor } from 'aquifer-tiptap';
     import type { CommentStores } from '$lib/stores/comments';
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
