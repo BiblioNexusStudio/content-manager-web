@@ -9,7 +9,9 @@
 
 <a href={document.url} target="_blank" class="overflow flex h-32 w-36 flex-col items-center hover:text-primary">
     <span class="w-16">
-        {#if document.type === HelpDocumentType.HowTo}
+        {#if document.thumbnailUrl}
+            <img src={document.thumbnailUrl} alt={document.title} class="h-full w-full object-contain" />
+        {:else if document.type === HelpDocumentType.HowTo}
             <WrenchScrewdriverSolidIcon />
         {:else if document.type === HelpDocumentType.Release}
             <CalendarCheck />

@@ -12,6 +12,7 @@ export enum OpenedSupplementalSideBar {
     None,
     Comments,
     BibleReferences,
+    VersionStatusHistory,
 }
 
 export interface PassageReference {
@@ -94,7 +95,7 @@ export interface ResourceContent {
     isPublished: boolean;
     isDraft: boolean;
     canPullBackToManagerReview: boolean;
-    resourceContentVersionId: boolean;
+    resourceContentVersionId: number;
     wordCount: number | null;
     snapshots: BasicSnapshot[];
     versions: BasicVersion[];
@@ -155,6 +156,11 @@ export interface Version {
     created: string;
     isPublished: boolean;
     version: number;
+}
+
+export interface VersionStatusHistory {
+    event: string;
+    dateOfEvent: string;
 }
 
 export interface Project {

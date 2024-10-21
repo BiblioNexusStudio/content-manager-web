@@ -138,7 +138,7 @@
     <CenteredSpinnerFullScreen />
 {:then _}
     <div class="flex h-full flex-col space-y-4 overflow-y-hidden px-4">
-        <h1 class="pt-4 text-3xl">Community Reviewer Dashboard</h1>
+        <h1 class="pt-4 text-3xl">Dashboard</h1>
         {#if currentlyReviewingItem}
             <div class="text-lg">
                 <span>You are currently reviewing this item:</span>
