@@ -6,8 +6,8 @@
 
 import { ScriptDirection } from '$lib/types/base';
 import { tinySpace } from '$lib/utils/reference';
-import { Extension } from '@tiptap/core';
-import { EditorState, Plugin, PluginKey } from '@tiptap/pm/state';
+import { Extension } from 'aquifer-tiptap';
+import { type EditorState, Plugin, PluginKey } from '@tiptap/pm/state';
 
 const RTL = '\u0591-\u07FF\uFB1D-\uFDFD\uFE70-\uFEFC';
 const LTR =
@@ -115,11 +115,13 @@ function updateNodeAttributesWithDir(
 
     return modified ? tr : null;
 }
+
 interface TextDirectionOptions {
     types: string[];
     defaultDirection?: ScriptDirection;
 }
-const TextDirection = Extension.create<TextDirectionOptions>({
+
+export default Extension.create<TextDirectionOptions>({
     name: 'textDirection',
 
     addOptions() {
@@ -156,5 +158,3 @@ const TextDirection = Extension.create<TextDirectionOptions>({
         ];
     },
 });
-
-export default TextDirection;

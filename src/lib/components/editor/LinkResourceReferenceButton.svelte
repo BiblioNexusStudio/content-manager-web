@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getMarkAttributes, type Editor } from '@tiptap/core';
+    import { getMarkAttributes, type Editor } from 'aquifer-tiptap';
     import Modal from '../Modal.svelte';
     import Tooltip from '../Tooltip.svelte';
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
@@ -7,10 +7,11 @@
     import Select from '../Select.svelte';
     import CenteredSpinner from '../CenteredSpinner.svelte';
     import { deleteToApi, getFromApi, postToApi } from '$lib/utils/http-service';
-    import { parseResourceReferences } from '../tiptap/resourceReferenceMark';
+    import { parseResourceReferences } from '../tiptap/extensions/resource-reference';
     import { parentResources } from '$lib/stores/parent-resources';
     import MagnifyingGlassIcon from '$lib/icons/MagnifyingGlassIcon.svelte';
     import XSquareIcon from '$lib/icons/XSquareIcon.svelte';
+    import { BibleReference, ResourceReference } from 'aquifer-tiptap';
 
     const isPageTransacting = getIsPageTransactingContext();
 
@@ -48,8 +49,8 @@
 
     $: disabled =
         $isPageTransacting ||
-        getMarkAttributes(editor.state, 'bibleReference')?.verses ||
-        (editor.state.selection.empty && !getMarkAttributes(editor.state, 'resourceReference')?.resourceId);
+        getMarkAttributes(editor.state, BibleReference.name)?.verses ||
+        (editor.state.selection.empty && !getMarkAttributes(editor.state, ResourceReference.name)?.resourceId);
 
     async function removeLink() {
         isTransactingRemove = true;
@@ -61,8 +62,8 @@
             editor
                 .chain()
                 .focus()
-                .extendMarkRange('resourceReference')
-                .unsetMark('resourceReference')
+                .extendMarkRange(ResourceReference.name)
+                .unsetMark(ResourceReference.name)
                 .setTextSelection({ from, to })
                 .run();
 
@@ -89,7 +90,7 @@
                 editor
                     .chain()
                     .focus()
-                    .setMark('resourceReference', {
+                    .setMark(ResourceReference.name, {
                         resourceId: referenceResource.resourceId.toString(),
                         resourceType: prType,
                     })
@@ -121,7 +122,7 @@
     }
 
     async function openModal() {
-        const mark = editor.getAttributes('resourceReference');
+        const mark = editor.getAttributes(ResourceReference.name);
         const prId = parentResourceCodeToId(mark.resourceType);
         if (mark.resourceId && !!prId) {
             existingReference = true;

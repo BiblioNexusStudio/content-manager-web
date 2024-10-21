@@ -3,6 +3,17 @@ export default {
     content: ['./src/**/*.{html,js,svelte,ts}'],
     theme: {
         extend: {
+            typography: {
+                DEFAULT: {
+                    css: {
+                        blockquote: {
+                            fontWeight: 'regular',
+                            fontStyle: 'none',
+                            quotes: 'none',
+                        },
+                    },
+                },
+            },
             screens: {
                 short: { raw: '(max-height: 900px)' },
             },
