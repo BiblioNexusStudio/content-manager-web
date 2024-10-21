@@ -67,7 +67,7 @@
     let isAddTranslationModalOpen = false;
     let isPublishModalOpen = false;
     let isAssignUserModalOpen = false;
-    let aquiferizeModal: HTMLDialogElement;
+    let isAquiferizeModalOpen = false;
 
     let assignToUserId: number | null = null;
     let newTranslationLanguageId: number | null = null;
@@ -287,7 +287,7 @@
 
     function openAquiferizeModal() {
         assignToUserId = null;
-        aquiferizeModal.showModal();
+        isAquiferizeModalOpen = true;
     }
 
     function publishOrOpenModal(status: ResourceContentStatusEnum) {
@@ -894,33 +894,20 @@
         />
     </Modal>
 
-    <dialog bind:this={aquiferizeModal} class="modal">
-        <div class="modal-box">
-            <h3 class="w-full pb-4 text-center text-xl font-bold">
-                {#if isInTranslationWorkflow}
-                    Choose a Translator
-                {:else}
-                    Choose an Editor
-                {/if}
-            </h3>
-            <div class="flex flex-col">
-                <UserSelector
-                    users={usersThatCanBeAssigned()}
-                    defaultLabel="Select User"
-                    bind:selectedUserId={assignToUserId}
-                />
-                <div class="flex w-full flex-row space-x-2 pt-4">
-                    <div class="flex-grow" />
-                    <button
-                        class="btn btn-primary"
-                        on:click={isInTranslationWorkflow || isNewDraftStatus ? assignDraftToEditor : aquiferize}
-                        disabled={assignToUserId === null || $isPageTransacting}>Assign</button
-                    >
-                    <button class="btn btn-outline btn-primary" on:click={() => aquiferizeModal.close()}>Cancel</button>
-                </div>
-            </div>
-        </div>
-    </dialog>
+    <Modal
+        header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
+        bind:open={isAquiferizeModalOpen}
+        primaryButtonText="Assign"
+        primaryButtonOnClick={isInTranslationWorkflow || isNewDraftStatus ? assignDraftToEditor : aquiferize}
+        primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
+    >
+        <UserSelector
+            users={usersThatCanBeAssigned()}
+            defaultLabel="Select User"
+            bind:selectedUserId={assignToUserId}
+            hideUser={resourceContent?.assignedUser}
+        />
+    </Modal>
 
     <Modal
         header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
