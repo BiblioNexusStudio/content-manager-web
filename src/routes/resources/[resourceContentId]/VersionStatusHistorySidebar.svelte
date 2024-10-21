@@ -2,6 +2,7 @@
     import type { VersionStatusHistory } from '$lib/types/resources';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
+    import { formatUtcToLocalTimeAndDate } from '$lib/utils/date-time';
 
     export let resourceContentVersionId: number;
     export let visible: boolean;
@@ -33,18 +34,9 @@
                 {:else}
                     <div class="flex justify-center text-lg font-semibold" dir="auto">History</div>
                     {#each fetched as statusHistory (statusHistory)}
-                        {@const date = new Date(statusHistory.dateOfEvent + 'Z')}
                         <div>
                             <div class="text-gray-500">
-                                {date.toLocaleDateString('en-us', {
-                                    month: 'short',
-                                    day: '2-digit',
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    second: '2-digit',
-                                    hour12: true,
-                                })}
+                                {formatUtcToLocalTimeAndDate(statusHistory.dateOfEvent)}
                             </div>
                             <div class="mt-2 text-gray-500">{statusHistory.event}</div>
                             <hr />
