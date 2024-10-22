@@ -53,7 +53,8 @@
         sort: SortName.User,
     };
 
-    let assignToUserId: number | null = null;
+    let assignToEditorUserId: number | null = null;
+    let assignToReviewerUserId: number | null = null;
     let isAssignContentModalOpen = false;
     let isSendToPublisherModalOpen = false;
     let isErrorModalOpen = false;
@@ -223,7 +224,8 @@
     const assignEditor = async (contentIds: number[]) => {
         if (contentIds.length > 0) {
             await postToApi<null>('/resources/content/assign-editor', {
-                assignedUserId: assignToUserId,
+                assignedUserId: assignToEditorUserId,
+                assignedReviewerUserId: assignToReviewerUserId,
                 contentIds: contentIds,
             });
         }
@@ -502,14 +504,17 @@
     isTransacting={isAssigning}
     primaryButtonText={'Assign'}
     primaryButtonOnClick={() => updateContent(assignEditor)}
-    primaryButtonDisabled={!assignToUserId}
+    primaryButtonDisabled={!assignToEditorUserId}
     bind:open={isAssignContentModalOpen}
-    header={'Choose a user'}
+    header={'Assign Resource(s)'}
 >
+    <h3 class="my-4 text-xl">Editor<span class="text-error">*</span></h3>
+    <UserSelector users={data.users ?? []} defaultLabel="Select Editor" bind:selectedUserId={assignToEditorUserId} />
+    <h3 class="my-4 text-xl">Reviewer</h3>
     <UserSelector
-        users={data.users?.filter((u) => u.role === UserRole.Editor || u.role === UserRole.Manager) ?? []}
-        defaultLabel="Select User"
-        bind:selectedUserId={assignToUserId}
+        users={data.users?.filter((u) => u.role === UserRole.Reviewer || u.role === UserRole.Manager) ?? []}
+        defaultLabel="Select Reviewer"
+        bind:selectedUserId={assignToReviewerUserId}
     />
 </Modal>
 
