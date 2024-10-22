@@ -46,13 +46,11 @@
     }
 
     function getRoles() {
-        const roleOptions = [...(roles || []).map((r) => ({ value: r, label: r }))];
         if (onlyCreateUserInCompany) {
-            role = UserRole.Editor;
-            return roleOptions;
-        } else {
-            return [...[{ value: null, label: 'Select Role' }, ...roleOptions]];
+            roles = [UserRole.Editor, UserRole.Reviewer];
         }
+        const roleOptions = [...(roles || []).map((r) => ({ value: r, label: r }))];
+        return [...[{ value: null, label: 'Select Role' }, ...roleOptions]];
     }
 
     function validateLength(input: string) {
@@ -197,13 +195,7 @@
                 <div class="text-md">
                     Role <span class="text-error">*</span>
                 </div>
-                <Select
-                    disabled={onlyCreateUserInCompany}
-                    class="select select-bordered w-full"
-                    options={getRoles()}
-                    isNumber={false}
-                    bind:value={role}
-                />
+                <Select class="select select-bordered w-full" options={getRoles()} isNumber={false} bind:value={role} />
             </div>
         </div>
         <div class="flex w-full flex-row justify-end pr-4">
