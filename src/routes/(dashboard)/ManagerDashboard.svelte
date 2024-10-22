@@ -509,7 +509,11 @@
     header={'Assign Resource(s)'}
 >
     <h3 class="my-4 text-xl">Editor<span class="text-error">*</span></h3>
-    <UserSelector users={data.users ?? []} defaultLabel="Select Editor" bind:selectedUserId={assignToEditorUserId} />
+    <UserSelector
+        users={data.users?.filter((u) => u.role !== UserRole.ReportViewer) ?? []}
+        defaultLabel="Select Editor"
+        bind:selectedUserId={assignToEditorUserId}
+    />
     <h3 class="my-4 text-xl">Reviewer</h3>
     <UserSelector
         users={data.users?.filter((u) => u.role === UserRole.Reviewer || u.role === UserRole.Manager) ?? []}
