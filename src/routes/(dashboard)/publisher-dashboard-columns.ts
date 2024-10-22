@@ -1,6 +1,6 @@
 import type { column } from '$lib/types/table';
 import { SortName } from './dashboard-table-sorters';
-import type { ResourceAssignedToSelf, ResourcePendingReview, Project } from './+page';
+import type { ResourceAssignedToSelf, ResourcePendingReview, Project, NotApplicableContent } from './+page';
 
 export const assignedContentsColumns: column<ResourceAssignedToSelf>[] = [
     { text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title },
@@ -63,4 +63,11 @@ export const communityPendingContentsColumns: column<ResourcePendingReview>[] = 
         itemKey: 'wordCount',
         sortKey: SortName.WordCount,
     },
+];
+
+export const notApplicableContentsColumns: column<NotApplicableContent>[] = [
+    { text: 'Title', itemKey: 'title', sortKey: undefined },
+    { text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined },
+    { text: 'Language', itemKey: 'language', sortKey: undefined },
+    { text: 'Project', itemKey: 'projectName', sortKey: undefined },
 ];

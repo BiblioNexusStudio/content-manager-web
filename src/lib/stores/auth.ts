@@ -71,6 +71,8 @@ export enum Permission {
     ReadCompanyContentAssignments = 'read:company-content-assignments',
     AiSimplify = 'ai:simplify',
     AiTranslate = 'ai:translate',
+    SetStatusTranslationNotApplicable = 'set-status:translation-not-applicable',
+    SetStatusCompleteNotApplicable = 'set-status:complete-not-applicable',
 }
 
 export async function initAuth0(url: URL) {
