@@ -79,7 +79,7 @@
             <td>
                 <LinkedTableCell {href}
                     >{item[itemKey] ??
-                        (item['statusDisplayName']?.includes('In Progress') ? 'External User' : '')}</LinkedTableCell
+                        (item['statusDisplayName']?.includes('Editor Review') ? 'External User' : '')}</LinkedTableCell
                 >
             </td>
         {:else if href !== undefined && itemKey}

@@ -141,15 +141,15 @@
         isInTranslationWorkflow =
             resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted ||
             resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
-            resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
+            resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
             resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending;
 
         isNewDraftStatus = resourceContent.status === ResourceContentStatusEnum.New && resourceContent.isDraft;
 
         canMakeContentEdits =
             $userCan(Permission.EditContent) &&
-            (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
@@ -170,8 +170,8 @@
 
         canAssign =
             hasResourceAssignmentPermission &&
-            (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizeCompanyReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview);
 
@@ -185,8 +185,8 @@
         canSendForManagerReview =
             $userCan(Permission.AssignContent) &&
             currentUserIsAssigned &&
-            (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationInProgress);
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview);
 
         canPullBackToManagerReview = resourceContent.canPullBackToManagerReview;
 
@@ -250,7 +250,7 @@
 
         canCommunitySendToPublisher =
             $userCan(Permission.SendReviewCommunityContent) &&
-            resourceContent.status === ResourceContentStatusEnum.TranslationInProgress &&
+            resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview &&
             currentUserIsAssigned;
     }
 

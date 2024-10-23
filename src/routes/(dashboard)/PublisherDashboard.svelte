@@ -81,24 +81,24 @@
         selectedCommunityPendingTableItems = [];
     }
 
-    function shouldAssignAsInProgress(status: ResourceContentStatusEnum | null) {
+    function shouldAssignAsEditorReview(status: ResourceContentStatusEnum | null) {
         return (
             status === ResourceContentStatusEnum.New ||
             status === ResourceContentStatusEnum.TranslationNotStarted ||
-            status === ResourceContentStatusEnum.AquiferizeInProgress ||
-            status === ResourceContentStatusEnum.TranslationInProgress
+            status === ResourceContentStatusEnum.AquiferizeEditorReview ||
+            status === ResourceContentStatusEnum.TranslationEditorReview
         );
     }
 
     async function assignContent() {
         let selectedReviewContentIds: number[] = [];
-        let selectedInProgressContentIds: number[] = [];
+        let selectedEditorReviewContentIds: number[] = [];
 
         isTransacting = true;
 
         selectedMyWorkTableItems.forEach((item) => {
-            if (shouldAssignAsInProgress(item.statusValue)) {
-                selectedInProgressContentIds.push(item.id);
+            if (shouldAssignAsEditorReview(item.statusValue)) {
+                selectedEditorReviewContentIds.push(item.id);
             } else {
                 selectedReviewContentIds.push(item.id);
             }
@@ -113,10 +113,10 @@
         });
 
         const inProgessAssignments =
-            selectedInProgressContentIds.length > 0
+            selectedEditorReviewContentIds.length > 0
                 ? postToApi<null>('/resources/content/assign-editor', {
                       assignedUserId: assignToUserId,
-                      contentIds: selectedInProgressContentIds,
+                      contentIds: selectedEditorReviewContentIds,
                   })
                 : Promise.resolve(null);
         const inReviewAssignments =
@@ -427,7 +427,7 @@
                         <td>
                             <ProjectProgressBar
                                 notStartedCount={item?.counts?.notStarted ?? 0}
-                                inProgressCount={item?.counts?.inProgress ?? 0}
+                                editorReviewCount={item?.counts?.editorReview ?? 0}
                                 inCompanyReviewCount={item?.counts?.inCompanyReview ?? 0}
                                 inPublisherReviewCount={item?.counts?.inPublisherReview ?? 0}
                                 completeCount={item?.counts?.completed ?? 0}

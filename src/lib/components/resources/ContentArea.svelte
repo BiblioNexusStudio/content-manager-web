@@ -80,7 +80,7 @@
             <div class="text-md flex">
                 Assigned: {resourceContent.assignedUser.name}
             </div>
-        {:else if resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress || resourceContent.status === ResourceContentStatusEnum.TranslationInProgress}
+        {:else if resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview || resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview}
             <div class="text-md flex">Assigned: External User</div>
         {/if}
         <div class="flex">

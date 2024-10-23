@@ -171,7 +171,7 @@
                         <ProjectProgressBar
                             class="!w-16"
                             notStartedCount={item.notStartedItemCount}
-                            inProgressCount={item.inProgressItemCount}
+                            editorReviewCount={item.editorReviewItemCount}
                             inCompanyReviewCount={item.inCompanyReviewItemCount}
                             inPublisherReviewCount={item.inPublisherReviewItemCount}
                             completeCount={item.completedItemCount}
