@@ -917,7 +917,6 @@
             users={usersThatCanBeAssigned()}
             defaultLabel="Select User"
             bind:selectedUserId={assignToUserId}
-            hideUser={resourceContent?.assignedUser}
         />
     </Modal>
 
