@@ -26,8 +26,8 @@ export enum ResourceContentStatusEnum {
     TranslationReviewPending = 'TranslationReviewPending',
     TranslationPublisherReview = 'TranslationPublisherReview',
     OnHold = 'OnHold',
-    AquiferizeManagerReview = 'AquiferizeManagerReview',
-    TranslationManagerReview = 'TranslationManagerReview',
+    AquiferizeCompanyReview = 'AquiferizeCompanyReview',
+    TranslationCompanyReview = 'TranslationCompanyReview',
 }
 
 export const companiesToIgnore = ['BiblioNexus', 'Temp - Deleted Users', 'N/A'];
@@ -44,8 +44,8 @@ export const statusColorMap: Record<ResourceContentStatusEnum, string> = {
     [ResourceContentStatusEnum.TranslationReviewPending]: '#f79008',
     [ResourceContentStatusEnum.TranslationPublisherReview]: '#6172f3',
     [ResourceContentStatusEnum.OnHold]: '#6e7580',
-    [ResourceContentStatusEnum.AquiferizeManagerReview]: '#6172f3',
-    [ResourceContentStatusEnum.TranslationManagerReview]: '#6172f3',
+    [ResourceContentStatusEnum.AquiferizeCompanyReview]: '#6172f3',
+    [ResourceContentStatusEnum.TranslationCompanyReview]: '#6172f3',
 };
 
 export enum ScriptDirection {

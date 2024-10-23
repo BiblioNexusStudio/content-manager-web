@@ -153,8 +153,8 @@
                 resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
-                resourceContent.status === ResourceContentStatusEnum.AquiferizeManagerReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationManagerReview) &&
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeCompanyReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview) &&
             currentUserIsAssigned;
 
         const hasResourceAssignmentPermission =
@@ -172,8 +172,8 @@
             hasResourceAssignmentPermission &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
-                resourceContent.status === ResourceContentStatusEnum.AquiferizeManagerReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationManagerReview);
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeCompanyReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview);
 
         canSendBack =
             $userCan(Permission.AssignContent) &&
@@ -193,8 +193,8 @@
         canSendForPublisherReview =
             $userCan(Permission.SendReviewContent) &&
             currentUserIsAssigned &&
-            (resourceContent.status === ResourceContentStatusEnum.AquiferizeManagerReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationManagerReview);
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeCompanyReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview);
 
         canAssignPublisherForReview =
             $userCan(Permission.ReviewContent) &&

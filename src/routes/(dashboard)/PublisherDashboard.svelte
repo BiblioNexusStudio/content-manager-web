@@ -428,7 +428,7 @@
                             <ProjectProgressBar
                                 notStartedCount={item?.counts?.notStarted ?? 0}
                                 inProgressCount={item?.counts?.inProgress ?? 0}
-                                inManagerReviewCount={item?.counts?.inManagerReview ?? 0}
+                                inCompanyReviewCount={item?.counts?.inCompanyReview ?? 0}
                                 inPublisherReviewCount={item?.counts?.inPublisherReview ?? 0}
                                 completeCount={item?.counts?.completed ?? 0}
                                 showLegend={false}

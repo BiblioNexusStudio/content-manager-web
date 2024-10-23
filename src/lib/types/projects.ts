@@ -27,7 +27,7 @@ export interface ActiveProjectsPerCompanyResponse {
     wordCount: number;
     notStartedItemCount: number;
     inProgressItemCount: number;
-    inManagerReviewItemCount: number;
+    inCompanyReviewItemCount: number;
     inPublisherReviewItemCount: number;
     completedItemCount: number;
 }
@@ -57,7 +57,7 @@ export interface CompanyCompletedItemsPerMonthResponse {
 export interface ProjectResourceStatusCounts {
     notStarted: number;
     inProgress: number;
-    inManagerReview: number;
+    inCompanyReview: number;
     inPublisherReview: number;
     completed: number;
 }

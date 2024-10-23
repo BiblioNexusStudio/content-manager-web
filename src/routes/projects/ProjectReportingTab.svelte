@@ -172,7 +172,7 @@
                             class="!w-16"
                             notStartedCount={item.notStartedItemCount}
                             inProgressCount={item.inProgressItemCount}
-                            inManagerReviewCount={item.inManagerReviewItemCount}
+                            inCompanyReviewCount={item.inCompanyReviewItemCount}
                             inPublisherReviewCount={item.inPublisherReviewItemCount}
                             completeCount={item.completedItemCount}
                             showLegend={false}
