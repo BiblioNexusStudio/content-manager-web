@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { type Editor, getMarkAttributes } from '@tiptap/core';
+    import { type Editor, getMarkAttributes } from 'aquifer-tiptap';
     import AiTranslateToolbarButton from '$lib/components/editor/AiTranslateToolbarButton.svelte';
     import BoldIcon from '$lib/icons/BoldIcon.svelte';
     import ItalicsIcon from '$lib/icons/ItalicsIcon.svelte';

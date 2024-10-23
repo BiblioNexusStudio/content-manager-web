@@ -64,13 +64,11 @@
     let commentThreads: Writable<CommentThreadsResponse | null>;
     let removeAllInlineThreads: Readable<() => void>;
 
-    let errorModal: HTMLDialogElement;
-    let errorModalMessage = 'An error occurred while saving. Please try again.';
-    let autoSaveErrorModal: HTMLDialogElement;
-    let aquiferizeModal: HTMLDialogElement;
-    let assignUserModal: HTMLDialogElement;
-    let publishModal: HTMLDialogElement;
-    let addTranslationModal: HTMLDialogElement;
+    let errorModalMessage: string | undefined = undefined;
+    let isAddTranslationModalOpen = false;
+    let isPublishModalOpen = false;
+    let isAssignUserModalOpen = false;
+    let isAquiferizeModalOpen = false;
 
     let assignToUserId: number | null = null;
     let newTranslationLanguageId: number | null = null;
@@ -286,7 +284,8 @@
             if ($isAuthenticatedStore) {
                 cancel();
                 if (!(await save(true))) {
-                    autoSaveErrorModal.showModal();
+                    errorModalMessage =
+                        'You have unsaved edits that could not be saved. Please ensure they save before navigating away.';
                 } else {
                     to?.url && (await goto(to.url));
                 }
@@ -304,14 +303,14 @@
 
     function openAquiferizeModal() {
         assignToUserId = null;
-        aquiferizeModal.showModal();
+        isAquiferizeModalOpen = true;
     }
 
     function publishOrOpenModal(status: ResourceContentStatusEnum) {
         assignToUserId = null;
         createDraft = false;
         if (status === ResourceContentStatusEnum.New || hasUnresolvedThreads) {
-            publishModal.showModal();
+            isPublishModalOpen = true;
         } else {
             publish();
         }
@@ -319,7 +318,7 @@
 
     function openAssignUserModal() {
         assignToUserId = null;
-        assignUserModal.showModal();
+        isAssignUserModalOpen = true;
     }
 
     function openAssignReviewModal() {
@@ -330,7 +329,7 @@
     function openAddTranslationModal() {
         createTranslationFromDraft = false;
         newTranslationLanguageId = null;
-        addTranslationModal.showModal();
+        isAddTranslationModalOpen = true;
     }
 
     async function callNextUpApi(resourceContentId: string) {
@@ -368,16 +367,14 @@
             await callback(response);
             $isPageTransacting = false;
         } catch (error) {
+            $isPageTransacting = false;
             if (isApiErrorWithMessage(error, 'User can only create one translation at a time')) {
                 errorModalMessage = 'You can only create one translation at a time.';
                 canCommunityTranslate = false;
             } else {
                 errorModalMessage = 'An error occurred while saving. Please try again.';
+                throw error;
             }
-
-            errorModal.showModal();
-            $isPageTransacting = false;
-            throw error;
         }
     }
 
@@ -967,170 +964,108 @@
         />
     </Modal>
 
-    <dialog bind:this={aquiferizeModal} class="modal">
-        <div class="modal-box">
-            <h3 class="w-full pb-4 text-center text-xl font-bold">
-                {#if isInTranslationWorkflow}
-                    Choose a Translator
-                {:else}
-                    Choose an Editor
-                {/if}
-            </h3>
-            <div class="flex flex-col">
-                <UserSelector
-                    users={usersThatCanBeAssigned()}
-                    defaultLabel="Select User"
-                    bind:selectedUserId={assignToUserId}
-                />
-                <div class="flex w-full flex-row space-x-2 pt-4">
-                    <div class="flex-grow" />
-                    <button
-                        class="btn btn-primary"
-                        on:click={isInTranslationWorkflow || isNewDraftStatus ? assignDraftToEditor : aquiferize}
-                        disabled={assignToUserId === null || $isPageTransacting}>Assign</button
-                    >
-                    <button class="btn btn-outline btn-primary" on:click={() => aquiferizeModal.close()}>Cancel</button>
+    <Modal
+        header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
+        bind:open={isAquiferizeModalOpen}
+        primaryButtonText="Assign"
+        primaryButtonOnClick={isInTranslationWorkflow || isNewDraftStatus ? assignDraftToEditor : aquiferize}
+        primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
+    >
+        <UserSelector
+            users={usersThatCanBeAssigned()}
+            defaultLabel="Select User"
+            bind:selectedUserId={assignToUserId}
+        />
+    </Modal>
+
+    <Modal
+        header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
+        bind:open={isAssignUserModalOpen}
+        primaryButtonText="Assign"
+        primaryButtonOnClick={assignUser}
+        primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
+    >
+        {#if $promptForMachineTranslationRating && currentUserIsAssigned}
+            <div class="mb-8 flex flex-col justify-start gap-4">
+                <div class="font-semibold text-error">Please rate the AI translation before reassigning.</div>
+                <div>
+                    <MachineTranslationRating
+                        {machineTranslationStore}
+                        showingInPrompt={true}
+                        improvementHorizontalPositionPx={0}
+                    />
                 </div>
             </div>
-        </div>
-    </dialog>
+        {/if}
+        <UserSelector
+            users={usersThatCanBeAssigned()}
+            defaultLabel="Select User"
+            bind:selectedUserId={assignToUserId}
+            hideUser={resourceContent?.assignedUser}
+        />
+    </Modal>
 
-    <dialog bind:this={assignUserModal} class="modal">
-        <div class="modal-box">
-            <h3 class="w-full pb-4 text-center text-xl font-bold">
-                {#if isInTranslationWorkflow}
-                    Choose a Translator
-                {:else}
-                    Choose an Editor
-                {/if}
-            </h3>
-            {#if $promptForMachineTranslationRating && currentUserIsAssigned}
-                <div class="mb-8 flex flex-col justify-start gap-4">
-                    <div class="font-semibold text-error">Please rate the AI translation before reassigning.</div>
-                    <div>
-                        <MachineTranslationRating
-                            {machineTranslationStore}
-                            showingInPrompt={true}
-                            improvementHorizontalPositionPx={0}
+    <Modal
+        header={hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New
+            ? 'Confirm Publish'
+            : 'Choose Publish Option'}
+        bind:open={isPublishModalOpen}
+        primaryButtonText="Publish"
+        primaryButtonOnClick={publish}
+        primaryButtonDisabled={$isPageTransacting}
+    >
+        {#if hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New}
+            <p class="py-4 text-lg text-warning">This resource has unresolved comments.</p>
+        {/if}
+        {#if resourceContent?.status === ResourceContentStatusEnum.New}
+            <div class="form-control">
+                <label class="label cursor-pointer justify-start space-x-2">
+                    <input type="checkbox" bind:checked={createDraft} class="checkbox" />
+                    <span class="label-text">Aquiferization Needed</span>
+                </label>
+            </div>
+            <!-- svelte-ignore a11y-label-has-associated-control -->
+            <label class="form-control">
+                <div class="label">
+                    <span class="label-text">Aquiferization Assignment (optional)</span>
+                </div>
+                <UserSelector
+                    users={usersThatCanBeAssigned()}
+                    defaultLabel="Unassigned"
+                    disabled={!createDraft}
+                    bind:selectedUserId={assignToUserId}
+                />
+            </label>
+        {/if}
+    </Modal>
+
+    <Modal
+        header="Create Translation"
+        bind:open={isAddTranslationModalOpen}
+        primaryButtonText="Create"
+        primaryButtonOnClick={createTranslation}
+        primaryButtonDisabled={newTranslationLanguageId === null || $isPageTransacting}
+    >
+        <TranslationSelector
+            allLanguages={data.languages}
+            existingTranslations={resourceContent?.contentTranslations ?? []}
+            bind:selectedLanguageId={newTranslationLanguageId}
+        />
+        <div slot="additional-buttons">
+            {#if englishContentTranslation?.hasDraft}
+                <div>
+                    <label class="label cursor-pointer">
+                        <input
+                            type="checkbox"
+                            class="checkbox-primary checkbox me-2"
+                            bind:checked={createTranslationFromDraft}
                         />
-                    </div>
+                        <span class="label-text">Create from Draft</span>
+                    </label>
                 </div>
             {/if}
-            <div class="flex flex-col">
-                <UserSelector
-                    users={usersThatCanBeAssigned()}
-                    defaultLabel="Select User"
-                    bind:selectedUserId={assignToUserId}
-                    hideUser={resourceContent?.assignedUser}
-                />
-                <div class="flex w-full flex-row space-x-2 pt-4">
-                    <div class="flex-grow" />
-                    <button
-                        class="btn btn-primary"
-                        on:click={assignUser}
-                        disabled={assignToUserId === null || $isPageTransacting}>Assign</button
-                    >
-                    <button class="btn btn-outline btn-primary" on:click={() => assignUserModal.close()}>Cancel</button>
-                </div>
-            </div>
         </div>
-    </dialog>
+    </Modal>
 
-    <dialog bind:this={publishModal} class="modal">
-        <div class="modal-box">
-            <h3 class="w-full pb-4 text-center text-xl font-bold">
-                {hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New
-                    ? 'Confirm Publish'
-                    : 'Choose Publish Option'}
-            </h3>
-            <div class="flex flex-col">
-                {#if hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New}
-                    <p class="py-4 text-lg text-warning">This resource has unresolved comments.</p>
-                {/if}
-                {#if resourceContent?.status === ResourceContentStatusEnum.New}
-                    <div class="form-control">
-                        <label class="label cursor-pointer justify-start space-x-2">
-                            <input type="checkbox" bind:checked={createDraft} class="checkbox" />
-                            <span class="label-text">Aquiferization Needed</span>
-                        </label>
-                    </div>
-                    <!-- svelte-ignore a11y-label-has-associated-control -->
-                    <label class="form-control">
-                        <div class="label">
-                            <span class="label-text">Aquiferization Assignment (optional)</span>
-                        </div>
-                        <UserSelector
-                            users={usersThatCanBeAssigned()}
-                            defaultLabel="Unassigned"
-                            disabled={!createDraft}
-                            bind:selectedUserId={assignToUserId}
-                        />
-                    </label>
-                {/if}
-                <div class="flex w-full flex-row space-x-2 pt-4">
-                    <div class="flex-grow" />
-                    <button class="btn btn-primary" on:click={publish} disabled={$isPageTransacting}>Publish</button>
-                    <button class="btn btn-outline btn-primary" on:click={() => publishModal.close()}>Cancel</button>
-                </div>
-            </div>
-        </div>
-    </dialog>
-
-    <dialog bind:this={addTranslationModal} class="modal">
-        <div class="modal-box">
-            <h3 class="w-full pb-4 text-center text-xl font-bold">Create translation</h3>
-            <div class="flex flex-col">
-                <TranslationSelector
-                    allLanguages={data.languages}
-                    existingTranslations={resourceContent?.contentTranslations ?? []}
-                    bind:selectedLanguageId={newTranslationLanguageId}
-                />
-                <div class="flex w-full flex-row space-x-2 pt-4">
-                    {#if englishContentTranslation?.hasDraft}
-                        <div>
-                            <label class="label cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    class="checkbox-primary checkbox me-2"
-                                    bind:checked={createTranslationFromDraft}
-                                />
-                                <span class="label-text">Create from Draft</span>
-                            </label>
-                        </div>
-                    {/if}
-                    <div class="flex-grow" />
-                    <button
-                        class="btn btn-primary"
-                        on:click={createTranslation}
-                        disabled={newTranslationLanguageId === null || $isPageTransacting}>Create</button
-                    >
-                    <button class="btn btn-outline btn-primary" on:click={() => addTranslationModal.close()}
-                        >Cancel</button
-                    >
-                </div>
-            </div>
-        </div>
-    </dialog>
-
-    <dialog bind:this={errorModal} class="modal">
-        <div class="modal-box bg-error">
-            <form method="dialog">
-                <button class="btn btn-circle btn-ghost btn-sm absolute right-2 top-2">✕</button>
-            </form>
-            <h3 class="text-xl font-bold">Error</h3>
-            <p class="py-4 text-lg font-medium">{errorModalMessage}</p>
-        </div>
-    </dialog>
-
-    <dialog bind:this={autoSaveErrorModal} class="modal">
-        <div class="modal-box bg-error">
-            <form method="dialog">
-                <button class="btn btn-circle btn-ghost btn-sm absolute right-2 top-2">✕</button>
-            </form>
-            <h3 class="text-xl font-bold">Error</h3>
-            <p class="py-4 text-lg font-medium">
-                You have unsaved edits that could not be saved. Please ensure they save before navigating away.
-            </p>
-        </div>
-    </dialog>
+    <Modal header="Error" isError={true} bind:description={errorModalMessage} />
 {/key}

@@ -1,8 +1,8 @@
 ﻿<script lang="ts">
     import { onMount, onDestroy } from 'svelte';
-    import { Editor } from '@tiptap/core';
+    import { Editor } from 'aquifer-tiptap';
     import type { TiptapContentItem } from '$lib/types/resources';
-    import { extensions } from '../tiptap/extensions';
+    import { extensions } from '../tiptap/config';
     import type { CommentStores } from '$lib/stores/comments';
     import type { ScriptDirection } from '$lib/types/base';
     import { scrollPosition, isScrollSyncEnabled, scrollSyncSourceDiv } from '$lib/stores/scrollSync';

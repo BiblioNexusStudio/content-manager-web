@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Editor } from '@tiptap/core';
+    import type { Editor } from 'aquifer-tiptap';
     import { postToApi, rawPostToApi } from '$lib/utils/http-service';
     import type { MachineTranslation, ResourceContent } from '$lib/types/resources';
     import TranslateIcon from '$lib/icons/TranslateIcon.svelte';
@@ -10,8 +10,8 @@
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
     import Modal from '$lib/components/Modal.svelte';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
-    import { generateHTML } from '@tiptap/html';
-    import { extensions } from '../tiptap/extensions';
+    import { generateHTML } from 'aquifer-tiptap';
+    import { extensions } from '../tiptap/config';
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
     import { streamAiContent } from '$lib/utils/ai-streaming-content';
     import { getFromApi } from '$lib/utils/http-service';

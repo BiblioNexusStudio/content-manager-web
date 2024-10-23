@@ -77,6 +77,7 @@ export enum UserRole {
     Admin = 'Admin',
     ReportViewer = 'ReportViewer',
     CommunityReviewer = 'CommunityReviewer',
+    Reviewer = 'Reviewer',
 }
 
 export interface User extends BasicUser {

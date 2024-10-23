@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getMarkAttributes, type Editor } from '@tiptap/core';
+    import { getMarkAttributes, type Editor } from 'aquifer-tiptap';
     import Modal from '../Modal.svelte';
     import Tooltip from '../Tooltip.svelte';
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
@@ -10,8 +10,9 @@
     import type { BibleBook } from '$lib/types/base';
     import { onMount } from 'svelte';
     import { deleteToApi, postToApi, getFromApi } from '$lib/utils/http-service';
-    import { parseBibleReferences } from '../tiptap/bibleReferenceMark';
+    import { parseBibleReferences } from '../tiptap/extensions/bible-reference';
     import type { ResourceContent } from '$lib/types/resources';
+    import { BibleReference, ResourceReference } from 'aquifer-tiptap';
 
     const isPageTransacting = getIsPageTransactingContext();
     let bibleBooksPromise: Promise<BibleBook[] | null> | null = null;
@@ -52,8 +53,8 @@
 
     $: disabled =
         $isPageTransacting ||
-        getMarkAttributes(editor.state, 'resourceReference')?.resourceId ||
-        (editor.state.selection.empty && !getMarkAttributes(editor.state, 'bibleReference')?.verses);
+        getMarkAttributes(editor.state, ResourceReference.name)?.resourceId ||
+        (editor.state.selection.empty && !getMarkAttributes(editor.state, BibleReference.name)?.verses);
 
     $: selectedBook = bibleBooks?.find((b) => b.number === bookId);
     $: selectedStartChapter = selectedBook?.chapters.find((c) => c.number === startChapter);
@@ -71,7 +72,7 @@
         isTransactingRemove = true;
         isError = false;
         try {
-            const currentMark = editor.getAttributes('bibleReference');
+            const currentMark = editor.getAttributes(BibleReference.name);
             if (updateAssociation) {
                 await deleteIfOnlyOneReference(currentMark);
             }
@@ -80,8 +81,8 @@
             editor
                 .chain()
                 .focus()
-                .extendMarkRange('bibleReference')
-                .unsetMark('bibleReference')
+                .extendMarkRange(BibleReference.name)
+                .unsetMark(BibleReference.name)
                 .setTextSelection({ from, to })
                 .run();
 
@@ -103,7 +104,7 @@
                     ? generateVerseId({ bookId, chapter: endChapter, verse: endVerse })
                     : startVerseId;
 
-                const currentMark = editor.getAttributes('bibleReference');
+                const currentMark = editor.getAttributes(BibleReference.name);
 
                 if (currentMark.verses) {
                     if (updateAssociation) {
@@ -117,8 +118,8 @@
                     editor
                         .chain()
                         .focus()
-                        .extendMarkRange('bibleReference')
-                        .updateAttributes('bibleReference', {
+                        .extendMarkRange(BibleReference.name)
+                        .updateAttributes(BibleReference.name, {
                             verses: [
                                 {
                                     startVerse: startVerseId,
@@ -136,7 +137,7 @@
                     editor
                         .chain()
                         .focus()
-                        .setMark('bibleReference', {
+                        .setMark(BibleReference.name, {
                             verses: [
                                 {
                                     startVerse: startVerseId,
@@ -195,7 +196,7 @@
     }
 
     function openModal() {
-        const mark = editor.getAttributes('bibleReference');
+        const mark = editor.getAttributes(BibleReference.name);
         if (mark.verses) {
             existingReference = true;
             const { startVerse: startVerseId, endVerse: endVerseId } = mark.verses[0];

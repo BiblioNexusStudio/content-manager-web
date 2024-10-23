@@ -53,7 +53,8 @@
         sort: SortName.User,
     };
 
-    let assignToUserId: number | null = null;
+    let assignToEditorUserId: number | null = null;
+    let assignToReviewerUserId: number | null = null;
     let isAssignContentModalOpen = false;
     let isSendToPublisherModalOpen = false;
     let isErrorModalOpen = false;
@@ -223,7 +224,8 @@
     const assignEditor = async (contentIds: number[]) => {
         if (contentIds.length > 0) {
             await postToApi<null>('/resources/content/assign-editor', {
-                assignedUserId: assignToUserId,
+                assignedUserId: assignToEditorUserId,
+                assignedReviewerUserId: assignToReviewerUserId,
                 contentIds: contentIds,
             });
         }
@@ -457,41 +459,54 @@
                 {/if}
             </div>
         {:else if $searchParams.tab === Tab.manage}
-            <Table
-                bind:this={table}
-                class="my-4"
-                enableSelectAll={true}
-                columns={manageContentsColumns}
-                items={sortAndFilterManageData(currentManageContents, $searchParams)}
-                idColumn="id"
-                bind:searchParams={$searchParams}
-                bind:selectedItems={selectedManageContents}
-                itemUrlPrefix="/resources/"
-                noItemsText={$searchParams.assignedUserId === 0
-                    ? 'Your work is all done!'
-                    : 'Nothing assigned to this user.'}
-                searchable={true}
-                bind:searchText={search}
-                let:item
-                let:href
-                let:itemKey
-            >
-                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                {:else if itemKey === 'assignedUser' && item[itemKey] !== null && item[itemKey]?.name !== null}
-                    <LinkedTableCell {href}>{item[itemKey]?.name}</LinkedTableCell>
-                {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
-                    <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
-                        >{item[itemKey] ?? ''}</LinkedTableCell
-                    >
-                {:else if itemKey === 'lastAssignedUser'}
-                    <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+            <div class="flex h-full flex-[2] grow flex-col gap-4 overflow-y-hidden xl:flex-row">
+                <Table
+                    bind:this={table}
+                    class="my-4 max-h-[31.25rem] xl:grow"
+                    enableSelectAll={true}
+                    columns={manageContentsColumns}
+                    items={sortAndFilterManageData(currentManageContents, $searchParams)}
+                    idColumn="id"
+                    bind:searchParams={$searchParams}
+                    bind:selectedItems={selectedManageContents}
+                    itemUrlPrefix="/resources/"
+                    noItemsText={$searchParams.assignedUserId === 0
+                        ? 'Your work is all done!'
+                        : 'Nothing assigned to this user.'}
+                    searchable={true}
+                    bind:searchText={search}
+                    let:item
+                    let:href
+                    let:itemKey
+                >
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'assignedUser' && item[itemKey] !== null && item[itemKey]?.name !== null}
+                        <LinkedTableCell {href}>{item[itemKey]?.name}</LinkedTableCell>
+                    {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                        <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                            >{item[itemKey] ?? ''}</LinkedTableCell
+                        >
+                    {:else if itemKey === 'lastAssignedUser'}
+                        <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                </Table>
+                {#if userWordCounts.length > 0}
+                    <Table
+                        bind:this={userWordCountTable}
+                        class="my-4 w-full xl:max-w-[275px]"
+                        columns={userWordCountColumns}
+                        items={sortUserWordCountData(userWordCounts, userWordCountParams.sort)}
+                        idColumn="userId"
+                        noItemsText="No Users Found."
+                        bind:searchParams={userWordCountParams}
+                    ></Table>
                 {/if}
-            </Table>
+            </div>
         {/if}
     </div>
 {:catch error}
@@ -502,14 +517,21 @@
     isTransacting={isAssigning}
     primaryButtonText={'Assign'}
     primaryButtonOnClick={() => updateContent(assignEditor)}
-    primaryButtonDisabled={!assignToUserId}
+    primaryButtonDisabled={!assignToEditorUserId}
     bind:open={isAssignContentModalOpen}
-    header={'Choose a user'}
+    header={'Assign Resource(s)'}
 >
+    <h3 class="my-4 text-xl">Editor<span class="text-error">*</span></h3>
     <UserSelector
-        users={data.users?.filter((u) => u.role === UserRole.Editor || u.role === UserRole.Manager) ?? []}
-        defaultLabel="Select User"
-        bind:selectedUserId={assignToUserId}
+        users={data.users?.filter((u) => u.role !== UserRole.ReportViewer) ?? []}
+        defaultLabel="Select Editor"
+        bind:selectedUserId={assignToEditorUserId}
+    />
+    <h3 class="my-4 text-xl">Reviewer</h3>
+    <UserSelector
+        users={data.users?.filter((u) => u.role === UserRole.Reviewer || u.role === UserRole.Manager) ?? []}
+        defaultLabel="Select Reviewer"
+        bind:selectedUserId={assignToReviewerUserId}
     />
 </Modal>
 

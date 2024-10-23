@@ -11,7 +11,7 @@ export const load: PageLoad = async ({ parent, fetch }) => {
     if (get(userCan)(Permission.CreateUser) || get(userCan)(Permission.CreateUserInCompany)) {
         const userData = getFromApiWithoutBlocking<User[]>(`/users`, fetch);
         const companies = getFromApiWithoutBlocking<Company[]>(`/companies`, fetch);
-        const roles = [UserRole.Editor, UserRole.Manager, UserRole.ReportViewer];
+        const roles = [UserRole.Editor, UserRole.Manager, UserRole.ReportViewer, UserRole.Reviewer];
         return {
             userData,
             companies,

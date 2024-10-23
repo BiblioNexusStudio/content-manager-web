@@ -1,5 +1,5 @@
 ﻿import type { BasicUser } from '$lib/types/base';
-import type { Editor } from '@tiptap/core';
+import type { Editor } from 'aquifer-tiptap';
 
 export interface CommentThreadsResponse {
     threadTypeId: number;
