@@ -84,7 +84,7 @@
     function shouldAssignAsEditorReview(status: ResourceContentStatusEnum | null) {
         return (
             status === ResourceContentStatusEnum.New ||
-            status === ResourceContentStatusEnum.TranslationNotStarted ||
+            status === ResourceContentStatusEnum.TranslationAwaitingAiDraft ||
             status === ResourceContentStatusEnum.AquiferizeEditorReview ||
             status === ResourceContentStatusEnum.TranslationEditorReview
         );
@@ -426,7 +426,7 @@
                     {#if columnText === 'Progress'}
                         <td>
                             <ProjectProgressBar
-                                notStartedCount={item?.counts?.notStarted ?? 0}
+                                awaitingAiDraftCount={item?.counts?.awaitingAiDraft ?? 0}
                                 editorReviewCount={item?.counts?.editorReview ?? 0}
                                 inCompanyReviewCount={item?.counts?.inCompanyReview ?? 0}
                                 inPublisherReviewCount={item?.counts?.inPublisherReview ?? 0}

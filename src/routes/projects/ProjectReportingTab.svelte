@@ -170,7 +170,7 @@
                     <td>
                         <ProjectProgressBar
                             class="!w-16"
-                            notStartedCount={item.notStartedItemCount}
+                            awaitingAiDraftCount={item.awaitingAiDraftItemCount}
                             editorReviewCount={item.editorReviewItemCount}
                             inCompanyReviewCount={item.inCompanyReviewItemCount}
                             inPublisherReviewCount={item.inPublisherReviewItemCount}

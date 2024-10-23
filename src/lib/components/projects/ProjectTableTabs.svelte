@@ -4,7 +4,7 @@
 
     export let activeCount;
     export let recentlyFinishedCount;
-    export let notStartedCount;
+    export let awaitingAiDraftCount;
     export let currentTab: ProjectStatusTab;
 
     let tabs = $userCan(Permission.ReadProjects)
@@ -15,7 +15,7 @@
                   count: recentlyFinishedCount,
                   value: ProjectStatusTab.recentlyFinished,
               },
-              { name: 'Not Started', count: notStartedCount, value: ProjectStatusTab.notStarted },
+              { name: 'Awaiting AI Draft', count: awaitingAiDraftCount, value: ProjectStatusTab.awaitingAiDraft },
               { name: 'Reporting', count: null, value: ProjectStatusTab.reporting },
           ]
         : [

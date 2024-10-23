@@ -139,7 +139,7 @@
             resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview;
 
         isInTranslationWorkflow =
-            resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted ||
+            resourceContent.status === ResourceContentStatusEnum.TranslationAwaitingAiDraft ||
             resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
             resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
             resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending;
@@ -166,7 +166,7 @@
             hasResourceAssignmentPermission &&
             (resourceContent.status === ResourceContentStatusEnum.New ||
                 resourceContent.status === ResourceContentStatusEnum.Complete ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted);
+                resourceContent.status === ResourceContentStatusEnum.TranslationAwaitingAiDraft);
 
         canAssign =
             hasResourceAssignmentPermission &&

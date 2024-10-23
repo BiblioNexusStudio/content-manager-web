@@ -18,7 +18,7 @@
     export let currentTab: ProjectStatusTab;
     export let activeProjects: ProjectListResponse[];
     export let recentlyFinishedProjects: ProjectListResponse[];
-    export let notStartedProjects: ProjectListResponse[];
+    export let awaitingAiDraftProjects: ProjectListResponse[];
 
     let filterByCompany: string | null = null;
     let filterByLanguage: string | null = null;
@@ -31,7 +31,7 @@
     $: listData = handleListData(
         activeProjects,
         recentlyFinishedProjects,
-        notStartedProjects,
+        awaitingAiDraftProjects,
         projectSearchValue,
         currentTab,
         filterByCompany,
@@ -41,7 +41,7 @@
     function handleListData(
         activeProjects: ProjectListResponse[],
         recentlyFinishedProjects: ProjectListResponse[],
-        notStartedProjects: ProjectListResponse[],
+        awaitingAiDraftProjects: ProjectListResponse[],
         projectSearchValue: string,
         currentTab: ProjectStatusTab,
         filterByCompany: string | null,
@@ -58,8 +58,8 @@
             case ProjectStatusTab.recentlyFinished:
                 listDataOutput = recentlyFinishedProjects;
                 break;
-            case ProjectStatusTab.notStarted:
-                listDataOutput = notStartedProjects;
+            case ProjectStatusTab.awaitingAiDraft:
+                listDataOutput = awaitingAiDraftProjects;
                 break;
         }
 
@@ -88,7 +88,7 @@
 
     function isProjectClosed(project: ProjectListResponse) {
         return (
-            project.counts.notStarted +
+            project.counts.awaitingAiDraft +
                 project.counts.editorReview +
                 project.counts.inCompanyReview +
                 project.counts.inPublisherReview ===
@@ -143,7 +143,7 @@
         {#if columnText === 'Progress'}
             <td>
                 <ProjectProgressBar
-                    notStartedCount={item.counts.notStarted}
+                    awaitingAiDraftCount={item.counts.awaitingAiDraft}
                     editorReviewCount={item.counts.editorReview}
                     inCompanyReviewCount={item.counts.inCompanyReview}
                     inPublisherReviewCount={item.counts.inPublisherReview}

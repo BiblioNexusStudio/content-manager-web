@@ -25,7 +25,7 @@ export interface ActiveProjectsPerCompanyResponse {
     itemCount: number;
     largeItemCount: number;
     wordCount: number;
-    notStartedItemCount: number;
+    awaitingAiDraftItemCount: number;
     editorReviewItemCount: number;
     inCompanyReviewItemCount: number;
     inPublisherReviewItemCount: number;
@@ -55,7 +55,7 @@ export interface CompanyCompletedItemsPerMonthResponse {
 }
 
 export interface ProjectResourceStatusCounts {
-    notStarted: number;
+    awaitingAiDraft: number;
     editorReview: number;
     inCompanyReview: number;
     inPublisherReview: number;
@@ -99,6 +99,6 @@ export enum ProjectConstants {
 export enum ProjectStatusTab {
     active = 'active',
     recentlyFinished = 'recently-finished',
-    notStarted = 'not-started',
+    awaitingAiDraft = 'awaiting-ai-draft',
     reporting = 'reporting',
 }
