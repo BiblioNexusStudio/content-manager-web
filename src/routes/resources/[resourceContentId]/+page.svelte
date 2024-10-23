@@ -180,11 +180,13 @@
                 resourceContent.status === ResourceContentStatusEnum.TranslationManagerReview);
 
         canSendBack =
-            $userCan(Permission.AssignContent) &&
-            currentUserIsAssigned &&
-            (resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview) &&
-            resourceContent.reviewLevel !== ResourceContentVersionReviewLevel.community;
+            ($userCan(Permission.AssignContent) &&
+                currentUserIsAssigned &&
+                (resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
+                    resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview) &&
+                resourceContent.reviewLevel !== ResourceContentVersionReviewLevel.community) ||
+            ($userCan(Permission.SetStatusCompleteNotApplicable) &&
+                resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable);
 
         canSendForManagerReview =
             $userCan(Permission.AssignContent) &&
@@ -259,8 +261,11 @@
 
         canSetStatusTransitionNotApplicable =
             $userCan(Permission.SetStatusTranslationNotApplicable) &&
+            currentUserIsAssigned &&
             resourceContent.status !== ResourceContentStatusEnum.TranslationNotApplicable &&
-            resourceContent.status !== ResourceContentStatusEnum.CompleteNotApplicable;
+            resourceContent.status !== ResourceContentStatusEnum.CompleteNotApplicable &&
+            resourceContent.status !== ResourceContentStatusEnum.Complete &&
+            resourceContent.isDraft;
         canSetStatusCompleteNotApplicable =
             $userCan(Permission.SetStatusCompleteNotApplicable) &&
             resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable;
