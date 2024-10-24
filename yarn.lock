@@ -1025,9 +1025,9 @@ anymatch@~3.1.2:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
 
-"aquifer-tiptap@https://github.com/BiblioNexusStudio/aquifer-tiptap#1.0.6":
+"aquifer-tiptap@https://github.com/BiblioNexusStudio/aquifer-tiptap#1.0.7":
   version "1.0.0"
-  resolved "https://github.com/BiblioNexusStudio/aquifer-tiptap#f50d62d55ed2da977373ab4d8b0e63d02407270b"
+  resolved "https://github.com/BiblioNexusStudio/aquifer-tiptap#c2cadea699c4ef077605059474629060d0bbd60f"
   dependencies:
     "@tiptap/core" "^2.8.0"
     "@tiptap/extension-blockquote" "^2.8.0"
