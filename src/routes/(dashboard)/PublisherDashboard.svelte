@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { PageData } from './$types';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
-    import type { Project, ResourceAssignedToSelf, ResourcePendingReview } from './+page';
+    import type { Project, ResourceAssignedToSelf, ResourcePendingReview, NotApplicableContent } from './+page';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import { postToApi } from '$lib/utils/http-service';
     import Select from '$lib/components/Select.svelte';
@@ -20,6 +20,7 @@
         reviewPendingContentsColumns,
         projectColumns,
         communityPendingContentsColumns,
+        notApplicableContentsColumns,
     } from './publisher-dashboard-columns';
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
@@ -35,12 +36,14 @@
         reviewPending = 'review-pending',
         myProjects = 'my-projects',
         community = 'community',
+        notApplicable = 'not-applicable',
     }
 
     let assignedContents: ResourceAssignedToSelf[] = [];
     let reviewPendingContents: ResourcePendingReview[] = [];
     let assignedProjects: Project[] = [];
     let communityPendingContents: ResourcePendingReview[] = [];
+    let notApplicableContent: NotApplicableContent[] = [];
     let currentAssignedContents: ResourceAssignedToSelf[] = [];
     let currentReviewPendingContents: ResourcePendingReview[] = [];
     let currentAssignedProjects: Project[] = [];
@@ -159,10 +162,11 @@
     }
 
     const allDataPromise = async () => {
-        [assignedContents, reviewPendingContents, assignedProjects] = await Promise.all([
+        [assignedContents, reviewPendingContents, assignedProjects, notApplicableContent] = await Promise.all([
             data.publisherDashboard!.assignedResourceContent.promise,
             data.publisherDashboard!.reviewPendingResourceContent.promise,
             data.publisherDashboard!.assignedProjects.promise,
+            data.publisherDashboard!.notApplicableContent.promise,
         ]);
 
         communityPendingContents = reviewPendingContents.filter((item) => {
@@ -284,6 +288,13 @@
                     class="tab {$searchParams.tab === Tab.community && 'tab-active'}"
                 >
                     Community Pending ({communityPendingContents.length})
+                </button>
+                <button
+                    on:click={selectTab(Tab.notApplicable)}
+                    role="tab"
+                    class="tab {$searchParams.tab === Tab.notApplicable && 'tab-active'}"
+                >
+                    Not Applicable ({notApplicableContent.length})
                 </button>
             </div>
         </div>
@@ -466,6 +477,17 @@
                         <TableCell>{item[itemKey] ?? ''}</TableCell>
                     {/if}
                 </Table>
+            {:else if $searchParams.tab === Tab.notApplicable}
+                <Table
+                    bind:this={table}
+                    class="my-4"
+                    enableSelectAll={false}
+                    columns={notApplicableContentsColumns}
+                    items={notApplicableContent}
+                    idColumn="id"
+                    itemUrlPrefix="/resources/"
+                    noItemsText="No items pending review."
+                />
             {/if}
         </div>
     </div>

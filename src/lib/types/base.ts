@@ -28,6 +28,8 @@ export enum ResourceContentStatusEnum {
     OnHold = 'OnHold',
     AquiferizeManagerReview = 'AquiferizeManagerReview',
     TranslationManagerReview = 'TranslationManagerReview',
+    TranslationNotApplicable = 'TranslationNotApplicable',
+    CompleteNotApplicable = 'CompleteNotApplicable',
 }
 
 export const companiesToIgnore = ['BiblioNexus', 'Temp - Deleted Users', 'N/A'];
@@ -46,6 +48,8 @@ export const statusColorMap: Record<ResourceContentStatusEnum, string> = {
     [ResourceContentStatusEnum.OnHold]: '#6e7580',
     [ResourceContentStatusEnum.AquiferizeManagerReview]: '#6172f3',
     [ResourceContentStatusEnum.TranslationManagerReview]: '#6172f3',
+    [ResourceContentStatusEnum.TranslationNotApplicable]: '#6e7580',
+    [ResourceContentStatusEnum.CompleteNotApplicable]: '#19b26b',
 };
 
 export enum ScriptDirection {
