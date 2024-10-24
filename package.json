@@ -22,7 +22,7 @@
         "@sveltejs/kit": "^1.29.1",
         "@tailwindcss/typography": "^0.5.15",
         "@types/uuid": "^9.0.8",
-        "aquifer-tiptap": "https://github.com/BiblioNexusStudio/aquifer-tiptap#1.0.7",
+        "aquifer-tiptap": "https://github.com/BiblioNexusStudio/aquifer-tiptap#1.0.8",
         "chart.js": "^4.4.0",
         "daisyui": "^4.6.0",
         "htmldiff-ts": "https://github.com/BiblioNexusStudio/htmldiff-ts#1.0.6",
