@@ -527,12 +527,15 @@
         defaultLabel="Select Editor"
         bind:selectedUserId={assignToEditorUserId}
     />
-    <h3 class="my-4 text-xl">Reviewer</h3>
-    <UserSelector
-        users={data.users?.filter((u) => u.role === UserRole.Reviewer || u.role === UserRole.Manager) ?? []}
-        defaultLabel="Select Reviewer"
-        bind:selectedUserId={assignToReviewerUserId}
-    />
+
+    {#if $searchParams.tab === Tab.toAssign}
+        <h3 class="my-4 text-xl">Reviewer</h3>
+        <UserSelector
+            users={data.users?.filter((u) => u.role === UserRole.Reviewer || u.role === UserRole.Manager) ?? []}
+            defaultLabel="Select Reviewer"
+            bind:selectedUserId={assignToReviewerUserId}
+        />
+    {/if}
 </Modal>
 
 <Modal
