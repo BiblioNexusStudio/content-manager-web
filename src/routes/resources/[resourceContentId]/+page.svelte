@@ -79,8 +79,8 @@
     let canSendBack = false;
     let canPublish = false;
     let canUnpublish = false;
-    let canSendForManagerReview = false;
-    let canPullBackToManagerReview = false;
+    let canSendForCompanyReview = false;
+    let canPullBackToCompanyReview = false;
     let canSendForPublisherReview = false;
     let canAssignPublisherForReview = false;
     let _canCreateTranslation = false;
@@ -187,13 +187,13 @@
             ($userCan(Permission.SetStatusCompleteNotApplicable) &&
                 resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable);
 
-        canSendForManagerReview =
+        canSendForCompanyReview =
             $userCan(Permission.AssignContent) &&
             currentUserIsAssigned &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview);
 
-        canPullBackToManagerReview = resourceContent.canPullBackToManagerReview;
+        canPullBackToCompanyReview = resourceContent.canPullBackToCompanyReview;
 
         canSendForPublisherReview =
             $userCan(Permission.SendReviewContent) &&
@@ -388,7 +388,7 @@
         await takeActionAndRefresh(() => postToApi(`/resources/content/${resourceContentId}/unpublish`));
     }
 
-    async function sendForManagerReview() {
+    async function sendForCompanyReview() {
         const currentResourceContentId = resourceContentId;
         $isPageTransacting = true;
 
@@ -471,7 +471,7 @@
         );
     }
 
-    async function pullBackToManagerReview() {
+    async function pullBackToCompanyReview() {
         await takeActionAndCallback(
             async () =>
                 await postToApi(`/resources/content/${resourceContentId}/assign-editor`, {
@@ -699,13 +699,13 @@
                                 {/if}
                             </button>
                         {/if}
-                        {#if canPullBackToManagerReview}
+                        {#if canPullBackToCompanyReview}
                             <button
                                 class="btn btn-primary btn-sm ms-2"
                                 disabled={$isPageTransacting}
-                                on:click={pullBackToManagerReview}
+                                on:click={pullBackToCompanyReview}
                             >
-                                Pull Back to Manager Review
+                                Pull Back to Company Review
                             </button>
                         {/if}
                         {#if canAssignPublisherForReview}
@@ -733,11 +733,11 @@
                                 >Unpublish
                             </button>
                         {/if}
-                        {#if canSendForManagerReview}
+                        {#if canSendForCompanyReview}
                             <button
                                 class="btn btn-primary btn-sm ms-2"
                                 disabled={$isPageTransacting}
-                                on:click={sendForManagerReview}
+                                on:click={sendForCompanyReview}
                                 >Send to Review
                             </button>
                         {/if}
