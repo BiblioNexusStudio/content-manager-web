@@ -15,7 +15,7 @@
                   count: recentlyFinishedCount,
                   value: ProjectStatusTab.recentlyFinished,
               },
-              { name: 'Awaiting AI Draft', count: awaitingAiDraftCount, value: ProjectStatusTab.awaitingAiDraft },
+              { name: 'Not Started', count: awaitingAiDraftCount, value: ProjectStatusTab.notStarted },
               { name: 'Reporting', count: null, value: ProjectStatusTab.reporting },
           ]
         : [

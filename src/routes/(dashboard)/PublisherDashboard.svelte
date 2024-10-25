@@ -437,7 +437,7 @@
                     {#if columnText === 'Progress'}
                         <td>
                             <ProjectProgressBar
-                                awaitingAiDraftCount={item?.counts?.awaitingAiDraft ?? 0}
+                                notStartedCount={item?.counts?.notStarted ?? 0}
                                 editorReviewCount={item?.counts?.editorReview ?? 0}
                                 inCompanyReviewCount={item?.counts?.inCompanyReview ?? 0}
                                 inPublisherReviewCount={item?.counts?.inPublisherReview ?? 0}

@@ -41,7 +41,7 @@
     function handleListData(
         activeProjects: ProjectListResponse[],
         recentlyFinishedProjects: ProjectListResponse[],
-        awaitingAiDraftProjects: ProjectListResponse[],
+        notStartedProjects: ProjectListResponse[],
         projectSearchValue: string,
         currentTab: ProjectStatusTab,
         filterByCompany: string | null,
@@ -58,8 +58,8 @@
             case ProjectStatusTab.recentlyFinished:
                 listDataOutput = recentlyFinishedProjects;
                 break;
-            case ProjectStatusTab.awaitingAiDraft:
-                listDataOutput = awaitingAiDraftProjects;
+            case ProjectStatusTab.notStarted:
+                listDataOutput = notStartedProjects;
                 break;
         }
 
@@ -88,7 +88,7 @@
 
     function isProjectClosed(project: ProjectListResponse) {
         return (
-            project.counts.awaitingAiDraft +
+            project.counts.notStarted +
                 project.counts.editorReview +
                 project.counts.inCompanyReview +
                 project.counts.inPublisherReview ===
@@ -143,7 +143,7 @@
         {#if columnText === 'Progress'}
             <td>
                 <ProjectProgressBar
-                    awaitingAiDraftCount={item.counts.awaitingAiDraft}
+                    notStartedCount={item.counts.notStarted}
                     editorReviewCount={item.counts.editorReview}
                     inCompanyReviewCount={item.counts.inCompanyReview}
                     inPublisherReviewCount={item.counts.inPublisherReview}
