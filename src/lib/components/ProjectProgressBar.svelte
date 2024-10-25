@@ -39,7 +39,7 @@
             </div>
             <div class="flex flex-row space-x-1">
                 <div class="h-4 w-5 border border-black bg-primary bg-opacity-60" />
-                <div>In Manager Review</div>
+                <div>In Company Review</div>
             </div>
             <div class="flex flex-row space-x-1">
                 <div class="h-4 w-5 border border-black bg-primary" />
