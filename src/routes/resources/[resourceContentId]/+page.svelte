@@ -98,6 +98,8 @@
     let resourceContent: ResourceContent | undefined;
     let canCommunityTranslate = false;
     let canCommunitySendToPublisher = false;
+    let canSetStatusTransitionNotApplicable = false;
+    let canSetStatusCompleteNotApplicable = false;
 
     export let data: PageData;
 
@@ -176,11 +178,13 @@
                 resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview);
 
         canSendBack =
-            $userCan(Permission.AssignContent) &&
-            currentUserIsAssigned &&
-            (resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview) &&
-            resourceContent.reviewLevel !== ResourceContentVersionReviewLevel.community;
+            ($userCan(Permission.AssignContent) &&
+                currentUserIsAssigned &&
+                (resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
+                    resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview) &&
+                resourceContent.reviewLevel !== ResourceContentVersionReviewLevel.community) ||
+            ($userCan(Permission.SetStatusCompleteNotApplicable) &&
+                resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable);
 
         canSendForManagerReview =
             $userCan(Permission.AssignContent) &&
@@ -252,6 +256,17 @@
             $userCan(Permission.SendReviewCommunityContent) &&
             resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview &&
             currentUserIsAssigned;
+
+        canSetStatusTransitionNotApplicable =
+            $userCan(Permission.SetStatusTranslationNotApplicable) &&
+            currentUserIsAssigned &&
+            resourceContent.status !== ResourceContentStatusEnum.TranslationNotApplicable &&
+            resourceContent.status !== ResourceContentStatusEnum.CompleteNotApplicable &&
+            resourceContent.status !== ResourceContentStatusEnum.Complete &&
+            resourceContent.isDraft;
+        canSetStatusCompleteNotApplicable =
+            $userCan(Permission.SetStatusCompleteNotApplicable) &&
+            resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable;
     }
 
     const isPageTransacting = createIsPageTransactingContext();
@@ -586,6 +601,31 @@
             }
         );
     }
+
+    async function handleNotApplicable() {
+        $isPageTransacting = true;
+
+        await takeActionAndCallback(
+            async () => await postToApi(`/resources/content/${resourceContentId}/not-applicable`),
+            async () => {
+                if (!$userCan(Permission.SetStatusCompleteNotApplicable)) {
+                    await goto(`/`);
+                }
+                $isPageTransacting = false;
+            }
+        );
+    }
+
+    async function handleConfirmNotApplicable() {
+        $isPageTransacting = true;
+
+        await takeActionAndCallback(
+            async () => await postToApi(`/resources/content/${resourceContentId}/complete-not-applicable`),
+            async () => {
+                await goto(`/`);
+            }
+        );
+    }
 </script>
 
 <svelte:head>
@@ -627,6 +667,24 @@
                         {/if}
                     </div>
                     <div class="flex flex-wrap justify-end">
+                        {#if canSetStatusTransitionNotApplicable}
+                            <button
+                                class="btn btn-primary btn-sm ms-2"
+                                disabled={$isPageTransacting}
+                                on:click={handleNotApplicable}
+                            >
+                                Not Applicable
+                            </button>
+                        {/if}
+                        {#if canSetStatusCompleteNotApplicable}
+                            <button
+                                class="btn btn-primary btn-sm ms-2"
+                                disabled={$isPageTransacting}
+                                on:click={handleConfirmNotApplicable}
+                            >
+                                Confirm
+                            </button>
+                        {/if}
                         {#if canAssign || canSendBack}
                             <button
                                 class="btn btn-primary btn-sm ms-2"

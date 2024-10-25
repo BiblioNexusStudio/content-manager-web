@@ -29,6 +29,8 @@ export enum ResourceContentStatusEnum {
     AquiferizeCompanyReview = 'AquiferizeCompanyReview',
     TranslationCompanyReview = 'TranslationCompanyReview',
     TranslationAiDraftComplete = 'TranslationAiDraftComplete',
+    TranslationNotApplicable = 'TranslationNotApplicable',
+    CompleteNotApplicable = 'CompleteNotApplicable',
 }
 
 export const companiesToIgnore = ['BiblioNexus', 'Temp - Deleted Users', 'N/A'];
@@ -48,6 +50,8 @@ export const statusColorMap: Record<ResourceContentStatusEnum, string> = {
     [ResourceContentStatusEnum.AquiferizeCompanyReview]: '#6172f3',
     [ResourceContentStatusEnum.TranslationCompanyReview]: '#6172f3',
     [ResourceContentStatusEnum.TranslationAiDraftComplete]: '#6e7580',
+    [ResourceContentStatusEnum.TranslationNotApplicable]: '#6e7580',
+    [ResourceContentStatusEnum.CompleteNotApplicable]: '#19b26b',
 };
 
 export enum ScriptDirection {

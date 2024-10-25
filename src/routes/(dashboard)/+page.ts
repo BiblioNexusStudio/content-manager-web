@@ -17,11 +17,17 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             '/resources/content/review-pending',
             fetch
         );
+        const notApplicableContent = getFromApiWithoutBlocking<NotApplicableContent[]>(
+            '/resources/content/not-applicable',
+            fetch
+        );
+
         return {
             publisherDashboard: {
                 assignedResourceContent,
                 reviewPendingResourceContent,
                 assignedProjects,
+                notApplicableContent,
             },
         };
     } else if (get(userCan)(Permission.ReadCompanyContentAssignments)) {
@@ -168,4 +174,12 @@ export interface UserWordCount {
     userId: number;
     userName: string;
     assignedSourceWordCount: number;
+}
+
+export interface NotApplicableContent {
+    id: number;
+    language: string;
+    parentResourceName: string;
+    title: string;
+    projectName: string | null;
 }

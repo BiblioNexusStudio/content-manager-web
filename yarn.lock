@@ -657,6 +657,26 @@
   resolved "https://registry.yarnpkg.com/@tiptap/extension-superscript/-/extension-superscript-2.8.0.tgz#a740da5c029fa2d8d6d4f0209bc46458121957de"
   integrity sha512-3rAVyRvzhoM51vaeIAEXmr2PkucIwv7ptgyxg6zx6STxcyzMchafGee0LJL7Kcn9uE/n7Yt7ek6bDqo8jU8CtA==
 
+"@tiptap/extension-table-cell@^2.8.0":
+  version "2.9.1"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-table-cell/-/extension-table-cell-2.9.1.tgz#f2c630b29021da030bc0253a7aa878fe82995f01"
+  integrity sha512-/wrcniLdhMhs5M2NDetFcfq510N5to7YKK+52KOXNotBI8K/GjMmGmtwWEKPITD0/RgYrXzpMcta/O+/0OCOPQ==
+
+"@tiptap/extension-table-header@^2.8.0":
+  version "2.9.1"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-table-header/-/extension-table-header-2.9.1.tgz#4eba6c4d437053ece0a070dc075257486f20b6f5"
+  integrity sha512-KtI01636Du1IB/I3pe9ZJWKkOc6INqAaIw+RFirRCnd8Xnik7tJfAwdhXzoPRcer6ViZmlzSrM2dkwaZCF7gcw==
+
+"@tiptap/extension-table-row@^2.8.0":
+  version "2.9.1"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-table-row/-/extension-table-row-2.9.1.tgz#c19611937035309d0f70153265451c029953261f"
+  integrity sha512-Wq7QlI/S5iX4UCAdX+ok/szegVMbvrM3H8o6jwO+G4p8JJt6iv7ZmEnJ19xIINhmiKsrdanqH9FFK4tQ3yvQ0A==
+
+"@tiptap/extension-table@^2.8.0":
+  version "2.9.1"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-table/-/extension-table-2.9.1.tgz#e0905e5cfb39ca99d0c9098e0efd7cd1b246e82d"
+  integrity sha512-OmWZFZOSZwSSEvoVUkDsRFyCXTYei/pV396Xjv9pfFzXQkVbfq/CjTp61zvb/9mmEz3rcfvfG7G39eRlZTvBNg==
+
 "@tiptap/extension-text-style@^2.8.0":
   version "2.8.0"
   resolved "https://registry.yarnpkg.com/@tiptap/extension-text-style/-/extension-text-style-2.8.0.tgz#32e30ccf3853202eba2169ba5db30b9470df9644"
@@ -1025,9 +1045,9 @@ anymatch@~3.1.2:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
 
-"aquifer-tiptap@https://github.com/BiblioNexusStudio/aquifer-tiptap#1.0.4":
+"aquifer-tiptap@https://github.com/BiblioNexusStudio/aquifer-tiptap#1.0.8":
   version "1.0.0"
-  resolved "https://github.com/BiblioNexusStudio/aquifer-tiptap#21670f54c5e207a4248856775217d08101368a71"
+  resolved "https://github.com/BiblioNexusStudio/aquifer-tiptap#f12036759b78e74260f0a0e6a6f3c9924b027708"
   dependencies:
     "@tiptap/core" "^2.8.0"
     "@tiptap/extension-blockquote" "^2.8.0"
@@ -1051,6 +1071,10 @@ anymatch@~3.1.2:
     "@tiptap/extension-strike" "^2.8.0"
     "@tiptap/extension-subscript" "^2.8.0"
     "@tiptap/extension-superscript" "^2.8.0"
+    "@tiptap/extension-table" "^2.8.0"
+    "@tiptap/extension-table-cell" "^2.8.0"
+    "@tiptap/extension-table-header" "^2.8.0"
+    "@tiptap/extension-table-row" "^2.8.0"
     "@tiptap/extension-text" "^2.8.0"
     "@tiptap/extension-text-style" "^2.8.0"
     "@tiptap/extension-underline" "^2.8.0"

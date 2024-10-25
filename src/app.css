@@ -1,4 +1,4 @@
-@import './tiptap.css';
+@import '../node_modules/aquifer-tiptap/src/aquifer-tiptap.css';
 
 @tailwind base;
 @tailwind components;
