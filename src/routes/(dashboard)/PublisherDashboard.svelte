@@ -88,6 +88,7 @@
         return (
             status === ResourceContentStatusEnum.New ||
             status === ResourceContentStatusEnum.TranslationAwaitingAiDraft ||
+            status === ResourceContentStatusEnum.TranslationAiDraftComplete ||
             status === ResourceContentStatusEnum.AquiferizeEditorReview ||
             status === ResourceContentStatusEnum.TranslationEditorReview
         );
