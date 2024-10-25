@@ -16,7 +16,7 @@
 
     let activeProjects: ProjectListResponse[] = [];
     let recentlyFinishedProjects: ProjectListResponse[] = [];
-    let awaitingAiDraftProjects: ProjectListResponse[] = [];
+    let notStartedProjects: ProjectListResponse[] = [];
 
     $: handleFetchedProjects(projectPromise);
 
@@ -24,7 +24,7 @@
         const projects = await promise;
         activeProjects = projects.filter((p) => p.isStarted && !p.isCompleted);
         recentlyFinishedProjects = projects.filter((p) => p.isCompleted);
-        awaitingAiDraftProjects = projects.filter((p) => !p.isStarted);
+        notStartedProjects = projects.filter((p) => !p.isStarted);
     }
 </script>
 
@@ -43,7 +43,7 @@
         <ProjectTableTabs
             activeCount={activeProjects.length}
             recentlyFinishedCount={recentlyFinishedProjects.length}
-            awaitingAiDraftCount={awaitingAiDraftProjects.length}
+            notStartedCount={notStartedProjects.length}
             bind:currentTab
         />
 
@@ -53,7 +53,7 @@
             isShowing={currentTab !== ProjectStatusTab.reporting}
             {activeProjects}
             {recentlyFinishedProjects}
-            {awaitingAiDraftProjects}
+            {notStartedProjects}
             companies={companiesResponse}
             {currentTab}
             {languages}

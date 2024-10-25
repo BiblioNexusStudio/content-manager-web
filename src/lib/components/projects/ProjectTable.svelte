@@ -18,7 +18,7 @@
     export let currentTab: ProjectStatusTab;
     export let activeProjects: ProjectListResponse[];
     export let recentlyFinishedProjects: ProjectListResponse[];
-    export let awaitingAiDraftProjects: ProjectListResponse[];
+    export let notStartedProjects: ProjectListResponse[];
 
     let filterByCompany: string | null = null;
     let filterByLanguage: string | null = null;
@@ -31,7 +31,7 @@
     $: listData = handleListData(
         activeProjects,
         recentlyFinishedProjects,
-        awaitingAiDraftProjects,
+        notStartedProjects,
         projectSearchValue,
         currentTab,
         filterByCompany,
