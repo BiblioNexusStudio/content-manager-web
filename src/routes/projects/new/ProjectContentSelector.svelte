@@ -32,7 +32,7 @@
     let allContentOnRight: ResourceContentForSelection[] = [];
     let isFetching = false;
 
-    let showingAquiferizeInProgressModal = false;
+    let showingAquiferizeEditorReviewModal = false;
 
     $: chapters = parseNumbersListFromString(
         chaptersString,
@@ -49,7 +49,7 @@
 
     function moveToRight(force: boolean) {
         if (selectedOnLeftBeingAquiferized.length > 0 && !force) {
-            showingAquiferizeInProgressModal = true;
+            showingAquiferizeEditorReviewModal = true;
         } else {
             allContentOnRight = sortByKeys(
                 allContentOnRight.concat([...idsSelectedOnLeft].map((id) => fetchedContentCache[id]!)),
@@ -204,7 +204,7 @@
 
 <Modal
     header="Not in Complete Status"
-    bind:open={showingAquiferizeInProgressModal}
+    bind:open={showingAquiferizeEditorReviewModal}
     primaryButtonText="Add Anyway"
     primaryButtonOnClick={() => moveToRight(true)}
     description={`The following resource items are not in a Complete status:\n\n${selectedOnLeftBeingAquiferized

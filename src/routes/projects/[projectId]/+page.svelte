@@ -110,12 +110,12 @@
     <div class="flex flex-col overflow-hidden xl:flex-row">
         <div class="px-4 xl:me-8">
             <ProjectViewTabs canOnlyViewProjectsInCompany={data.canOnlyViewProjectsInCompany} />
-            {#if projectResponse?.counts?.notStarted + projectResponse?.counts?.inProgress + projectResponse?.counts?.inManagerReview + projectResponse?.counts?.inPublisherReview + projectResponse?.counts?.completed > 0}
+            {#if projectResponse?.counts?.notStarted + projectResponse?.counts?.editorReview + projectResponse?.counts?.inCompanyReview + projectResponse?.counts?.inPublisherReview + projectResponse?.counts?.completed > 0}
                 <div class="mb-4 w-1/2 pe-4 xl:w-full xl:pe-0">
                     <ProjectProgressBar
                         notStartedCount={projectResponse?.counts?.notStarted}
-                        inProgressCount={projectResponse?.counts?.inProgress}
-                        inManagerReviewCount={projectResponse?.counts?.inManagerReview}
+                        editorReviewCount={projectResponse?.counts?.editorReview}
+                        inCompanyReviewCount={projectResponse?.counts?.inCompanyReview}
                         inPublisherReviewCount={projectResponse?.counts?.inPublisherReview}
                         completeCount={projectResponse?.counts?.completed}
                         showLegend={true}

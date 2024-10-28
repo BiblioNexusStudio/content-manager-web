@@ -28,7 +28,7 @@
     const canShowAnything =
         canEdit &&
         $userCan(Permission.AiTranslate) &&
-        resourceContent.status === ResourceContentStatusEnum.TranslationInProgress;
+        resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview;
 
     const isPageTransacting = getIsPageTransactingContext();
 

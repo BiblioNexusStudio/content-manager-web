@@ -79,8 +79,8 @@
     let canSendBack = false;
     let canPublish = false;
     let canUnpublish = false;
-    let canSendForManagerReview = false;
-    let canPullBackToManagerReview = false;
+    let canSendForCompanyReview = false;
+    let canPullBackToCompanyReview = false;
     let canSendForPublisherReview = false;
     let canAssignPublisherForReview = false;
     let _canCreateTranslation = false;
@@ -141,22 +141,23 @@
             resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview;
 
         isInTranslationWorkflow =
-            resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted ||
+            resourceContent.status === ResourceContentStatusEnum.TranslationAwaitingAiDraft ||
+            resourceContent.status === ResourceContentStatusEnum.TranslationAiDraftComplete ||
             resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
-            resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
+            resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
             resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending;
 
         isNewDraftStatus = resourceContent.status === ResourceContentStatusEnum.New && resourceContent.isDraft;
 
         canMakeContentEdits =
             $userCan(Permission.EditContent) &&
-            (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
-                resourceContent.status === ResourceContentStatusEnum.AquiferizeManagerReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationManagerReview) &&
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeCompanyReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview) &&
             currentUserIsAssigned;
 
         const hasResourceAssignmentPermission =
@@ -168,14 +169,14 @@
             hasResourceAssignmentPermission &&
             (resourceContent.status === ResourceContentStatusEnum.New ||
                 resourceContent.status === ResourceContentStatusEnum.Complete ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationNotStarted);
+                resourceContent.status === ResourceContentStatusEnum.TranslationAiDraftComplete);
 
         canAssign =
             hasResourceAssignmentPermission &&
-            (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationInProgress ||
-                resourceContent.status === ResourceContentStatusEnum.AquiferizeManagerReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationManagerReview);
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeCompanyReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview);
 
         canSendBack =
             ($userCan(Permission.AssignContent) &&
@@ -186,19 +187,19 @@
             ($userCan(Permission.SetStatusCompleteNotApplicable) &&
                 resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable);
 
-        canSendForManagerReview =
+        canSendForCompanyReview =
             $userCan(Permission.AssignContent) &&
             currentUserIsAssigned &&
-            (resourceContent.status === ResourceContentStatusEnum.AquiferizeInProgress ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationInProgress);
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview);
 
-        canPullBackToManagerReview = resourceContent.canPullBackToManagerReview;
+        canPullBackToCompanyReview = resourceContent.canPullBackToCompanyReview;
 
         canSendForPublisherReview =
             $userCan(Permission.SendReviewContent) &&
             currentUserIsAssigned &&
-            (resourceContent.status === ResourceContentStatusEnum.AquiferizeManagerReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationManagerReview);
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeCompanyReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview);
 
         canAssignPublisherForReview =
             $userCan(Permission.ReviewContent) &&
@@ -254,7 +255,7 @@
 
         canCommunitySendToPublisher =
             $userCan(Permission.SendReviewCommunityContent) &&
-            resourceContent.status === ResourceContentStatusEnum.TranslationInProgress &&
+            resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview &&
             currentUserIsAssigned;
 
         canSetStatusTransitionNotApplicable =
@@ -387,7 +388,7 @@
         await takeActionAndRefresh(() => postToApi(`/resources/content/${resourceContentId}/unpublish`));
     }
 
-    async function sendForManagerReview() {
+    async function sendForCompanyReview() {
         const currentResourceContentId = resourceContentId;
         $isPageTransacting = true;
 
@@ -470,7 +471,7 @@
         );
     }
 
-    async function pullBackToManagerReview() {
+    async function pullBackToCompanyReview() {
         await takeActionAndCallback(
             async () =>
                 await postToApi(`/resources/content/${resourceContentId}/assign-editor`, {
@@ -698,13 +699,13 @@
                                 {/if}
                             </button>
                         {/if}
-                        {#if canPullBackToManagerReview}
+                        {#if canPullBackToCompanyReview}
                             <button
                                 class="btn btn-primary btn-sm ms-2"
                                 disabled={$isPageTransacting}
-                                on:click={pullBackToManagerReview}
+                                on:click={pullBackToCompanyReview}
                             >
-                                Pull Back to Manager Review
+                                Pull Back to Company Review
                             </button>
                         {/if}
                         {#if canAssignPublisherForReview}
@@ -732,11 +733,11 @@
                                 >Unpublish
                             </button>
                         {/if}
-                        {#if canSendForManagerReview}
+                        {#if canSendForCompanyReview}
                             <button
                                 class="btn btn-primary btn-sm ms-2"
                                 disabled={$isPageTransacting}
-                                on:click={sendForManagerReview}
+                                on:click={sendForCompanyReview}
                                 >Send to Review
                             </button>
                         {/if}

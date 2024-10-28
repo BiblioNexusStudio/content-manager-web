@@ -89,8 +89,8 @@
     function isProjectClosed(project: ProjectListResponse) {
         return (
             project.counts.notStarted +
-                project.counts.inProgress +
-                project.counts.inManagerReview +
+                project.counts.editorReview +
+                project.counts.inCompanyReview +
                 project.counts.inPublisherReview ===
                 0 && project.isStarted
         );
@@ -144,8 +144,8 @@
             <td>
                 <ProjectProgressBar
                     notStartedCount={item.counts.notStarted}
-                    inProgressCount={item.counts.inProgress}
-                    inManagerReviewCount={item.counts.inManagerReview}
+                    editorReviewCount={item.counts.editorReview}
+                    inCompanyReviewCount={item.counts.inCompanyReview}
                     inPublisherReviewCount={item.counts.inPublisherReview}
                     completeCount={item.counts.completed}
                     showLegend={false}
