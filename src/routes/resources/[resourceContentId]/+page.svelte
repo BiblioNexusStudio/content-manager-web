@@ -8,6 +8,7 @@
         type ResourceContent,
         type TiptapContentItem,
         type ResourceContentNextUpInfo,
+        type ResourceContentCurrentStatusId,
         OpenedSupplementalSideBar,
         type Assignment,
         ResourceContentVersionReviewLevel,
@@ -100,6 +101,7 @@
     let canCommunitySendToPublisher = false;
     let canSetStatusTransitionNotApplicable = false;
     let canSetStatusCompleteNotApplicable = false;
+    let isStatusInAwaitingAiDraft = false;
 
     export let data: PageData;
 
@@ -268,6 +270,12 @@
         canSetStatusCompleteNotApplicable =
             $userCan(Permission.SetStatusCompleteNotApplicable) &&
             resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable;
+
+        isStatusInAwaitingAiDraft = resourceContent.status === ResourceContentStatusEnum.TranslationAwaitingAiDraft;
+
+        if (isStatusInAwaitingAiDraft) {
+            startPollingForAiTranslateComplete();
+        }
     }
 
     const isPageTransacting = createIsPageTransactingContext();
@@ -627,6 +635,18 @@
             }
         );
     }
+
+    async function startPollingForAiTranslateComplete() {
+        const interval = setInterval(async () => {
+            const response = await getFromApi<ResourceContentCurrentStatusId>(
+                `/resources/content/${resourceContent?.resourceContentId}/status`
+            );
+            if (response && response?.status === ResourceContentStatusEnum.TranslationAiDraftComplete) {
+                clearInterval(interval);
+                window.location.reload();
+            }
+        }, 30000);
+    }
 </script>
 
 <svelte:head>
@@ -667,119 +687,121 @@
                             <Icon data={spinner} pulse class="text-[#0175a2]" />
                         {/if}
                     </div>
-                    <div class="flex flex-wrap justify-end">
-                        {#if canSetStatusTransitionNotApplicable}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={handleNotApplicable}
-                            >
-                                Not Applicable
-                            </button>
-                        {/if}
-                        {#if canSetStatusCompleteNotApplicable}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={handleConfirmNotApplicable}
-                            >
-                                Confirm
-                            </button>
-                        {/if}
-                        {#if canAssign || canSendBack}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={openAssignUserModal}
-                            >
-                                {#if canAssign}
-                                    Assign User
-                                {:else if canSendBack}
-                                    Send Back
-                                {/if}
-                            </button>
-                        {/if}
-                        {#if canPullBackToCompanyReview}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={pullBackToCompanyReview}
-                            >
-                                Pull Back to Company Review
-                            </button>
-                        {/if}
-                        {#if canAssignPublisherForReview}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={openAssignReviewModal}
-                                >{isInReview ? 'Assign' : 'Review'}
-                            </button>
-                        {/if}
-                        {#if canPublish}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={() => publishOrOpenModal(resourceContent.status)}
-                                >Publish
-                            </button>
-                        {/if}
-                        {#if canUnpublish}
-                            <button
-                                data-app-insights-event-name="resource-unpublish-click"
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={unpublish}
-                                >Unpublish
-                            </button>
-                        {/if}
-                        {#if canSendForCompanyReview}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={sendForCompanyReview}
-                                >Send to Review
-                            </button>
-                        {/if}
-                        {#if canSendForPublisherReview}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={sendForPublisherReview}
-                                >Send to Publisher
-                            </button>
-                        {/if}
-                        {#if canAquiferize}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={openAquiferizeModal}
-                                >{#if isInTranslationWorkflow}
-                                    Translate
-                                {:else if isNewDraftStatus}
-                                    Assign
-                                {:else}
-                                    Create Draft
-                                {/if}</button
-                            >
-                        {/if}
-                        {#if canCommunityTranslate}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={handleCommunityTranslate}
-                                >Translate
-                            </button>
-                        {/if}
-                        {#if canCommunitySendToPublisher}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={handleCommunitySendToPublisher}
-                                >Send to Publisher
-                            </button>
-                        {/if}
-                    </div>
+                    {#if !isStatusInAwaitingAiDraft}
+                        <div class="flex flex-wrap justify-end">
+                            {#if canSetStatusTransitionNotApplicable}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={handleNotApplicable}
+                                >
+                                    Not Applicable
+                                </button>
+                            {/if}
+                            {#if canSetStatusCompleteNotApplicable}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={handleConfirmNotApplicable}
+                                >
+                                    Confirm
+                                </button>
+                            {/if}
+                            {#if canAssign || canSendBack}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={openAssignUserModal}
+                                >
+                                    {#if canAssign}
+                                        Assign User
+                                    {:else if canSendBack}
+                                        Send Back
+                                    {/if}
+                                </button>
+                            {/if}
+                            {#if canPullBackToCompanyReview}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={pullBackToCompanyReview}
+                                >
+                                    Pull Back to Company Review
+                                </button>
+                            {/if}
+                            {#if canAssignPublisherForReview}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={openAssignReviewModal}
+                                    >{isInReview ? 'Assign' : 'Review'}
+                                </button>
+                            {/if}
+                            {#if canPublish}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={() => publishOrOpenModal(resourceContent.status)}
+                                    >Publish
+                                </button>
+                            {/if}
+                            {#if canUnpublish}
+                                <button
+                                    data-app-insights-event-name="resource-unpublish-click"
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={unpublish}
+                                    >Unpublish
+                                </button>
+                            {/if}
+                            {#if canSendForCompanyReview}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={sendForCompanyReview}
+                                    >Send to Review
+                                </button>
+                            {/if}
+                            {#if canSendForPublisherReview}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={sendForPublisherReview}
+                                    >Send to Publisher
+                                </button>
+                            {/if}
+                            {#if canAquiferize}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={openAquiferizeModal}
+                                    >{#if isInTranslationWorkflow}
+                                        Translate
+                                    {:else if isNewDraftStatus}
+                                        Assign
+                                    {:else}
+                                        Create Draft
+                                    {/if}</button
+                                >
+                            {/if}
+                            {#if canCommunityTranslate}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={handleCommunityTranslate}
+                                    >Translate
+                                </button>
+                            {/if}
+                            {#if canCommunitySendToPublisher}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={handleCommunitySendToPublisher}
+                                    >Send to Publisher
+                                </button>
+                            {/if}
+                        </div>
+                    {/if}
                 </div>
             </div>
         </div>
@@ -834,6 +856,7 @@
                                 {resourceContent}
                                 {commentStores}
                                 {machineTranslationStore}
+                                blurOnPendingAiTranslate={isStatusInAwaitingAiDraft}
                             />
                         </div>
                         <div class="flex flex-row items-center space-x-2">

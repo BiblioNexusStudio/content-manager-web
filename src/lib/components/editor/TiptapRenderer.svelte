@@ -16,6 +16,7 @@
     export let canComment: boolean;
     export let isLoading = false;
     export let commentStores: CommentStores;
+    export let blurOnPendingAiTranslate = false;
 
     let scrollSyncElement: HTMLDivElement | undefined;
     let element: HTMLDivElement | undefined;
@@ -104,6 +105,7 @@
         on:mouseenter={setScrollSyncElement}
         on:focus={setScrollSyncElement}
         class="absolute bottom-0 left-0 right-0 top-0 overflow-y-auto rounded-md border border-base-300 bg-white"
+        class:blur-sm={blurOnPendingAiTranslate}
     >
         {#if isLoading}
             <div class="absolute h-full w-full">
@@ -117,4 +119,12 @@
             class:blur-sm={isLoading}
         />
     </div>
+    {#if blurOnPendingAiTranslate}
+        <div
+            class="absolute bottom-0 left-0 right-0 top-0 flex flex-col items-center bg-white bg-opacity-75 py-16 text-xl font-semibold text-primary"
+        >
+            <h1 class="mb-4">AI Translation in progress.</h1>
+            <p class="max-w-80 text-center">The page will refresh automatically when it is complete.</p>
+        </div>
+    {/if}
 </div>

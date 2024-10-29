@@ -22,6 +22,7 @@
     export let selectedStepNumber: number | undefined;
     export let commentStores: CommentStores;
     export let machineTranslationStore: MachineTranslationStore;
+    export let blurOnPendingAiTranslate = false;
     let isComparingToCurrent: boolean;
 
     onMount(() => (selectedStepNumber ||= 1));
@@ -132,6 +133,7 @@
                         {commentStores}
                         {resourceContent}
                         {machineTranslationStore}
+                        {blurOnPendingAiTranslate}
                     />
                 {:else if isComparingToCurrent}
                     <TiptapDiffRenderer

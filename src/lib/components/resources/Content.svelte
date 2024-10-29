@@ -26,6 +26,7 @@
     export let sidebarIsOpen = false;
     export let commentStores: CommentStores;
     export let machineTranslationStore: MachineTranslationStore;
+    export let blurOnPendingAiTranslate = false;
 
     $: imageContent = (snapshotOrVersion?.content ?? resourceContent.content) as ImageContentItem;
     $: videoContent = (snapshotOrVersion?.content ?? resourceContent.content) as VideoContentItem;
@@ -48,5 +49,6 @@
         {canComment}
         {commentStores}
         {machineTranslationStore}
+        {blurOnPendingAiTranslate}
     />
 {/if}

@@ -17,6 +17,7 @@
     export let resourceContent: ResourceContent;
     export let commentStores: CommentStores;
     export let machineTranslationStore: MachineTranslationStore;
+    export let blurOnPendingAiTranslate = false;
 
     let editor: Editor | undefined = undefined;
     let tiptapJson = $editableContentStore[itemIndex];
@@ -67,5 +68,6 @@
         {commentStores}
         bind:isLoading
         bind:editor
+        {blurOnPendingAiTranslate}
     />
 </div>
