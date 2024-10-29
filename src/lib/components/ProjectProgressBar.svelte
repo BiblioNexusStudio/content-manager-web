@@ -35,15 +35,15 @@
             </div>
             <div class="flex flex-row space-x-1">
                 <div class="h-4 w-5 border border-black bg-primary bg-opacity-25" />
-                <div>In Editor Review</div>
+                <div>Editor Review</div>
             </div>
             <div class="flex flex-row space-x-1">
                 <div class="h-4 w-5 border border-black bg-primary bg-opacity-60" />
-                <div>In Company Review</div>
+                <div>Company Review</div>
             </div>
             <div class="flex flex-row space-x-1">
                 <div class="h-4 w-5 border border-black bg-primary" />
-                <div>In Publisher Review</div>
+                <div>Publisher Review</div>
             </div>
             <div class="flex flex-row space-x-1">
                 <div class="h-4 w-5 border border-black bg-neutral" />
