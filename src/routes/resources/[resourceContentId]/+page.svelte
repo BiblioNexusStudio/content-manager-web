@@ -59,6 +59,7 @@
     import { isEditorPaneOnLeft } from '$lib/stores/resourceEditor';
     import ContentEditorSwapButton from '$lib/components/editor/ContentEditorSwapButton.svelte';
     import VersionStatusHistorySidebar from './VersionStatusHistorySidebar.svelte';
+    import ResourcePopout from '$lib/components/editorMarkPopouts/ResourcePopout.svelte';
 
     let commentStores: CommentStores;
     let commentThreads: Writable<CommentThreadsResponse | null>;
@@ -945,6 +946,7 @@
 
     <InlineComment {commentStores} />
     <VersePopout language={resourceContent.language} />
+    <ResourcePopout />
 {:catch error}
     <ErrorMessage uncastError={error} />
 {/await}
