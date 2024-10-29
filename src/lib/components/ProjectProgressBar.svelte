@@ -31,7 +31,7 @@
         <div class="mt-2 flex w-fit flex-row justify-between space-x-2 text-xs">
             <div class="flex flex-row space-x-1">
                 <div class="h-4 w-5 border border-black bg-white bg-opacity-30" />
-                <div>Not Started</div>
+                <div>AI Draft</div>
             </div>
             <div class="flex flex-row space-x-1">
                 <div class="h-4 w-5 border border-black bg-primary bg-opacity-25" />
