@@ -1,4 +1,5 @@
-﻿import type { ContentNode, ResourceReference as ResourceReferenceType } from '../types';
+﻿import { v4 as uuid } from 'uuid';
+import type { ContentNode, ResourceReference as ResourceReferenceType } from '../types';
 import { ResourceReference } from 'aquifer-tiptap';
 
 export default ResourceReference.extend({
@@ -6,7 +7,10 @@ export default ResourceReference.extend({
         // use the aquifer-tiptap ResourceReference renderer and add more to it
         const parentRender = this.parent?.(args);
         if (parentRender && Array.isArray(parentRender) && parentRender[1]) {
+            const spanId = `resourceref-${uuid()}`;
+            parentRender[1].id = spanId;
             parentRender[1].style = 'color: blue';
+            parentRender[1].onClick = `onResourceReferenceClick('${spanId}', '${parentRender[1]['data-resourceType']}', '${parentRender[1]['data-resourceId']}')`;
             return parentRender;
         }
         throw new Error('Rendering ResourceReference failed.');
