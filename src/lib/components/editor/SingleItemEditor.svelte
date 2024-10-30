@@ -9,7 +9,6 @@
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
 
     export let itemIndex: number;
-    export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined;
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let wordCountsByStep: number[];
     export let canEdit: boolean;
@@ -17,6 +16,7 @@
     export let resourceContent: ResourceContent;
     export let commentStores: CommentStores;
     export let machineTranslationStore: MachineTranslationStore;
+    export let blurOnPendingAiTranslate = false;
 
     let editor: Editor | undefined = undefined;
     let tiptapJson = $editableContentStore[itemIndex];
@@ -52,7 +52,6 @@
         {commentStores}
         {resourceContent}
         {machineTranslationStore}
-        {editableDisplayNameStore}
         {itemIndex}
         bind:isLoading
     />
@@ -67,5 +66,6 @@
         {commentStores}
         bind:isLoading
         bind:editor
+        {blurOnPendingAiTranslate}
     />
 </div>

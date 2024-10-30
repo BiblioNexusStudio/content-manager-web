@@ -108,6 +108,10 @@ export interface ResourceContentNextUpInfo {
     nextUpResourceContentId: number | null;
 }
 
+export interface ResourceContentCurrentStatusId {
+    status: ResourceContentStatusEnum;
+}
+
 interface ParentResourceLicenseInfo {
     title: string;
     copyright: {

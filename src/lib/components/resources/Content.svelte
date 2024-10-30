@@ -16,7 +16,6 @@
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
 
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
-    export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined = undefined;
     export let resourceContent: ResourceContent;
     export let canEdit = false;
     export let canComment = false;
@@ -26,6 +25,7 @@
     export let sidebarIsOpen = false;
     export let commentStores: CommentStores;
     export let machineTranslationStore: MachineTranslationStore;
+    export let blurOnPendingAiTranslate = false;
 
     $: imageContent = (snapshotOrVersion?.content ?? resourceContent.content) as ImageContentItem;
     $: videoContent = (snapshotOrVersion?.content ?? resourceContent.content) as VideoContentItem;
@@ -42,11 +42,11 @@
         {snapshotOrVersion}
         {resourceContent}
         bind:wordCountsByStep
-        {editableDisplayNameStore}
         {editableContentStore}
         {canEdit}
         {canComment}
         {commentStores}
         {machineTranslationStore}
+        {blurOnPendingAiTranslate}
     />
 {/if}
