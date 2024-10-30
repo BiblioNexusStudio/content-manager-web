@@ -1,6 +1,5 @@
 <script lang="ts">
     import { type Editor, getMarkAttributes } from 'aquifer-tiptap';
-    import AiTranslateToolbarButton from '$lib/components/editor/AiTranslateToolbarButton.svelte';
     import BoldIcon from '$lib/icons/BoldIcon.svelte';
     import ItalicsIcon from '$lib/icons/ItalicsIcon.svelte';
     import UnderlineIcon from '$lib/icons/UnderlineIcon.svelte';
@@ -16,17 +15,17 @@
     import type { CommentStores } from '$lib/stores/comments';
     import type { ResourceContent } from '$lib/types/resources';
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
-    import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
     import MenuIcon from '$lib/icons/MenuIcon.svelte';
     import { onMount } from 'svelte';
     import LinkBibleReferenceButton from './LinkBibleReferenceButton.svelte';
-    import { Permission, userCan } from '$lib/stores/auth';
+    import { Permission, userCan, userIsEqual } from '$lib/stores/auth';
     import LinkResourceReferenceButton from './LinkResourceReferenceButton.svelte';
+    import { ResourceContentStatusEnum } from '$lib/types/base';
+    import MachineTranslationRating from '$lib/components/MachineTranslationRating.svelte';
 
     export let itemIndex: number;
     export let editor: Editor | undefined;
-    export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined;
     export let commentStores: CommentStores;
     export let canEdit: boolean;
     export let resourceContent: ResourceContent;
@@ -42,6 +41,15 @@
     let outerDiv: HTMLDivElement | null = null;
     let isCommentBoxOpen = false;
     const { createNewThread } = commentStores;
+
+    let machineTranslations = machineTranslationStore.machineTranslations;
+    let machineTranslation = $machineTranslations.get(itemIndex);
+
+    const showMachineTranslationRating =
+        canEdit &&
+        $userCan(Permission.AiTranslate) &&
+        resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview &&
+        $userIsEqual(machineTranslation?.userId);
 
     function getCommentOptions(editor: Editor) {
         return {
@@ -279,15 +287,11 @@
             </Tooltip>
         </div>
         <div class="flex">
-            <AiTranslateToolbarButton
-                {editor}
-                {canEdit}
-                {editableDisplayNameStore}
-                {resourceContent}
-                {machineTranslationStore}
-                {itemIndex}
-                bind:isLoading
-            />
+            {#if showMachineTranslationRating && !isLoading}
+                <div class="mx-2 flex items-center">
+                    <MachineTranslationRating {itemIndex} {machineTranslationStore} />
+                </div>
+            {/if}
         </div>
     {/if}
 </div>

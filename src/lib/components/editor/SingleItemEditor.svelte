@@ -9,7 +9,6 @@
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
 
     export let itemIndex: number;
-    export let editableDisplayNameStore: ChangeTrackingStore<string> | undefined;
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let wordCountsByStep: number[];
     export let canEdit: boolean;
@@ -53,7 +52,6 @@
         {commentStores}
         {resourceContent}
         {machineTranslationStore}
-        {editableDisplayNameStore}
         {itemIndex}
         bind:isLoading
     />
