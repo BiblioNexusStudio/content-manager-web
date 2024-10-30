@@ -36,7 +36,6 @@
 
     $: canEditBibleReferences = $userCan(Permission.EditBibleReferences);
     $: canEditResourceReferences = $userCan(Permission.EditResourceReferences);
-    $: widthRequired = (canEditBibleReferences ? 30 : 0) + (canEditResourceReferences ? 30 : 0) + 653;
 
     let outerDiv: HTMLDivElement | null = null;
     let isCommentBoxOpen = false;
@@ -47,9 +46,14 @@
 
     const showMachineTranslationRating =
         canEdit &&
-        $userCan(Permission.AiTranslate) &&
         resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview &&
         $userIsEqual(machineTranslation?.userId);
+
+    $: widthRequired =
+        (canEditBibleReferences ? 30 : 0) +
+        (canEditResourceReferences ? 30 : 0) +
+        (showMachineTranslationRating ? 136 : 0) +
+        460;
 
     function getCommentOptions(editor: Editor) {
         return {
