@@ -649,7 +649,7 @@
             const response = await getFromApi<ResourceContentCurrentStatusId>(
                 `/resources/content/${resourceContent?.resourceContentId}/status`
             );
-            if (response && response?.status === ResourceContentStatusEnum.TranslationAiDraftComplete) {
+            if (response && response?.status !== ResourceContentStatusEnum.TranslationAiDraftComplete) {
                 clearInterval(interval);
                 window.location.reload();
             }
