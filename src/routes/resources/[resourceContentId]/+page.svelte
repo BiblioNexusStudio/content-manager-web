@@ -113,8 +113,10 @@
         debounceDelay: 3000,
     });
     let editableDisplayNameStore = createChangeTrackingStore<string>('', { onChange: save, debounceDelay: 3000 });
-    let wordCountsByStep: number[] = [];
+    let draftWordCountsByStep: number[] = [];
+    let referenceWordCountsByStep: number[] = [];
     let draftCharacterCountsByStep: number[] = [];
+    let referenceCharacterCountsByStep: number[] = [];
     let sidebarContentStore: ReturnType<typeof createSidebarContentStore>;
 
     $: isShowingSupplementalSidebar = openedSupplementalSideBar !== OpenedSupplementalSideBar.None;
@@ -563,7 +565,7 @@
         const content = get(editableContentStore);
         await patchToApi(`/resources/content/${resourceContentId}`, {
             displayName,
-            wordCount: calculateWordCount(wordCountsByStep),
+            wordCount: calculateWordCount(draftCharacterCountsByStep),
             ...(mediaType === MediaTypeEnum.text
                 ? { content: applyMetadataContentFields(stripOutRtlVerseReferenceMarkers(content)) }
                 : null),
@@ -857,7 +859,7 @@
                             <Content
                                 bind:selectedStepNumber
                                 {editableContentStore}
-                                bind:wordCountsByStep
+                                bind:wordCountsByStep={draftWordCountsByStep}
                                 bind:characterCountsByStep={draftCharacterCountsByStep}
                                 canEdit={canMakeContentEdits && resourceContent.isDraft}
                                 canComment={resourceContent.isDraft}
@@ -873,7 +875,7 @@
                             {/if}
                             {#if mediaType === MediaTypeEnum.text}
                                 <div class="text-sm text-gray-500">
-                                    Word count: {calculateWordCount(wordCountsByStep) || resourceContent.wordCount}
+                                    Word count: {calculateWordCount(draftWordCountsByStep) || resourceContent.wordCount}
                                 </div>
                                 <div class="text-sm text-gray-500">
                                     Character count: {calculateCharacterCount(draftCharacterCountsByStep) || 0}
@@ -912,6 +914,8 @@
                             {:else if $sidebarContentStore.selected}
                                 <Content
                                     bind:selectedStepNumber
+                                    bind:wordCountsByStep={referenceWordCountsByStep}
+                                    bind:characterCountsByStep={referenceCharacterCountsByStep}
                                     {editableContentStore}
                                     sidebarIsOpen={$sidebarContentStore.isOpen}
                                     snapshotOrVersion={$sidebarContentStore.selected}
@@ -924,7 +928,12 @@
                                         class="flex h-10 flex-row items-center justify-between px-3 text-sm text-gray-500"
                                     >
                                         <div class="flex gap-x-4">
-                                            <span>Word count: {$sidebarContentStore.selected.wordCount}</span>
+                                            <span>Word count: {calculateWordCount(referenceWordCountsByStep)}</span>
+                                            <span
+                                                >Character count: {calculateCharacterCount(
+                                                    referenceCharacterCountsByStep
+                                                )}</span
+                                            >
                                         </div>
                                         <div class="flex gap-2">
                                             <ContentEditorSwapButton />

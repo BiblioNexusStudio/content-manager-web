@@ -5,11 +5,11 @@
     import SingleItemEditor from '$lib/components/editor/SingleItemEditor.svelte';
     import type { ResourceContent, Snapshot, Version, TiptapContentItem } from '$lib/types/resources';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
-    import TiptapRenderer from '$lib/components/editor/TiptapRenderer.svelte';
     import { onMount } from 'svelte';
     import TiptapDiffRenderer from '$lib/components/editor/TiptapDiffRenderer.svelte';
     import type { CommentStores } from '$lib/stores/comments';
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
+    import SingleItemDisplay from '$lib/components/editor/SingleItemDisplay.svelte';
 
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let canEdit: boolean;
@@ -121,7 +121,7 @@
         {/if}
 
         {#each new Array(numberOfSteps) as _, index (index)}
-            <div class="flex h-full flex-col {index === selectedStepNumber - 1 ? '' : 'hidden'}">
+            <div class="flex h-full flex-col" class:hidden={index !== selectedStepNumber - 1}>
                 {#if (canEdit || canComment) && wordCountsByStep && editableContentStore}
                     <SingleItemEditor
                         bind:wordCountsByStep
@@ -146,12 +146,15 @@
                         {#if !isShowingSnapshotOrVersion}
                             <div class="h-[2.625rem]" />
                         {/if}
-                        <TiptapRenderer
+                        <SingleItemDisplay
                             languageScriptDirection={resourceContent.language.scriptDirection}
-                            tiptapJson={content[index]}
+                            bind:wordCountsByStep
+                            bind:characterCountsByStep
+                            itemIndex={index}
                             canEdit={false}
                             canComment={false}
                             {commentStores}
+                            tiptapJson={content[index]}
                         />
                     </div>
                 {/if}
