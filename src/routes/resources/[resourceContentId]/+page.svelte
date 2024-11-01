@@ -114,6 +114,8 @@
     });
     let editableDisplayNameStore = createChangeTrackingStore<string>('', { onChange: save, debounceDelay: 3000 });
     let wordCountsByStep: number[] = [];
+    let draftCharacterCountsByStep: number[] = [];
+    let referenceCharacterCountsByStep: number[] = [];
     let sidebarContentStore: ReturnType<typeof createSidebarContentStore>;
 
     $: isShowingSupplementalSidebar = openedSupplementalSideBar !== OpenedSupplementalSideBar.None;
@@ -546,6 +548,12 @@
         }
     }
 
+    function calculateCharacterCount(characterCounts: number[]) {
+        if (characterCounts.length) {
+            return characterCounts.reduce((total, current) => total + current, 0);
+        }
+    }
+
     function applyMetadataContentFields(tiptap: TiptapContentItem[]) {
         const originalContent = (resourceContent?.content ?? []) as TiptapContentItem[];
         return tiptap.map((item, index) => ({ ...originalContent[index], ...item }));
@@ -851,6 +859,7 @@
                                 bind:selectedStepNumber
                                 {editableContentStore}
                                 bind:wordCountsByStep
+                                bind:characterCountsByStep={draftCharacterCountsByStep}
                                 canEdit={canMakeContentEdits && resourceContent.isDraft}
                                 canComment={resourceContent.isDraft}
                                 {resourceContent}
@@ -859,13 +868,16 @@
                                 blurOnPendingAiTranslate={isStatusInAwaitingAiDraft}
                             />
                         </div>
-                        <div class="flex flex-row items-center space-x-2">
+                        <div class="flex flex-row items-center space-x-4">
                             {#if resourceContent.parentResourceLicenseInfo}
                                 <LicenseInfoButton {resourceContent} />
                             {/if}
                             {#if mediaType === MediaTypeEnum.text}
                                 <div class="text-sm text-gray-500">
                                     Word count: {calculateWordCount(wordCountsByStep) || resourceContent.wordCount}
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    Character count: {calculateCharacterCount(draftCharacterCountsByStep) || 0}
                                 </div>
                             {/if}
                         </div>
@@ -901,6 +913,7 @@
                             {:else if $sidebarContentStore.selected}
                                 <Content
                                     bind:selectedStepNumber
+                                    bind:characterCountsByStep={referenceCharacterCountsByStep}
                                     {editableContentStore}
                                     sidebarIsOpen={$sidebarContentStore.isOpen}
                                     snapshotOrVersion={$sidebarContentStore.selected}
@@ -912,7 +925,14 @@
                                     <div
                                         class="flex h-10 flex-row items-center justify-between px-3 text-sm text-gray-500"
                                     >
-                                        <span>Word count: {$sidebarContentStore.selected.wordCount}</span>
+                                        <div class="flex gap-x-4">
+                                            <span>Word count: {$sidebarContentStore.selected.wordCount}</span>
+                                            <span
+                                                >Character count: {calculateCharacterCount(
+                                                    referenceCharacterCountsByStep
+                                                ) || 0}</span
+                                            >
+                                        </div>
                                         <div class="flex gap-2">
                                             <ContentEditorSwapButton />
                                             <ScrollSyncLockToggle />

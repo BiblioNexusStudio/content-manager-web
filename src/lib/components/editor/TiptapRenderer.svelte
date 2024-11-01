@@ -9,8 +9,8 @@
 
     export let languageScriptDirection: ScriptDirection | undefined;
     export let tiptapJson: TiptapContentItem | undefined;
-    export let onChange: ((tiptapJson: object, wordCount: number) => void) | undefined = undefined;
-    export let onCreate: ((tiptapJson: object, wordCount: number) => void) | undefined = undefined;
+    export let onChange: ((tiptapJson: object, wordCount: number, charCount: number) => void) | undefined = undefined;
+    export let onCreate: ((tiptapJson: object, wordCount: number, charCount: number) => void) | undefined = undefined;
     export let editor: Editor | undefined = undefined;
     export let canEdit: boolean;
     export let canComment: boolean;
@@ -82,12 +82,20 @@
                 editor = editor;
             },
             onUpdate: ({ editor }) => {
-                onChange?.(editor.getJSON(), editor.storage.characterCount.words());
+                onChange?.(
+                    editor.getJSON(),
+                    editor.storage.characterCount.words(),
+                    editor.storage.characterCount.characters()
+                );
             },
             onCreate: ({ editor }) => {
                 // Need to call this here because the formatting of editor.getJSON has the possibility of being different
                 // from what's in the database.
-                onCreate?.(editor.getJSON(), editor.storage.characterCount.words());
+                onCreate?.(
+                    editor.getJSON(),
+                    editor.storage.characterCount.words(),
+                    editor.storage.characterCount.characters()
+                );
             },
         });
     });

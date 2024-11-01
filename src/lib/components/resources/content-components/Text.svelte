@@ -15,6 +15,7 @@
     export let canEdit: boolean;
     export let canComment: boolean;
     export let wordCountsByStep: number[] | undefined;
+    export let characterCountsByStep: number[];
     export let resourceContent: ResourceContent;
     export let snapshotOrVersion: Snapshot | Version | undefined;
     export let sidebarIsOpen: boolean;
@@ -73,6 +74,19 @@
             selectedStepNumber! -= 1;
         }
     }
+
+    /**
+     * Since we are not saving character counts in the db,
+     * we need to calculate the referrence count here.
+     * Once we save the counts in the db, this can be removed.
+     */
+    function onCreate(tiptapJson: object, wordCount: number, charCount: number) {
+        if (selectedStepNumber) {
+            characterCountsByStep[selectedStepNumber] = charCount;
+        } else {
+            characterCountsByStep[0] = charCount;
+        }
+    }
 </script>
 
 {#if selectedStepNumber}
@@ -124,6 +138,7 @@
                 {#if (canEdit || canComment) && wordCountsByStep && editableContentStore}
                     <SingleItemEditor
                         bind:wordCountsByStep
+                        bind:characterCountsByStep
                         {editableContentStore}
                         itemIndex={index}
                         {canEdit}
@@ -150,6 +165,7 @@
                             canEdit={false}
                             canComment={false}
                             {commentStores}
+                            {onCreate}
                         />
                     </div>
                 {/if}
