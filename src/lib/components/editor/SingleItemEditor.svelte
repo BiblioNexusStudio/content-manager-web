@@ -11,6 +11,7 @@
     export let itemIndex: number;
     export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
     export let wordCountsByStep: number[];
+    export let characterCountsByStep: number[];
     export let canEdit: boolean;
     export let canComment: boolean;
     export let resourceContent: ResourceContent;
@@ -24,7 +25,7 @@
 
     const isPageTransacting = getIsPageTransactingContext();
 
-    function onChange(tiptapJson: object, wordCount: number) {
+    function onChange(tiptapJson: object, wordCount: number, charCount: number) {
         editableContentStore.update((contents) => {
             if (contents[itemIndex]) {
                 contents[itemIndex]!.tiptap = tiptapJson;
@@ -32,9 +33,10 @@
             return contents;
         });
         wordCountsByStep[itemIndex] = wordCount;
+        characterCountsByStep[itemIndex] = charCount;
     }
 
-    function onCreate(tiptapJson: object, wordCount: number) {
+    function onCreate(tiptapJson: object, wordCount: number, charCount: number) {
         editableContentStore.updateOriginalAndCurrent((contents) => {
             if (contents[itemIndex]) {
                 contents[itemIndex]!.tiptap = tiptapJson;
@@ -42,6 +44,7 @@
             return contents;
         });
         wordCountsByStep[itemIndex] = wordCount;
+        characterCountsByStep[itemIndex] = charCount;
     }
 </script>
 

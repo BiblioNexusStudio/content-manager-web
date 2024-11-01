@@ -20,6 +20,7 @@
     export let canEdit = false;
     export let canComment = false;
     export let wordCountsByStep: number[] | undefined = undefined;
+    export let characterCountsByStep: number[] = [];
     export let snapshotOrVersion: Snapshot | Version | undefined = undefined;
     export let selectedStepNumber: number | undefined;
     export let sidebarIsOpen = false;
@@ -42,6 +43,7 @@
         {snapshotOrVersion}
         {resourceContent}
         bind:wordCountsByStep
+        bind:characterCountsByStep
         {editableContentStore}
         {canEdit}
         {canComment}
