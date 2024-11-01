@@ -74,19 +74,6 @@
             selectedStepNumber! -= 1;
         }
     }
-
-    /**
-     * Since we are not saving character counts in the db,
-     * we need to calculate the referrence count here.
-     * Once we save the counts in the db, this can be removed.
-     */
-    function onCreate(tiptapJson: object, wordCount: number, charCount: number) {
-        if (selectedStepNumber) {
-            characterCountsByStep[selectedStepNumber] = charCount;
-        } else {
-            characterCountsByStep[0] = charCount;
-        }
-    }
 </script>
 
 {#if selectedStepNumber}
@@ -165,7 +152,6 @@
                             canEdit={false}
                             canComment={false}
                             {commentStores}
-                            {onCreate}
                         />
                     </div>
                 {/if}

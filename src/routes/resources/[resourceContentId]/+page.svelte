@@ -115,7 +115,6 @@
     let editableDisplayNameStore = createChangeTrackingStore<string>('', { onChange: save, debounceDelay: 3000 });
     let wordCountsByStep: number[] = [];
     let draftCharacterCountsByStep: number[] = [];
-    let referenceCharacterCountsByStep: number[] = [];
     let sidebarContentStore: ReturnType<typeof createSidebarContentStore>;
 
     $: isShowingSupplementalSidebar = openedSupplementalSideBar !== OpenedSupplementalSideBar.None;
@@ -913,7 +912,6 @@
                             {:else if $sidebarContentStore.selected}
                                 <Content
                                     bind:selectedStepNumber
-                                    bind:characterCountsByStep={referenceCharacterCountsByStep}
                                     {editableContentStore}
                                     sidebarIsOpen={$sidebarContentStore.isOpen}
                                     snapshotOrVersion={$sidebarContentStore.selected}
@@ -927,11 +925,6 @@
                                     >
                                         <div class="flex gap-x-4">
                                             <span>Word count: {$sidebarContentStore.selected.wordCount}</span>
-                                            <span
-                                                >Character count: {calculateCharacterCount(
-                                                    referenceCharacterCountsByStep
-                                                ) || 0}</span
-                                            >
                                         </div>
                                         <div class="flex gap-2">
                                             <ContentEditorSwapButton />
