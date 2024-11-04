@@ -77,14 +77,17 @@
                 },
             },
             content: tiptapJson?.tiptap,
-            onTransaction: ({ editor }) => {
+            onTransaction: () => {
                 // force re-render so `editor.isActive` works as expected
                 editor = editor;
-                onChange?.(
-                    editor.getJSON(),
-                    editor.storage.characterCount.words(),
-                    editor.storage.characterCount.characters()
-                );
+
+                if (editor) {
+                    onChange?.(
+                        editor.getJSON(),
+                        editor.storage.characterCount.words(),
+                        editor.storage.characterCount.characters()
+                    );
+                }
             },
             onUpdate: ({ editor }) => {
                 onChange?.(
