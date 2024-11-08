@@ -223,7 +223,7 @@
 
     const assignEditor = async (contentIds: number[]) => {
         if (contentIds.length > 0) {
-            await postToApi<null>('/resources/content/assign-editor', {
+            await postToApi<null>('/resources/content/send-for-editor-review', {
                 assignedUserId: assignToEditorUserId,
                 assignedReviewerUserId: assignToReviewerUserId,
                 contentIds: contentIds,

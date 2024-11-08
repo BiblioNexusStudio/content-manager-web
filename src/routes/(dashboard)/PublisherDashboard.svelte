@@ -118,14 +118,14 @@
 
         const inProgessAssignments =
             selectedEditorReviewContentIds.length > 0
-                ? postToApi<null>('/resources/content/assign-editor', {
+                ? postToApi<null>('/resources/content/send-for-editor-review', {
                       assignedUserId: assignToUserId,
                       contentIds: selectedEditorReviewContentIds,
                   })
                 : Promise.resolve(null);
         const inReviewAssignments =
             selectedReviewContentIds.length > 0
-                ? postToApi<null>('/resources/content/assign-publisher-review', {
+                ? postToApi<null>('/resources/content/send-for-publisher-review', {
                       assignedUserId: assignToUserId,
                       contentIds: selectedReviewContentIds,
                   })

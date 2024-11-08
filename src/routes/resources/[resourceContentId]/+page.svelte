@@ -77,8 +77,8 @@
     let currentUserIsAssigned = false;
     let canMakeContentEdits = false;
     let canAquiferize = false;
-    let canAssign = false;
-    let canSendBack = false;
+    let inReviewAndCanAssign = false;
+    let inPublisherReviewAndCanSendBack = false;
     let canPublish = false;
     let canUnpublish = false;
     let canSendForCompanyReview = false;
@@ -177,14 +177,14 @@
                 resourceContent.status === ResourceContentStatusEnum.Complete ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationAiDraftComplete);
 
-        canAssign =
+        inReviewAndCanAssign =
             hasResourceAssignmentPermission &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizeCompanyReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview);
 
-        canSendBack =
+        inPublisherReviewAndCanSendBack =
             ($userCan(Permission.AssignContent) &&
                 currentUserIsAssigned &&
                 (resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
@@ -199,7 +199,7 @@
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview);
 
-        canPullBackToCompanyReview = resourceContent.canPullBackToCompanyReview;
+        canPullBackToCompanyReview = resourceContent.canPullBackToCompanyReview; // current status would be ReviewPending
 
         canSendForPublisherReview =
             $userCan(Permission.SendReviewContent) &&
@@ -486,7 +486,7 @@
     async function pullBackToCompanyReview() {
         await takeActionAndCallback(
             async () =>
-                await postToApi(`/resources/content/${resourceContentId}/assign-editor`, {
+                await postToApi(`/resources/content/${resourceContentId}/pull-from-review-pending`, {
                     assignedUserId: $currentUser?.id,
                 }),
             async () => {
@@ -495,7 +495,7 @@
         );
     }
 
-    async function assignUser() {
+    async function sendForEditorReview() {
         const currentResourceContentId = resourceContentId;
         $isPageTransacting = true;
 
@@ -507,7 +507,32 @@
 
         await takeActionAndCallback(
             async () =>
-                await postToApi(`/resources/content/${currentResourceContentId}/assign-editor`, {
+                await postToApi(`/resources/content/${currentResourceContentId}/send-for-editor-review`, {
+                    assignedUserId: assignToUserId,
+                }),
+            async () => {
+                if (!nextUpInfo) {
+                    window?.location?.reload();
+                } else {
+                    await handleNextUpInfo(nextUpInfo);
+                }
+            }
+        );
+    }
+
+    async function pullFromPublisherReview() {
+        const currentResourceContentId = resourceContentId;
+        $isPageTransacting = true;
+
+        const nextUpInfo = await callNextUpApi(currentResourceContentId);
+
+        if (currentResourceContentId !== resourceContentId) {
+            return;
+        }
+
+        await takeActionAndCallback(
+            async () =>
+                await postToApi(`/resources/content/${currentResourceContentId}/pull-from-publisher-review`, {
                     assignedUserId: assignToUserId,
                 }),
             async () => {
@@ -537,7 +562,7 @@
     async function assignDraftToEditor() {
         await takeActionAndRefresh(
             async () =>
-                await postToApi(`/resources/content/${resourceContentId}/assign-editor`, {
+                await postToApi(`/resources/content/${resourceContentId}/send-for-editor-review`, {
                     assignedUserId: assignToUserId,
                 })
         );
@@ -717,15 +742,15 @@
                                     Confirm
                                 </button>
                             {/if}
-                            {#if canAssign || canSendBack}
+                            {#if inReviewAndCanAssign || inPublisherReviewAndCanSendBack}
                                 <button
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
                                     on:click={openAssignUserModal}
                                 >
-                                    {#if canAssign}
+                                    {#if inReviewAndCanAssign}
                                         Assign User
-                                    {:else if canSendBack}
+                                    {:else if inPublisherReviewAndCanSendBack}
                                         Send Back
                                     {/if}
                                 </button>
@@ -1029,7 +1054,7 @@
         header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
         bind:open={isAssignUserModalOpen}
         primaryButtonText="Assign"
-        primaryButtonOnClick={assignUser}
+        primaryButtonOnClick={inReviewAndCanAssign ? sendForEditorReview : pullFromPublisherReview}
         primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
     >
         {#if $promptForMachineTranslationRating && currentUserIsAssigned}
