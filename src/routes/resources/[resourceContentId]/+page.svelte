@@ -267,10 +267,10 @@
         canSetStatusTransitionNotApplicable =
             $userCan(Permission.SetStatusTranslationNotApplicable) &&
             currentUserIsAssigned &&
-            resourceContent.status !== ResourceContentStatusEnum.TranslationNotApplicable &&
-            resourceContent.status !== ResourceContentStatusEnum.CompleteNotApplicable &&
-            resourceContent.status !== ResourceContentStatusEnum.Complete &&
-            resourceContent.isDraft;
+            resourceContent.isDraft &&
+            (resourceContent.status === ResourceContentStatusEnum.TranslationAiDraftComplete ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview);
         canSetStatusCompleteNotApplicable =
             $userCan(Permission.SetStatusCompleteNotApplicable) &&
             resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable;
