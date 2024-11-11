@@ -19,7 +19,7 @@
     import MenuIcon from '$lib/icons/MenuIcon.svelte';
     import { onMount } from 'svelte';
     import LinkBibleReferenceButton from './LinkBibleReferenceButton.svelte';
-    import { Permission, userCan, userIsEqual } from '$lib/stores/auth';
+    import { Permission, userCan } from '$lib/stores/auth';
     import LinkResourceReferenceButton from './LinkResourceReferenceButton.svelte';
     import { ResourceContentStatusEnum } from '$lib/types/base';
     import MachineTranslationRating from '$lib/components/MachineTranslationRating.svelte';
@@ -41,13 +41,8 @@
     let isCommentBoxOpen = false;
     const { createNewThread } = commentStores;
 
-    let machineTranslations = machineTranslationStore.machineTranslations;
-    let machineTranslation = $machineTranslations.get(itemIndex);
-
     const showMachineTranslationRating =
-        canEdit &&
-        resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview &&
-        $userIsEqual(machineTranslation?.userId);
+        canEdit && resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview;
 
     $: widthRequired =
         (canEditBibleReferences ? 30 : 0) +
