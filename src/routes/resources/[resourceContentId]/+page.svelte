@@ -810,9 +810,7 @@
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
                                     on:click={openAquiferizeModal}
-                                    >{#if isInTranslationWorkflow}
-                                        Translate
-                                    {:else if isNewDraftStatus}
+                                    >{#if isNewDraftStatus || isInTranslationWorkflow}
                                         Assign
                                     {:else}
                                         Create Draft
