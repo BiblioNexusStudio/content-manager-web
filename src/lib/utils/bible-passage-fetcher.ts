@@ -48,7 +48,11 @@ const getText = async (bibleId: number, start: Verse, end: Verse): Promise<Bible
     const bibleBook = await fetchBibleBookTexts(bibleId, start.bookId);
     if (bibleBook) {
         bibleBook.chapters = bibleBook.chapters.filter((b) => b.number >= start.chapter && b.number <= end.chapter);
-        bibleBook.chapters[0]!.verses = bibleBook.chapters[0]!.verses.filter((v) => v.number >= start.verse);
+        if (!bibleBook.chapters[0]) {
+            // the Bible is missing expected data, return null rather than blowing up on the lines below
+            return null;
+        }
+        bibleBook.chapters[0].verses = bibleBook.chapters[0].verses.filter((v) => v.number >= start.verse);
         bibleBook.chapters.at(-1)!.verses = bibleBook.chapters.at(-1)!.verses.filter((v) => v.number <= end.verse);
     }
 
