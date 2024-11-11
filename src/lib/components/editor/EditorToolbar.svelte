@@ -41,13 +41,10 @@
     let isCommentBoxOpen = false;
     const { createNewThread } = commentStores;
 
-    let machineTranslations = machineTranslationStore.machineTranslations;
-    let machineTranslation = $machineTranslations.get(itemIndex);
-
     const showMachineTranslationRating =
         canEdit &&
         resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview &&
-        $userIsEqual(machineTranslation?.userId);
+        $userIsEqual(resourceContent.assignedUser?.id);
 
     $: widthRequired =
         (canEditBibleReferences ? 30 : 0) +

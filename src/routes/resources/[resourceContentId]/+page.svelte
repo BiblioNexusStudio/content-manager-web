@@ -233,7 +233,7 @@
             new Map(resourceContent.machineTranslations.map((mt) => [mt.contentIndex, mt]))
         );
         promptForMachineTranslationRating.set(
-            resourceContent.machineTranslations.some((mt) => !mt.userRating && $userIsEqual(mt.userId))
+            resourceContent.machineTranslations.some((mt) => !mt.userRating && currentUserIsAssigned)
         );
 
         commentStores = createCommentStores();
