@@ -676,11 +676,11 @@
             const response = await getFromApi<ResourceContentCurrentStatusId>(
                 `/resources/content/${resourceContent?.resourceContentId}/status`
             );
-            if (response && response?.status !== ResourceContentStatusEnum.TranslationAiDraftComplete) {
+            if (response && response?.status !== ResourceContentStatusEnum.TranslationAwaitingAiDraft) {
                 clearInterval(interval);
                 window.location.reload();
             }
-        }, 30000);
+        }, 5000);
     }
 </script>
 
