@@ -33,6 +33,25 @@ export enum ResourceContentStatusEnum {
     CompleteNotApplicable = 'CompleteNotApplicable',
 }
 
+export enum ResourceContentStatusDisplayEnum {
+    None = 'None',
+    New = 'New',
+    AquiferizeEditorReview = 'Aquiferize - Editor Review',
+    Complete = 'Complete',
+    AquiferizeReviewPending = 'Aquiferize - Review Pending',
+    AquiferizePublisherReview = 'Aquiferize - Publisher Review',
+    TranslationAwaitingAiDraft = 'Translation - Awaiting AI Draft',
+    TranslationEditorReview = 'Translation - Editor Review',
+    TranslationReviewPending = 'Translation - Review Pending',
+    TranslationPublisherReview = 'Translation - Publisher Review',
+    OnHold = 'On Hold',
+    AquiferizeCompanyReview = 'Aquiferize - Company Review',
+    TranslationCompanyReview = 'Translation - Company Review',
+    TranslationAiDraftComplete = 'Translation - AI Draft Complete',
+    TranslationNotApplicable = 'Translation - Not Applicable',
+    CompleteNotApplicable = 'Complete - Not Applicable',
+}
+
 export const companiesToIgnore = ['BiblioNexus', 'Temp - Deleted Users', 'N/A'];
 
 export const statusColorMap: Record<ResourceContentStatusEnum, string> = {

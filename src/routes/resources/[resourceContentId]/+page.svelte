@@ -233,7 +233,14 @@
             new Map(resourceContent.machineTranslations.map((mt) => [mt.contentIndex, mt]))
         );
         promptForMachineTranslationRating.set(
-            resourceContent.machineTranslations.some((mt) => !mt.userRating && currentUserIsAssigned)
+            resourceContent.machineTranslations.some(
+                (mt) =>
+                    !mt.userRating &&
+                    currentUserIsAssigned &&
+                    resourceContent?.status !== ResourceContentStatusEnum.TranslationPublisherReview &&
+                    resourceContent?.status !== ResourceContentStatusEnum.TranslationCompanyReview &&
+                    resourceContent?.status !== ResourceContentStatusEnum.TranslationNotApplicable
+            )
         );
 
         commentStores = createCommentStores();
