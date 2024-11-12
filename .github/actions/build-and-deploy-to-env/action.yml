@@ -58,6 +58,9 @@ runs:
         - name: Build
           run: yarn run build
           shell: bash
+        - name: Setup Azure config
+          run: cp staticwebapp.config.json build/
+          shell: bash
         - name: Deploy to Azure WebApp
           id: deploy-to-webapp
           uses: azure/static-web-apps-deploy@v1
@@ -66,9 +69,7 @@ runs:
               skip_app_build: true
               skip_api_build: true
               action: upload
-              app_location: ./build/static
-              api_location: ./build/server
-              config_file_location: ./build
+              app_location: build
               output_location: ''
         - name: Notify Slack deploy status
           if: ${{ !cancelled() && !contains(inputs.environment, 'dev') }}
