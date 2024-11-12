@@ -237,9 +237,7 @@
                 (mt) =>
                     !mt.userRating &&
                     currentUserIsAssigned &&
-                    resourceContent?.status !== ResourceContentStatusEnum.TranslationPublisherReview &&
-                    resourceContent?.status !== ResourceContentStatusEnum.TranslationCompanyReview &&
-                    resourceContent?.status !== ResourceContentStatusEnum.TranslationNotApplicable
+                    resourceContent?.status === ResourceContentStatusEnum.TranslationEditorReview
             )
         );
 
