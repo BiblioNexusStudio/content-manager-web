@@ -13,17 +13,17 @@
                 await tick();
                 chartData.data.labels = [];
                 chartData.data.datasets = [];
-                // eslint-disable-next-line
-                // @ts-ignore
-                chartData.options.animation.duration = 0;
+                if (chartData.options?.animation) {
+                    chartData.options.animation.duration = 0;
+                }
                 chart = new Chart('line-chart', chartData);
             }
             chart.data.labels = inputLines[0]?.values.map(({ x }) => x) ?? [];
             chart.data.datasets = calculateDatasets(inputLines);
             chart.update();
-            // eslint-disable-next-line
-            // @ts-ignore
-            chart.options.animation.duration = 750;
+            if (chart.options?.animation) {
+                chart.options.animation.duration = 750;
+            }
         }
     }
 

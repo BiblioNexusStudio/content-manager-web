@@ -127,8 +127,7 @@
                     },
                 },
             },
-            // eslint-disable-next-line
-            // @ts-ignore
+            // @ts-expect-error this barPercentage is valid but missing from the ChartJS types
             barPercentage: 0.5,
         },
     };

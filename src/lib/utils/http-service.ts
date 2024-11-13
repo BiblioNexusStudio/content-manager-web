@@ -123,13 +123,23 @@ export async function deleteToApi<T = never>(
     return JSON.parse(text);
 }
 
-// To deal with Auth0 weirdness, this does the following:
-// 1. try to get the token normally
-//   a. if the token is expired, get the token bypassing the cache
-// 2. if there is an error due to "login_required", then logout
-// 3. if there is any other kind of error, get the token bypassing the cache
-// 4. if that still doesn't work, get the token by doing a popup, which lets the user login and continue the request
-//    that was running.
+/**
+ * Handles token retrieval and authentication flow with Auth0.
+ *
+ * @returns {Promise<string | undefined>} A promise that resolves to the authentication token
+ * prefixed with 'Bearer ', or undefined if token retrieval fails
+ *
+ * @throws {AuthUninitializedError} If the auth0Client is not initialized
+ * @throws {TokenMissingError} If token retrieval fails and user is logged out
+ *
+ * @description
+ * Token retrieval process:
+ * 1. Attempts to retrieve token silently
+ * 2. If token is expired, bypasses cache to get new token
+ * 3. On 'login_required' error, logs user out
+ * 4. On other errors, attempts to bypass cache
+ * 5. If cache bypass fails, attempts popup authentication
+ */
 async function authTokenHeader(): Promise<string | undefined> {
     if (!auth0Client) {
         throw new AuthUninitializedError();
