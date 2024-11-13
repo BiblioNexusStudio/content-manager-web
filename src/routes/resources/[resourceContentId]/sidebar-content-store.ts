@@ -103,9 +103,7 @@ export function createSidebarContentStore(resourceContent: ResourceContent) {
             } else if (isFirstSnapshot) {
                 return `${formatDate(snapshotOrVersion.created)} English Source`;
             } else if (snapshotOrVersion?.status === ResourceContentStatusDisplayEnum.TranslationAwaitingAiDraft) {
-                return `${formatDate(snapshotOrVersion.created)} ${
-                    snapshotOrVersion.assignedUserName ?? ''
-                } AI Translation`;
+                return `${formatDate(snapshotOrVersion.created)} AI Translation`;
             } else {
                 return `${formatDate(snapshotOrVersion.created)} ${snapshotOrVersion.assignedUserName ?? ''}
 ${snapshotOrVersion.status}`;
