@@ -15,18 +15,18 @@
                 chartData.data.labels = [];
                 chartData.data.datasets[0]!.label = undefined;
                 chartData.data.datasets[0]!.data = [];
-                // eslint-disable-next-line
-                // @ts-ignore
-                chartData.options.animation.duration = 0;
+                if (chartData.options?.animation) {
+                    chartData.options.animation.duration = 0;
+                }
                 chart = new Chart('bar-chart', chartData);
             }
             chart.data.labels = inputDataPoints.map(({ x }) => x);
             chart.data.datasets[0]!.label = inputYLabel;
             chart.data.datasets[0]!.data = inputDataPoints.map(({ y }) => y);
             chart.update();
-            // eslint-disable-next-line
-            // @ts-ignore
-            chart.options.animation.duration = 750;
+            if (chart.options?.animation) {
+                chart.options.animation.duration = 750;
+            }
         }
     }
 

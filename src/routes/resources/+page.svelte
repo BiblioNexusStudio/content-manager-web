@@ -237,11 +237,11 @@
                 <div
                     class="mx-4 mb-2 grid grid-cols-3 rounded-md rounded-t-none border-[1px] border-t-0 bg-base-200 p-2"
                 >
-                    <a
+                    <button
                         class="btn btn-outline self-center justify-self-start"
                         class:btn-disabled={$searchParams.page === 1}
-                        href={searchParams.calculateUrlWithGivenChanges({ page: $searchParams.page - 1 })}
-                        >{$translate('page.resources.table.navigation.previous.value')}</a
+                        on:click={() => ($searchParams.page -= 1)}
+                        >{$translate('page.resources.table.navigation.previous.value')}</button
                     >
                     <div class="grid place-self-center">
                         <div class="mb-2">
@@ -260,11 +260,11 @@
                             {/each}
                         </select>
                     </div>
-                    <a
+                    <button
                         class="btn btn-outline self-center justify-self-end"
                         class:btn-disabled={$searchParams.page === calculateTotalPages(resourceContentsOrNull.total)}
-                        href={searchParams.calculateUrlWithGivenChanges({ page: $searchParams.page + 1 })}
-                        >{$translate('page.resources.table.navigation.next.value')}</a
+                        on:click={() => ($searchParams.page += 1)}
+                        >{$translate('page.resources.table.navigation.next.value')}</button
                     >
                 </div>
             {/if}

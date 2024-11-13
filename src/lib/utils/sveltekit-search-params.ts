@@ -1,21 +1,12 @@
 // copied from https://github.com/paoloricciuti/sveltekit-search-params/blob/master/src/lib/sveltekit-search-params.ts
-// Updates made:
-//   - remove unused `queryParam` function in favor of always using the multi-param `searchParameters` (note the rename)
-//   - remove search params from the URL if they're set to the default value
-//   - require a defaultValue to be set in the options
-//   - add `searchParametersForLoad` function to be used in `+page.ts` files
-//   - add a 50ms debounce to the update URL functionality to allow reactive changes to the search params without race
-//     conditions
-//   - add `calculateUrlWithGivenChanges` to the returned store that can be used to set hrefs on links
 
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { goto } from '$app/navigation';
 import { page } from '$app/stores';
 import { get, writable, type Updater, type Writable } from 'svelte/store';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function noop<T>(value: T) {}
+function noop<T>(_value: T) {
+    // no-op
+}
 
 const GOTO_OPTIONS = {
     keepFocus: true,
@@ -23,7 +14,7 @@ const GOTO_OPTIONS = {
     replaceState: true,
 };
 
-type EncodeAndDecodeOptions<T = any> = {
+type EncodeAndDecodeOptions<T> = {
     encode: (value: T) => string | undefined;
     decode: (value: string | null) => T | null;
     defaultValue: T;
@@ -32,21 +23,35 @@ type EncodeAndDecodeOptions<T = any> = {
 type LooseAutocomplete<T> = {
     [K in keyof T]: T[K];
 } & {
-    [K: string]: any;
+    [K: string]: unknown;
 };
 
 type Options<T> = {
-    [Key in keyof T]: EncodeAndDecodeOptions<T[Key]> | boolean;
+    [Key in keyof T]: EncodeAndDecodeOptions<T[Key]>;
 };
 
 function objectEntries<T>(obj: T): [keyof T, T[keyof T]][] {
     return Object.entries(obj as object) as [keyof T, T[keyof T]][];
 }
 
-export function searchParametersForLoad<T extends Record<string, EncodeAndDecodeOptions>>(
-    url: URL,
-    searchParamsConfig: T
-): { [K in keyof T]: Exclude<ReturnType<T[K]['decode']>, null> } {
+function objectKeys<T>(obj: T): (keyof T)[] {
+    return Object.keys(obj as object) as (keyof T)[];
+}
+
+/**
+ * A function that pulls search parameters from a URL based on configuration settings.
+ * Meant to be used in `page.ts` files to determine the query params of the loading page.
+ *
+ * @param url The URL object containing search parameters to parse
+ * @param searchParamsConfig Configuration object defining parameter types and default values
+ * @returns An object with parsed search parameters, using default values when parameters are not present
+ */
+export function searchParametersForLoad<
+    T extends Record<
+        string,
+        EncodeAndDecodeOptions<string> | EncodeAndDecodeOptions<number> | EncodeAndDecodeOptions<boolean>
+    >,
+>(url: URL, searchParamsConfig: T): { [K in keyof T]: Exclude<ReturnType<T[K]['decode']>, null> } {
     const rawSearchParams = url.searchParams;
     return objectEntries(searchParamsConfig).reduce(
         (output, [name, config]) => ({
@@ -64,19 +69,19 @@ function mixSearchAndOptions<T>(searchParams: URLSearchParams, options?: Options
     const uniqueKeys = Array.from(new Set(Array.from(searchParams?.keys?.() || []).concat(Object.keys(options ?? {}))));
     return Object.fromEntries(
         uniqueKeys.map((key) => {
-            let fnToCall: EncodeAndDecodeOptions['decode'] = (value) => value;
-            const optionsKey = (options as any)?.[key];
-            if (typeof optionsKey !== 'boolean' && typeof optionsKey?.decode === 'function') {
-                fnToCall = optionsKey.decode;
+            let fnToCall: EncodeAndDecodeOptions<string | boolean | number>['decode'] = (value) => value;
+            const option = options?.[key as keyof Options<T>];
+            if (option) {
+                fnToCall = option.decode as EncodeAndDecodeOptions<string | boolean | number>['decode'];
             }
             const value = searchParams?.get(key);
             let actualValue;
             if (
                 (value === undefined || value === null) &&
-                optionsKey?.defaultValue !== undefined &&
-                optionsKey?.defaultValue !== null
+                option?.defaultValue !== undefined &&
+                option?.defaultValue !== null
             ) {
-                actualValue = optionsKey.defaultValue;
+                actualValue = option.defaultValue;
             } else {
                 actualValue = fnToCall(value);
             }
@@ -85,46 +90,33 @@ function mixSearchAndOptions<T>(searchParams: URLSearchParams, options?: Options
     ) as unknown as LooseAutocomplete<T>;
 }
 
+/**
+ * Utility object containing type-specific encoders and decoders for search parameter handling.
+ * Each method returns an object implementing EncodeAndDecodeOptions with appropriate encode/decode functions.
+ *
+ * @property {Function} number - Handles numeric parameters with string conversion
+ * @property {Function} boolean - Handles boolean parameters with string conversion
+ * @property {Function} string - Handles string parameters with direct value passing
+ */
 export const ssp = {
-    object: <T extends object = any>(defaultValue: T) => ({
-        encode: (value: T) => JSON.stringify(value),
-        decode: (value: string | null): T | null => {
-            if (value === null) return null;
-            try {
-                return JSON.parse(value);
-            } catch (e) {
-                return null;
-            }
-        },
-        defaultValue,
-    }),
-    array: <T = any>(defaultValue: T[]) => ({
-        encode: (value: T[]) => JSON.stringify(value),
-        decode: (value: string | null): T[] | null => {
-            if (value === null) return null;
-            try {
-                return JSON.parse(value);
-            } catch (e) {
-                return null;
-            }
-        },
-        defaultValue,
-    }),
-    number: (defaultValue: number) => ({
-        encode: (value: number) => value.toString(),
-        decode: (value: string | null) => (value ? parseFloat(value) : null),
-        defaultValue,
-    }),
-    boolean: (defaultValue: boolean) => ({
-        encode: (value: boolean) => value + '',
-        decode: (value: string | null) => value !== null && value !== 'false',
-        defaultValue,
-    }),
-    string: (defaultValue: string) => ({
-        encode: (value: string | null) => value ?? '',
-        decode: (value: string | null) => value,
-        defaultValue,
-    }),
+    number: (defaultValue: number) =>
+        ({
+            encode: (value: number) => value.toString(),
+            decode: (value: string | null) => (value ? parseFloat(value) : null),
+            defaultValue,
+        }) satisfies EncodeAndDecodeOptions<number>,
+    boolean: (defaultValue: boolean) =>
+        ({
+            encode: (value: boolean) => value + '',
+            decode: (value: string | null) => value !== null && value !== 'false',
+            defaultValue,
+        }) satisfies EncodeAndDecodeOptions<boolean>,
+    string: (defaultValue: string) =>
+        ({
+            encode: (value: string | null) => value ?? '',
+            decode: (value: string | null) => value,
+            defaultValue,
+        }) satisfies EncodeAndDecodeOptions<string>,
 };
 
 type SetTimeout = ReturnType<typeof setTimeout>;
@@ -136,12 +128,24 @@ let debouncedUpdateTimeout: SetTimeout;
 
 export type SubscribedSearchParams<Type> = Type extends Writable<infer X> ? X : never;
 
+/**
+ * Creates a writable store that syncs with URL search parameters.
+ * The store automatically updates the URL when its value changes and vice versa.
+ *
+ * Whether the page.ts `load` function will run varies based on your configuration:
+ * - When runLoadAgainWhenParamsChange is true, any parameter change triggers a full page.ts#load execution
+ * - When it's an array, only changes to specified parameters trigger the load function
+ * - Otherwise, only store subscribers are notified of updates, bypassing the load function
+ *
+ * @template T - The type of the store's value
+ * @param {Options<T>} options - Configuration object defining parameter types and default values
+ * @param {Object} runLoadConfig - Configuration for page reloading behavior
+ * @returns {Writable<LooseAutocomplete<T>>} A writable store with an additional method to calculate URLs with given parameter changes
+ */
 export function searchParameters<T extends object>(
     options: Options<T>,
     { runLoadAgainWhenParamsChange }: { runLoadAgainWhenParamsChange: boolean | (keyof T)[] }
-): Writable<LooseAutocomplete<T>> & {
-    calculateUrlWithGivenChanges: (params: Partial<LooseAutocomplete<T>>) => string;
-} {
+): Writable<LooseAutocomplete<T>> {
     const { set: _set, subscribe } = writable<LooseAutocomplete<T>>();
     const setRef: { value: Writable<T>['set'] } = { value: noop };
     const unsubPage = page.subscribe(($page) => {
@@ -151,22 +155,21 @@ export function searchParameters<T extends object>(
                 const hash = $page.url.hash;
                 const query = new URLSearchParams($page.url.searchParams);
                 const toBatch = (query: URLSearchParams) => {
-                    for (const field of Object.keys(value)) {
-                        if ((value as any)[field] === undefined || (value as any)[field] === null) {
-                            query.delete(field);
+                    for (const field of objectKeys(value)) {
+                        if (value[field] === undefined || value[field] === null) {
+                            query.delete(field.toString());
                             continue;
                         }
-                        let fnToCall: EncodeAndDecodeOptions['encode'] = (value) => value.toString();
-                        const optionsKey = field in options ? options[field as keyof T] : null;
-                        if (typeof optionsKey !== 'boolean' && typeof optionsKey?.encode === 'function') {
-                            fnToCall = optionsKey.encode;
-                        }
-                        const newValue = fnToCall((value as any)[field]);
-                        if (optionsKey && typeof optionsKey === 'object') {
+                        let fnToCall: EncodeAndDecodeOptions<string | boolean | number>['encode'] = (value) =>
+                            value.toString();
+                        const option = field in options ? options[field as keyof T] : null;
+                        if (option) {
+                            fnToCall = option.encode as EncodeAndDecodeOptions<unknown>['encode'];
+                            const newValue = fnToCall(value[field]);
                             if (
                                 newValue === undefined ||
                                 newValue === null ||
-                                newValue === fnToCall(optionsKey.defaultValue)
+                                newValue === fnToCall(option.defaultValue)
                             ) {
                                 query.delete(field as string);
                             } else {
@@ -211,36 +214,10 @@ export function searchParameters<T extends object>(
         };
     };
 
-    function calculateUrlWithGivenChanges(params: Partial<LooseAutocomplete<T>>): string {
-        const currentUrl = new URL(get(page).url);
-        const searchParams = new URLSearchParams(currentUrl.searchParams);
-
-        Object.entries(params).forEach(([key, value]) => {
-            // eslint-disable-next-line
-            // @ts-ignore
-            const option = options[key];
-            let encodedValue;
-            if (typeof option === 'boolean') {
-                encodedValue = value && value.toString();
-            } else {
-                encodedValue = option.encode(value);
-            }
-            if (encodedValue === option.encode(option.defaultValue)) {
-                searchParams.delete(key);
-            } else {
-                searchParams.set(key, encodedValue);
-            }
-        });
-
-        currentUrl.search = searchParams.toString();
-        return currentUrl.toString();
-    }
-
     return {
         set: (value) => {
             setRef.value(value);
         },
-        calculateUrlWithGivenChanges,
         subscribe: sub,
         update: (updater: Updater<LooseAutocomplete<T>>) => {
             const currentValue = get({ subscribe });
@@ -256,6 +233,12 @@ export interface Param {
     ignoreIfEquals?: string | number;
 }
 
+/**
+ * Builds a URL query string from an array of parameters, excluding parameters with values equal to their ignore values.
+ *
+ * @param {Param[]} params - Array of objects containing key-value pairs and optional ignore values
+ * @returns {string} A formatted URL query string
+ */
 export function buildQueryString(params: Param[]): string {
     const searchParams = new URLSearchParams();
 
