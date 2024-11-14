@@ -660,7 +660,7 @@
                 if (!$userCan(Permission.SetStatusCompleteNotApplicable)) {
                     await goto(`/`);
                 }
-                $isPageTransacting = false;
+                window.location.reload();
             }
         );
     }
