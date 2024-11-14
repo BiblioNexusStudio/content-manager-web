@@ -1,0 +1,13 @@
+{
+    "trailingSlash": "auto",
+    "navigationFallback": {
+        "rewrite": "index.html",
+        "exclude": ["/*.{html,js,css,ico,png,svg,webp,webmanifest}"]
+    },
+    "globalHeaders": {
+        "content-security-policy": "default-src data: https: 'unsafe-eval' 'unsafe-inline'; object-src 'none'; media-src * blob:;"
+    },
+    "mimeTypes": {
+        ".json": "text/json"
+    }
+}
