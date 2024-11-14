@@ -12,7 +12,7 @@
     export let englishTranslation: ContentTranslation | undefined;
     export let canCreateTranslation: boolean;
     export let openModal: () => void;
-    export let currentResourceId: string;
+    export let currentResourceId: number;
     export let project: Project | null;
 
     $: numberOfTranslations = translations.length;
@@ -27,9 +27,9 @@
         'languageName'
     )!;
 
-    const currentResource = mappedTranslations.find((x) => x.contentId === parseInt(currentResourceId));
+    const currentResource = mappedTranslations.find((x) => x.contentId === currentResourceId);
 
-    const filteredMappedTranslations = mappedTranslations.filter((x) => x.contentId !== parseInt(currentResourceId));
+    const filteredMappedTranslations = mappedTranslations.filter((x) => x.contentId !== currentResourceId);
 </script>
 
 <div class="dropdown ms-2">

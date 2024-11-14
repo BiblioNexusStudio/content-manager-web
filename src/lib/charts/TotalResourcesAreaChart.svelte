@@ -129,7 +129,7 @@
         },
     };
 
-    onMount(async () => {
+    onMount(() => {
         let canvas = document?.getElementById('totalResourcesAreaChart') as HTMLCanvasElement | undefined;
         let canvasContext = canvas?.getContext('2d');
         if (canvasContext) {

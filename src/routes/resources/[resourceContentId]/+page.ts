@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
+import { getFromApi } from '$lib/utils/http-service';
 import type { ResourceContent } from '$lib/types/resources';
 import { userCan, Permission } from '$lib/stores/auth';
 import { redirect } from '@sveltejs/kit';
@@ -13,10 +13,6 @@ export const load: PageLoad = async ({ parent, params, fetch }) => {
     }
 
     return {
-        resourceContentId: params.resourceContentId,
-        resourceContent: getFromApiWithoutBlocking<ResourceContent>(
-            `/resources/content/${params.resourceContentId}`,
-            fetch
-        ),
+        resourceContent: await getFromApi<ResourceContent>(`/resources/content/${params.resourceContentId}`, fetch),
     };
 };

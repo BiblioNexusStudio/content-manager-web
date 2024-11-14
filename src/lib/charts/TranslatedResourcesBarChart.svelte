@@ -132,7 +132,7 @@
         },
     };
 
-    onMount(async () => {
+    onMount(() => {
         let canvas = document?.getElementById('areaChartCanvas') as HTMLCanvasElement | undefined;
         let canvasContext = canvas?.getContext('2d');
         if (canvasContext) {
