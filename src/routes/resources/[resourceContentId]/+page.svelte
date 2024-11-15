@@ -606,7 +606,11 @@
     }
 
     function usersThatCanBeAssigned() {
-        const users = data.users?.filter((u) => u.role !== UserRole.ReportViewer) ?? null;
+        let users = data.users?.filter((u) => u.role !== UserRole.ReportViewer) ?? null;
+
+        if (resourceContent?.status === ResourceContentStatusEnum.TranslationNotApplicable) {
+            users = users?.filter((u) => u.role === UserRole.Manager || u.role === UserRole.Reviewer) ?? null;
+        }
 
         if ($userCan(Permission.AssignOutsideCompany)) {
             return users;
@@ -1019,128 +1023,128 @@
     <InlineComment {commentStores} />
     <VersePopout language={resourceContent.language} />
     <ResourcePopout />
+
+    {#key resourceContentId}
+        <Modal
+            primaryButtonText="Assign"
+            primaryButtonOnClick={assignPublisherReview}
+            primaryButtonDisabled={!assignToUserId}
+            bind:open={isAssignReviewModalOpen}
+            header="Choose a Reviewer"
+        >
+            <UserSelector
+                users={data.users?.filter((u) => u.role === UserRole.Publisher) ?? []}
+                hideUser={resourceContent?.assignedUser}
+                defaultLabel="Select User"
+                bind:selectedUserId={assignToUserId}
+            />
+        </Modal>
+
+        <Modal
+            header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
+            bind:open={isAquiferizeModalOpen}
+            primaryButtonText="Assign"
+            primaryButtonOnClick={isInTranslationWorkflow || isNewDraftStatus ? assignDraftToEditor : aquiferize}
+            primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
+        >
+            <UserSelector
+                users={usersThatCanBeAssigned()}
+                defaultLabel="Select User"
+                bind:selectedUserId={assignToUserId}
+            />
+        </Modal>
+
+        <Modal
+            header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
+            bind:open={isAssignUserModalOpen}
+            primaryButtonText="Assign"
+            primaryButtonOnClick={inReviewAndCanAssign ? sendForEditorReview : pullFromPublisherReview}
+            primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
+        >
+            {#if $promptForMachineTranslationRating && currentUserIsAssigned}
+                <div class="mb-8 flex flex-col justify-start gap-4">
+                    <div class="font-semibold text-error">Please rate the AI translation before reassigning.</div>
+                    <div>
+                        <MachineTranslationRating
+                            {machineTranslationStore}
+                            showingInPrompt={true}
+                            improvementHorizontalPositionPx={0}
+                        />
+                    </div>
+                </div>
+            {/if}
+            <UserSelector
+                users={usersThatCanBeAssigned()}
+                defaultLabel="Select User"
+                bind:selectedUserId={assignToUserId}
+                hideUser={resourceContent?.assignedUser}
+            />
+        </Modal>
+
+        <Modal
+            header={hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New
+                ? 'Confirm Publish'
+                : 'Choose Publish Option'}
+            bind:open={isPublishModalOpen}
+            primaryButtonText="Publish"
+            primaryButtonOnClick={publish}
+            primaryButtonDisabled={$isPageTransacting}
+        >
+            {#if hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New}
+                <p class="py-4 text-lg text-warning">This resource has unresolved comments.</p>
+            {/if}
+            {#if resourceContent?.status === ResourceContentStatusEnum.New}
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start space-x-2">
+                        <input type="checkbox" bind:checked={createDraft} class="checkbox" />
+                        <span class="label-text">Aquiferization Needed</span>
+                    </label>
+                </div>
+                <!-- svelte-ignore a11y-label-has-associated-control -->
+                <label class="form-control">
+                    <div class="label">
+                        <span class="label-text">Aquiferization Assignment (optional)</span>
+                    </div>
+                    <UserSelector
+                        users={usersThatCanBeAssigned()}
+                        defaultLabel="Unassigned"
+                        disabled={!createDraft}
+                        bind:selectedUserId={assignToUserId}
+                    />
+                </label>
+            {/if}
+        </Modal>
+
+        <Modal
+            header="Create Translation"
+            bind:open={isAddTranslationModalOpen}
+            primaryButtonText="Create"
+            primaryButtonOnClick={createTranslation}
+            primaryButtonDisabled={newTranslationLanguageId === null || $isPageTransacting}
+        >
+            <TranslationSelector
+                allLanguages={data.languages}
+                existingTranslations={resourceContent?.contentTranslations ?? []}
+                bind:selectedLanguageId={newTranslationLanguageId}
+            />
+            <div slot="additional-buttons">
+                {#if englishContentTranslation?.hasDraft}
+                    <div>
+                        <label class="label cursor-pointer">
+                            <input
+                                type="checkbox"
+                                class="checkbox-primary checkbox me-2"
+                                bind:checked={createTranslationFromDraft}
+                            />
+                            <span class="label-text">Create from Draft</span>
+                        </label>
+                    </div>
+                {/if}
+            </div>
+        </Modal>
+
+        <Modal header="Error" isError={true} bind:description={errorModalMessage} />
+    {/key}
 {:catch error}
     <ErrorMessage uncastError={error} />
 {/await}
-
-{#key resourceContentId}
-    <Modal
-        primaryButtonText="Assign"
-        primaryButtonOnClick={assignPublisherReview}
-        primaryButtonDisabled={!assignToUserId}
-        bind:open={isAssignReviewModalOpen}
-        header="Choose a Reviewer"
-    >
-        <UserSelector
-            users={data.users?.filter((u) => u.role === UserRole.Publisher) ?? []}
-            hideUser={resourceContent?.assignedUser}
-            defaultLabel="Select User"
-            bind:selectedUserId={assignToUserId}
-        />
-    </Modal>
-
-    <Modal
-        header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
-        bind:open={isAquiferizeModalOpen}
-        primaryButtonText="Assign"
-        primaryButtonOnClick={isInTranslationWorkflow || isNewDraftStatus ? assignDraftToEditor : aquiferize}
-        primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
-    >
-        <UserSelector
-            users={usersThatCanBeAssigned()}
-            defaultLabel="Select User"
-            bind:selectedUserId={assignToUserId}
-        />
-    </Modal>
-
-    <Modal
-        header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
-        bind:open={isAssignUserModalOpen}
-        primaryButtonText="Assign"
-        primaryButtonOnClick={inReviewAndCanAssign ? sendForEditorReview : pullFromPublisherReview}
-        primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
-    >
-        {#if $promptForMachineTranslationRating && currentUserIsAssigned}
-            <div class="mb-8 flex flex-col justify-start gap-4">
-                <div class="font-semibold text-error">Please rate the AI translation before reassigning.</div>
-                <div>
-                    <MachineTranslationRating
-                        {machineTranslationStore}
-                        showingInPrompt={true}
-                        improvementHorizontalPositionPx={0}
-                    />
-                </div>
-            </div>
-        {/if}
-        <UserSelector
-            users={usersThatCanBeAssigned()}
-            defaultLabel="Select User"
-            bind:selectedUserId={assignToUserId}
-            hideUser={resourceContent?.assignedUser}
-        />
-    </Modal>
-
-    <Modal
-        header={hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New
-            ? 'Confirm Publish'
-            : 'Choose Publish Option'}
-        bind:open={isPublishModalOpen}
-        primaryButtonText="Publish"
-        primaryButtonOnClick={publish}
-        primaryButtonDisabled={$isPageTransacting}
-    >
-        {#if hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New}
-            <p class="py-4 text-lg text-warning">This resource has unresolved comments.</p>
-        {/if}
-        {#if resourceContent?.status === ResourceContentStatusEnum.New}
-            <div class="form-control">
-                <label class="label cursor-pointer justify-start space-x-2">
-                    <input type="checkbox" bind:checked={createDraft} class="checkbox" />
-                    <span class="label-text">Aquiferization Needed</span>
-                </label>
-            </div>
-            <!-- svelte-ignore a11y-label-has-associated-control -->
-            <label class="form-control">
-                <div class="label">
-                    <span class="label-text">Aquiferization Assignment (optional)</span>
-                </div>
-                <UserSelector
-                    users={usersThatCanBeAssigned()}
-                    defaultLabel="Unassigned"
-                    disabled={!createDraft}
-                    bind:selectedUserId={assignToUserId}
-                />
-            </label>
-        {/if}
-    </Modal>
-
-    <Modal
-        header="Create Translation"
-        bind:open={isAddTranslationModalOpen}
-        primaryButtonText="Create"
-        primaryButtonOnClick={createTranslation}
-        primaryButtonDisabled={newTranslationLanguageId === null || $isPageTransacting}
-    >
-        <TranslationSelector
-            allLanguages={data.languages}
-            existingTranslations={resourceContent?.contentTranslations ?? []}
-            bind:selectedLanguageId={newTranslationLanguageId}
-        />
-        <div slot="additional-buttons">
-            {#if englishContentTranslation?.hasDraft}
-                <div>
-                    <label class="label cursor-pointer">
-                        <input
-                            type="checkbox"
-                            class="checkbox-primary checkbox me-2"
-                            bind:checked={createTranslationFromDraft}
-                        />
-                        <span class="label-text">Create from Draft</span>
-                    </label>
-                </div>
-            {/if}
-        </div>
-    </Modal>
-
-    <Modal header="Error" isError={true} bind:description={errorModalMessage} />
-{/key}
