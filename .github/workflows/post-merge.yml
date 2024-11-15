@@ -1,3 +1,14 @@
+# This workflow runs automatically on pushes to master.
+# It can also be run manually via workflow_dispatch. It uses check-if-branch-should-deploy
+# to prevent cluttering the deployments list with initial release-hotfix- branches.
+#
+# It builds for each environment individually and deploys in the same step:
+# - Deploy to Dev
+# - Deploy to QA
+# - Deploy to Production
+#
+# Note: Environment deployments require approval through GitHub environment protection rules
+
 name: Post-merge
 
 on:
