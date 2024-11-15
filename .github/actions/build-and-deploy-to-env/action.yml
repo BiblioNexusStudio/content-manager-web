@@ -52,7 +52,7 @@ runs:
         - name: Install dependencies
           run: yarn install --frozen-lockfile
           shell: bash
-        - name: Setup config
+        - name: Setup ENV vars config
           run: yarn use-config ${{ inputs.environment }}
           shell: bash
         - name: Build
