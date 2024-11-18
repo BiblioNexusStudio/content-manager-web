@@ -60,7 +60,7 @@
     />
 
     <TiptapRenderer
-        languageScriptDirection={resourceContent.language.scriptDirection}
+        language={resourceContent.language}
         {tiptapJson}
         canEdit={canEdit && !$isPageTransacting}
         {canComment}

@@ -75,7 +75,7 @@
     let currentUserIsAssigned = false;
     let canMakeContentEdits = false;
     let canAquiferize = false;
-    let inReviewAndCanAssign = false;
+    let canSendForEditorReview = false;
     let inPublisherReviewAndCanSendBack = false;
     let canPublish = false;
     let canUnpublish = false;
@@ -90,7 +90,6 @@
     let englishContentTranslation: ContentTranslation | undefined;
     let createTranslationFromDraft = false;
     let isInTranslationWorkflow = false;
-    let isNewDraftStatus = false;
     let mediaType: MediaTypeEnum | undefined;
     let selectedStepNumber: number | undefined;
     let openedSupplementalSideBar = OpenedSupplementalSideBar.None;
@@ -148,8 +147,6 @@
             resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
             resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending;
 
-        isNewDraftStatus = resourceContent.status === ResourceContentStatusEnum.New && resourceContent.isDraft;
-
         canMakeContentEdits =
             $userCan(Permission.EditContent) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
@@ -167,14 +164,19 @@
             ($userCan(Permission.AssignContent) && currentUserIsAssigned);
 
         canAquiferize =
-            hasResourceAssignmentPermission &&
+            $userCan(Permission.CreateContent) &&
+            !resourceContent.isDraft &&
             (resourceContent.status === ResourceContentStatusEnum.New ||
-                resourceContent.status === ResourceContentStatusEnum.Complete ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationAiDraftComplete);
+                resourceContent.status === ResourceContentStatusEnum.Complete);
 
-        inReviewAndCanAssign =
+        canSendForEditorReview =
             hasResourceAssignmentPermission &&
-            (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
+            // note: the New and isDraft combo should not exist, but this ensures that the resource
+            // isn't stuck if it's in a bad state
+            ((resourceContent.status === ResourceContentStatusEnum.New && resourceContent.isDraft) ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeAiDraftComplete ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationAiDraftComplete ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizeCompanyReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview);
@@ -275,7 +277,9 @@
             $userCan(Permission.SetStatusCompleteNotApplicable) &&
             resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable;
 
-        isStatusInAwaitingAiDraft = resourceContent.status === ResourceContentStatusEnum.TranslationAwaitingAiDraft;
+        isStatusInAwaitingAiDraft =
+            resourceContent.status === ResourceContentStatusEnum.TranslationAwaitingAiDraft ||
+            resourceContent.status === ResourceContentStatusEnum.AquiferizeAwaitingAiDraft;
 
         if (isStatusInAwaitingAiDraft) {
             startPollingForAiTranslateComplete();
@@ -566,15 +570,6 @@
         );
     }
 
-    async function assignDraftToEditor() {
-        await takeActionAndRefresh(
-            async () =>
-                await postToApi(`/resources/content/${resourceContent.resourceContentId}/send-for-editor-review`, {
-                    assignedUserId: assignToUserId,
-                })
-        );
-    }
-
     function calculateWordCount(wordCounts: number[]) {
         if (wordCounts.length) {
             return wordCounts.reduce((total, current) => total + current, 0);
@@ -690,7 +685,11 @@
             const response = await getFromApi<ResourceContentCurrentStatusId>(
                 `/resources/content/${resourceContent?.resourceContentId}/status`
             );
-            if (response && response?.status !== ResourceContentStatusEnum.TranslationAwaitingAiDraft) {
+            if (
+                response &&
+                response?.status !== ResourceContentStatusEnum.TranslationAwaitingAiDraft &&
+                response?.status !== ResourceContentStatusEnum.AquiferizeAwaitingAiDraft
+            ) {
                 clearInterval(interval);
                 window.location.reload();
             }
@@ -753,13 +752,13 @@
                                 Confirm
                             </button>
                         {/if}
-                        {#if inReviewAndCanAssign || inPublisherReviewAndCanSendBack}
+                        {#if canSendForEditorReview || inPublisherReviewAndCanSendBack}
                             <button
                                 class="btn btn-primary btn-sm ms-2"
                                 disabled={$isPageTransacting}
                                 on:click={openAssignUserModal}
                             >
-                                {#if inReviewAndCanAssign}
+                                {#if canSendForEditorReview}
                                     Assign User
                                 {:else if inPublisherReviewAndCanSendBack}
                                     Send Back
@@ -820,12 +819,7 @@
                             <button
                                 class="btn btn-primary btn-sm ms-2"
                                 disabled={$isPageTransacting}
-                                on:click={openAquiferizeModal}
-                                >{#if isNewDraftStatus || isInTranslationWorkflow}
-                                    Assign
-                                {:else}
-                                    Create Draft
-                                {/if}</button
+                                on:click={openAquiferizeModal}>Create Draft</button
                             >
                         {/if}
                         {#if canCommunityTranslate}
@@ -1044,7 +1038,7 @@
         header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
         bind:open={isAquiferizeModalOpen}
         primaryButtonText="Assign"
-        primaryButtonOnClick={isInTranslationWorkflow || isNewDraftStatus ? assignDraftToEditor : aquiferize}
+        primaryButtonOnClick={aquiferize}
         primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
     >
         <UserSelector
@@ -1058,7 +1052,7 @@
         header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
         bind:open={isAssignUserModalOpen}
         primaryButtonText="Assign"
-        primaryButtonOnClick={inReviewAndCanAssign ? sendForEditorReview : pullFromPublisherReview}
+        primaryButtonOnClick={canSendForEditorReview ? sendForEditorReview : pullFromPublisherReview}
         primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
     >
         {#if $promptForMachineTranslationRating && currentUserIsAssigned}

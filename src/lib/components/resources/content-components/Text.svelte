@@ -147,7 +147,7 @@
                             <div class="h-[2.625rem]" />
                         {/if}
                         <SingleItemDisplay
-                            languageScriptDirection={resourceContent.language.scriptDirection}
+                            language={resourceContent.language}
                             bind:wordCountsByStep
                             bind:characterCountsByStep
                             itemIndex={index}
