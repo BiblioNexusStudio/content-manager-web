@@ -19,7 +19,7 @@
         window.onInlineCommentClick = onInlineCommentClick;
     });
 
-    async function onInlineCommentClick(selectedThreadId: number, spanId: string) {
+    function onInlineCommentClick(selectedThreadId: number, spanId: string) {
         if (isCommenting) return;
 
         markSpan = document.getElementById(spanId);

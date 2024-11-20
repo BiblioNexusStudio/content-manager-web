@@ -1,5 +1,5 @@
 import { Permission, userCan } from '$lib/stores/auth';
-import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
+import { getFromApi } from '$lib/utils/http-service';
 import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 import { type User, type Company, UserRole } from '$lib/types/base';
@@ -9,13 +9,14 @@ export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
 
     if (get(userCan)(Permission.CreateUser) || get(userCan)(Permission.CreateUserInCompany)) {
-        const userData = getFromApiWithoutBlocking<User[]>(`/users`, fetch);
-        const companies = getFromApiWithoutBlocking<Company[]>(`/companies`, fetch);
-        const roles = [UserRole.Editor, UserRole.Manager, UserRole.ReportViewer, UserRole.Reviewer];
+        const [users, companies] = await Promise.all([
+            getFromApi<User[]>(`/users`, fetch),
+            getFromApi<Company[]>(`/companies`, fetch),
+        ]);
         return {
-            userData,
+            users,
             companies,
-            roles,
+            roles: [UserRole.Editor, UserRole.Manager, UserRole.ReportViewer, UserRole.Reviewer],
         };
     } else {
         throw redirect(302, '/');

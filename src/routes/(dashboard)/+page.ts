@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
+import { getFromApi } from '$lib/utils/http-service';
 import { Permission, userCan } from '$lib/stores/auth';
 import { get } from 'svelte/store';
 import type { BibleBook, ResourceContentStatusEnum } from '$lib/types/base';
@@ -11,16 +11,13 @@ export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
 
     if (get(userCan)(Permission.ReviewContent) || get(userCan)(Permission.PublishContent)) {
-        const assignedProjects = getFromApiWithoutBlocking<Project[]>('/projects/assigned-to-self', fetch);
-        const assignedResourceContent = fetchAssignedResourceContent(fetch);
-        const reviewPendingResourceContent = getFromApiWithoutBlocking<ResourcePendingReview[]>(
-            '/resources/content/review-pending',
-            fetch
-        );
-        const notApplicableContent = getFromApiWithoutBlocking<NotApplicableContent[]>(
-            '/resources/content/not-applicable',
-            fetch
-        );
+        const [assignedProjects, assignedResourceContent, reviewPendingResourceContent, notApplicableContent] =
+            await Promise.all([
+                getFromApi<Project[]>('/projects/assigned-to-self', fetch),
+                fetchAssignedResourceContent(fetch),
+                getFromApi<ResourcePendingReview[]>('/resources/content/review-pending', fetch),
+                getFromApi<NotApplicableContent[]>('/resources/content/not-applicable', fetch),
+            ]);
 
         return {
             publisherDashboard: {
@@ -31,16 +28,14 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             },
         };
     } else if (get(userCan)(Permission.ReadCompanyContentAssignments)) {
-        const assignedResourceContent = fetchAssignedResourceContent(fetch);
-        const toAssignContent = getFromApiWithoutBlocking<ResourceAssignedToSelf[]>(
-            '/resources/content/to-assign',
-            fetch
-        );
-        const manageResourceContent = getFromApiWithoutBlocking<ResourceAssignedToOwnCompany[]>(
-            '/resources/content/assigned-to-own-company',
-            fetch
-        );
-        const assignedUsersWordCount = getFromApiWithoutBlocking<UserWordCount[]>('/users/assigned-word-count', fetch);
+        const [assignedResourceContent, toAssignContent, manageResourceContent, assignedUsersWordCount] =
+            await Promise.all([
+                fetchAssignedResourceContent(fetch),
+                getFromApi<ResourceAssignedToSelf[]>('/resources/content/to-assign', fetch),
+                getFromApi<ResourceAssignedToOwnCompany[]>('/resources/content/assigned-to-own-company', fetch),
+                getFromApi<UserWordCount[]>('/users/assigned-word-count', fetch),
+            ]);
+
         return {
             managerDashboard: {
                 assignedResourceContent,
@@ -50,19 +45,19 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             },
         };
     } else if (get(userCan)(Permission.CreateCommunityContent)) {
-        const assignedResourceContent = fetchAssignedResourceContent(fetch);
-        const assignedResourceHistoryContent = getFromApiWithoutBlocking<ResourceAssignedToSelfHistory[]>(
-            '/resources/content/assigned-to-self/history',
-            fetch
-        );
-        const bibleBooks = getFromApiWithoutBlocking<BibleBook[]>('/bibles/1/books', fetch);
+        const [assignedResourceContent, assignedResourceHistoryContent, bibleBooks] = await Promise.all([
+            fetchAssignedResourceContent(fetch),
+            getFromApi<ResourceAssignedToSelfHistory[]>('/resources/content/assigned-to-self/history', fetch),
+            getFromApi<BibleBook[]>('/bibles/1/books', fetch),
+        ]);
+
         return { communityReviewerDashboard: { assignedResourceContent, assignedResourceHistoryContent, bibleBooks } };
     } else if (get(userCan)(Permission.EditContent)) {
-        const assignedResourceContent = fetchAssignedResourceContent(fetch);
-        const assignedResourceHistoryContent = getFromApiWithoutBlocking<ResourceAssignedToSelfHistory[]>(
-            '/resources/content/assigned-to-self/history',
-            fetch
-        );
+        const [assignedResourceContent, assignedResourceHistoryContent] = await Promise.all([
+            fetchAssignedResourceContent(fetch),
+            getFromApi<ResourceAssignedToSelfHistory[]>('/resources/content/assigned-to-self/history', fetch),
+        ]);
+
         return { editorDashboard: { assignedResourceContent, assignedResourceHistoryContent } };
     } else if (get(userCan)(Permission.ReadReports)) {
         throw redirect(302, '/reporting');
@@ -72,7 +67,7 @@ export const load: PageLoad = async ({ parent, fetch }) => {
 };
 
 function fetchAssignedResourceContent(injectedFetch: typeof window.fetch) {
-    return getFromApiWithoutBlocking<ResourceAssignedToSelf[]>('/resources/content/assigned-to-self', injectedFetch);
+    return getFromApi<ResourceAssignedToSelf[]>('/resources/content/assigned-to-self', injectedFetch);
 }
 
 export interface ResourcesByParentResource extends TotalsByMonth {

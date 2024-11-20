@@ -1,4 +1,4 @@
-import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
+import { getFromApi } from '$lib/utils/http-service';
 import type { PageLoad } from './$types';
 import type { DynamicReport } from '$lib/types/reporting';
 import { Permission, userCan } from '$lib/stores/auth';
@@ -7,6 +7,7 @@ import { get } from 'svelte/store';
 import { sideBarHiddenOnPage } from '$lib/stores/app';
 import { buildQueryString, searchParametersForLoad, ssp } from '$lib/utils/sveltekit-search-params';
 import type { Company } from '$lib/types/base';
+import errorGotoPath from '$lib/stores/error-goto-path';
 
 export const _defaultTableRowsPerPage = 100;
 
@@ -25,10 +26,11 @@ export const load: PageLoad = async ({ params, url, parent, fetch }) => {
     await parent();
 
     sideBarHiddenOnPage.set(true);
+    errorGotoPath.set('/reporting');
 
-    const companies = get(userCan)(Permission.ReadUsers)
-        ? getFromApiWithoutBlocking<Company[]>(`/companies`, fetch)
-        : { promise: Promise.resolve([]) };
+    const companiesPromise = get(userCan)(Permission.ReadUsers)
+        ? getFromApi<Company[]>(`/companies`, fetch)
+        : Promise.resolve([] as Company[]);
 
     if (get(userCan)(Permission.ReadReports)) {
         const searchParams = searchParametersForLoad(url, _searchParamsConfig);
@@ -39,10 +41,8 @@ export const load: PageLoad = async ({ params, url, parent, fetch }) => {
             { key: 'parentResourceId', value: searchParams.parentResourceId, ignoreIfEquals: 0 },
             { key: 'companyId', value: searchParams.companyId, ignoreIfEquals: 0 },
         ]);
-        const reportData = getFromApiWithoutBlocking<DynamicReport>(
-            `/reports/dynamic/${params.slug}?${queryString}`,
-            fetch
-        );
+        const reportDataPromise = getFromApi<DynamicReport>(`/reports/dynamic/${params.slug}?${queryString}`, fetch);
+        const [reportData, companies] = await Promise.all([reportDataPromise, companiesPromise]);
         return {
             reportData,
             companies,

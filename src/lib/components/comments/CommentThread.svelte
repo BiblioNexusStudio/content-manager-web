@@ -35,7 +35,7 @@
         scrollParentDivToBottom();
     };
 
-    const onEditClick = async (comment: Comment) => {
+    const onEditClick = (comment: Comment) => {
         isCommenting = true;
         editingCommentId = comment.id;
         previousCommentValue = comment.comment;
@@ -144,7 +144,7 @@
         }
     };
 
-    const onEditCommentClick = async (e: MouseEvent, comment: Comment) => {
+    const onEditCommentClick = async (_: MouseEvent, comment: Comment) => {
         isSendingComment = true;
         try {
             await patchToApi(`/comments/${comment.id}`, {

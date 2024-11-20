@@ -6,23 +6,16 @@
     import ProjectViewTableAndFilters from '$lib/components/projects/ProjectViewTableAndFilters.svelte';
     import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
     import { startProject } from '$lib/utils/projects';
-    import { ProjectConstants, type ProjectResponse } from '$lib/types/projects';
+    import { ProjectConstants } from '$lib/types/projects';
     import BackButton from '$lib/components/BackButton.svelte';
     import type { ProjectResource } from '$lib/types/projects';
     import { browser } from '$app/environment';
-    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
-    import ErrorMessage from '$lib/components/ErrorMessage.svelte';
 
     export let data: PageData;
-    const { users: dataUsers } = data;
 
-    $: projectPromise = data.projectResponse!.promise;
-    $: setProjectStore(data.projectResponse!.promise);
-
-    async function setProjectStore(projectPromise: Promise<ProjectResponse>) {
-        $project = await projectPromise;
-        $users = dataUsers;
-    }
+    $: projectResponse = data.projectResponse;
+    $: $project = projectResponse;
+    $: $users = data.users;
 
     $: companyLeadSet = $project?.projectPlatform !== ProjectConstants.AQUIFER ? true : $project?.companyLead;
 
@@ -43,7 +36,7 @@
 
     function jsonToCsv(json: ProjectResource[] | undefined, fields: string[], fieldMapping: Record<string, string>) {
         if (!json) return;
-        const replacer = (key: string, value: string) => (value === null ? '' : value);
+        const replacer = (_: string, value: string) => (value === null ? '' : value);
         const header = fields.map((fieldName) => fieldMapping[fieldName] || fieldName).join(',');
         const csv = [
             header,
@@ -85,48 +78,42 @@
     <title>{$project?.name || 'Project'} | Aquifer Admin</title>
 </svelte:head>
 
-{#await projectPromise}
-    <CenteredSpinnerFullScreen />
-{:then projectResponse}
-    <div class="flex justify-between p-4 pb-0 xl:mb-4">
-        <div class="flex w-2/3 items-center">
-            <BackButton defaultPathIfNoHistory="/projects" />
-            <span class="ms-2 text-2xl">
-                {projectResponse.company} - {projectResponse.name}
-            </span>
-        </div>
-        <div class="flex">
-            {#if $project?.started === null && $userCan(Permission.EditProjects)}
-                <button class="btn btn-primary" disabled={!disabledStartButton} on:click={onStartProject}>Start</button>
-            {:else}
-                <button
-                    data-app-insights-event-name="project-download-word-counts-click"
-                    class="btn btn-primary"
-                    on:click={handleDownloadWordCounts}>Download Word Counts</button
-                >
-            {/if}
-        </div>
+<div class="flex justify-between p-4 pb-0 xl:mb-4">
+    <div class="flex w-2/3 items-center">
+        <BackButton defaultPathIfNoHistory="/projects" />
+        <span class="ms-2 text-2xl">
+            {projectResponse.company} - {projectResponse.name}
+        </span>
     </div>
-    <div class="flex flex-col overflow-hidden xl:flex-row">
-        <div class="px-4 xl:me-8">
-            <ProjectViewTabs canOnlyViewProjectsInCompany={data.canOnlyViewProjectsInCompany} />
-            {#if projectResponse?.counts?.notStarted + projectResponse?.counts?.editorReview + projectResponse?.counts?.inCompanyReview + projectResponse?.counts?.inPublisherReview + projectResponse?.counts?.completed > 0}
-                <div class="mb-4 w-1/2 pe-4 xl:w-full xl:pe-0">
-                    <ProjectProgressBar
-                        notStartedCount={projectResponse?.counts?.notStarted}
-                        editorReviewCount={projectResponse?.counts?.editorReview}
-                        inCompanyReviewCount={projectResponse?.counts?.inCompanyReview}
-                        inPublisherReviewCount={projectResponse?.counts?.inPublisherReview}
-                        completeCount={projectResponse?.counts?.completed}
-                        showLegend={true}
-                    />
-                </div>
-            {/if}
-        </div>
-        <div class="flex w-full grow flex-col overflow-hidden px-4">
-            <ProjectViewTableAndFilters />
-        </div>
+    <div class="flex">
+        {#if $project?.started === null && $userCan(Permission.EditProjects)}
+            <button class="btn btn-primary" disabled={!disabledStartButton} on:click={onStartProject}>Start</button>
+        {:else}
+            <button
+                data-app-insights-event-name="project-download-word-counts-click"
+                class="btn btn-primary"
+                on:click={handleDownloadWordCounts}>Download Word Counts</button
+            >
+        {/if}
     </div>
-{:catch error}
-    <ErrorMessage uncastError={error} gotoPath="/projects" />
-{/await}
+</div>
+<div class="flex flex-col overflow-hidden xl:flex-row">
+    <div class="px-4 xl:me-8">
+        <ProjectViewTabs canOnlyViewProjectsInCompany={data.canOnlyViewProjectsInCompany} />
+        {#if projectResponse.counts.notStarted + projectResponse.counts.editorReview + projectResponse.counts.inCompanyReview + projectResponse.counts.inPublisherReview + projectResponse.counts.completed > 0}
+            <div class="mb-4 w-1/2 pe-4 xl:w-full xl:pe-0">
+                <ProjectProgressBar
+                    notStartedCount={projectResponse.counts.notStarted}
+                    editorReviewCount={projectResponse.counts.editorReview}
+                    inCompanyReviewCount={projectResponse.counts.inCompanyReview}
+                    inPublisherReviewCount={projectResponse.counts.inPublisherReview}
+                    completeCount={projectResponse.counts.completed}
+                    showLegend={true}
+                />
+            </div>
+        {/if}
+    </div>
+    <div class="flex w-full grow flex-col overflow-hidden px-4">
+        <ProjectViewTableAndFilters />
+    </div>
+</div>

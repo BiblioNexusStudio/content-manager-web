@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
+import { getFromApi } from '$lib/utils/http-service';
 import type { ResourceContentStatusEnum } from '$lib/types/base';
 import { ssp, searchParametersForLoad, buildQueryString } from '$lib/utils/sveltekit-search-params';
 import { get } from 'svelte/store';
@@ -28,18 +28,23 @@ export const load: PageLoad = async ({ parent, url, fetch }) => {
     }
 
     return {
-        resourceContentData: getResourceContents(
-            fetch,
-            searchParams.page,
-            get(resourcesPerPage),
-            searchParams.languageId,
-            searchParams.resourceId,
-            searchParams.bookCode,
-            searchParams.startChapter,
-            searchParams.endChapter,
-            searchParams.isPublished,
-            searchParams.query
-        ),
+        // by returning a nested object here, SvelteKit won't await the promise before rendering the
+        // +page.svelte and instead we can await the promise on the page to show a loader inside the table
+        // TODO: when upgrading to SvelteKit 2 the nested part isn't necessary, just return the unresolved promise
+        resourceContentData: {
+            promise: getResourceContents(
+                fetch,
+                searchParams.page,
+                get(resourcesPerPage),
+                searchParams.languageId,
+                searchParams.resourceId,
+                searchParams.bookCode,
+                searchParams.startChapter,
+                searchParams.endChapter,
+                searchParams.isPublished,
+                searchParams.query
+            ),
+        },
     };
 };
 
@@ -73,7 +78,7 @@ function getResourceContents(
         return null;
     }
 
-    return getFromApiWithoutBlocking<ResourceContentResponse>(`/resources/content?${queryString}`, injectedFetch);
+    return getFromApi<ResourceContentResponse>(`/resources/content?${queryString}`, injectedFetch);
 }
 
 export interface ResourceContentResponse {

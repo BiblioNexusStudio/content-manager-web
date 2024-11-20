@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
+import { getFromApi } from '$lib/utils/http-service';
 import type { ProjectListResponse } from '$lib/types/projects';
 import { Permission, userCan } from '$lib/stores/auth';
 import { redirect } from '@sveltejs/kit';
@@ -10,12 +10,14 @@ export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
 
     if (get(userCan)(Permission.ReadProjects)) {
-        const projectListResponse = getFromApiWithoutBlocking<ProjectListResponse[]>('/projects', fetch);
-        const companies = getFromApiWithoutBlocking<Company[]>(`/companies`, fetch);
-        return { projectListResponse, companies };
+        const [projects, companies] = await Promise.all([
+            getFromApi<ProjectListResponse[]>('/projects', fetch),
+            getFromApi<Company[]>(`/companies`, fetch),
+        ]);
+        return { projects, companies };
     } else if (get(userCan)(Permission.ReadProjectsInCompany)) {
-        const projectListResponse = getFromApiWithoutBlocking<ProjectListResponse[]>('/projects', fetch);
-        return { projectListResponse, companies: { promise: Promise.resolve([]) } };
+        const projects = await getFromApi<ProjectListResponse[]>('/projects', fetch);
+        return { projects, companies: [] as Company[] };
     } else {
         throw redirect(302, '/');
     }
