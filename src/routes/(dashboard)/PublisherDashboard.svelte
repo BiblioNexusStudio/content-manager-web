@@ -91,6 +91,8 @@
     function shouldAssignAsEditorReview(status: ResourceContentStatusEnum | null) {
         return (
             status === ResourceContentStatusEnum.New ||
+            status === ResourceContentStatusEnum.AquiferizeAwaitingAiDraft ||
+            status === ResourceContentStatusEnum.AquiferizeAiDraftComplete ||
             status === ResourceContentStatusEnum.TranslationAwaitingAiDraft ||
             status === ResourceContentStatusEnum.TranslationAiDraftComplete ||
             status === ResourceContentStatusEnum.AquiferizeEditorReview ||

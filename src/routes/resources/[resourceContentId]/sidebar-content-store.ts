@@ -102,7 +102,10 @@ export function createSidebarContentStore(resourceContent: ResourceContent) {
                 return `${formatDate(snapshotOrVersion.created)}`;
             } else if (isFirstSnapshot) {
                 return `${formatDate(snapshotOrVersion.created)} English Source`;
-            } else if (snapshotOrVersion?.status === ResourceContentStatusDisplayEnum.TranslationAwaitingAiDraft) {
+            } else if (
+                snapshotOrVersion?.status === ResourceContentStatusDisplayEnum.TranslationAwaitingAiDraft ||
+                snapshotOrVersion?.status === ResourceContentStatusDisplayEnum.AquiferizeAwaitingAiDraft
+            ) {
                 return `${formatDate(snapshotOrVersion.created)} AI Translation`;
             } else {
                 return `${formatDate(snapshotOrVersion.created)} ${snapshotOrVersion.assignedUserName ?? ''}
