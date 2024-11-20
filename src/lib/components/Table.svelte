@@ -24,6 +24,7 @@
     export let searchText: string | undefined = undefined;
     export let noItemsAfterSearchText = 'No results.';
     export let isLoading = false;
+    export let customTbody = false;
 
     export let currentPage: number | undefined = undefined;
     export let totalItems: number | undefined = undefined;
@@ -174,56 +175,60 @@
                     {/each}
                 </tr>
             </thead>
-            <tbody>
-                {#if isLoading}
-                    <tr>
-                        <td colspan="99">
-                            <CenteredSpinner />
-                        </td>
-                    </tr>
-                {:else}
-                    {#each items as item, index (idColumn === 'index' ? index : item[idColumn])}
-                        {@const href =
-                            itemUrlPrefix && `${itemUrlPrefix}${idColumn === 'index' ? '' : item[idColumn] ?? ''}`}
-                        <tr class="hover">
-                            {#if enableSelectAll || enableSelect}
-                                <TableCell class="w-4">
-                                    <input
-                                        type="checkbox"
-                                        class="checkbox checkbox-sm"
-                                        on:change={() => onSelectItem(item)}
-                                        checked={selectedItems.includes(item)}
-                                    />
-                                </TableCell>
-                            {/if}
-                            {#each columns as { itemKey, text, width } (itemKey)}
-                                <slot {item} {href} {itemKey} columnText={text}>
-                                    {#if href !== undefined && itemKey}
-                                        <LinkedTableCell style={width ? `width: ${width}ch;` : ''} {href}
-                                            >{item[itemKey]?.toLocaleString() ?? ''}</LinkedTableCell
-                                        >
-                                    {:else if itemKey !== undefined}
-                                        <TableCell style={width ? `width: ${width}ch;` : ''}
-                                            >{item[itemKey]?.toLocaleString() ?? ''}</TableCell
-                                        >
-                                    {/if}
-                                </slot>
-                            {/each}
-                        </tr>
-                    {/each}
-                    {#if items.length === 0}
+            {#if customTbody}
+                <slot name="customTbody" rowItems={items} {columns} />
+            {:else}
+                <tbody>
+                    {#if isLoading}
                         <tr>
-                            <td colspan="99" class="text-center">
-                                {#if searchable && !!searchText}
-                                    {noItemsAfterSearchText}
-                                {:else}
-                                    {noItemsText}
-                                {/if}
+                            <td colspan="99">
+                                <CenteredSpinner />
                             </td>
                         </tr>
+                    {:else}
+                        {#each items as item, index (idColumn === 'index' ? index : item[idColumn])}
+                            {@const href =
+                                itemUrlPrefix && `${itemUrlPrefix}${idColumn === 'index' ? '' : item[idColumn] ?? ''}`}
+                            <tr class="hover">
+                                {#if enableSelectAll || enableSelect}
+                                    <TableCell class="w-4">
+                                        <input
+                                            type="checkbox"
+                                            class="checkbox checkbox-sm"
+                                            on:change={() => onSelectItem(item)}
+                                            checked={selectedItems.includes(item)}
+                                        />
+                                    </TableCell>
+                                {/if}
+                                {#each columns as { itemKey, text, width } (itemKey)}
+                                    <slot {item} {href} {itemKey} columnText={text}>
+                                        {#if href !== undefined && itemKey}
+                                            <LinkedTableCell style={width ? `width: ${width}ch;` : ''} {href}
+                                                >{item[itemKey]?.toLocaleString() ?? ''}</LinkedTableCell
+                                            >
+                                        {:else if itemKey !== undefined}
+                                            <TableCell style={width ? `width: ${width}ch;` : ''}
+                                                >{item[itemKey]?.toLocaleString() ?? ''}</TableCell
+                                            >
+                                        {/if}
+                                    </slot>
+                                {/each}
+                            </tr>
+                        {/each}
+                        {#if items.length === 0}
+                            <tr>
+                                <td colspan="99" class="text-center">
+                                    {#if searchable && !!searchText}
+                                        {noItemsAfterSearchText}
+                                    {:else}
+                                        {noItemsText}
+                                    {/if}
+                                </td>
+                            </tr>
+                        {/if}
                     {/if}
-                {/if}
-            </tbody>
+                </tbody>
+            {/if}
         </table>
     </div>
 

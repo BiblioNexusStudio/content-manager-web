@@ -140,6 +140,10 @@
         "logout": {
             "value": "Logout",
             "_context": "Hover text for logout button"
+        },
+        "settings": {
+            "value": "Settings",
+            "_context": "The label for the settings link"
         }
     }
 }
