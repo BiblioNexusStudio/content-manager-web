@@ -701,324 +701,328 @@
     <title>{resourceContent?.englishLabel} | Aquifer Admin</title>
 </svelte:head>
 
-<div
-    on:introend={() => (shouldTransition = false)}
-    in:fly={{ x: '100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 350 : 0 }}
-    out:fly={{ x: '-100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 250 : 0 }}
-    class="px-8 pt-1"
->
-    <div class="flex w-full items-center justify-between border-b-[1px]">
-        <div class="me-2 flex place-items-center">
-            <ExitButton defaultPathIfNoHistory="/resources" />
-            <CurrentTranslations
-                currentResourceId={resourceContent.resourceContentId}
-                languages={data.languages}
-                translations={resourceContent.contentTranslations}
-                project={resourceContent.project}
-                englishTranslation={englishContentTranslation}
-                canCreateTranslation={_canCreateTranslation}
-                openModal={openAddTranslationModal}
-            />
-            <Related relatedContent={resourceContent.associatedResources} />
-        </div>
-
-        <div class="flex">
-            <div class="flex w-full justify-end">
-                <div class="me-2 flex items-center">
-                    {#if $showSavingFailed}
-                        <span class="font-bold text-error">Auto-save failed</span>
-                    {/if}
-                    {#if $isSaving}
-                        <Icon data={spinner} pulse class="text-[#0175a2]" />
-                    {/if}
-                </div>
-                {#if !isStatusInAwaitingAiDraft}
-                    <div class="flex flex-wrap justify-end">
-                        {#if canSetStatusTransitionNotApplicable}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={handleNotApplicable}
-                            >
-                                Not Applicable
-                            </button>
-                        {/if}
-                        {#if canSetStatusCompleteNotApplicable}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={handleConfirmNotApplicable}
-                            >
-                                Confirm
-                            </button>
-                        {/if}
-                        {#if canSendForEditorReview || inPublisherReviewAndCanSendBack}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={openAssignUserModal}
-                            >
-                                {#if canSendForEditorReview}
-                                    Assign User
-                                {:else if inPublisherReviewAndCanSendBack}
-                                    Send Back
-                                {/if}
-                            </button>
-                        {/if}
-                        {#if canPullBackToCompanyReview}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={pullBackToCompanyReview}
-                            >
-                                Pull Back to Company Review
-                            </button>
-                        {/if}
-                        {#if canAssignPublisherForReview}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={openAssignReviewModal}
-                                >{isInReview ? 'Assign' : 'Review'}
-                            </button>
-                        {/if}
-                        {#if canPublish}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={() => publishOrOpenModal(resourceContent.status)}
-                                >Publish
-                            </button>
-                        {/if}
-                        {#if canUnpublish}
-                            <button
-                                data-app-insights-event-name="resource-unpublish-click"
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={unpublish}
-                                >Unpublish
-                            </button>
-                        {/if}
-                        {#if canSendForCompanyReview}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={sendForCompanyReview}
-                                >Send to Review
-                            </button>
-                        {/if}
-                        {#if canSendForPublisherReview}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={sendForPublisherReview}
-                                >Send to Publisher
-                            </button>
-                        {/if}
-                        {#if canAquiferize}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={openAquiferizeModal}>Create Draft</button
-                            >
-                        {/if}
-                        {#if canCommunityTranslate}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={handleCommunityTranslate}
-                                >Translate
-                            </button>
-                        {/if}
-                        {#if canCommunitySendToPublisher}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={handleCommunitySendToPublisher}
-                                >Send to Publisher
-                            </button>
-                        {/if}
-                    </div>
-                {/if}
+<!-- This key is important to make sure old content clears out when navigating to a new resource.  -->
+<!-- It also makes the transition on the div work correctly. -->
+{#key resourceContent.resourceContentId}
+    <div
+        on:introend={() => (shouldTransition = false)}
+        in:fly={{ x: '100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 350 : 0 }}
+        out:fly={{ x: '-100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 250 : 0 }}
+        class="px-8 pt-1"
+    >
+        <div class="flex w-full items-center justify-between border-b-[1px]">
+            <div class="me-2 flex place-items-center">
+                <ExitButton defaultPathIfNoHistory="/resources" />
+                <CurrentTranslations
+                    currentResourceId={resourceContent.resourceContentId}
+                    languages={data.languages}
+                    translations={resourceContent.contentTranslations}
+                    project={resourceContent.project}
+                    englishTranslation={englishContentTranslation}
+                    canCreateTranslation={_canCreateTranslation}
+                    openModal={openAddTranslationModal}
+                />
+                <Related relatedContent={resourceContent.associatedResources} />
             </div>
-        </div>
-    </div>
 
-    <ContentArea
-        {resourceContent}
-        historySidebarOpen={$sidebarContentStore.isOpen}
-        sidebarHistoryAvailable={sidebarContentStore.allSnapshotAndPublishedVersionOptions.length > 0}
-        onToggleHistoryPane={sidebarContentStore.toggleViewing}
-        resourceContentStatuses={data.resourceContentStatuses}
-        {commentStores}
-        bind:openedSupplementalSideBar
-    />
-
-    <div class="flex h-[calc(100vh-170px)]">
-        <div
-            class="h-full {$sidebarContentStore.animateOpen && 'transition-[width]'} {!$sidebarContentStore.isOpen &&
-            !isShowingSupplementalSidebar
-                ? 'w-full'
-                : $sidebarContentStore.isOpen && !isShowingSupplementalSidebar
-                ? 'w-1/2'
-                : !$sidebarContentStore.isOpen && isShowingSupplementalSidebar
-                ? 'w-4/5'
-                : 'w-2/5'}"
-            class:order-first={!$isEditorPaneOnLeft}
-            class:pe-3={!$isEditorPaneOnLeft}
-            class:ps-3={$isEditorPaneOnLeft}
-        >
-            <div class="h-full rounded-md bg-base-200 px-4 pb-0.5 pt-4">
-                <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
-                    <div class="flex flex-row items-center">
-                        <input
-                            bind:value={$editableDisplayNameStore}
-                            class="input input-bordered h-8 w-full max-w-[18rem] leading-8"
-                            dir="auto"
-                            type="text"
-                            readonly={!canMakeContentEdits || !resourceContent.isDraft || $isPageTransacting}
-                        />
-                        {#if resourceContent.isDraft}
-                            <div class="grow" />
-                            <div class="me-2 font-semibold text-gray-700">Draft</div>
+            <div class="flex">
+                <div class="flex w-full justify-end">
+                    <div class="me-2 flex items-center">
+                        {#if $showSavingFailed}
+                            <span class="font-bold text-error">Auto-save failed</span>
+                        {/if}
+                        {#if $isSaving}
+                            <Icon data={spinner} pulse class="text-[#0175a2]" />
                         {/if}
                     </div>
-                    <div class="mt-[0.9375rem] w-full flex-grow">
-                        <Content
-                            bind:selectedStepNumber
-                            {editableContentStore}
-                            bind:wordCountsByStep={draftWordCountsByStep}
-                            bind:characterCountsByStep={draftCharacterCountsByStep}
-                            canEdit={canMakeContentEdits && resourceContent.isDraft}
-                            canComment={resourceContent.isDraft}
-                            {resourceContent}
-                            {commentStores}
-                            {machineTranslationStore}
-                            blurOnPendingAiTranslate={isStatusInAwaitingAiDraft}
-                        />
-                    </div>
-                    <div class="flex flex-row items-center space-x-4">
-                        {#if resourceContent.parentResourceLicenseInfo}
-                            <LicenseInfoButton {resourceContent} />
-                        {/if}
-                        {#if mediaType === MediaTypeEnum.text}
-                            <div class="text-sm text-gray-500">
-                                Word count: {calculateWordCount(draftWordCountsByStep) || resourceContent.wordCount}
-                            </div>
-                            <div class="text-sm text-gray-500">
-                                Character count: {calculateCharacterCount(draftCharacterCountsByStep) || 0}
-                            </div>
-                        {/if}
-                    </div>
+                    {#if !isStatusInAwaitingAiDraft}
+                        <div class="flex flex-wrap justify-end">
+                            {#if canSetStatusTransitionNotApplicable}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={handleNotApplicable}
+                                >
+                                    Not Applicable
+                                </button>
+                            {/if}
+                            {#if canSetStatusCompleteNotApplicable}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={handleConfirmNotApplicable}
+                                >
+                                    Confirm
+                                </button>
+                            {/if}
+                            {#if canSendForEditorReview || inPublisherReviewAndCanSendBack}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={openAssignUserModal}
+                                >
+                                    {#if canSendForEditorReview}
+                                        Assign User
+                                    {:else if inPublisherReviewAndCanSendBack}
+                                        Send Back
+                                    {/if}
+                                </button>
+                            {/if}
+                            {#if canPullBackToCompanyReview}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={pullBackToCompanyReview}
+                                >
+                                    Pull Back to Company Review
+                                </button>
+                            {/if}
+                            {#if canAssignPublisherForReview}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={openAssignReviewModal}
+                                    >{isInReview ? 'Assign' : 'Review'}
+                                </button>
+                            {/if}
+                            {#if canPublish}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={() => publishOrOpenModal(resourceContent.status)}
+                                    >Publish
+                                </button>
+                            {/if}
+                            {#if canUnpublish}
+                                <button
+                                    data-app-insights-event-name="resource-unpublish-click"
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={unpublish}
+                                    >Unpublish
+                                </button>
+                            {/if}
+                            {#if canSendForCompanyReview}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={sendForCompanyReview}
+                                    >Send to Review
+                                </button>
+                            {/if}
+                            {#if canSendForPublisherReview}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={sendForPublisherReview}
+                                    >Send to Publisher
+                                </button>
+                            {/if}
+                            {#if canAquiferize}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={openAquiferizeModal}>Create Draft</button
+                                >
+                            {/if}
+                            {#if canCommunityTranslate}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={handleCommunityTranslate}
+                                    >Translate
+                                </button>
+                            {/if}
+                            {#if canCommunitySendToPublisher}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={handleCommunitySendToPublisher}
+                                    >Send to Publisher
+                                </button>
+                            {/if}
+                        </div>
+                    {/if}
                 </div>
             </div>
         </div>
 
-        <div
-            class="h-full overflow-hidden {$sidebarContentStore.animateOpen &&
-                'transition-[width]'} {!$sidebarContentStore.isOpen
-                ? 'w-0'
-                : isShowingSupplementalSidebar
-                ? 'w-2/5'
-                : 'w-1/2'}"
-            class:order-first={$isEditorPaneOnLeft}
-            class:ps-3={!$isEditorPaneOnLeft}
-            class:pe-3={$isEditorPaneOnLeft}
-        >
-            <div class="flex h-full w-full flex-col rounded-md border border-base-300 px-4 pb-1 pt-4">
-                <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
-                    <Select
-                        value={$sidebarContentStore.selected?.idForSelection ?? null}
-                        onChange={sidebarContentStore.selectSnapshotOrVersion}
-                        class="select select-bordered select-sm mb-4"
-                        options={sidebarContentStore.allSnapshotAndPublishedVersionOptions.map((s) => ({
-                            value: s.value,
-                            label: s.label,
-                        }))}
-                    />
-                    {#if $sidebarContentStore.isOpen}
-                        {#if $sidebarContentStore.isLoading}
-                            <CenteredSpinner />
-                        {:else if $sidebarContentStore.selected}
+        <ContentArea
+            {resourceContent}
+            historySidebarOpen={$sidebarContentStore.isOpen}
+            sidebarHistoryAvailable={sidebarContentStore.allSnapshotAndPublishedVersionOptions.length > 0}
+            onToggleHistoryPane={sidebarContentStore.toggleViewing}
+            resourceContentStatuses={data.resourceContentStatuses}
+            {commentStores}
+            bind:openedSupplementalSideBar
+        />
+
+        <div class="flex h-[calc(100vh-170px)]">
+            <div
+                class="h-full {$sidebarContentStore.animateOpen &&
+                    'transition-[width]'} {!$sidebarContentStore.isOpen && !isShowingSupplementalSidebar
+                    ? 'w-full'
+                    : $sidebarContentStore.isOpen && !isShowingSupplementalSidebar
+                    ? 'w-1/2'
+                    : !$sidebarContentStore.isOpen && isShowingSupplementalSidebar
+                    ? 'w-4/5'
+                    : 'w-2/5'}"
+                class:order-first={!$isEditorPaneOnLeft}
+                class:pe-3={!$isEditorPaneOnLeft}
+                class:ps-3={$isEditorPaneOnLeft}
+            >
+                <div class="h-full rounded-md bg-base-200 px-4 pb-0.5 pt-4">
+                    <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
+                        <div class="flex flex-row items-center">
+                            <input
+                                bind:value={$editableDisplayNameStore}
+                                class="input input-bordered h-8 w-full max-w-[18rem] leading-8"
+                                dir="auto"
+                                type="text"
+                                readonly={!canMakeContentEdits || !resourceContent.isDraft || $isPageTransacting}
+                            />
+                            {#if resourceContent.isDraft}
+                                <div class="grow" />
+                                <div class="me-2 font-semibold text-gray-700">Draft</div>
+                            {/if}
+                        </div>
+                        <div class="mt-[0.9375rem] w-full flex-grow">
                             <Content
                                 bind:selectedStepNumber
-                                bind:wordCountsByStep={referenceWordCountsByStep}
-                                bind:characterCountsByStep={referenceCharacterCountsByStep}
                                 {editableContentStore}
-                                sidebarIsOpen={$sidebarContentStore.isOpen}
-                                snapshotOrVersion={$sidebarContentStore.selected}
+                                bind:wordCountsByStep={draftWordCountsByStep}
+                                bind:characterCountsByStep={draftCharacterCountsByStep}
+                                canEdit={canMakeContentEdits && resourceContent.isDraft}
+                                canComment={resourceContent.isDraft}
                                 {resourceContent}
                                 {commentStores}
                                 {machineTranslationStore}
+                                blurOnPendingAiTranslate={isStatusInAwaitingAiDraft}
                             />
+                        </div>
+                        <div class="flex flex-row items-center space-x-4">
+                            {#if resourceContent.parentResourceLicenseInfo}
+                                <LicenseInfoButton {resourceContent} />
+                            {/if}
                             {#if mediaType === MediaTypeEnum.text}
-                                <div class="flex h-10 flex-row items-center justify-between px-3 text-sm text-gray-500">
-                                    <div class="flex gap-x-4">
-                                        <span>Word count: {calculateWordCount(referenceWordCountsByStep)}</span>
-                                        <span
-                                            >Character count: {calculateCharacterCount(
-                                                referenceCharacterCountsByStep
-                                            )}</span
-                                        >
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <ContentEditorSwapButton />
-                                        <ScrollSyncLockToggle />
-                                    </div>
+                                <div class="text-sm text-gray-500">
+                                    Word count: {calculateWordCount(draftWordCountsByStep) || resourceContent.wordCount}
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    Character count: {calculateCharacterCount(draftCharacterCountsByStep) || 0}
                                 </div>
                             {/if}
-                        {:else}
-                            Error fetching...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="h-full overflow-hidden {$sidebarContentStore.animateOpen &&
+                    'transition-[width]'} {!$sidebarContentStore.isOpen
+                    ? 'w-0'
+                    : isShowingSupplementalSidebar
+                    ? 'w-2/5'
+                    : 'w-1/2'}"
+                class:order-first={$isEditorPaneOnLeft}
+                class:ps-3={!$isEditorPaneOnLeft}
+                class:pe-3={$isEditorPaneOnLeft}
+            >
+                <div class="flex h-full w-full flex-col rounded-md border border-base-300 px-4 pb-1 pt-4">
+                    <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
+                        <Select
+                            value={$sidebarContentStore.selected?.idForSelection ?? null}
+                            onChange={sidebarContentStore.selectSnapshotOrVersion}
+                            class="select select-bordered select-sm mb-4"
+                            options={sidebarContentStore.allSnapshotAndPublishedVersionOptions.map((s) => ({
+                                value: s.value,
+                                label: s.label,
+                            }))}
+                        />
+                        {#if $sidebarContentStore.isOpen}
+                            {#if $sidebarContentStore.isLoading}
+                                <CenteredSpinner />
+                            {:else if $sidebarContentStore.selected}
+                                <Content
+                                    bind:selectedStepNumber
+                                    bind:wordCountsByStep={referenceWordCountsByStep}
+                                    bind:characterCountsByStep={referenceCharacterCountsByStep}
+                                    {editableContentStore}
+                                    sidebarIsOpen={$sidebarContentStore.isOpen}
+                                    snapshotOrVersion={$sidebarContentStore.selected}
+                                    {resourceContent}
+                                    {commentStores}
+                                    {machineTranslationStore}
+                                />
+                                {#if mediaType === MediaTypeEnum.text}
+                                    <div
+                                        class="flex h-10 flex-row items-center justify-between px-3 text-sm text-gray-500"
+                                    >
+                                        <div class="flex gap-x-4">
+                                            <span>Word count: {calculateWordCount(referenceWordCountsByStep)}</span>
+                                            <span
+                                                >Character count: {calculateCharacterCount(
+                                                    referenceCharacterCountsByStep
+                                                )}</span
+                                            >
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <ContentEditorSwapButton />
+                                            <ScrollSyncLockToggle />
+                                        </div>
+                                    </div>
+                                {/if}
+                            {:else}
+                                Error fetching...
+                            {/if}
                         {/if}
-                    {/if}
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="h-full overflow-hidden transition-[width]
+                {isShowingSupplementalSidebar ? 'w-1/5 ps-3' : 'w-0'}"
+            >
+                <div
+                    class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
+                    OpenedSupplementalSideBar.Comments
+                        ? ''
+                        : 'hidden'}"
+                >
+                    <CommentsSidebar {commentStores} />
+                </div>
+                <div
+                    class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
+                    OpenedSupplementalSideBar.BibleReferences
+                        ? ''
+                        : 'hidden'}"
+                >
+                    <BibleReferencesSidebar
+                        visible={openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences}
+                        language={resourceContent.language}
+                        references={getSortedReferences(resourceContent)}
+                    />
+                </div>
+                <div
+                    class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
+                    OpenedSupplementalSideBar.VersionStatusHistory
+                        ? ''
+                        : 'hidden'}"
+                >
+                    <VersionStatusHistorySidebar
+                        visible={openedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory}
+                        resourceContentVersionId={resourceContent.resourceContentVersionId}
+                    />
                 </div>
             </div>
         </div>
-
-        <div
-            class="h-full overflow-hidden transition-[width]
-                {isShowingSupplementalSidebar ? 'w-1/5 ps-3' : 'w-0'}"
-        >
-            <div
-                class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
-                OpenedSupplementalSideBar.Comments
-                    ? ''
-                    : 'hidden'}"
-            >
-                <CommentsSidebar {commentStores} />
-            </div>
-            <div
-                class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
-                OpenedSupplementalSideBar.BibleReferences
-                    ? ''
-                    : 'hidden'}"
-            >
-                <BibleReferencesSidebar
-                    visible={openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences}
-                    language={resourceContent.language}
-                    references={getSortedReferences(resourceContent)}
-                />
-            </div>
-            <div
-                class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
-                OpenedSupplementalSideBar.VersionStatusHistory
-                    ? ''
-                    : 'hidden'}"
-            >
-                <VersionStatusHistorySidebar
-                    visible={openedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory}
-                    resourceContentVersionId={resourceContent.resourceContentVersionId}
-                />
-            </div>
-        </div>
     </div>
-</div>
 
-<InlineComment {commentStores} />
-<VersePopout language={resourceContent.language} />
-<ResourcePopout />
+    <InlineComment {commentStores} />
+    <VersePopout language={resourceContent.language} />
+    <ResourcePopout />
 
-{#key resourceContent.resourceContentId}
     <Modal
         primaryButtonText="Assign"
         primaryButtonOnClick={assignPublisherReview}
