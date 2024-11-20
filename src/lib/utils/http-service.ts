@@ -14,19 +14,16 @@ interface FetchOptions extends RequestInit {
     headers?: Record<string, string>;
 }
 
-// This takes advantage of SvelteKit's streaming functionality to allow a page
-// to be rendered before all of the data has finished loading.
-export function getFromApiWithoutBlocking<T = never>(
-    path: string,
-    injectedFetch: typeof window.fetch
-): { promise: Promise<T> } {
-    return {
-        promise: rawApiFetch(path, injectedFetch, {}).then((response) => response.json() as T),
-    };
-}
-
-// Base fetch function for the Aquifer API. Handles auth, body stringifying, content type, prefixing the API path with
-// the base URL, and detecting errors.
+/**
+ * Base fetch function for the Aquifer API. Handles auth, body stringifying, content type, prefixing the API path with
+ * the base URL, and detecting errors.
+ *
+ * @param path - The API endpoint path
+ * @param injectedFetch - Optional fetch function to use instead of global fetch
+ * @param options - Request options including headers and body
+ * @throws {FetchError} When the network request fails
+ * @throws {ApiError} When the API returns an error status (>=400)
+ */
 async function rawApiFetch(path: string, injectedFetch: typeof window.fetch | null, options: CustomFetchOptions) {
     const fetchOptions: FetchOptions = options as FetchOptions;
 
@@ -54,7 +51,7 @@ async function rawApiFetch(path: string, injectedFetch: typeof window.fetch | nu
     const pathWithSlash = pathPrefixedWithSlash(path);
     const url = BASE_URL + pathWithSlash;
 
-    let response: Response | null;
+    let response: Response;
 
     try {
         response = await (injectedFetch || fetch)(url, fetchOptions);
@@ -79,10 +76,20 @@ async function rawApiFetch(path: string, injectedFetch: typeof window.fetch | nu
     return response;
 }
 
+/**
+ * Makes a GET request to the specified API endpoint and returns the response data.
+ * Since any non-successful HTTP status (>=400) throws an ApiError, this method will
+ * always return type T when it completes successfully.
+ *
+ * @param path - The API endpoint path
+ * @param injectedFetch - Optional fetch function to use instead of global fetch
+ * @throws {ApiError} When the API returns an error status
+ * @throws {FetchError} When the network request fails
+ */
 export async function getFromApi<T = never>(
     path: string,
     injectedFetch: typeof window.fetch | null = null
-): Promise<T | null> {
+): Promise<T> {
     return await rawApiFetch(path, injectedFetch, {}).then((response) => response.json());
 }
 
@@ -126,7 +133,7 @@ export async function deleteToApi<T = never>(
 /**
  * Handles token retrieval and authentication flow with Auth0.
  *
- * @returns {Promise<string | undefined>} A promise that resolves to the authentication token
+ * @returns A promise that resolves to the authentication token
  * prefixed with 'Bearer ', or undefined if token retrieval fails
  *
  * @throws {AuthUninitializedError} If the auth0Client is not initialized
@@ -140,7 +147,7 @@ export async function deleteToApi<T = never>(
  * 4. On other errors, attempts to bypass cache
  * 5. If cache bypass fails, attempts popup authentication
  */
-async function authTokenHeader(): Promise<string | undefined> {
+async function authTokenHeader() {
     if (!auth0Client) {
         throw new AuthUninitializedError();
     }

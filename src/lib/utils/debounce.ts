@@ -1,10 +1,9 @@
-// eslint-disable-next-line
-export function debounce<T extends (...args: any[]) => Promise<void>>(
+export function debounce<T extends (...args: Parameters<T>) => Promise<void>>(
     func: T,
     delay: number
 ): (...args: Parameters<T>) => Promise<void> {
     let timeoutId: NodeJS.Timeout | null = null;
-    return async (...args: Parameters<T>) => {
+    return (...args: Parameters<T>) => {
         if (timeoutId !== null) {
             clearTimeout(timeoutId);
         }
