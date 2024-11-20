@@ -26,9 +26,8 @@ module.exports = {
         },
     ],
     rules: {
-        'require-await': 'error',
         'svelte/no-at-html-tags': 0,
-        'svelte/require-each-key': 'error',
+        'svelte/require-each-key': 1,
         eqeqeq: ['error', 'always'],
         'no-console': 'error',
         '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],

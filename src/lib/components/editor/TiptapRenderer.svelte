@@ -62,7 +62,7 @@
         editor?.setEditable(canEdit);
     }
 
-    onMount(() => {
+    onMount(async () => {
         if (scrollSyncElement) {
             scrollSyncElement.scrollTop = 0;
         }

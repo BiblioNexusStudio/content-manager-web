@@ -8,7 +8,13 @@
     import Table from '$lib/components/Table.svelte';
     import { myHistoryColumns, resourcesThatNeedTranslationColumns } from './community-reviewer-dashboard-columns';
     import TableCell from '$lib/components/TableCell.svelte';
-    import type { ResourceThatNeedsTranslation, ResourceThatNeedsTranslationResponse } from './+page';
+    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
+    import ErrorMessage from '$lib/components/ErrorMessage.svelte';
+    import type {
+        ResourceAssignedToSelf,
+        ResourceThatNeedsTranslation,
+        ResourceThatNeedsTranslationResponse,
+    } from './+page';
     import { getFromApi } from '$lib/utils/http-service';
     import Select from '$lib/components/Select.svelte';
     import { _ as translate } from 'svelte-i18n';
@@ -20,11 +26,6 @@
     const sortMyHistoryData = createEditorDashboardMyHistorySorter();
 
     export let data: PageData;
-
-    $: bibleBooks = data.communityReviewerDashboard!.bibleBooks;
-    $: myAssignedContents = data.communityReviewerDashboard!.assignedResourceContent;
-    $: myHistoryContents = data.communityReviewerDashboard!.assignedResourceHistoryContent;
-    $: currentlyReviewingItem = myAssignedContents[0];
 
     enum Tab {
         resources = 'resources',
@@ -47,12 +48,16 @@
     );
 
     let myHistorySearchQuery = '';
-    let table: Table<ResourceThatNeedsTranslation> | Table<ResourceAssignedToSelfHistory> | undefined;
+    let myHistoryContents: ResourceAssignedToSelfHistory[] = [];
+    // eslint-disable-next-line
+    let table: Table<any> | null;
     $: $searchParams.sort && table?.resetScroll();
 
+    let currentlyReviewingItem: ResourceAssignedToSelf | null = null;
     let resourcesThatNeedTranslation: ResourceThatNeedsTranslation[] | null = null;
     let resourcesThatNeedTranslationParams: Param[] = [];
     let resourcesSearchQuery = '';
+    let bibleBooks: BibleBook[] | null = null;
     let parentResourceId = 0;
     let bookCode = '';
     let chapterRange = '';
@@ -114,129 +119,147 @@
         );
     }
 
-    function calculateMaxChapter(bibleBooks: BibleBook[]) {
-        return bibleBooks.find((b) => b.code === bookCode)?.totalChapters ?? 0;
+    const loadContents = async () => {
+        let myAssignedContents: ResourceAssignedToSelf[];
+        [bibleBooks, myAssignedContents, myHistoryContents] = await Promise.all([
+            data.communityReviewerDashboard!.bibleBooks.promise,
+            data.communityReviewerDashboard!.assignedResourceContent.promise,
+            data.communityReviewerDashboard!.assignedResourceHistoryContent.promise,
+        ]);
+        currentlyReviewingItem = myAssignedContents[0] ?? null;
+    };
+
+    function calculateMaxChapter(bibleBooks: BibleBook[] | null) {
+        return bibleBooks?.find((b) => b.code === bookCode)?.totalChapters ?? 0;
     }
 </script>
 
-<div class="flex h-full flex-col space-y-4 overflow-y-hidden px-4">
-    <h1 class="pt-4 text-3xl">Dashboard</h1>
-    {#if currentlyReviewingItem}
-        <div class="text-lg">
-            <span>You are currently reviewing this item:</span>
-            <a class="text-lg font-bold text-primary underline" href="/resources/{currentlyReviewingItem.id}"
-                >{currentlyReviewingItem.englishLabel}</a
-            >
-        </div>
-    {/if}
-    <div class="flex flex-shrink-0 flex-row items-center">
-        <div role="tablist" class="tabs tabs-bordered w-fit">
-            <button
-                on:click={() => switchTabs(Tab.resources)}
-                role="tab"
-                class="tab {$searchParams.tab === Tab.resources && 'tab-active'}">Resources</button
-            >
-            <button
-                on:click={() => switchTabs(Tab.myHistory)}
-                role="tab"
-                class="tab {$searchParams.tab === Tab.myHistory && 'tab-active'}"
-                >My History ({myHistoryContents.length})</button
-            >
-        </div>
-    </div>
-    <div class="flex flex-shrink-0 gap-4 overflow-x-auto">
-        {#if $searchParams.tab === Tab.resources}
-            <input
-                class="input input-bordered max-w-xs focus:outline-none"
-                bind:value={resourcesSearchQuery}
-                use:enterKeyHandler={fetchResources}
-                placeholder="Search"
-            />
-        {:else if $searchParams.tab === Tab.myHistory}
-            <input
-                class="input input-bordered max-w-xs focus:outline-none"
-                bind:value={myHistorySearchQuery}
-                placeholder="Search"
-            />
-        {/if}
-        {#if $searchParams.tab === Tab.resources}
-            <Select
-                appInsightsEventName="resources-resources-filter-selection"
-                bind:value={parentResourceId}
-                isNumber={true}
-                class="select select-bordered min-w-[10rem]"
-                options={[
-                    { value: 0, label: $translate('page.resources.dropdowns.allResources.value') },
-                    ...data.parentResources.map((t) => ({ value: t.id, label: t.displayName })),
-                ]}
-            />
-            <Select
-                appInsightsEventName="resources-book-filter-selection"
-                class="select select-bordered min-w-[9rem]"
-                options={[
-                    { value: '', label: 'Select Book' },
-                    ...(bibleBooks || []).map((b) => ({ value: b.code, label: b.localizedName })),
-                ]}
-                onChange={() => (chapterRange = '')}
-                bind:value={bookCode}
-            />
-            <input
-                disabled={!bookCode}
-                bind:value={chapterRange}
-                use:enterKeyHandler={fetchResources}
-                class="input input-bordered input-md w-[11rem] focus:outline-none"
-                placeholder="Chapter (e.g. 2, 1-5)"
-            />
-            <button class="btn btn-primary" disabled={!canApplyFilters} on:click={() => fetchResources()}>Apply</button>
-        {/if}
-    </div>
-    {#if $searchParams.tab === Tab.resources}
-        <Table
-            class="!mb-2"
-            columns={resourcesThatNeedTranslationColumns}
-            items={resourcesThatNeedTranslation ?? []}
-            idColumn="id"
-            itemUrlPrefix="/resources/"
-            noItemsText={resourcesThatNeedTranslation
-                ? 'No results'
-                : 'Search or filter to see resource items that need translations'}
-            {isLoading}
-            bind:currentPage
-            bind:itemsPerPage
-            {totalItems}
-            let:item
-            let:href
-            let:itemKey
-        >
-            {#if href !== undefined && itemKey}
-                <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-            {:else if itemKey}
-                <TableCell>{item[itemKey] ?? ''}</TableCell>
-            {/if}
-        </Table>
-    {:else if $searchParams.tab === Tab.myHistory}
-        <Table
-            bind:this={table}
-            class="!mb-2"
-            columns={myHistoryColumns}
-            items={filterAndSortMyHistoryData(myHistoryContents, $searchParams.sort, myHistorySearchQuery)}
-            idColumn="id"
-            itemUrlPrefix="/resources/"
-            bind:searchParams={$searchParams}
-            noItemsText="No history items"
-            let:item
-            let:href
-            let:itemKey
-        >
-            {#if itemKey === 'lastActionTime' && item[itemKey] !== null}
-                <LinkedTableCell {href}
-                    >{utcDateTimeStringToDateTime(item[itemKey]).toLocaleDateString()}</LinkedTableCell
+{#await loadContents()}
+    <CenteredSpinnerFullScreen />
+{:then _}
+    <div class="flex h-full flex-col space-y-4 overflow-y-hidden px-4">
+        <h1 class="pt-4 text-3xl">Dashboard</h1>
+        {#if currentlyReviewingItem}
+            <div class="text-lg">
+                <span>You are currently reviewing this item:</span>
+                <a class="text-lg font-bold text-primary underline" href="/resources/{currentlyReviewingItem.id}"
+                    >{currentlyReviewingItem.englishLabel}</a
                 >
-            {:else if href !== undefined && itemKey}
-                <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-            {:else if itemKey}
-                <TableCell>{item[itemKey] ?? ''}</TableCell>
+            </div>
+        {/if}
+        <div class="flex flex-shrink-0 flex-row items-center">
+            <div role="tablist" class="tabs tabs-bordered w-fit">
+                <button
+                    on:click={() => switchTabs(Tab.resources)}
+                    role="tab"
+                    class="tab {$searchParams.tab === Tab.resources && 'tab-active'}">Resources</button
+                >
+                <button
+                    on:click={() => switchTabs(Tab.myHistory)}
+                    role="tab"
+                    class="tab {$searchParams.tab === Tab.myHistory && 'tab-active'}"
+                    >My History ({myHistoryContents.length})</button
+                >
+            </div>
+        </div>
+        <div class="flex flex-shrink-0 gap-4 overflow-x-auto">
+            {#if $searchParams.tab === Tab.resources}
+                <input
+                    class="input input-bordered max-w-xs focus:outline-none"
+                    bind:value={resourcesSearchQuery}
+                    use:enterKeyHandler={fetchResources}
+                    placeholder="Search"
+                />
+            {:else if $searchParams.tab === Tab.myHistory}
+                <input
+                    class="input input-bordered max-w-xs focus:outline-none"
+                    bind:value={myHistorySearchQuery}
+                    placeholder="Search"
+                />
             {/if}
-        </Table>
-    {/if}
-</div>
+            {#if $searchParams.tab === Tab.resources}
+                <Select
+                    appInsightsEventName="resources-resources-filter-selection"
+                    bind:value={parentResourceId}
+                    isNumber={true}
+                    class="select select-bordered min-w-[10rem]"
+                    options={[
+                        { value: 0, label: $translate('page.resources.dropdowns.allResources.value') },
+                        ...data.parentResources.map((t) => ({ value: t.id, label: t.displayName })),
+                    ]}
+                />
+                <Select
+                    appInsightsEventName="resources-book-filter-selection"
+                    class="select select-bordered min-w-[9rem]"
+                    options={[
+                        { value: '', label: 'Select Book' },
+                        ...(bibleBooks || []).map((b) => ({ value: b.code, label: b.localizedName })),
+                    ]}
+                    onChange={() => (chapterRange = '')}
+                    bind:value={bookCode}
+                />
+                <input
+                    disabled={!bookCode}
+                    bind:value={chapterRange}
+                    use:enterKeyHandler={fetchResources}
+                    class="input input-bordered input-md w-[11rem] focus:outline-none"
+                    placeholder="Chapter (e.g. 2, 1-5)"
+                />
+                <button class="btn btn-primary" disabled={!canApplyFilters} on:click={() => fetchResources()}
+                    >Apply</button
+                >
+            {/if}
+        </div>
+        {#if $searchParams.tab === Tab.resources}
+            <Table
+                class="!mb-2"
+                columns={resourcesThatNeedTranslationColumns}
+                items={resourcesThatNeedTranslation ?? []}
+                idColumn="id"
+                itemUrlPrefix="/resources/"
+                noItemsText={resourcesThatNeedTranslation
+                    ? 'No results'
+                    : 'Search or filter to see resource items that need translations'}
+                {isLoading}
+                bind:currentPage
+                bind:itemsPerPage
+                {totalItems}
+                let:item
+                let:href
+                let:itemKey
+            >
+                {#if href !== undefined && itemKey}
+                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey}
+                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+                {/if}
+            </Table>
+        {:else if $searchParams.tab === Tab.myHistory}
+            <Table
+                bind:this={table}
+                class="!mb-2"
+                columns={myHistoryColumns}
+                items={filterAndSortMyHistoryData(myHistoryContents, $searchParams.sort, myHistorySearchQuery)}
+                idColumn="id"
+                itemUrlPrefix="/resources/"
+                bind:searchParams={$searchParams}
+                noItemsText="No history items"
+                let:item
+                let:href
+                let:itemKey
+            >
+                {#if itemKey === 'lastActionTime' && item[itemKey] !== null}
+                    <LinkedTableCell {href}
+                        >{utcDateTimeStringToDateTime(item[itemKey]).toLocaleDateString()}</LinkedTableCell
+                    >
+                {:else if href !== undefined && itemKey}
+                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey}
+                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+                {/if}
+            </Table>
+        {/if}
+    </div>
+{:catch error}
+    <ErrorMessage uncastError={error} />
+{/await}

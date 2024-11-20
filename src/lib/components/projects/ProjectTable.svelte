@@ -13,7 +13,7 @@
     import { createProjectListSorter, SortName } from './project-table-sorter';
 
     export let isShowing: boolean;
-    export let languages: Language[];
+    export let languages: Language[] = [];
     export let companies: Company[];
     export let currentTab: ProjectStatusTab;
     export let activeProjects: ProjectListResponse[];

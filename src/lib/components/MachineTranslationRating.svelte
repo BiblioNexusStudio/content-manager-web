@@ -39,7 +39,7 @@
     $: $promptForRating && (translationsMissingRatings = null);
     $: syncMachineTranslationFromStore($store);
 
-    function updateMachineTranslation() {
+    async function updateMachineTranslation() {
         if (showingInPrompt) {
             translationsMissingRatings ||= [...$store.values()].filter((mt) => !mt.userRating);
             machineTranslationStore.debounce(async () => {
@@ -87,7 +87,7 @@
         } as MachineTranslation;
     }
 
-    const onRating = (e: MouseEvent, newRating: number) => {
+    const onRating = async (e: MouseEvent, newRating: number) => {
         e.stopPropagation();
 
         if (machineTranslation.userRating !== newRating) {

@@ -22,36 +22,10 @@
         manageContentsColumns,
         userWordCountColumns,
     } from './manager-dashboard-columns';
+    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
+    import ErrorMessage from '$lib/components/ErrorMessage.svelte';
 
     export let data: PageData;
-
-    $: manageContents = data.managerDashboard!.manageResourceContent;
-    $: toAssignContents = data.managerDashboard!.toAssignContent;
-    $: myWorkContents = data.managerDashboard!.assignedResourceContent;
-    $: userWordCounts = data.managerDashboard!.assignedUsersWordCount;
-
-    $: myWorkProjectNames = Array.from(new Set(filterBoolean(myWorkContents.map((c) => c.projectName)))).sort();
-    $: myWorkLastAssignedUsers = sortByKey(
-        'name',
-        filterDuplicatesByKey('id', filterBoolean(myWorkContents.map((c) => c.lastAssignedUser)))
-    );
-
-    $: toAssignProjectNames = Array.from(new Set(filterBoolean(toAssignContents.map((c) => c.projectName)))).sort();
-
-    $: manageProjectNames = Array.from(new Set(filterBoolean(manageContents.map((c) => c.projectName)))).sort();
-    $: manageLastAssignedUsers = sortByKey(
-        'name',
-        filterDuplicatesByKey('id', filterBoolean(manageContents.map((c) => c.lastAssignedUser)))
-    );
-
-    $: maybeResetSearchParams(
-        toAssignProjectNames,
-        manageProjectNames,
-        myWorkProjectNames,
-        manageLastAssignedUsers,
-        myWorkLastAssignedUsers
-    );
-
     let search = '';
 
     enum Tab {
@@ -89,16 +63,26 @@
 
     $: !isErrorModalOpen && (customErrorMessage = null);
 
+    let myWorkProjectNames: string[] = [];
+    let myWorkLastAssignedUsers: BasicUser[] = [];
+    let toAssignProjectNames: string[] = [];
+    let manageProjectNames: string[] = [];
+    let manageLastAssignedUsers: BasicUser[] = [];
     let currentProjectNames: string[] = [];
     let currentLastAssignedUsers: BasicUser[] = [];
+    let myWorkContents: ResourceAssignedToSelf[] = [];
     let currentMyWorkContents: ResourceAssignedToSelf[] = [];
     let selectedMyWorkContents: ResourceAssignedToSelf[] = [];
 
+    let toAssignContents: ResourceAssignedToSelf[] = [];
     let currentToAssignContents: ResourceAssignedToSelf[] = [];
     let selectedToAssignContents: ResourceAssignedToSelf[] = [];
 
+    let manageContents: ResourceAssignedToOwnCompany[] = [];
     let currentManageContents: ResourceAssignedToOwnCompany[] = [];
     let selectedManageContents: ResourceAssignedToOwnCompany[] = [];
+
+    let userWordCounts: UserWordCount[] = [];
 
     const setTabContents = (
         tab: string,
@@ -148,13 +132,33 @@
             ].includes(x.statusValue)
     );
 
-    function maybeResetSearchParams(
-        toAssignProjectNames: string[],
-        manageProjectNames: string[],
-        myWorkProjectNames: string[],
-        manageLastAssignedUsers: BasicUser[],
-        myWorkLastAssignedUsers: BasicUser[]
-    ) {
+    const loadContents = async () => {
+        const manageContentsPromise = data.managerDashboard!.manageResourceContent.promise;
+        const toAssignContentsPromise = data.managerDashboard!.toAssignContent.promise;
+        const assignedContentsPromise = data.managerDashboard!.assignedResourceContent.promise;
+        const userWordCountsPromise = data.managerDashboard!.assignedUsersWordCount.promise;
+
+        [myWorkContents, toAssignContents, manageContents, userWordCounts] = await Promise.all([
+            assignedContentsPromise,
+            toAssignContentsPromise,
+            manageContentsPromise,
+            userWordCountsPromise,
+        ]);
+
+        myWorkProjectNames = Array.from(new Set(filterBoolean(myWorkContents.map((c) => c.projectName)))).sort();
+        myWorkLastAssignedUsers = sortByKey(
+            'name',
+            filterDuplicatesByKey('id', filterBoolean(myWorkContents.map((c) => c.lastAssignedUser)))
+        );
+
+        toAssignProjectNames = Array.from(new Set(filterBoolean(toAssignContents.map((c) => c.projectName)))).sort();
+
+        manageProjectNames = Array.from(new Set(filterBoolean(manageContents.map((c) => c.projectName)))).sort();
+        manageLastAssignedUsers = sortByKey(
+            'name',
+            filterDuplicatesByKey('id', filterBoolean(manageContents.map((c) => c.lastAssignedUser)))
+        );
+
         // Handle situation where project is set in the searchParams but is no longer valid. E.g. saved bookmark
         // or forced refresh after assign that removed all of them.
         if (
@@ -173,7 +177,7 @@
         ) {
             $searchParams.lastAssignedId = 0;
         }
-    }
+    };
 
     const switchProjectAndLastAssignedNames = (tab: string) => {
         if (tab === Tab.myWork) {
@@ -258,8 +262,10 @@
         }
     }
 
-    let table: Table<ResourceAssignedToSelf> | Table<ResourceAssignedToOwnCompany> | undefined;
-    let userWordCountTable: Table<UserWordCount> | undefined;
+    // eslint-disable-next-line
+    let table: Table<any> | null;
+    // eslint-disable-next-line
+    let userWordCountTable: Table<any> | null;
 
     $: userWordCountParams.sort && userWordCountTable?.resetScroll();
     $: $searchParams.sort && $searchParams.tab && table?.resetScroll();
@@ -288,131 +294,106 @@
     $: switchProjectAndLastAssignedNames($searchParams.tab);
 </script>
 
-<div class="flex flex-col overflow-y-hidden px-4">
-    <h1 class="pt-4 text-3xl">Dashboard</h1>
-    <div class="flex flex-row items-center pt-4">
-        <div role="tablist" class="tabs tabs-bordered w-fit">
-            <button
-                on:click={() => switchTabs(Tab.myWork)}
-                role="tab"
-                class="tab {$searchParams.tab === Tab.myWork && 'tab-active'}">My Work ({myWorkContents.length})</button
-            >
-            <button
-                on:click={() => switchTabs(Tab.toAssign)}
-                role="tab"
-                class="tab {$searchParams.tab === Tab.toAssign && 'tab-active'}"
-                >To Assign ({toAssignContents.length})</button
-            >
-            <button
-                on:click={() => switchTabs(Tab.manage)}
-                role="tab"
-                class="tab {$searchParams.tab === Tab.manage && 'tab-active'}">Manage ({manageContents.length})</button
-            >
+{#await loadContents()}
+    <CenteredSpinnerFullScreen />
+{:then _}
+    <div class="flex flex-col overflow-y-hidden px-4">
+        <h1 class="pt-4 text-3xl">Dashboard</h1>
+        <div class="flex flex-row items-center pt-4">
+            <div role="tablist" class="tabs tabs-bordered w-fit">
+                <button
+                    on:click={() => switchTabs(Tab.myWork)}
+                    role="tab"
+                    class="tab {$searchParams.tab === Tab.myWork && 'tab-active'}"
+                    >My Work ({myWorkContents.length})</button
+                >
+                <button
+                    on:click={() => switchTabs(Tab.toAssign)}
+                    role="tab"
+                    class="tab {$searchParams.tab === Tab.toAssign && 'tab-active'}"
+                    >To Assign ({toAssignContents.length})</button
+                >
+                <button
+                    on:click={() => switchTabs(Tab.manage)}
+                    role="tab"
+                    class="tab {$searchParams.tab === Tab.manage && 'tab-active'}"
+                    >Manage ({manageContents.length})</button
+                >
+            </div>
         </div>
-    </div>
-    <div class="mt-4 flex gap-4">
-        <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
-        <Select
-            class="select select-bordered max-w-[14rem] flex-grow"
-            bind:value={$searchParams.project}
-            onChange={resetSelections}
-            isNumber={false}
-            options={[{ value: '', label: 'Project' }, ...currentProjectNames.map((p) => ({ value: p, label: p }))]}
-        />
-        {#if $searchParams.tab === Tab.manage || $searchParams.tab === Tab.myWork}
+        <div class="mt-4 flex gap-4">
+            <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
             <Select
                 class="select select-bordered max-w-[14rem] flex-grow"
-                bind:value={$searchParams.lastAssignedId}
+                bind:value={$searchParams.project}
                 onChange={resetSelections}
-                isNumber={true}
-                options={[
-                    { value: 0, label: 'Last Assigned' },
-                    ...currentLastAssignedUsers.map((n) => ({ value: n.id, label: n.name })),
-                ]}
+                isNumber={false}
+                options={[{ value: '', label: 'Project' }, ...currentProjectNames.map((p) => ({ value: p, label: p }))]}
             />
-        {/if}
-        {#if $searchParams.tab === Tab.manage}
-            <Select
-                class="select select-bordered max-w-[14rem] flex-grow"
-                bind:value={$searchParams.assignedUserId}
-                onChange={resetSelections}
-                isNumber={true}
-                options={[
-                    { value: 0, label: 'Assigned' },
-                    ...(data.users || []).map((u) => ({ value: u.id, label: u.name })),
-                ]}
-            />
-        {/if}
+            {#if $searchParams.tab === Tab.manage || $searchParams.tab === Tab.myWork}
+                <Select
+                    class="select select-bordered max-w-[14rem] flex-grow"
+                    bind:value={$searchParams.lastAssignedId}
+                    onChange={resetSelections}
+                    isNumber={true}
+                    options={[
+                        { value: 0, label: 'Last Assigned' },
+                        ...currentLastAssignedUsers.map((n) => ({ value: n.id, label: n.name })),
+                    ]}
+                />
+            {/if}
+            {#if $searchParams.tab === Tab.manage}
+                <Select
+                    class="select select-bordered max-w-[14rem] flex-grow"
+                    bind:value={$searchParams.assignedUserId}
+                    onChange={resetSelections}
+                    isNumber={true}
+                    options={[
+                        { value: 0, label: 'Assigned' },
+                        ...(data.users || []).map((u) => ({ value: u.id, label: u.name })),
+                    ]}
+                />
+            {/if}
 
-        <button
-            data-app-insights-event-name="manager-dashboard-bulk-assign-click"
-            class="btn btn-primary"
-            on:click={() => (isAssignContentModalOpen = true)}
-            disabled={selectedMyWorkContents.length === 0 &&
-                selectedToAssignContents.length === 0 &&
-                selectedManageContents.length === 0}>Assign</button
-        >
+            <button
+                data-app-insights-event-name="manager-dashboard-bulk-assign-click"
+                class="btn btn-primary"
+                on:click={() => (isAssignContentModalOpen = true)}
+                disabled={selectedMyWorkContents.length === 0 &&
+                    selectedToAssignContents.length === 0 &&
+                    selectedManageContents.length === 0}>Assign</button
+            >
+
+            {#if $searchParams.tab === Tab.myWork}
+                <Tooltip
+                    position={{ left: '10rem' }}
+                    text={nonCompanyReviewSelected ? 'Company Review status only' : null}
+                >
+                    <button
+                        data-app-insights-event-name="manager-dashboard-bulk-assign-click"
+                        class="btn btn-primary"
+                        on:click={() => (isSendToPublisherModalOpen = true)}
+                        disabled={!anyRowSelected || nonCompanyReviewSelected}>Send to Publisher</button
+                    >
+                </Tooltip>
+            {/if}
+            <div class="my-1 ml-auto flex flex-col items-end justify-center">
+                <div class="text-sm text-gray-500">Selected Items: {selectedCount ?? 0}</div>
+                <div class="text-sm text-gray-500">Selected Word Count: {selectedWordCount ?? 0}</div>
+            </div>
+        </div>
 
         {#if $searchParams.tab === Tab.myWork}
-            <Tooltip position={{ left: '10rem' }} text={nonCompanyReviewSelected ? 'Company Review status only' : null}>
-                <button
-                    data-app-insights-event-name="manager-dashboard-bulk-assign-click"
-                    class="btn btn-primary"
-                    on:click={() => (isSendToPublisherModalOpen = true)}
-                    disabled={!anyRowSelected || nonCompanyReviewSelected}>Send to Publisher</button
-                >
-            </Tooltip>
-        {/if}
-        <div class="my-1 ml-auto flex flex-col items-end justify-center">
-            <div class="text-sm text-gray-500">Selected Items: {selectedCount ?? 0}</div>
-            <div class="text-sm text-gray-500">Selected Word Count: {selectedWordCount ?? 0}</div>
-        </div>
-    </div>
-
-    {#if $searchParams.tab === Tab.myWork}
-        <Table
-            bind:this={table}
-            class="my-4"
-            enableSelectAll={true}
-            columns={assignedContentsColumns}
-            items={sortAssignedData(currentMyWorkContents, $searchParams.sort)}
-            itemUrlPrefix="/resources/"
-            idColumn="id"
-            bind:searchParams={$searchParams}
-            bind:selectedItems={selectedMyWorkContents}
-            noItemsText="Your work is all done!"
-            searchable={true}
-            bind:searchText={search}
-            let:item
-            let:href
-            let:itemKey
-        >
-            {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-            {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
-                <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
-                    >{item[itemKey] ?? ''}</LinkedTableCell
-                >
-            {:else if itemKey === 'lastAssignedUser'}
-                <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
-            {:else if href !== undefined && itemKey}
-                <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-            {:else if itemKey}
-                <TableCell>{item[itemKey] ?? ''}</TableCell>
-            {/if}
-        </Table>
-    {:else if $searchParams.tab === Tab.toAssign}
-        <div class="flex h-full flex-[2] grow flex-col gap-4 overflow-y-hidden xl:flex-row">
             <Table
                 bind:this={table}
-                class="my-4 max-h-[31.25rem] xl:grow"
+                class="my-4"
                 enableSelectAll={true}
-                columns={toAssignContentsColumns}
-                items={sortAssignedData(currentToAssignContents, $searchParams.sort)}
+                columns={assignedContentsColumns}
+                items={sortAssignedData(currentMyWorkContents, $searchParams.sort)}
+                itemUrlPrefix="/resources/"
                 idColumn="id"
                 bind:searchParams={$searchParams}
-                bind:selectedItems={selectedToAssignContents}
-                itemUrlPrefix="/resources/"
+                bind:selectedItems={selectedMyWorkContents}
                 noItemsText="Your work is all done!"
                 searchable={true}
                 bind:searchText={search}
@@ -426,53 +407,6 @@
                     <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
                         >{item[itemKey] ?? ''}</LinkedTableCell
                     >
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
-                {/if}
-            </Table>
-            {#if userWordCounts.length > 0}
-                <Table
-                    bind:this={userWordCountTable}
-                    class="my-4 w-full xl:max-w-[275px]"
-                    columns={userWordCountColumns}
-                    items={sortUserWordCountData(userWordCounts, userWordCountParams.sort)}
-                    idColumn="userId"
-                    noItemsText="No Users Found."
-                    bind:searchParams={userWordCountParams}
-                ></Table>
-            {/if}
-        </div>
-    {:else if $searchParams.tab === Tab.manage}
-        <div class="flex h-full flex-[2] grow flex-col gap-4 overflow-y-hidden xl:flex-row">
-            <Table
-                bind:this={table}
-                class="my-4 max-h-[31.25rem] xl:grow"
-                enableSelectAll={true}
-                columns={manageContentsColumns}
-                items={sortAndFilterManageData(currentManageContents, $searchParams)}
-                idColumn="id"
-                bind:searchParams={$searchParams}
-                bind:selectedItems={selectedManageContents}
-                itemUrlPrefix="/resources/"
-                noItemsText={$searchParams.assignedUserId === 0
-                    ? 'Your work is all done!'
-                    : 'Nothing assigned to this user.'}
-                searchable={true}
-                bind:searchText={search}
-                let:item
-                let:href
-                let:itemKey
-            >
-                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                {:else if itemKey === 'assignedUser' && item[itemKey] !== null && item[itemKey]?.name !== null}
-                    <LinkedTableCell {href}>{item[itemKey]?.name}</LinkedTableCell>
-                {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
-                    <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
-                        >{item[itemKey] ?? ''}</LinkedTableCell
-                    >
                 {:else if itemKey === 'lastAssignedUser'}
                     <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
                 {:else if href !== undefined && itemKey}
@@ -481,20 +415,103 @@
                     <TableCell>{item[itemKey] ?? ''}</TableCell>
                 {/if}
             </Table>
-            {#if userWordCounts.length > 0}
+        {:else if $searchParams.tab === Tab.toAssign}
+            <div class="flex h-full flex-[2] grow flex-col gap-4 overflow-y-hidden xl:flex-row">
                 <Table
-                    bind:this={userWordCountTable}
-                    class="my-4 w-full xl:max-w-[275px]"
-                    columns={userWordCountColumns}
-                    items={sortUserWordCountData(userWordCounts, userWordCountParams.sort)}
-                    idColumn="userId"
-                    noItemsText="No Users Found."
-                    bind:searchParams={userWordCountParams}
-                ></Table>
-            {/if}
-        </div>
-    {/if}
-</div>
+                    bind:this={table}
+                    class="my-4 max-h-[31.25rem] xl:grow"
+                    enableSelectAll={true}
+                    columns={toAssignContentsColumns}
+                    items={sortAssignedData(currentToAssignContents, $searchParams.sort)}
+                    idColumn="id"
+                    bind:searchParams={$searchParams}
+                    bind:selectedItems={selectedToAssignContents}
+                    itemUrlPrefix="/resources/"
+                    noItemsText="Your work is all done!"
+                    searchable={true}
+                    bind:searchText={search}
+                    let:item
+                    let:href
+                    let:itemKey
+                >
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                        <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                            >{item[itemKey] ?? ''}</LinkedTableCell
+                        >
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                </Table>
+                {#if userWordCounts.length > 0}
+                    <Table
+                        bind:this={userWordCountTable}
+                        class="my-4 w-full xl:max-w-[275px]"
+                        columns={userWordCountColumns}
+                        items={sortUserWordCountData(userWordCounts, userWordCountParams.sort)}
+                        idColumn="userId"
+                        noItemsText="No Users Found."
+                        bind:searchParams={userWordCountParams}
+                    ></Table>
+                {/if}
+            </div>
+        {:else if $searchParams.tab === Tab.manage}
+            <div class="flex h-full flex-[2] grow flex-col gap-4 overflow-y-hidden xl:flex-row">
+                <Table
+                    bind:this={table}
+                    class="my-4 max-h-[31.25rem] xl:grow"
+                    enableSelectAll={true}
+                    columns={manageContentsColumns}
+                    items={sortAndFilterManageData(currentManageContents, $searchParams)}
+                    idColumn="id"
+                    bind:searchParams={$searchParams}
+                    bind:selectedItems={selectedManageContents}
+                    itemUrlPrefix="/resources/"
+                    noItemsText={$searchParams.assignedUserId === 0
+                        ? 'Your work is all done!'
+                        : 'Nothing assigned to this user.'}
+                    searchable={true}
+                    bind:searchText={search}
+                    let:item
+                    let:href
+                    let:itemKey
+                >
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'assignedUser' && item[itemKey] !== null && item[itemKey]?.name !== null}
+                        <LinkedTableCell {href}>{item[itemKey]?.name}</LinkedTableCell>
+                    {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                        <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                            >{item[itemKey] ?? ''}</LinkedTableCell
+                        >
+                    {:else if itemKey === 'lastAssignedUser'}
+                        <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                </Table>
+                {#if userWordCounts.length > 0}
+                    <Table
+                        bind:this={userWordCountTable}
+                        class="my-4 w-full xl:max-w-[275px]"
+                        columns={userWordCountColumns}
+                        items={sortUserWordCountData(userWordCounts, userWordCountParams.sort)}
+                        idColumn="userId"
+                        noItemsText="No Users Found."
+                        bind:searchParams={userWordCountParams}
+                    ></Table>
+                {/if}
+            </div>
+        {/if}
+    </div>
+{:catch error}
+    <ErrorMessage uncastError={error} />
+{/await}
 
 <Modal
     isTransacting={isAssigning}

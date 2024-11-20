@@ -1,19 +1,25 @@
-<script lang="ts">
+﻿<script lang="ts">
     import type { VersionStatusHistory } from '$lib/types/resources';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
-    import { getFromApi } from '$lib/utils/http-service';
+    import { getFromApiWithoutBlocking } from '$lib/utils/http-service';
     import { formatUtcToLocalTimeAndDate } from '$lib/utils/date-time';
 
     export let resourceContentVersionId: number;
     export let visible: boolean;
 
-    let promise: Promise<VersionStatusHistory[] | null> | null = null;
-
     $: if (!promise && visible) {
-        promise = getFromApi<VersionStatusHistory[]>(
+        promise = getStatusHistory();
+    }
+
+    let promise: Promise<VersionStatusHistory[]> | null = null;
+
+    async function getStatusHistory() {
+        let statusHistoryEvents = getFromApiWithoutBlocking<VersionStatusHistory[]>(
             `/resources/content/versions/${resourceContentVersionId}/status-history`,
             fetch
         );
+
+        return statusHistoryEvents.promise;
     }
 </script>
 

@@ -10,15 +10,10 @@ export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
 
     if (get(userCan)(Permission.CreateProject)) {
-        const [projectPlatforms, companies, bibleBooks] = await Promise.all([
-            getFromApi<ProjectPlatform[]>('/project-platforms', fetch),
-            getFromApi<Company[]>('/companies', fetch),
-            getFromApi<BibleBook[]>('/bibles/1/books', fetch),
-        ]);
         return {
-            projectPlatforms: sortByKey(projectPlatforms, 'name'),
-            companies: sortByKey(companies, 'name'),
-            bibleBooks,
+            projectPlatforms: sortByKey(await getFromApi<ProjectPlatform[]>('/project-platforms', fetch), 'name'),
+            companies: sortByKey(await getFromApi<Company[]>('/companies', fetch), 'name'),
+            bibleBooks: await getFromApi<BibleBook[]>('/bibles/1/books', fetch),
         };
     } else {
         throw redirect(302, '/');

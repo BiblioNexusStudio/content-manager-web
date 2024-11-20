@@ -52,6 +52,8 @@
     import BibleReferencesSidebar from './BibleReferencesSidebar.svelte';
     import { log } from '$lib/logger';
     import { createIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
+    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
+    import ErrorMessage from '$lib/components/ErrorMessage.svelte';
     import ScrollSyncLockToggle from '$lib/components/editor/ScrollSyncLockToggle.svelte';
     import { scrollPosition, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
     import { isApiErrorWithMessage } from '$lib/utils/http-errors';
@@ -94,6 +96,7 @@
     let selectedStepNumber: number | undefined;
     let openedSupplementalSideBar = OpenedSupplementalSideBar.None;
     let shouldTransition = false;
+    let resourceContent: ResourceContent | undefined;
     let canCommunityTranslate = false;
     let canCommunitySendToPublisher = false;
     let canSetStatusTransitionNotApplicable = false;
@@ -116,14 +119,16 @@
     let sidebarContentStore: ReturnType<typeof createSidebarContentStore>;
 
     $: isShowingSupplementalSidebar = openedSupplementalSideBar !== OpenedSupplementalSideBar.None;
-    $: resourceContent = data.resourceContent;
-    $: handleFetchedResource(resourceContent);
+    $: resourceContentId = data.resourceContentId;
+    $: resourceContentPromise = data.resourceContent.promise;
+    $: handleFetchedResource(data.resourceContent.promise);
     $: hasUnresolvedThreads = $commentThreads?.threads.some((x) => !x.resolved && x.id !== -1) || false;
 
     const machineTranslationStore = createMachineTranslationStore();
     const promptForMachineTranslationRating = machineTranslationStore.promptForRating;
 
-    function handleFetchedResource(resourceContent: ResourceContent) {
+    async function handleFetchedResource(resourceContentPromise: Promise<ResourceContent>) {
+        resourceContent = await resourceContentPromise;
         resetSaveState();
 
         $isPageTransacting = false;
@@ -349,7 +354,7 @@
         isAddTranslationModalOpen = true;
     }
 
-    async function callNextUpApi(resourceContentId: number) {
+    async function callNextUpApi(resourceContentId: string) {
         let nextUpInfo: ResourceContentNextUpInfo | null = null;
 
         try {
@@ -397,26 +402,20 @@
 
     async function takeActionAndRefresh(action: () => Promise<unknown>) {
         // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
-        await takeActionAndCallback(
-            action,
-            //eslint-disable-next-line
-            async () => window.location.reload()
-        );
+        await takeActionAndCallback(action, async () => window.location.reload());
     }
 
     async function unpublish() {
-        await takeActionAndRefresh(() =>
-            postToApi(`/resources/content/${resourceContent.resourceContentId}/unpublish`)
-        );
+        await takeActionAndRefresh(() => postToApi(`/resources/content/${resourceContentId}/unpublish`));
     }
 
     async function sendForCompanyReview() {
-        const currentResourceContentId = resourceContent.resourceContentId;
+        const currentResourceContentId = resourceContentId;
         $isPageTransacting = true;
 
         const nextUpInfo = await callNextUpApi(currentResourceContentId);
 
-        if (currentResourceContentId !== resourceContent.resourceContentId) {
+        if (currentResourceContentId !== resourceContentId) {
             return;
         }
 
@@ -431,7 +430,7 @@
                     response?.assignments.some(
                         (assignment) =>
                             assignment.assignedUserId === $currentUser?.id &&
-                            assignment.resourceContentId === currentResourceContentId
+                            assignment.resourceContentId === parseInt(currentResourceContentId)
                     )
                 ) {
                     window?.location?.reload();
@@ -443,12 +442,12 @@
     }
 
     async function sendForPublisherReview() {
-        const currentResourceContentId = resourceContent.resourceContentId;
+        const currentResourceContentId = resourceContentId;
         $isPageTransacting = true;
 
         const nextUpInfo = await callNextUpApi(currentResourceContentId);
 
-        if (currentResourceContentId !== resourceContent.resourceContentId) {
+        if (currentResourceContentId !== resourceContentId) {
             return;
         }
 
@@ -469,7 +468,7 @@
 
     async function assignPublisherReview() {
         await takeActionAndRefresh(() =>
-            postToApi(`/resources/content/${resourceContent.resourceContentId}/assign-publisher-review`, {
+            postToApi(`/resources/content/${resourceContentId}/assign-publisher-review`, {
                 assignedUserId: assignToUserId,
             })
         );
@@ -477,7 +476,7 @@
 
     async function aquiferize() {
         await takeActionAndRefresh(() =>
-            postToApi(`/resources/content/${resourceContent.resourceContentId}/aquiferize`, {
+            postToApi(`/resources/content/${resourceContentId}/aquiferize`, {
                 assignedUserId: assignToUserId,
             })
         );
@@ -486,7 +485,7 @@
     async function publish() {
         $removeAllInlineThreads();
         await takeActionAndRefresh(() =>
-            postToApi(`/resources/content/${resourceContent.resourceContentId}/publish`, {
+            postToApi(`/resources/content/${resourceContentId}/publish`, {
                 createDraft: createDraft,
                 assignedUserId: assignToUserId,
             })
@@ -496,10 +495,9 @@
     async function pullBackToCompanyReview() {
         await takeActionAndCallback(
             async () =>
-                await postToApi(`/resources/content/${resourceContent.resourceContentId}/pull-from-review-pending`, {
+                await postToApi(`/resources/content/${resourceContentId}/pull-from-review-pending`, {
                     assignedUserId: $currentUser?.id,
                 }),
-            // eslint-disable-next-line
             async () => {
                 window?.location?.reload();
             }
@@ -507,12 +505,12 @@
     }
 
     async function sendForEditorReview() {
-        const currentResourceContentId = resourceContent.resourceContentId;
+        const currentResourceContentId = resourceContentId;
         $isPageTransacting = true;
 
         const nextUpInfo = await callNextUpApi(currentResourceContentId);
 
-        if (currentResourceContentId !== resourceContent.resourceContentId) {
+        if (currentResourceContentId !== resourceContentId) {
             return;
         }
 
@@ -532,12 +530,12 @@
     }
 
     async function pullFromPublisherReview() {
-        const currentResourceContentId = resourceContent.resourceContentId;
+        const currentResourceContentId = resourceContentId;
         $isPageTransacting = true;
 
         const nextUpInfo = await callNextUpApi(currentResourceContentId);
 
-        if (currentResourceContentId !== resourceContent.resourceContentId) {
+        if (currentResourceContentId !== resourceContentId) {
             return;
         }
 
@@ -590,7 +588,7 @@
     async function patchData() {
         const displayName = get(editableDisplayNameStore);
         const content = get(editableContentStore);
-        await patchToApi(`/resources/content/${resourceContent.resourceContentId}`, {
+        await patchToApi(`/resources/content/${resourceContentId}`, {
             displayName,
             wordCount: calculateWordCount(draftCharacterCountsByStep),
             ...(mediaType === MediaTypeEnum.text
@@ -604,7 +602,8 @@
 
     function usersThatCanBeAssigned() {
         let users = data.users?.filter((u) => u.role !== UserRole.ReportViewer) ?? null;
-        if (resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable) {
+
+        if (resourceContent?.status === ResourceContentStatusEnum.TranslationNotApplicable) {
             users = users?.filter((u) => u.role === UserRole.Manager || u.role === UserRole.Reviewer) ?? null;
         }
 
@@ -641,10 +640,7 @@
         $isPageTransacting = true;
 
         await takeActionAndCallback(
-            async () =>
-                await postToApi(
-                    `/resources/content/${resourceContent.resourceContentId}/send-for-publisher-review-community`
-                ),
+            async () => await postToApi(`/resources/content/${resourceContentId}/send-for-publisher-review-community`),
             async () => {
                 if ($currentUser) {
                     $currentUser.canBeAssignedContent = true;
@@ -658,7 +654,7 @@
         $isPageTransacting = true;
 
         await takeActionAndCallback(
-            async () => await postToApi(`/resources/content/${resourceContent.resourceContentId}/not-applicable`),
+            async () => await postToApi(`/resources/content/${resourceContentId}/not-applicable`),
             async () => {
                 if (!$userCan(Permission.SetStatusCompleteNotApplicable)) {
                     await goto(`/`);
@@ -672,15 +668,14 @@
         $isPageTransacting = true;
 
         await takeActionAndCallback(
-            async () =>
-                await postToApi(`/resources/content/${resourceContent.resourceContentId}/complete-not-applicable`),
+            async () => await postToApi(`/resources/content/${resourceContentId}/complete-not-applicable`),
             async () => {
                 await goto(`/`);
             }
         );
     }
 
-    function startPollingForAiTranslateComplete() {
+    async function startPollingForAiTranslateComplete() {
         const interval = setInterval(async () => {
             const response = await getFromApi<ResourceContentCurrentStatusId>(
                 `/resources/content/${resourceContent?.resourceContentId}/status`
@@ -701,441 +696,449 @@
     <title>{resourceContent?.englishLabel} | Aquifer Admin</title>
 </svelte:head>
 
-<div
-    on:introend={() => (shouldTransition = false)}
-    in:fly={{ x: '100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 350 : 0 }}
-    out:fly={{ x: '-100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 250 : 0 }}
-    class="px-8 pt-1"
->
-    <div class="flex w-full items-center justify-between border-b-[1px]">
-        <div class="me-2 flex place-items-center">
-            <ExitButton defaultPathIfNoHistory="/resources" />
-            <CurrentTranslations
-                currentResourceId={resourceContent.resourceContentId}
-                languages={data.languages}
-                translations={resourceContent.contentTranslations}
-                project={resourceContent.project}
-                englishTranslation={englishContentTranslation}
-                canCreateTranslation={_canCreateTranslation}
-                openModal={openAddTranslationModal}
-            />
-            <Related relatedContent={resourceContent.associatedResources} />
-        </div>
-
-        <div class="flex">
-            <div class="flex w-full justify-end">
-                <div class="me-2 flex items-center">
-                    {#if $showSavingFailed}
-                        <span class="font-bold text-error">Auto-save failed</span>
-                    {/if}
-                    {#if $isSaving}
-                        <Icon data={spinner} pulse class="text-[#0175a2]" />
-                    {/if}
-                </div>
-                {#if !isStatusInAwaitingAiDraft}
-                    <div class="flex flex-wrap justify-end">
-                        {#if canSetStatusTransitionNotApplicable}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={handleNotApplicable}
-                            >
-                                Not Applicable
-                            </button>
-                        {/if}
-                        {#if canSetStatusCompleteNotApplicable}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={handleConfirmNotApplicable}
-                            >
-                                Confirm
-                            </button>
-                        {/if}
-                        {#if canSendForEditorReview || inPublisherReviewAndCanSendBack}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={openAssignUserModal}
-                            >
-                                {#if canSendForEditorReview}
-                                    Assign User
-                                {:else if inPublisherReviewAndCanSendBack}
-                                    Send Back
-                                {/if}
-                            </button>
-                        {/if}
-                        {#if canPullBackToCompanyReview}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={pullBackToCompanyReview}
-                            >
-                                Pull Back to Company Review
-                            </button>
-                        {/if}
-                        {#if canAssignPublisherForReview}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={openAssignReviewModal}
-                                >{isInReview ? 'Assign' : 'Review'}
-                            </button>
-                        {/if}
-                        {#if canPublish}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={() => publishOrOpenModal(resourceContent.status)}
-                                >Publish
-                            </button>
-                        {/if}
-                        {#if canUnpublish}
-                            <button
-                                data-app-insights-event-name="resource-unpublish-click"
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={unpublish}
-                                >Unpublish
-                            </button>
-                        {/if}
-                        {#if canSendForCompanyReview}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={sendForCompanyReview}
-                                >Send to Review
-                            </button>
-                        {/if}
-                        {#if canSendForPublisherReview}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={sendForPublisherReview}
-                                >Send to Publisher
-                            </button>
-                        {/if}
-                        {#if canAquiferize}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={openAquiferizeModal}>Create Draft</button
-                            >
-                        {/if}
-                        {#if canCommunityTranslate}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={handleCommunityTranslate}
-                                >Translate
-                            </button>
-                        {/if}
-                        {#if canCommunitySendToPublisher}
-                            <button
-                                class="btn btn-primary btn-sm ms-2"
-                                disabled={$isPageTransacting}
-                                on:click={handleCommunitySendToPublisher}
-                                >Send to Publisher
-                            </button>
-                        {/if}
-                    </div>
-                {/if}
+{#await resourceContentPromise}
+    <CenteredSpinnerFullScreen />
+{:then resourceContent}
+    <div
+        on:introend={() => (shouldTransition = false)}
+        in:fly={{ x: '100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 350 : 0 }}
+        out:fly={{ x: '-100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 250 : 0 }}
+        class="px-8 pt-1"
+    >
+        <div class="flex w-full items-center justify-between border-b-[1px]">
+            <div class="me-2 flex place-items-center">
+                <ExitButton defaultPathIfNoHistory="/resources" />
+                <CurrentTranslations
+                    currentResourceId={resourceContentId}
+                    languages={data.languages}
+                    translations={resourceContent.contentTranslations}
+                    project={resourceContent.project}
+                    englishTranslation={englishContentTranslation}
+                    canCreateTranslation={_canCreateTranslation}
+                    openModal={openAddTranslationModal}
+                />
+                <Related relatedContent={resourceContent.associatedResources} />
             </div>
-        </div>
-    </div>
 
-    <ContentArea
-        {resourceContent}
-        historySidebarOpen={$sidebarContentStore.isOpen}
-        sidebarHistoryAvailable={sidebarContentStore.allSnapshotAndPublishedVersionOptions.length > 0}
-        onToggleHistoryPane={sidebarContentStore.toggleViewing}
-        resourceContentStatuses={data.resourceContentStatuses}
-        {commentStores}
-        bind:openedSupplementalSideBar
-    />
-
-    <div class="flex h-[calc(100vh-170px)]">
-        <div
-            class="h-full {$sidebarContentStore.animateOpen && 'transition-[width]'} {!$sidebarContentStore.isOpen &&
-            !isShowingSupplementalSidebar
-                ? 'w-full'
-                : $sidebarContentStore.isOpen && !isShowingSupplementalSidebar
-                ? 'w-1/2'
-                : !$sidebarContentStore.isOpen && isShowingSupplementalSidebar
-                ? 'w-4/5'
-                : 'w-2/5'}"
-            class:order-first={!$isEditorPaneOnLeft}
-            class:pe-3={!$isEditorPaneOnLeft}
-            class:ps-3={$isEditorPaneOnLeft}
-        >
-            <div class="h-full rounded-md bg-base-200 px-4 pb-0.5 pt-4">
-                <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
-                    <div class="flex flex-row items-center">
-                        <input
-                            bind:value={$editableDisplayNameStore}
-                            class="input input-bordered h-8 w-full max-w-[18rem] leading-8"
-                            dir="auto"
-                            type="text"
-                            readonly={!canMakeContentEdits || !resourceContent.isDraft || $isPageTransacting}
-                        />
-                        {#if resourceContent.isDraft}
-                            <div class="grow" />
-                            <div class="me-2 font-semibold text-gray-700">Draft</div>
+            <div class="flex">
+                <div class="flex w-full justify-end">
+                    <div class="me-2 flex items-center">
+                        {#if $showSavingFailed}
+                            <span class="font-bold text-error">Auto-save failed</span>
+                        {/if}
+                        {#if $isSaving}
+                            <Icon data={spinner} pulse class="text-[#0175a2]" />
                         {/if}
                     </div>
-                    <div class="mt-[0.9375rem] w-full flex-grow">
-                        <Content
-                            bind:selectedStepNumber
-                            {editableContentStore}
-                            bind:wordCountsByStep={draftWordCountsByStep}
-                            bind:characterCountsByStep={draftCharacterCountsByStep}
-                            canEdit={canMakeContentEdits && resourceContent.isDraft}
-                            canComment={resourceContent.isDraft}
-                            {resourceContent}
-                            {commentStores}
-                            {machineTranslationStore}
-                            blurOnPendingAiTranslate={isStatusInAwaitingAiDraft}
-                        />
-                    </div>
-                    <div class="flex flex-row items-center space-x-4">
-                        {#if resourceContent.parentResourceLicenseInfo}
-                            <LicenseInfoButton {resourceContent} />
-                        {/if}
-                        {#if mediaType === MediaTypeEnum.text}
-                            <div class="text-sm text-gray-500">
-                                Word count: {calculateWordCount(draftWordCountsByStep) || resourceContent.wordCount}
-                            </div>
-                            <div class="text-sm text-gray-500">
-                                Character count: {calculateCharacterCount(draftCharacterCountsByStep) || 0}
-                            </div>
-                        {/if}
-                    </div>
+                    {#if !isStatusInAwaitingAiDraft}
+                        <div class="flex flex-wrap justify-end">
+                            {#if canSetStatusTransitionNotApplicable}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={handleNotApplicable}
+                                >
+                                    Not Applicable
+                                </button>
+                            {/if}
+                            {#if canSetStatusCompleteNotApplicable}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={handleConfirmNotApplicable}
+                                >
+                                    Confirm
+                                </button>
+                            {/if}
+                            {#if canSendForEditorReview || inPublisherReviewAndCanSendBack}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={openAssignUserModal}
+                                >
+                                    {#if canSendForEditorReview}
+                                        Assign User
+                                    {:else if inPublisherReviewAndCanSendBack}
+                                        Send Back
+                                    {/if}
+                                </button>
+                            {/if}
+                            {#if canPullBackToCompanyReview}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={pullBackToCompanyReview}
+                                >
+                                    Pull Back to Company Review
+                                </button>
+                            {/if}
+                            {#if canAssignPublisherForReview}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={openAssignReviewModal}
+                                    >{isInReview ? 'Assign' : 'Review'}
+                                </button>
+                            {/if}
+                            {#if canPublish}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={() => publishOrOpenModal(resourceContent.status)}
+                                    >Publish
+                                </button>
+                            {/if}
+                            {#if canUnpublish}
+                                <button
+                                    data-app-insights-event-name="resource-unpublish-click"
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={unpublish}
+                                    >Unpublish
+                                </button>
+                            {/if}
+                            {#if canSendForCompanyReview}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={sendForCompanyReview}
+                                    >Send to Review
+                                </button>
+                            {/if}
+                            {#if canSendForPublisherReview}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={sendForPublisherReview}
+                                    >Send to Publisher
+                                </button>
+                            {/if}
+                            {#if canAquiferize}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={openAquiferizeModal}>Create Draft</button
+                                >
+                            {/if}
+                            {#if canCommunityTranslate}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={handleCommunityTranslate}
+                                    >Translate
+                                </button>
+                            {/if}
+                            {#if canCommunitySendToPublisher}
+                                <button
+                                    class="btn btn-primary btn-sm ms-2"
+                                    disabled={$isPageTransacting}
+                                    on:click={handleCommunitySendToPublisher}
+                                    >Send to Publisher
+                                </button>
+                            {/if}
+                        </div>
+                    {/if}
                 </div>
             </div>
         </div>
 
-        <div
-            class="h-full overflow-hidden {$sidebarContentStore.animateOpen &&
-                'transition-[width]'} {!$sidebarContentStore.isOpen
-                ? 'w-0'
-                : isShowingSupplementalSidebar
-                ? 'w-2/5'
-                : 'w-1/2'}"
-            class:order-first={$isEditorPaneOnLeft}
-            class:ps-3={!$isEditorPaneOnLeft}
-            class:pe-3={$isEditorPaneOnLeft}
-        >
-            <div class="flex h-full w-full flex-col rounded-md border border-base-300 px-4 pb-1 pt-4">
-                <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
-                    <Select
-                        value={$sidebarContentStore.selected?.idForSelection ?? null}
-                        onChange={sidebarContentStore.selectSnapshotOrVersion}
-                        class="select select-bordered select-sm mb-4"
-                        options={sidebarContentStore.allSnapshotAndPublishedVersionOptions.map((s) => ({
-                            value: s.value,
-                            label: s.label,
-                        }))}
-                    />
-                    {#if $sidebarContentStore.isOpen}
-                        {#if $sidebarContentStore.isLoading}
-                            <CenteredSpinner />
-                        {:else if $sidebarContentStore.selected}
+        <ContentArea
+            {resourceContent}
+            historySidebarOpen={$sidebarContentStore.isOpen}
+            sidebarHistoryAvailable={sidebarContentStore.allSnapshotAndPublishedVersionOptions.length > 0}
+            onToggleHistoryPane={sidebarContentStore.toggleViewing}
+            resourceContentStatuses={data.resourceContentStatuses}
+            {commentStores}
+            bind:openedSupplementalSideBar
+        />
+
+        <div class="flex h-[calc(100vh-170px)]">
+            <div
+                class="h-full {$sidebarContentStore.animateOpen &&
+                    'transition-[width]'} {!$sidebarContentStore.isOpen && !isShowingSupplementalSidebar
+                    ? 'w-full'
+                    : $sidebarContentStore.isOpen && !isShowingSupplementalSidebar
+                    ? 'w-1/2'
+                    : !$sidebarContentStore.isOpen && isShowingSupplementalSidebar
+                    ? 'w-4/5'
+                    : 'w-2/5'}"
+                class:order-first={!$isEditorPaneOnLeft}
+                class:pe-3={!$isEditorPaneOnLeft}
+                class:ps-3={$isEditorPaneOnLeft}
+            >
+                <div class="h-full rounded-md bg-base-200 px-4 pb-0.5 pt-4">
+                    <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
+                        <div class="flex flex-row items-center">
+                            <input
+                                bind:value={$editableDisplayNameStore}
+                                class="input input-bordered h-8 w-full max-w-[18rem] leading-8"
+                                dir="auto"
+                                type="text"
+                                readonly={!canMakeContentEdits || !resourceContent.isDraft || $isPageTransacting}
+                            />
+                            {#if resourceContent.isDraft}
+                                <div class="grow" />
+                                <div class="me-2 font-semibold text-gray-700">Draft</div>
+                            {/if}
+                        </div>
+                        <div class="mt-[0.9375rem] w-full flex-grow">
                             <Content
                                 bind:selectedStepNumber
-                                bind:wordCountsByStep={referenceWordCountsByStep}
-                                bind:characterCountsByStep={referenceCharacterCountsByStep}
                                 {editableContentStore}
-                                sidebarIsOpen={$sidebarContentStore.isOpen}
-                                snapshotOrVersion={$sidebarContentStore.selected}
+                                bind:wordCountsByStep={draftWordCountsByStep}
+                                bind:characterCountsByStep={draftCharacterCountsByStep}
+                                canEdit={canMakeContentEdits && resourceContent.isDraft}
+                                canComment={resourceContent.isDraft}
                                 {resourceContent}
                                 {commentStores}
                                 {machineTranslationStore}
+                                blurOnPendingAiTranslate={isStatusInAwaitingAiDraft}
                             />
+                        </div>
+                        <div class="flex flex-row items-center space-x-4">
+                            {#if resourceContent.parentResourceLicenseInfo}
+                                <LicenseInfoButton {resourceContent} />
+                            {/if}
                             {#if mediaType === MediaTypeEnum.text}
-                                <div class="flex h-10 flex-row items-center justify-between px-3 text-sm text-gray-500">
-                                    <div class="flex gap-x-4">
-                                        <span>Word count: {calculateWordCount(referenceWordCountsByStep)}</span>
-                                        <span
-                                            >Character count: {calculateCharacterCount(
-                                                referenceCharacterCountsByStep
-                                            )}</span
-                                        >
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <ContentEditorSwapButton />
-                                        <ScrollSyncLockToggle />
-                                    </div>
+                                <div class="text-sm text-gray-500">
+                                    Word count: {calculateWordCount(draftWordCountsByStep) || resourceContent.wordCount}
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    Character count: {calculateCharacterCount(draftCharacterCountsByStep) || 0}
                                 </div>
                             {/if}
-                        {:else}
-                            Error fetching...
-                        {/if}
-                    {/if}
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div
-            class="h-full overflow-hidden transition-[width]
+            <div
+                class="h-full overflow-hidden {$sidebarContentStore.animateOpen &&
+                    'transition-[width]'} {!$sidebarContentStore.isOpen
+                    ? 'w-0'
+                    : isShowingSupplementalSidebar
+                    ? 'w-2/5'
+                    : 'w-1/2'}"
+                class:order-first={$isEditorPaneOnLeft}
+                class:ps-3={!$isEditorPaneOnLeft}
+                class:pe-3={$isEditorPaneOnLeft}
+            >
+                <div class="flex h-full w-full flex-col rounded-md border border-base-300 px-4 pb-1 pt-4">
+                    <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
+                        <Select
+                            value={$sidebarContentStore.selected?.idForSelection ?? null}
+                            onChange={sidebarContentStore.selectSnapshotOrVersion}
+                            class="select select-bordered select-sm mb-4"
+                            options={sidebarContentStore.allSnapshotAndPublishedVersionOptions.map((s) => ({
+                                value: s.value,
+                                label: s.label,
+                            }))}
+                        />
+                        {#if $sidebarContentStore.isOpen}
+                            {#if $sidebarContentStore.isLoading}
+                                <CenteredSpinner />
+                            {:else if $sidebarContentStore.selected}
+                                <Content
+                                    bind:selectedStepNumber
+                                    bind:wordCountsByStep={referenceWordCountsByStep}
+                                    bind:characterCountsByStep={referenceCharacterCountsByStep}
+                                    {editableContentStore}
+                                    sidebarIsOpen={$sidebarContentStore.isOpen}
+                                    snapshotOrVersion={$sidebarContentStore.selected}
+                                    {resourceContent}
+                                    {commentStores}
+                                    {machineTranslationStore}
+                                />
+                                {#if mediaType === MediaTypeEnum.text}
+                                    <div
+                                        class="flex h-10 flex-row items-center justify-between px-3 text-sm text-gray-500"
+                                    >
+                                        <div class="flex gap-x-4">
+                                            <span>Word count: {calculateWordCount(referenceWordCountsByStep)}</span>
+                                            <span
+                                                >Character count: {calculateCharacterCount(
+                                                    referenceCharacterCountsByStep
+                                                )}</span
+                                            >
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <ContentEditorSwapButton />
+                                            <ScrollSyncLockToggle />
+                                        </div>
+                                    </div>
+                                {/if}
+                            {:else}
+                                Error fetching...
+                            {/if}
+                        {/if}
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="h-full overflow-hidden transition-[width]
                 {isShowingSupplementalSidebar ? 'w-1/5 ps-3' : 'w-0'}"
-        >
-            <div
-                class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
-                OpenedSupplementalSideBar.Comments
-                    ? ''
-                    : 'hidden'}"
             >
-                <CommentsSidebar {commentStores} />
-            </div>
-            <div
-                class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
-                OpenedSupplementalSideBar.BibleReferences
-                    ? ''
-                    : 'hidden'}"
-            >
-                <BibleReferencesSidebar
-                    visible={openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences}
-                    language={resourceContent.language}
-                    references={getSortedReferences(resourceContent)}
-                />
-            </div>
-            <div
-                class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
-                OpenedSupplementalSideBar.VersionStatusHistory
-                    ? ''
-                    : 'hidden'}"
-            >
-                <VersionStatusHistorySidebar
-                    visible={openedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory}
-                    resourceContentVersionId={resourceContent.resourceContentVersionId}
-                />
-            </div>
-        </div>
-    </div>
-</div>
-
-<InlineComment {commentStores} />
-<VersePopout language={resourceContent.language} />
-<ResourcePopout />
-
-{#key resourceContent.resourceContentId}
-    <Modal
-        primaryButtonText="Assign"
-        primaryButtonOnClick={assignPublisherReview}
-        primaryButtonDisabled={!assignToUserId}
-        bind:open={isAssignReviewModalOpen}
-        header="Choose a Reviewer"
-    >
-        <UserSelector
-            users={data.users?.filter((u) => u.role === UserRole.Publisher) ?? []}
-            hideUser={resourceContent?.assignedUser}
-            defaultLabel="Select User"
-            bind:selectedUserId={assignToUserId}
-        />
-    </Modal>
-
-    <Modal
-        header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
-        bind:open={isAquiferizeModalOpen}
-        primaryButtonText="Assign"
-        primaryButtonOnClick={aquiferize}
-        primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
-    >
-        <UserSelector
-            users={usersThatCanBeAssigned()}
-            defaultLabel="Select User"
-            bind:selectedUserId={assignToUserId}
-        />
-    </Modal>
-
-    <Modal
-        header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
-        bind:open={isAssignUserModalOpen}
-        primaryButtonText="Assign"
-        primaryButtonOnClick={canSendForEditorReview ? sendForEditorReview : pullFromPublisherReview}
-        primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
-    >
-        {#if $promptForMachineTranslationRating && currentUserIsAssigned}
-            <div class="mb-8 flex flex-col justify-start gap-4">
-                <div class="font-semibold text-error">Please rate the AI translation before reassigning.</div>
-                <div>
-                    <MachineTranslationRating
-                        {machineTranslationStore}
-                        showingInPrompt={true}
-                        improvementHorizontalPositionPx={0}
+                <div
+                    class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
+                    OpenedSupplementalSideBar.Comments
+                        ? ''
+                        : 'hidden'}"
+                >
+                    <CommentsSidebar {commentStores} />
+                </div>
+                <div
+                    class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
+                    OpenedSupplementalSideBar.BibleReferences
+                        ? ''
+                        : 'hidden'}"
+                >
+                    <BibleReferencesSidebar
+                        visible={openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences}
+                        language={resourceContent.language}
+                        references={getSortedReferences(resourceContent)}
+                    />
+                </div>
+                <div
+                    class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
+                    OpenedSupplementalSideBar.VersionStatusHistory
+                        ? ''
+                        : 'hidden'}"
+                >
+                    <VersionStatusHistorySidebar
+                        visible={openedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory}
+                        resourceContentVersionId={resourceContent.resourceContentVersionId}
                     />
                 </div>
             </div>
-        {/if}
-        <UserSelector
-            users={usersThatCanBeAssigned()}
-            defaultLabel="Select User"
-            bind:selectedUserId={assignToUserId}
-            hideUser={resourceContent?.assignedUser}
-        />
-    </Modal>
+        </div>
+    </div>
 
-    <Modal
-        header={hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New
-            ? 'Confirm Publish'
-            : 'Choose Publish Option'}
-        bind:open={isPublishModalOpen}
-        primaryButtonText="Publish"
-        primaryButtonOnClick={publish}
-        primaryButtonDisabled={$isPageTransacting}
-    >
-        {#if hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New}
-            <p class="py-4 text-lg text-warning">This resource has unresolved comments.</p>
-        {/if}
-        {#if resourceContent?.status === ResourceContentStatusEnum.New}
-            <div class="form-control">
-                <label class="label cursor-pointer justify-start space-x-2">
-                    <input type="checkbox" bind:checked={createDraft} class="checkbox" />
-                    <span class="label-text">Aquiferization Needed</span>
-                </label>
-            </div>
-            <!-- svelte-ignore a11y-label-has-associated-control -->
-            <label class="form-control">
-                <div class="label">
-                    <span class="label-text">Aquiferization Assignment (optional)</span>
-                </div>
-                <UserSelector
-                    users={usersThatCanBeAssigned()}
-                    defaultLabel="Unassigned"
-                    disabled={!createDraft}
-                    bind:selectedUserId={assignToUserId}
-                />
-            </label>
-        {/if}
-    </Modal>
+    <InlineComment {commentStores} />
+    <VersePopout language={resourceContent.language} />
+    <ResourcePopout />
 
-    <Modal
-        header="Create Translation"
-        bind:open={isAddTranslationModalOpen}
-        primaryButtonText="Create"
-        primaryButtonOnClick={createTranslation}
-        primaryButtonDisabled={newTranslationLanguageId === null || $isPageTransacting}
-    >
-        <TranslationSelector
-            allLanguages={data.languages}
-            existingTranslations={resourceContent?.contentTranslations ?? []}
-            bind:selectedLanguageId={newTranslationLanguageId}
-        />
-        <div slot="additional-buttons">
-            {#if englishContentTranslation?.hasDraft}
-                <div>
-                    <label class="label cursor-pointer">
-                        <input
-                            type="checkbox"
-                            class="checkbox-primary checkbox me-2"
-                            bind:checked={createTranslationFromDraft}
+    {#key resourceContentId}
+        <Modal
+            primaryButtonText="Assign"
+            primaryButtonOnClick={assignPublisherReview}
+            primaryButtonDisabled={!assignToUserId}
+            bind:open={isAssignReviewModalOpen}
+            header="Choose a Reviewer"
+        >
+            <UserSelector
+                users={data.users?.filter((u) => u.role === UserRole.Publisher) ?? []}
+                hideUser={resourceContent?.assignedUser}
+                defaultLabel="Select User"
+                bind:selectedUserId={assignToUserId}
+            />
+        </Modal>
+
+        <Modal
+            header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
+            bind:open={isAquiferizeModalOpen}
+            primaryButtonText="Assign"
+            primaryButtonOnClick={aquiferize}
+            primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
+        >
+            <UserSelector
+                users={usersThatCanBeAssigned()}
+                defaultLabel="Select User"
+                bind:selectedUserId={assignToUserId}
+            />
+        </Modal>
+
+        <Modal
+            header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
+            bind:open={isAssignUserModalOpen}
+            primaryButtonText="Assign"
+            primaryButtonOnClick={canSendForEditorReview ? sendForEditorReview : pullFromPublisherReview}
+            primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
+        >
+            {#if $promptForMachineTranslationRating && currentUserIsAssigned}
+                <div class="mb-8 flex flex-col justify-start gap-4">
+                    <div class="font-semibold text-error">Please rate the AI translation before reassigning.</div>
+                    <div>
+                        <MachineTranslationRating
+                            {machineTranslationStore}
+                            showingInPrompt={true}
+                            improvementHorizontalPositionPx={0}
                         />
-                        <span class="label-text">Create from Draft</span>
-                    </label>
+                    </div>
                 </div>
             {/if}
-        </div>
-    </Modal>
+            <UserSelector
+                users={usersThatCanBeAssigned()}
+                defaultLabel="Select User"
+                bind:selectedUserId={assignToUserId}
+                hideUser={resourceContent?.assignedUser}
+            />
+        </Modal>
 
-    <Modal header="Error" isError={true} bind:description={errorModalMessage} />
-{/key}
+        <Modal
+            header={hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New
+                ? 'Confirm Publish'
+                : 'Choose Publish Option'}
+            bind:open={isPublishModalOpen}
+            primaryButtonText="Publish"
+            primaryButtonOnClick={publish}
+            primaryButtonDisabled={$isPageTransacting}
+        >
+            {#if hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New}
+                <p class="py-4 text-lg text-warning">This resource has unresolved comments.</p>
+            {/if}
+            {#if resourceContent?.status === ResourceContentStatusEnum.New}
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start space-x-2">
+                        <input type="checkbox" bind:checked={createDraft} class="checkbox" />
+                        <span class="label-text">Aquiferization Needed</span>
+                    </label>
+                </div>
+                <!-- svelte-ignore a11y-label-has-associated-control -->
+                <label class="form-control">
+                    <div class="label">
+                        <span class="label-text">Aquiferization Assignment (optional)</span>
+                    </div>
+                    <UserSelector
+                        users={usersThatCanBeAssigned()}
+                        defaultLabel="Unassigned"
+                        disabled={!createDraft}
+                        bind:selectedUserId={assignToUserId}
+                    />
+                </label>
+            {/if}
+        </Modal>
+
+        <Modal
+            header="Create Translation"
+            bind:open={isAddTranslationModalOpen}
+            primaryButtonText="Create"
+            primaryButtonOnClick={createTranslation}
+            primaryButtonDisabled={newTranslationLanguageId === null || $isPageTransacting}
+        >
+            <TranslationSelector
+                allLanguages={data.languages}
+                existingTranslations={resourceContent?.contentTranslations ?? []}
+                bind:selectedLanguageId={newTranslationLanguageId}
+            />
+            <div slot="additional-buttons">
+                {#if englishContentTranslation?.hasDraft}
+                    <div>
+                        <label class="label cursor-pointer">
+                            <input
+                                type="checkbox"
+                                class="checkbox-primary checkbox me-2"
+                                bind:checked={createTranslationFromDraft}
+                            />
+                            <span class="label-text">Create from Draft</span>
+                        </label>
+                    </div>
+                {/if}
+            </div>
+        </Modal>
+
+        <Modal header="Error" isError={true} bind:description={errorModalMessage} />
+    {/key}
+{:catch error}
+    <ErrorMessage uncastError={error} />
+{/await}
