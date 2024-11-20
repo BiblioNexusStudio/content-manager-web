@@ -9,7 +9,6 @@
     import { isApiErrorWithMessage } from '$lib/utils/http-errors';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
     import Table from '$lib/components/Table.svelte';
-    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
     import Select from '$lib/components/Select.svelte';
     import TrashIcon from '$lib/icons/TrashIcon.svelte';
     import Modal from '$lib/components/Modal.svelte';
@@ -45,6 +44,8 @@
     $: filteredTranslationPairs = filterTranslationPairs(search, translationPairs, $searchParams.currentLanguageId);
     $: currentLanguageDisplayname = getCurrentLanguageDisplayname($searchParams.currentLanguageId);
     $: settingsColumns = buildSettingsColumns(currentLanguageDisplayname);
+    $: translationPairs = data.translationPairs;
+    $: getTranslationPairsLanguages(translationPairs);
 
     const sortSettingsData = createSettingsTableSorter<TranslationPair>();
 
@@ -65,11 +66,6 @@
         },
         { runLoadAgainWhenParamsChange: false }
     );
-
-    const loadContents = async () => {
-        translationPairs = await data.translationPairs!.promise;
-        getTranslationPairsLanguages(translationPairs);
-    };
 
     const getTranslationPairsLanguages = (translationPairs: TranslationPair[]) => {
         translationPairsLanguages = Array.from(
@@ -196,134 +192,129 @@
     };
 </script>
 
-{#await loadContents()}
-    <CenteredSpinnerFullScreen />
-{:then _}
-    <div class="flex h-full flex-col overflow-x-hidden overflow-y-hidden px-4">
-        <div class="mb-6 mt-4 flex">
-            <h1 class="my-auto text-3xl">Settings</h1>
-        </div>
+<div class="flex h-full flex-col overflow-x-hidden overflow-y-hidden px-4">
+    <div class="mb-6 mt-4 flex">
+        <h1 class="my-auto text-3xl">Settings</h1>
+    </div>
 
-        <div class="flex w-1/2 flex-col overflow-y-hidden">
-            <h1 class="my-auto mb-6 text-2xl">
-                Translation Pairs {translationPairsLanguages.length === 1 ? ` - ${currentLanguageDisplayname}` : ''}
-            </h1>
-            <div class="mb-4 flex">
-                <input
-                    type="text"
-                    class="input input-bordered me-4 max-w-xs focus:outline-none"
-                    bind:value={search}
-                    placeholder="Search"
+    <div class="flex w-1/2 flex-col overflow-y-hidden">
+        <h1 class="my-auto mb-6 text-2xl">
+            Translation Pairs {translationPairsLanguages.length === 1 ? ` - ${currentLanguageDisplayname}` : ''}
+        </h1>
+        <div class="mb-4 flex">
+            <input
+                type="text"
+                class="input input-bordered me-4 max-w-xs focus:outline-none"
+                bind:value={search}
+                placeholder="Search"
+            />
+            {#if translationPairsLanguages.length > 1}
+                <Select
+                    class="select select-bordered max-w-[14rem] flex-grow"
+                    bind:value={$searchParams.currentLanguageId}
+                    isNumber={true}
+                    options={[
+                        ...translationPairsLanguages.map((tpl) => ({
+                            value: tpl.languageId,
+                            label: tpl.englishDisplay,
+                        })),
+                    ]}
                 />
-                {#if translationPairsLanguages.length > 1}
-                    <Select
-                        class="select select-bordered max-w-[14rem] flex-grow"
-                        bind:value={$searchParams.currentLanguageId}
-                        isNumber={true}
-                        options={[
-                            ...translationPairsLanguages.map((tpl) => ({
-                                value: tpl.languageId,
-                                label: tpl.englishDisplay,
-                            })),
-                        ]}
-                    />
-                {/if}
-                <button
-                    class="btn btn-primary ms-4"
-                    on:click={() => {
-                        openCreateModal = true;
-                    }}
-                >
-                    Add
-                </button>
-                {#if isTransacting}
-                    <div class="flex grow justify-end"><div class="loading loading-spinner" /></div>
-                {/if}
-            </div>
-            <Table
-                bind:this={table}
-                columns={settingsColumns}
-                enableSelectAll={false}
-                idColumn="translationPairId"
-                noItemsText="No Translation Pairs Found"
-                items={sortSettingsData(filteredTranslationPairs, $searchParams.sort)}
-                searchable={true}
-                customTbody={true}
-                bind:searchText={search}
-                bind:searchParams={$searchParams}
+            {/if}
+            <button
+                class="btn btn-primary ms-4"
+                on:click={() => {
+                    openCreateModal = true;
+                }}
             >
-                <tbody slot="customTbody" let:rowItems>
-                    {#each rowItems as translationPair (translationPair.translationPairId)}
-                        {@const debouncePatchPerKey = debounce(patchTranslationPairKey, 1500)}
-                        {@const debouncePatchPerValue = debounce(patchTranslationPairValue, 1500)}
+                Add
+            </button>
+            {#if isTransacting}
+                <div class="flex grow justify-end"><div class="loading loading-spinner" /></div>
+            {/if}
+        </div>
+        <Table
+            bind:this={table}
+            columns={settingsColumns}
+            enableSelectAll={false}
+            idColumn="translationPairId"
+            noItemsText="No Translation Pairs Found"
+            items={sortSettingsData(filteredTranslationPairs, $searchParams.sort)}
+            searchable={true}
+            customTbody={true}
+            bind:searchText={search}
+            bind:searchParams={$searchParams}
+        >
+            <tbody slot="customTbody" let:rowItems>
+                {#each rowItems as translationPair (translationPair.translationPairId)}
+                    {@const debouncePatchPerKey = debounce(patchTranslationPairKey, 1500)}
+                    {@const debouncePatchPerValue = debounce(patchTranslationPairValue, 1500)}
 
-                        <tr>
-                            <td>
-                                <input
-                                    type="text"
-                                    value={translationPair.translationPairKey}
-                                    class="h-full grow p-2"
-                                    on:keyup={(event) => debouncePatchPerKey(event, translationPair.translationPairId)}
-                                />
-                            </td>
-                            <td>
-                                <input
-                                    type="text"
-                                    value={translationPair.translationPairValue}
-                                    class="h-full grow p-2"
-                                    on:keyup={(event) =>
-                                        debouncePatchPerValue(event, translationPair.translationPairId)}
-                                />
-                            </td>
-                            <td
-                                on:click={openDeleteTranslationPair(translationPair.translationPairId)}
-                                class="cursor-pointer"
-                            >
-                                <TrashIcon />
-                            </td>
-                        </tr>
-                    {/each}
-                </tbody>
-            </Table>
+                    <tr>
+                        <td>
+                            <input
+                                type="text"
+                                value={translationPair.translationPairKey}
+                                class="h-full grow p-2"
+                                on:keyup={(event) => debouncePatchPerKey(event, translationPair.translationPairId)}
+                            />
+                        </td>
+                        <td>
+                            <input
+                                type="text"
+                                value={translationPair.translationPairValue}
+                                class="h-full grow p-2"
+                                on:keyup={(event) => debouncePatchPerValue(event, translationPair.translationPairId)}
+                            />
+                        </td>
+                        <td
+                            on:click={openDeleteTranslationPair(translationPair.translationPairId)}
+                            class="cursor-pointer"
+                        >
+                            <TrashIcon />
+                        </td>
+                    </tr>
+                {/each}
+            </tbody>
+        </Table>
+    </div>
+</div>
+<Modal
+    bind:open={openCreateModal}
+    header={'Add Translation Pair'}
+    {isTransacting}
+    primaryButtonDisabled={!newKey || !newValue}
+    primaryButtonOnClick={() => addTranslationPair()}
+    primaryButtonText="Add"
+>
+    <div class="flex flex-col">
+        <div class="mb-2 text-lg">English</div>
+        <input type="text" class="input input-bordered mb-4" placeholder="Key" bind:value={newKey} />
+        <div class="mb-2 text-lg">
+            {currentLanguageDisplayname}
+        </div>
+        <input type="text" class="input input-bordered mb-4" placeholder="Value" bind:value={newValue} />
+    </div>
+</Modal>
+<Modal
+    bind:open={openDeleteModal}
+    header={'Delete Translation Pair'}
+    {isTransacting}
+    primaryButtonOnClick={() => deleteTranslationPair()}
+    primaryButtonText="Delete"
+>
+    <div class="flex flex-col">
+        <div class="mb-4 text-lg">Are you sure you want to delete this translation pair?</div>
+        <div class="flex w-full grow">
+            <div class="me-16 font-bold">
+                {translationPairs.find((tp) => tp.translationPairId === currentDeleteTranslationPairId)
+                    ?.translationPairKey}
+            </div>
+            <div class="font-bold">
+                {translationPairs.find((tp) => tp.translationPairId === currentDeleteTranslationPairId)
+                    ?.translationPairValue}
+            </div>
         </div>
     </div>
-    <Modal
-        bind:open={openCreateModal}
-        header={'Add Translation Pair'}
-        {isTransacting}
-        primaryButtonDisabled={!newKey || !newValue}
-        primaryButtonOnClick={() => addTranslationPair()}
-        primaryButtonText="Add"
-    >
-        <div class="flex flex-col">
-            <div class="mb-2 text-lg">English</div>
-            <input type="text" class="input input-bordered mb-4" placeholder="Key" bind:value={newKey} />
-            <div class="mb-2 text-lg">
-                {currentLanguageDisplayname}
-            </div>
-            <input type="text" class="input input-bordered mb-4" placeholder="Value" bind:value={newValue} />
-        </div>
-    </Modal>
-    <Modal
-        bind:open={openDeleteModal}
-        header={'Delete Translation Pair'}
-        {isTransacting}
-        primaryButtonOnClick={() => deleteTranslationPair()}
-        primaryButtonText="Delete"
-    >
-        <div class="flex flex-col">
-            <div class="mb-4 text-lg">Are you sure you want to delete this translation pair?</div>
-            <div class="flex w-full grow">
-                <div class="me-16 font-bold">
-                    {translationPairs.find((tp) => tp.translationPairId === currentDeleteTranslationPairId)
-                        ?.translationPairKey}
-                </div>
-                <div class="font-bold">
-                    {translationPairs.find((tp) => tp.translationPairId === currentDeleteTranslationPairId)
-                        ?.translationPairValue}
-                </div>
-            </div>
-        </div>
-    </Modal>
-    <Modal bind:open={openErrorModal} header={'Error'} isError={true} description={errorMessage}></Modal>
-{/await}
+</Modal>
+<Modal bind:open={openErrorModal} header={'Error'} isError={true} description={errorMessage}></Modal>
