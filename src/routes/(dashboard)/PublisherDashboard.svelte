@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { PageData } from './$types';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
-    import type { Project, ResourceAssignedToSelf, ResourcePendingReview, NotApplicableContent } from './+page';
+    import type { Project, ResourceAssignedToSelf, ResourcePendingReview } from './+page';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import { postToApi } from '$lib/utils/http-service';
     import Select from '$lib/components/Select.svelte';
@@ -27,9 +27,8 @@
     import TableCell from '$lib/components/TableCell.svelte';
     import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
     import { filterBoolean } from '$lib/utils/array';
-    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
-    import ErrorMessage from '$lib/components/ErrorMessage.svelte';
     import { ResourceContentVersionReviewLevel } from '$lib/types/resources';
+    import type { NotApplicableContent } from './+page';
 
     enum Tab {
         myWork = 'my-work',
@@ -39,21 +38,35 @@
         notApplicable = 'not-applicable',
     }
 
-    let assignedContents: ResourceAssignedToSelf[] = [];
-    let reviewPendingContents: ResourcePendingReview[] = [];
-    let assignedProjects: Project[] = [];
-    let communityPendingContents: ResourcePendingReview[] = [];
-    let notApplicableContent: NotApplicableContent[] = [];
     let currentAssignedContents: ResourceAssignedToSelf[] = [];
     let currentReviewPendingContents: ResourcePendingReview[] = [];
     let currentAssignedProjects: Project[] = [];
     let currentCommunityPendingContents: ResourcePendingReview[] = [];
+    let selectedMyWorkTableItems: ResourceAssignedToSelf[] = [];
+    let selectedReviewPendingTableItems: ResourcePendingReview[] = [];
+    let selectedCommunityPendingTableItems: ResourcePendingReview[] = [];
+    let assignToUserId: number | null = null;
+    let isAssignContentModalOpen = false;
+    let isConfirmPublishModalOpen = false;
+    let errorModalText: string | undefined;
+    let isTransacting = false;
 
     const sortAssignedResourceData = createPublisherDashboardMyWorkSorter();
     const sortPendingData = createPublisherDashboardReviewPendingSorter();
     const sortAssignedProjectData = createPublisherDashboardProjectsSorter();
 
     export let data: PageData;
+
+    $: assignedContents = data.publisherDashboard!.assignedResourceContent;
+    $: allReviewPendingContents = data.publisherDashboard!.reviewPendingResourceContent;
+    $: assignedProjects = data.publisherDashboard!.assignedProjects;
+    $: notApplicableContent = data.publisherDashboard!.notApplicableContent;
+    $: communityPendingContents = allReviewPendingContents.filter((item) => {
+        return item.reviewLevel === ResourceContentVersionReviewLevel.community;
+    });
+    $: reviewPendingContents = allReviewPendingContents.filter((item) => {
+        return item.reviewLevel !== ResourceContentVersionReviewLevel.community;
+    });
 
     let search = '';
 
@@ -67,15 +80,6 @@
         { runLoadAgainWhenParamsChange: false }
     );
 
-    let selectedMyWorkTableItems: ResourceAssignedToSelf[] = [];
-    let selectedReviewPendingTableItems: ResourcePendingReview[] = [];
-    let selectedCommunityPendingTableItems: ResourcePendingReview[] = [];
-    let assignToUserId: number | null = null;
-    let isAssignContentModalOpen = false;
-    let isConfirmPublishModalOpen = false;
-    let errorModalText: string | undefined;
-    let isTransacting = false;
-
     $: $searchParams.tab && resetSelection();
 
     function resetSelection() {
@@ -87,6 +91,8 @@
     function shouldAssignAsEditorReview(status: ResourceContentStatusEnum | null) {
         return (
             status === ResourceContentStatusEnum.New ||
+            status === ResourceContentStatusEnum.AquiferizeAwaitingAiDraft ||
+            status === ResourceContentStatusEnum.AquiferizeAiDraftComplete ||
             status === ResourceContentStatusEnum.TranslationAwaitingAiDraft ||
             status === ResourceContentStatusEnum.TranslationAiDraftComplete ||
             status === ResourceContentStatusEnum.AquiferizeEditorReview ||
@@ -116,7 +122,7 @@
             selectedReviewContentIds.push(item.id);
         });
 
-        const inProgessAssignments =
+        const inProgressAssignments =
             selectedEditorReviewContentIds.length > 0
                 ? postToApi<null>('/resources/content/send-for-editor-review', {
                       assignedUserId: assignToUserId,
@@ -132,7 +138,7 @@
                 : Promise.resolve(null);
 
         try {
-            await Promise.all([inProgessAssignments, inReviewAssignments]);
+            await Promise.all([inProgressAssignments, inReviewAssignments]);
             isTransacting = false;
             window.location.reload();
         } catch {
@@ -162,23 +168,6 @@
         return Array.from(new Set(filterBoolean(contents.map((c) => c.statusDisplayName)))).sort();
     }
 
-    const allDataPromise = async () => {
-        [assignedContents, reviewPendingContents, assignedProjects, notApplicableContent] = await Promise.all([
-            data.publisherDashboard!.assignedResourceContent.promise,
-            data.publisherDashboard!.reviewPendingResourceContent.promise,
-            data.publisherDashboard!.assignedProjects.promise,
-            data.publisherDashboard!.notApplicableContent.promise,
-        ]);
-
-        communityPendingContents = reviewPendingContents.filter((item) => {
-            return item.reviewLevel === ResourceContentVersionReviewLevel.community;
-        });
-
-        reviewPendingContents = reviewPendingContents.filter((item) => {
-            return item.reviewLevel !== ResourceContentVersionReviewLevel.community;
-        });
-    };
-
     $: nonPublisherReviewSelected = selectedMyWorkTableItems.some(
         (i) =>
             ![
@@ -187,8 +176,12 @@
             ].includes(i.statusValue)
     );
 
-    // eslint-disable-next-line
-    let table: Table<any> | null;
+    let table:
+        | Table<ResourceAssignedToSelf>
+        | Table<Project>
+        | Table<ResourcePendingReview>
+        | Table<NotApplicableContent>
+        | undefined;
     $: $searchParams.sort && table?.resetScroll();
     $: clearStaleSearchParams($searchParams.tab, assignedContents, reviewPendingContents);
 
@@ -258,243 +251,229 @@
     $: setTabContents($searchParams.tab, search, $searchParams.status, $searchParams.project);
 </script>
 
-{#await allDataPromise()}
-    <CenteredSpinnerFullScreen />
-{:then _}
-    <div class="flex flex-col overflow-y-hidden px-4">
-        <h1 class="pt-4 text-3xl">Dashboard</h1>
-        <div class="flex flex-row items-center pt-4">
-            <div role="tablist" class="tabs tabs-bordered w-fit">
-                <button
-                    on:click={selectTab(Tab.myWork)}
-                    role="tab"
-                    class="tab {$searchParams.tab === Tab.myWork && 'tab-active'}"
-                    >My Work ({assignedContents.length})</button
-                >
-                <button
-                    on:click={selectTab(Tab.reviewPending)}
-                    role="tab"
-                    class="tab {$searchParams.tab === Tab.reviewPending && 'tab-active'}"
-                    >Review Pending ({reviewPendingContents.length})</button
-                >
-                <button
-                    on:click={selectTab(Tab.myProjects)}
-                    role="tab"
-                    class="tab {$searchParams.tab === Tab.myProjects && 'tab-active'}"
-                    >My Projects ({assignedProjects.length})</button
-                >
-                <button
-                    on:click={selectTab(Tab.community)}
-                    role="tab"
-                    class="tab {$searchParams.tab === Tab.community && 'tab-active'}"
-                >
-                    Community Pending ({communityPendingContents.length})
-                </button>
-                <button
-                    on:click={selectTab(Tab.notApplicable)}
-                    role="tab"
-                    class="tab {$searchParams.tab === Tab.notApplicable && 'tab-active'}"
-                >
-                    Not Applicable ({notApplicableContent.length})
-                </button>
-            </div>
-        </div>
-        {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending || $searchParams.tab === Tab.community}
-            <div class="mt-4 flex space-x-4">
-                <input
-                    class="input input-bordered max-w-xs focus:outline-none"
-                    bind:value={search}
-                    placeholder="Search"
-                />
-                {#if $searchParams.tab === Tab.myWork}
-                    <Select
-                        class="select select-bordered max-w-[14rem] flex-grow"
-                        bind:value={$searchParams.status}
-                        onChange={resetSelection}
-                        options={[
-                            { value: '', label: 'Status' },
-                            ...statusesForContents(assignedContents).map((p) => ({ value: p, label: p })),
-                        ]}
-                    />
-                {/if}
-                {#if $searchParams.tab !== Tab.community}
-                    <Select
-                        class="select select-bordered max-w-[14rem] flex-grow"
-                        bind:value={$searchParams.project}
-                        onChange={resetSelection}
-                        options={[
-                            { value: '', label: 'Project' },
-                            ...projectNamesForContents(
-                                $searchParams.tab === Tab.myWork ? assignedContents : reviewPendingContents
-                            ).map((p) => ({ value: p, label: p })),
-                        ]}
-                    />
-                {/if}
-                <button
-                    data-app-insights-event-name="publisher-dashboard-bulk-assign-click"
-                    class="btn btn-primary"
-                    on:click={() => (isAssignContentModalOpen = true)}
-                    disabled={selectedReviewPendingTableItems.length === 0 &&
-                        selectedMyWorkTableItems.length === 0 &&
-                        selectedCommunityPendingTableItems.length === 0}
-                    >Assign
-                </button>
-                {#if $searchParams.tab === Tab.myWork}
-                    <Tooltip
-                        position={{ left: '7rem' }}
-                        text={nonPublisherReviewSelected ? 'Publisher Review status only' : null}
-                    >
-                        <button
-                            data-app-insights-event-name="publisher-dashboard-bulk-publish-click"
-                            class="btn btn-primary ms-4"
-                            on:click={() => (isConfirmPublishModalOpen = true)}
-                            disabled={selectedMyWorkTableItems.length === 0 || nonPublisherReviewSelected}
-                            >Publish
-                        </button>
-                    </Tooltip>
-                {/if}
-            </div>
-        {/if}
-        {#if $searchParams.tab === Tab.myProjects}
-            <div class="mt-4 flex flex-row">
-                <input
-                    class="input input-bordered max-w-xs focus:outline-none"
-                    bind:value={search}
-                    placeholder="Search"
-                />
-                <a class="btn btn-primary ms-4" href="/projects/new">Create Project</a>
-            </div>
-        {/if}
-        <div class="flex flex-row space-x-4 overflow-y-hidden">
-            {#if $searchParams.tab === Tab.myWork}
-                <Table
-                    bind:this={table}
-                    class="my-4"
-                    enableSelectAll={true}
-                    columns={assignedContentsColumns}
-                    items={sortAssignedResourceData(currentAssignedContents, $searchParams.sort)}
-                    idColumn="id"
-                    itemUrlPrefix="/resources/"
-                    bind:searchParams={$searchParams}
-                    bind:selectedItems={selectedMyWorkTableItems}
-                    noItemsText="Your work is all done!"
-                    searchable={true}
-                    bind:searchText={search}
-                    let:item
-                    let:href
-                    let:itemKey
-                >
-                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                    {:else if href !== undefined && itemKey}
-                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                    {:else if itemKey}
-                        <TableCell>{item[itemKey] ?? ''}</TableCell>
-                    {/if}
-                </Table>
-            {:else if $searchParams.tab === Tab.reviewPending}
-                <Table
-                    bind:this={table}
-                    class="my-4"
-                    enableSelectAll={true}
-                    columns={reviewPendingContentsColumns}
-                    items={sortPendingData(currentReviewPendingContents, $searchParams.sort)}
-                    idColumn="id"
-                    itemUrlPrefix="/resources/"
-                    bind:searchParams={$searchParams}
-                    bind:selectedItems={selectedReviewPendingTableItems}
-                    noItemsText="No items pending review."
-                    searchable={true}
-                    bind:searchText={search}
-                    let:item
-                    let:href
-                    let:itemKey
-                >
-                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                    {:else if href !== undefined && itemKey}
-                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                    {:else if itemKey}
-                        <TableCell>{item[itemKey] ?? ''}</TableCell>
-                    {/if}
-                </Table>
-            {:else if $searchParams.tab === Tab.myProjects}
-                <Table
-                    bind:this={table}
-                    class="my-4"
-                    enableSelectAll={false}
-                    columns={projectColumns}
-                    items={sortAssignedProjectData(currentAssignedProjects, $searchParams.sort)}
-                    idColumn="id"
-                    itemUrlPrefix="/projects/"
-                    bind:searchParams={$searchParams}
-                    noItemsText="No projects assigned to you."
-                    searchable={true}
-                    let:item
-                    let:href
-                    let:itemKey
-                    let:columnText
-                >
-                    {#if columnText === 'Progress'}
-                        <td>
-                            <ProjectProgressBar
-                                notStartedCount={item?.counts?.notStarted ?? 0}
-                                editorReviewCount={item?.counts?.editorReview ?? 0}
-                                inCompanyReviewCount={item?.counts?.inCompanyReview ?? 0}
-                                inPublisherReviewCount={item?.counts?.inPublisherReview ?? 0}
-                                completeCount={item?.counts?.completed ?? 0}
-                                showLegend={false}
-                            />
-                        </td>
-                    {:else if href !== undefined && itemKey}
-                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                    {:else if itemKey}
-                        <TableCell>{item[itemKey] ?? ''}</TableCell>
-                    {/if}
-                </Table>
-            {:else if $searchParams.tab === Tab.community}
-                <Table
-                    bind:this={table}
-                    class="my-4"
-                    enableSelectAll={true}
-                    columns={communityPendingContentsColumns}
-                    items={sortPendingData(currentCommunityPendingContents, $searchParams.sort)}
-                    idColumn="id"
-                    itemUrlPrefix="/resources/"
-                    bind:searchParams={$searchParams}
-                    bind:selectedItems={selectedCommunityPendingTableItems}
-                    noItemsText="No items pending review."
-                    searchable={true}
-                    bind:searchText={search}
-                    let:item
-                    let:href
-                    let:itemKey
-                >
-                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                    {:else if href !== undefined && itemKey}
-                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                    {:else if itemKey}
-                        <TableCell>{item[itemKey] ?? ''}</TableCell>
-                    {/if}
-                </Table>
-            {:else if $searchParams.tab === Tab.notApplicable}
-                <Table
-                    bind:this={table}
-                    class="my-4"
-                    enableSelectAll={false}
-                    columns={notApplicableContentsColumns}
-                    items={notApplicableContent}
-                    idColumn="id"
-                    itemUrlPrefix="/resources/"
-                    noItemsText="No items pending review."
-                />
-            {/if}
+<div class="flex flex-col overflow-y-hidden px-4">
+    <h1 class="pt-4 text-3xl">Dashboard</h1>
+    <div class="flex flex-row items-center pt-4">
+        <div role="tablist" class="tabs tabs-bordered w-fit">
+            <button
+                on:click={selectTab(Tab.myWork)}
+                role="tab"
+                class="tab {$searchParams.tab === Tab.myWork && 'tab-active'}"
+                >My Work ({assignedContents.length})</button
+            >
+            <button
+                on:click={selectTab(Tab.reviewPending)}
+                role="tab"
+                class="tab {$searchParams.tab === Tab.reviewPending && 'tab-active'}"
+                >Review Pending ({reviewPendingContents.length})</button
+            >
+            <button
+                on:click={selectTab(Tab.myProjects)}
+                role="tab"
+                class="tab {$searchParams.tab === Tab.myProjects && 'tab-active'}"
+                >My Projects ({assignedProjects.length})</button
+            >
+            <button
+                on:click={selectTab(Tab.community)}
+                role="tab"
+                class="tab {$searchParams.tab === Tab.community && 'tab-active'}"
+            >
+                Community Pending ({communityPendingContents.length})
+            </button>
+            <button
+                on:click={selectTab(Tab.notApplicable)}
+                role="tab"
+                class="tab {$searchParams.tab === Tab.notApplicable && 'tab-active'}"
+            >
+                Not Applicable ({notApplicableContent.length})
+            </button>
         </div>
     </div>
-{:catch error}
-    <ErrorMessage uncastError={error} />
-{/await}
+    {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending || $searchParams.tab === Tab.community}
+        <div class="mt-4 flex space-x-4">
+            <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
+            {#if $searchParams.tab === Tab.myWork}
+                <Select
+                    class="select select-bordered max-w-[14rem] flex-grow"
+                    bind:value={$searchParams.status}
+                    onChange={resetSelection}
+                    options={[
+                        { value: '', label: 'Status' },
+                        ...statusesForContents(assignedContents).map((p) => ({ value: p, label: p })),
+                    ]}
+                />
+            {/if}
+            {#if $searchParams.tab !== Tab.community}
+                <Select
+                    class="select select-bordered max-w-[14rem] flex-grow"
+                    bind:value={$searchParams.project}
+                    onChange={resetSelection}
+                    options={[
+                        { value: '', label: 'Project' },
+                        ...projectNamesForContents(
+                            $searchParams.tab === Tab.myWork ? assignedContents : reviewPendingContents
+                        ).map((p) => ({ value: p, label: p })),
+                    ]}
+                />
+            {/if}
+            <button
+                data-app-insights-event-name="publisher-dashboard-bulk-assign-click"
+                class="btn btn-primary"
+                on:click={() => (isAssignContentModalOpen = true)}
+                disabled={selectedReviewPendingTableItems.length === 0 &&
+                    selectedMyWorkTableItems.length === 0 &&
+                    selectedCommunityPendingTableItems.length === 0}
+                >Assign
+            </button>
+            {#if $searchParams.tab === Tab.myWork}
+                <Tooltip
+                    position={{ left: '7rem' }}
+                    text={nonPublisherReviewSelected ? 'Publisher Review status only' : null}
+                >
+                    <button
+                        data-app-insights-event-name="publisher-dashboard-bulk-publish-click"
+                        class="btn btn-primary ms-4"
+                        on:click={() => (isConfirmPublishModalOpen = true)}
+                        disabled={selectedMyWorkTableItems.length === 0 || nonPublisherReviewSelected}
+                        >Publish
+                    </button>
+                </Tooltip>
+            {/if}
+        </div>
+    {/if}
+    {#if $searchParams.tab === Tab.myProjects}
+        <div class="mt-4 flex flex-row">
+            <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
+            <a class="btn btn-primary ms-4" href="/projects/new">Create Project</a>
+        </div>
+    {/if}
+    <div class="flex flex-row space-x-4 overflow-y-hidden">
+        {#if $searchParams.tab === Tab.myWork}
+            <Table
+                bind:this={table}
+                class="my-4"
+                enableSelectAll={true}
+                columns={assignedContentsColumns}
+                items={sortAssignedResourceData(currentAssignedContents, $searchParams.sort)}
+                idColumn="id"
+                itemUrlPrefix="/resources/"
+                bind:searchParams={$searchParams}
+                bind:selectedItems={selectedMyWorkTableItems}
+                noItemsText="Your work is all done!"
+                searchable={true}
+                bind:searchText={search}
+                let:item
+                let:href
+                let:itemKey
+            >
+                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                {:else if href !== undefined && itemKey}
+                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey}
+                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+                {/if}
+            </Table>
+        {:else if $searchParams.tab === Tab.reviewPending}
+            <Table
+                bind:this={table}
+                class="my-4"
+                enableSelectAll={true}
+                columns={reviewPendingContentsColumns}
+                items={sortPendingData(currentReviewPendingContents, $searchParams.sort)}
+                idColumn="id"
+                itemUrlPrefix="/resources/"
+                bind:searchParams={$searchParams}
+                bind:selectedItems={selectedReviewPendingTableItems}
+                noItemsText="No items pending review."
+                searchable={true}
+                bind:searchText={search}
+                let:item
+                let:href
+                let:itemKey
+            >
+                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                {:else if href !== undefined && itemKey}
+                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey}
+                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+                {/if}
+            </Table>
+        {:else if $searchParams.tab === Tab.myProjects}
+            <Table
+                bind:this={table}
+                class="my-4"
+                enableSelectAll={false}
+                columns={projectColumns}
+                items={sortAssignedProjectData(currentAssignedProjects, $searchParams.sort)}
+                idColumn="id"
+                itemUrlPrefix="/projects/"
+                bind:searchParams={$searchParams}
+                noItemsText="No projects assigned to you."
+                searchable={true}
+                let:item
+                let:href
+                let:itemKey
+                let:columnText
+            >
+                {#if columnText === 'Progress'}
+                    <td>
+                        <ProjectProgressBar
+                            notStartedCount={item?.counts?.notStarted ?? 0}
+                            editorReviewCount={item?.counts?.editorReview ?? 0}
+                            inCompanyReviewCount={item?.counts?.inCompanyReview ?? 0}
+                            inPublisherReviewCount={item?.counts?.inPublisherReview ?? 0}
+                            completeCount={item?.counts?.completed ?? 0}
+                            showLegend={false}
+                        />
+                    </td>
+                {:else if href !== undefined && itemKey}
+                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey}
+                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+                {/if}
+            </Table>
+        {:else if $searchParams.tab === Tab.community}
+            <Table
+                bind:this={table}
+                class="my-4"
+                enableSelectAll={true}
+                columns={communityPendingContentsColumns}
+                items={sortPendingData(currentCommunityPendingContents, $searchParams.sort)}
+                idColumn="id"
+                itemUrlPrefix="/resources/"
+                bind:searchParams={$searchParams}
+                bind:selectedItems={selectedCommunityPendingTableItems}
+                noItemsText="No items pending review."
+                searchable={true}
+                bind:searchText={search}
+                let:item
+                let:href
+                let:itemKey
+            >
+                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                {:else if href !== undefined && itemKey}
+                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey}
+                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+                {/if}
+            </Table>
+        {:else if $searchParams.tab === Tab.notApplicable}
+            <Table
+                bind:this={table}
+                class="my-4"
+                enableSelectAll={false}
+                columns={notApplicableContentsColumns}
+                items={notApplicableContent}
+                idColumn="id"
+                itemUrlPrefix="/resources/"
+                noItemsText="No items pending review."
+            />
+        {/if}
+    </div>
+</div>
 
 <Modal
     {isTransacting}

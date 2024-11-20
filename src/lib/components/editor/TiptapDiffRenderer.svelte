@@ -50,6 +50,7 @@
         async (
             currentTiptapJsonForDiffing: TiptapContentItem | undefined,
             baseHtmlWithTextDirection: string | undefined
+            // eslint-disable-next-line
         ) => {
             if (
                 currentTiptapJsonForDiffing &&
@@ -115,7 +116,7 @@
         }
     };
 
-    onMount(async () => {
+    onMount(() => {
         if (scrollSyncElement) {
             scrollSyncElement.scrollTop = 0;
         }

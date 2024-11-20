@@ -52,8 +52,6 @@
     import BibleReferencesSidebar from './BibleReferencesSidebar.svelte';
     import { log } from '$lib/logger';
     import { createIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
-    import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
-    import ErrorMessage from '$lib/components/ErrorMessage.svelte';
     import ScrollSyncLockToggle from '$lib/components/editor/ScrollSyncLockToggle.svelte';
     import { scrollPosition, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
     import { isApiErrorWithMessage } from '$lib/utils/http-errors';
@@ -77,7 +75,7 @@
     let currentUserIsAssigned = false;
     let canMakeContentEdits = false;
     let canAquiferize = false;
-    let inReviewAndCanAssign = false;
+    let canSendForEditorReview = false;
     let inPublisherReviewAndCanSendBack = false;
     let canPublish = false;
     let canUnpublish = false;
@@ -92,12 +90,10 @@
     let englishContentTranslation: ContentTranslation | undefined;
     let createTranslationFromDraft = false;
     let isInTranslationWorkflow = false;
-    let isNewDraftStatus = false;
     let mediaType: MediaTypeEnum | undefined;
     let selectedStepNumber: number | undefined;
     let openedSupplementalSideBar = OpenedSupplementalSideBar.None;
     let shouldTransition = false;
-    let resourceContent: ResourceContent | undefined;
     let canCommunityTranslate = false;
     let canCommunitySendToPublisher = false;
     let canSetStatusTransitionNotApplicable = false;
@@ -120,16 +116,14 @@
     let sidebarContentStore: ReturnType<typeof createSidebarContentStore>;
 
     $: isShowingSupplementalSidebar = openedSupplementalSideBar !== OpenedSupplementalSideBar.None;
-    $: resourceContentId = data.resourceContentId;
-    $: resourceContentPromise = data.resourceContent.promise;
-    $: handleFetchedResource(data.resourceContent.promise);
+    $: resourceContent = data.resourceContent;
+    $: handleFetchedResource(resourceContent);
     $: hasUnresolvedThreads = $commentThreads?.threads.some((x) => !x.resolved && x.id !== -1) || false;
 
     const machineTranslationStore = createMachineTranslationStore();
     const promptForMachineTranslationRating = machineTranslationStore.promptForRating;
 
-    async function handleFetchedResource(resourceContentPromise: Promise<ResourceContent>) {
-        resourceContent = await resourceContentPromise;
+    function handleFetchedResource(resourceContent: ResourceContent) {
         resetSaveState();
 
         $isPageTransacting = false;
@@ -153,8 +147,6 @@
             resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
             resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending;
 
-        isNewDraftStatus = resourceContent.status === ResourceContentStatusEnum.New && resourceContent.isDraft;
-
         canMakeContentEdits =
             $userCan(Permission.EditContent) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
@@ -172,14 +164,19 @@
             ($userCan(Permission.AssignContent) && currentUserIsAssigned);
 
         canAquiferize =
-            hasResourceAssignmentPermission &&
+            $userCan(Permission.CreateContent) &&
+            !resourceContent.isDraft &&
             (resourceContent.status === ResourceContentStatusEnum.New ||
-                resourceContent.status === ResourceContentStatusEnum.Complete ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationAiDraftComplete);
+                resourceContent.status === ResourceContentStatusEnum.Complete);
 
-        inReviewAndCanAssign =
+        canSendForEditorReview =
             hasResourceAssignmentPermission &&
-            (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
+            // note: the New and isDraft combo should not exist, but this ensures that the resource
+            // isn't stuck if it's in a bad state
+            ((resourceContent.status === ResourceContentStatusEnum.New && resourceContent.isDraft) ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeAiDraftComplete ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationAiDraftComplete ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizeCompanyReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview);
@@ -233,7 +230,12 @@
             new Map(resourceContent.machineTranslations.map((mt) => [mt.contentIndex, mt]))
         );
         promptForMachineTranslationRating.set(
-            resourceContent.machineTranslations.some((mt) => !mt.userRating && currentUserIsAssigned)
+            resourceContent.machineTranslations.some(
+                (mt) =>
+                    !mt.userRating &&
+                    currentUserIsAssigned &&
+                    resourceContent?.status === ResourceContentStatusEnum.TranslationEditorReview
+            )
         );
 
         commentStores = createCommentStores();
@@ -275,7 +277,9 @@
             $userCan(Permission.SetStatusCompleteNotApplicable) &&
             resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable;
 
-        isStatusInAwaitingAiDraft = resourceContent.status === ResourceContentStatusEnum.TranslationAwaitingAiDraft;
+        isStatusInAwaitingAiDraft =
+            resourceContent.status === ResourceContentStatusEnum.TranslationAwaitingAiDraft ||
+            resourceContent.status === ResourceContentStatusEnum.AquiferizeAwaitingAiDraft;
 
         if (isStatusInAwaitingAiDraft) {
             startPollingForAiTranslateComplete();
@@ -345,7 +349,7 @@
         isAddTranslationModalOpen = true;
     }
 
-    async function callNextUpApi(resourceContentId: string) {
+    async function callNextUpApi(resourceContentId: number) {
         let nextUpInfo: ResourceContentNextUpInfo | null = null;
 
         try {
@@ -393,20 +397,26 @@
 
     async function takeActionAndRefresh(action: () => Promise<unknown>) {
         // do this for now. eventually we want to have the post return the new state of the resource so we don't need to refresh
-        await takeActionAndCallback(action, async () => window.location.reload());
+        await takeActionAndCallback(
+            action,
+            //eslint-disable-next-line
+            async () => window.location.reload()
+        );
     }
 
     async function unpublish() {
-        await takeActionAndRefresh(() => postToApi(`/resources/content/${resourceContentId}/unpublish`));
+        await takeActionAndRefresh(() =>
+            postToApi(`/resources/content/${resourceContent.resourceContentId}/unpublish`)
+        );
     }
 
     async function sendForCompanyReview() {
-        const currentResourceContentId = resourceContentId;
+        const currentResourceContentId = resourceContent.resourceContentId;
         $isPageTransacting = true;
 
         const nextUpInfo = await callNextUpApi(currentResourceContentId);
 
-        if (currentResourceContentId !== resourceContentId) {
+        if (currentResourceContentId !== resourceContent.resourceContentId) {
             return;
         }
 
@@ -421,7 +431,7 @@
                     response?.assignments.some(
                         (assignment) =>
                             assignment.assignedUserId === $currentUser?.id &&
-                            assignment.resourceContentId === parseInt(currentResourceContentId)
+                            assignment.resourceContentId === currentResourceContentId
                     )
                 ) {
                     window?.location?.reload();
@@ -433,12 +443,12 @@
     }
 
     async function sendForPublisherReview() {
-        const currentResourceContentId = resourceContentId;
+        const currentResourceContentId = resourceContent.resourceContentId;
         $isPageTransacting = true;
 
         const nextUpInfo = await callNextUpApi(currentResourceContentId);
 
-        if (currentResourceContentId !== resourceContentId) {
+        if (currentResourceContentId !== resourceContent.resourceContentId) {
             return;
         }
 
@@ -459,7 +469,7 @@
 
     async function assignPublisherReview() {
         await takeActionAndRefresh(() =>
-            postToApi(`/resources/content/${resourceContentId}/assign-publisher-review`, {
+            postToApi(`/resources/content/${resourceContent.resourceContentId}/assign-publisher-review`, {
                 assignedUserId: assignToUserId,
             })
         );
@@ -467,7 +477,7 @@
 
     async function aquiferize() {
         await takeActionAndRefresh(() =>
-            postToApi(`/resources/content/${resourceContentId}/aquiferize`, {
+            postToApi(`/resources/content/${resourceContent.resourceContentId}/aquiferize`, {
                 assignedUserId: assignToUserId,
             })
         );
@@ -476,7 +486,7 @@
     async function publish() {
         $removeAllInlineThreads();
         await takeActionAndRefresh(() =>
-            postToApi(`/resources/content/${resourceContentId}/publish`, {
+            postToApi(`/resources/content/${resourceContent.resourceContentId}/publish`, {
                 createDraft: createDraft,
                 assignedUserId: assignToUserId,
             })
@@ -486,9 +496,10 @@
     async function pullBackToCompanyReview() {
         await takeActionAndCallback(
             async () =>
-                await postToApi(`/resources/content/${resourceContentId}/pull-from-review-pending`, {
+                await postToApi(`/resources/content/${resourceContent.resourceContentId}/pull-from-review-pending`, {
                     assignedUserId: $currentUser?.id,
                 }),
+            // eslint-disable-next-line
             async () => {
                 window?.location?.reload();
             }
@@ -496,12 +507,12 @@
     }
 
     async function sendForEditorReview() {
-        const currentResourceContentId = resourceContentId;
+        const currentResourceContentId = resourceContent.resourceContentId;
         $isPageTransacting = true;
 
         const nextUpInfo = await callNextUpApi(currentResourceContentId);
 
-        if (currentResourceContentId !== resourceContentId) {
+        if (currentResourceContentId !== resourceContent.resourceContentId) {
             return;
         }
 
@@ -521,12 +532,12 @@
     }
 
     async function pullFromPublisherReview() {
-        const currentResourceContentId = resourceContentId;
+        const currentResourceContentId = resourceContent.resourceContentId;
         $isPageTransacting = true;
 
         const nextUpInfo = await callNextUpApi(currentResourceContentId);
 
-        if (currentResourceContentId !== resourceContentId) {
+        if (currentResourceContentId !== resourceContent.resourceContentId) {
             return;
         }
 
@@ -559,15 +570,6 @@
         );
     }
 
-    async function assignDraftToEditor() {
-        await takeActionAndRefresh(
-            async () =>
-                await postToApi(`/resources/content/${resourceContentId}/send-for-editor-review`, {
-                    assignedUserId: assignToUserId,
-                })
-        );
-    }
-
     function calculateWordCount(wordCounts: number[]) {
         if (wordCounts.length) {
             return wordCounts.reduce((total, current) => total + current, 0);
@@ -588,7 +590,7 @@
     async function patchData() {
         const displayName = get(editableDisplayNameStore);
         const content = get(editableContentStore);
-        await patchToApi(`/resources/content/${resourceContentId}`, {
+        await patchToApi(`/resources/content/${resourceContent.resourceContentId}`, {
             displayName,
             wordCount: calculateWordCount(draftCharacterCountsByStep),
             ...(mediaType === MediaTypeEnum.text
@@ -601,7 +603,10 @@
     }
 
     function usersThatCanBeAssigned() {
-        const users = data.users?.filter((u) => u.role !== UserRole.ReportViewer) ?? null;
+        let users = data.users?.filter((u) => u.role !== UserRole.ReportViewer) ?? null;
+        if (resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable) {
+            users = users?.filter((u) => u.role === UserRole.Manager || u.role === UserRole.Reviewer) ?? null;
+        }
 
         if ($userCan(Permission.AssignOutsideCompany)) {
             return users;
@@ -636,7 +641,10 @@
         $isPageTransacting = true;
 
         await takeActionAndCallback(
-            async () => await postToApi(`/resources/content/${resourceContentId}/send-for-publisher-review-community`),
+            async () =>
+                await postToApi(
+                    `/resources/content/${resourceContent.resourceContentId}/send-for-publisher-review-community`
+                ),
             async () => {
                 if ($currentUser) {
                     $currentUser.canBeAssignedContent = true;
@@ -650,12 +658,12 @@
         $isPageTransacting = true;
 
         await takeActionAndCallback(
-            async () => await postToApi(`/resources/content/${resourceContentId}/not-applicable`),
+            async () => await postToApi(`/resources/content/${resourceContent.resourceContentId}/not-applicable`),
             async () => {
                 if (!$userCan(Permission.SetStatusCompleteNotApplicable)) {
                     await goto(`/`);
                 }
-                $isPageTransacting = false;
+                window.location.reload();
             }
         );
     }
@@ -664,19 +672,24 @@
         $isPageTransacting = true;
 
         await takeActionAndCallback(
-            async () => await postToApi(`/resources/content/${resourceContentId}/complete-not-applicable`),
+            async () =>
+                await postToApi(`/resources/content/${resourceContent.resourceContentId}/complete-not-applicable`),
             async () => {
                 await goto(`/`);
             }
         );
     }
 
-    async function startPollingForAiTranslateComplete() {
+    function startPollingForAiTranslateComplete() {
         const interval = setInterval(async () => {
             const response = await getFromApi<ResourceContentCurrentStatusId>(
                 `/resources/content/${resourceContent?.resourceContentId}/status`
             );
-            if (response && response?.status !== ResourceContentStatusEnum.TranslationAwaitingAiDraft) {
+            if (
+                response &&
+                response?.status !== ResourceContentStatusEnum.TranslationAwaitingAiDraft &&
+                response?.status !== ResourceContentStatusEnum.AquiferizeAwaitingAiDraft
+            ) {
                 clearInterval(interval);
                 window.location.reload();
             }
@@ -688,9 +701,9 @@
     <title>{resourceContent?.englishLabel} | Aquifer Admin</title>
 </svelte:head>
 
-{#await resourceContentPromise}
-    <CenteredSpinnerFullScreen />
-{:then resourceContent}
+<!-- This key is important to make sure old content clears out when navigating to a new resource.  -->
+<!-- It also makes the transition on the div work correctly. -->
+{#key resourceContent.resourceContentId}
     <div
         on:introend={() => (shouldTransition = false)}
         in:fly={{ x: '100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 350 : 0 }}
@@ -701,7 +714,7 @@
             <div class="me-2 flex place-items-center">
                 <ExitButton defaultPathIfNoHistory="/resources" />
                 <CurrentTranslations
-                    currentResourceId={resourceContentId}
+                    currentResourceId={resourceContent.resourceContentId}
                     languages={data.languages}
                     translations={resourceContent.contentTranslations}
                     project={resourceContent.project}
@@ -742,13 +755,13 @@
                                     Confirm
                                 </button>
                             {/if}
-                            {#if inReviewAndCanAssign || inPublisherReviewAndCanSendBack}
+                            {#if canSendForEditorReview || inPublisherReviewAndCanSendBack}
                                 <button
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
                                     on:click={openAssignUserModal}
                                 >
-                                    {#if inReviewAndCanAssign}
+                                    {#if canSendForEditorReview}
                                         Assign User
                                     {:else if inPublisherReviewAndCanSendBack}
                                         Send Back
@@ -809,12 +822,7 @@
                                 <button
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
-                                    on:click={openAquiferizeModal}
-                                    >{#if isNewDraftStatus || isInTranslationWorkflow}
-                                        Assign
-                                    {:else}
-                                        Create Draft
-                                    {/if}</button
+                                    on:click={openAquiferizeModal}>Create Draft</button
                                 >
                             {/if}
                             {#if canCommunityTranslate}
@@ -1014,11 +1022,7 @@
     <InlineComment {commentStores} />
     <VersePopout language={resourceContent.language} />
     <ResourcePopout />
-{:catch error}
-    <ErrorMessage uncastError={error} />
-{/await}
 
-{#key resourceContentId}
     <Modal
         primaryButtonText="Assign"
         primaryButtonOnClick={assignPublisherReview}
@@ -1038,7 +1042,7 @@
         header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
         bind:open={isAquiferizeModalOpen}
         primaryButtonText="Assign"
-        primaryButtonOnClick={isInTranslationWorkflow || isNewDraftStatus ? assignDraftToEditor : aquiferize}
+        primaryButtonOnClick={aquiferize}
         primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
     >
         <UserSelector
@@ -1052,7 +1056,7 @@
         header={isInTranslationWorkflow ? 'Choose a Translator' : 'Choose an Editor'}
         bind:open={isAssignUserModalOpen}
         primaryButtonText="Assign"
-        primaryButtonOnClick={inReviewAndCanAssign ? sendForEditorReview : pullFromPublisherReview}
+        primaryButtonOnClick={canSendForEditorReview ? sendForEditorReview : pullFromPublisherReview}
         primaryButtonDisabled={assignToUserId === null || $isPageTransacting}
     >
         {#if $promptForMachineTranslationRating && currentUserIsAssigned}

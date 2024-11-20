@@ -127,13 +127,12 @@
                     },
                 },
             },
-            // eslint-disable-next-line
-            // @ts-ignore
+            // @ts-expect-error this barPercentage is valid but missing from the ChartJS types
             barPercentage: 0.5,
         },
     };
 
-    onMount(async () => {
+    onMount(() => {
         let canvas = document?.getElementById('areaChartCanvas') as HTMLCanvasElement | undefined;
         let canvasContext = canvas?.getContext('2d');
         if (canvasContext) {

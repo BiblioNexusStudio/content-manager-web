@@ -4,10 +4,10 @@
     import type { TiptapContentItem } from '$lib/types/resources';
     import { extensions } from '../tiptap/config';
     import type { CommentStores } from '$lib/stores/comments';
-    import type { ScriptDirection } from '$lib/types/base';
     import { scrollPosition, isScrollSyncEnabled, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
+    import type { Language } from '$lib/types/base';
 
-    export let languageScriptDirection: ScriptDirection | undefined;
+    export let language: Language;
     export let tiptapJson: TiptapContentItem | undefined;
     export let onChange: ((tiptapJson: object, wordCount: number, charCount: number) => void) | undefined = undefined;
     export let onCreate: ((tiptapJson: object, wordCount: number, charCount: number) => void) | undefined = undefined;
@@ -62,7 +62,7 @@
         editor?.setEditable(canEdit);
     }
 
-    onMount(async () => {
+    onMount(() => {
         if (scrollSyncElement) {
             scrollSyncElement.scrollTop = 0;
         }
@@ -70,7 +70,7 @@
         editor = new Editor({
             element,
             editable: canEdit,
-            extensions: extensions(canComment, commentStores, true, languageScriptDirection),
+            extensions: extensions(canComment, commentStores, true, language.scriptDirection),
             editorProps: {
                 attributes: {
                     class: 'prose prose-sm sm:prose-base focus:outline-none text-black m-4 max-w-none',
@@ -129,7 +129,7 @@
             </div>
         {/if}
         <div
-            dir={languageScriptDirection?.toLowerCase()}
+            dir={language.scriptDirection?.toLowerCase()}
             bind:this={element}
             role="presentation"
             class:blur-sm={isLoading}
@@ -139,7 +139,9 @@
         <div
             class="absolute bottom-0 left-0 right-0 top-0 flex flex-col items-center bg-white bg-opacity-75 py-16 text-xl font-semibold text-primary"
         >
-            <h1 class="mb-4">AI Translation in progress.</h1>
+            <h1 class="mb-4">
+                AI {language.iso6393Code.toLowerCase() === 'eng' ? 'Aquiferization' : 'Translation'} in progress.
+            </h1>
             <p class="max-w-80 text-center">The page will refresh automatically when it is complete.</p>
         </div>
     {/if}

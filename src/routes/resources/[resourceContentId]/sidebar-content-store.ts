@@ -4,6 +4,7 @@ import { formatDate } from '$lib/utils/date-time';
 import { getFromApi } from '$lib/utils/http-service';
 import { sortByKey } from '$lib/utils/sorting';
 import { get, writable } from 'svelte/store';
+import { ResourceContentStatusDisplayEnum } from '$lib/types/base';
 
 type Store = {
     isLoading: boolean;
@@ -101,6 +102,11 @@ export function createSidebarContentStore(resourceContent: ResourceContent) {
                 return `${formatDate(snapshotOrVersion.created)}`;
             } else if (isFirstSnapshot) {
                 return `${formatDate(snapshotOrVersion.created)} English Source`;
+            } else if (
+                snapshotOrVersion?.status === ResourceContentStatusDisplayEnum.TranslationAwaitingAiDraft ||
+                snapshotOrVersion?.status === ResourceContentStatusDisplayEnum.AquiferizeAwaitingAiDraft
+            ) {
+                return `${formatDate(snapshotOrVersion.created)} AI Translation`;
             } else {
                 return `${formatDate(snapshotOrVersion.created)} ${snapshotOrVersion.assignedUserName ?? ''}
 ${snapshotOrVersion.status}`;

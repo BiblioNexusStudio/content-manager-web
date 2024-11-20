@@ -1,10 +1,20 @@
+# This workflow runs automatically on pushes to master.
+# It can also be run manually via workflow_dispatch. It uses check-if-branch-should-deploy
+# to prevent cluttering the deployments list with initial release-hotfix- branches.
+#
+# It builds for each environment individually and deploys in the same step:
+# - Deploy to Dev
+# - Deploy to QA
+# - Deploy to Production
+#
+# Note: Environment deployments require approval through GitHub environment protection rules
+
 name: Post-merge
 
 on:
     push:
         branches:
             - master
-            - 'release-patch-*'
             - 'release-hotfix-*'
     workflow_dispatch:
 
@@ -87,7 +97,7 @@ jobs:
                   linear-api-key: ${{ secrets.LINEAR_API_KEY }}
                   slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
                   override-output-url: ${{ vars.URL_PROD }}
-            - uses: BiblioNexusStudio/github-actions/delete-hotfix-or-patch-branch@master
+            - uses: BiblioNexusStudio/github-actions/delete-hotfix-branch@master
               with:
                   current_branch: ${{ github.ref_name }}
                   app_id: ${{ secrets.BIBLIONEXUS_BOT_APP_ID }}

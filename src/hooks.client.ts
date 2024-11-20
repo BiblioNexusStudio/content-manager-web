@@ -1,22 +1,10 @@
 ﻿import type { HandleClientError } from '@sveltejs/kit';
 import { log } from '$lib/logger';
-import config from '$lib/config';
 
-// From the SvelteKit docs:
-//   This client-side hook runs when an unexpected error is thrown while navigating.
-//   If an unexpected error is thrown during loading or the following render, this function will be called with the error and the event.
-export const handleError = (async ({ error }: { error: Error }) => {
+// This client-side hook runs when an error is thrown in a page.ts/layout.ts load function.
+// It only exists to log exceptions to App Insights and then pass along the error to `src/routes/+error.svelte`.
+export const handleError = (({ error }: { error: unknown }) => {
     log.exception(error);
 
-    if (config.PUBLIC_ENV === 'qa' || config.PUBLIC_ENV === 'dev' || config.PUBLIC_ENV === 'local') {
-        return {
-            message: error.message,
-        };
-    } else {
-        return {
-            message: 'Unexpected error',
-        };
-    }
-    // eslint-disable-next-line
-    // @ts-ignore
+    return error as Error;
 }) satisfies HandleClientError;
