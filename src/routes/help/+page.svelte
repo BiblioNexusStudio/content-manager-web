@@ -24,58 +24,64 @@
     {#await loadHelpContents()}
         <section class="mb-4">
             <h2 class="text-xl">Recent Releases</h2>
-            <ul class="flex flex-wrap gap-x-10 p-4">
-                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+            <ul class="flex flex-wrap gap-x-6 gap-y-6 p-4">
+                <div class="overflow flex h-32 w-40 flex-col items-center gap-y-2">
                     <span class="skeleton h-16 w-16"></span>
                     <div class="skeleton h-4 w-3/4"></div>
+                    <div class="skeleton h-4 w-14"></div>
                 </div>
-                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                <div class="overflow flex h-32 w-40 flex-col items-center gap-y-2">
                     <span class="skeleton h-16 w-16"></span>
                     <div class="skeleton h-4 w-3/4"></div>
+                    <div class="skeleton h-4 w-14"></div>
                 </div>
-                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                <div class="overflow flex h-32 w-40 flex-col items-center gap-y-2">
                     <span class="skeleton h-16 w-16"></span>
                     <div class="skeleton h-4 w-3/4"></div>
+                    <div class="skeleton h-4 w-14"></div>
                 </div>
-                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                <div class="overflow flex h-32 w-40 flex-col items-center gap-y-2">
                     <span class="skeleton h-16 w-16"></span>
                     <div class="skeleton h-4 w-3/4"></div>
+                    <div class="skeleton h-4 w-14"></div>
                 </div>
-                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                <div class="overflow flex h-32 w-40 flex-col items-center gap-y-2">
                     <span class="skeleton h-16 w-16"></span>
                     <div class="skeleton h-4 w-3/4"></div>
+                    <div class="skeleton h-4 w-14"></div>
                 </div>
             </ul>
         </section>
 
         <section class="mb-4">
             <h2 class="text-xl">How-To</h2>
-            <ul class="flex flex-wrap gap-x-10 p-4">
-                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
-                    <span class="skeleton h-16 w-16"></span>
-                    <div class="skeleton h-4 w-14"></div>
-                </div>
-                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+            <ul class="flex flex-wrap gap-x-6 gap-y-6 p-4">
+                <div class="overflow flex h-32 w-40 flex-col items-center gap-y-2">
                     <span class="skeleton h-16 w-16"></span>
                     <div class="skeleton h-4 w-3/4"></div>
                     <div class="skeleton h-4 w-14"></div>
                 </div>
-                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                <div class="overflow flex h-32 w-40 flex-col items-center gap-y-2">
                     <span class="skeleton h-16 w-16"></span>
                     <div class="skeleton h-4 w-3/4"></div>
                     <div class="skeleton h-4 w-14"></div>
                 </div>
-                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                <div class="overflow flex h-32 w-40 flex-col items-center gap-y-2">
                     <span class="skeleton h-16 w-16"></span>
                     <div class="skeleton h-4 w-3/4"></div>
                     <div class="skeleton h-4 w-14"></div>
                 </div>
-                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                <div class="overflow flex h-32 w-40 flex-col items-center gap-y-2">
                     <span class="skeleton h-16 w-16"></span>
                     <div class="skeleton h-4 w-3/4"></div>
                     <div class="skeleton h-4 w-14"></div>
                 </div>
-                <div class="overflow flex h-32 w-36 flex-col items-center gap-y-2">
+                <div class="overflow flex h-32 w-40 flex-col items-center gap-y-2">
+                    <span class="skeleton h-16 w-16"></span>
+                    <div class="skeleton h-4 w-3/4"></div>
+                    <div class="skeleton h-4 w-14"></div>
+                </div>
+                <div class="overflow flex h-32 w-40 flex-col items-center gap-y-2">
                     <span class="skeleton h-16 w-16"></span>
                     <div class="skeleton h-4 w-3/4"></div>
                     <div class="skeleton h-4 w-14"></div>
