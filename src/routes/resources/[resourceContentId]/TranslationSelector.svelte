@@ -6,14 +6,12 @@
     export let existingTranslations: ContentTranslation[];
     export let selectedLanguageId: number | null;
 
-    const languagesToShow = allLanguages.filter((x) => existingTranslations.every((et) => et.languageId !== x.id));
+    $: languagesToShow = allLanguages.filter((x) => existingTranslations.every((et) => et.languageId !== x.id));
 </script>
 
-{#if languagesToShow}
-    <select bind:value={selectedLanguageId} class="select select-bordered">
-        <option disabled value={null} selected>Select language</option>
-        {#each languagesToShow as language (language.id)}
-            <option value={language.id}>{language.englishDisplay}</option>
-        {/each}
-    </select>
-{/if}
+<select bind:value={selectedLanguageId} class="select select-bordered">
+    <option disabled value={null} selected>Select language</option>
+    {#each languagesToShow as language (language.id)}
+        <option value={language.id}>{language.englishDisplay}</option>
+    {/each}
+</select>
