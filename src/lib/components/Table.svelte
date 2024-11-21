@@ -24,7 +24,6 @@
     export let searchText: string | undefined = undefined;
     export let noItemsAfterSearchText = 'No results.';
     export let isLoading = false;
-    export let customTbody = false;
 
     export let currentPage: number | undefined = undefined;
     export let totalItems: number | undefined = undefined;
@@ -175,9 +174,7 @@
                     {/each}
                 </tr>
             </thead>
-            {#if customTbody}
-                <slot name="customTbody" rowItems={items} {columns} />
-            {:else}
+            <slot name="customTbody" rowItems={items}>
                 <tbody>
                     {#if isLoading}
                         <tr>
@@ -228,7 +225,7 @@
                         {/if}
                     {/if}
                 </tbody>
-            {/if}
+            </slot>
         </table>
     </div>
 

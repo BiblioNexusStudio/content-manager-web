@@ -37,9 +37,7 @@
     let currentDeleteTranslationPairId = 0;
     let errorMessage = '';
     let openErrorModal = false;
-
-    // eslint-disable-next-line
-    let table: Table<any> | null;
+    let table: Table<TranslationPair> | undefined;
 
     $: filteredTranslationPairs = filterTranslationPairs(search, translationPairs, $searchParams.currentLanguageId);
     $: currentLanguageDisplayname = getCurrentLanguageDisplayname($searchParams.currentLanguageId);
@@ -137,7 +135,10 @@
             newKey = '';
             newValue = '';
             isTransacting = false;
-            log.exception(e);
+
+            if (!containsErrorMessage) {
+                log.exception(e);
+            }
         } finally {
             newKey = '';
             newValue = '';
@@ -241,7 +242,6 @@
             noItemsText="No Translation Pairs Found"
             items={sortSettingsData(filteredTranslationPairs, $searchParams.sort)}
             searchable={true}
-            customTbody={true}
             bind:searchText={search}
             bind:searchParams={$searchParams}
         >
