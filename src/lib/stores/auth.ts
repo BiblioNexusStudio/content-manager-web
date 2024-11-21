@@ -73,6 +73,8 @@ export enum Permission {
     AiTranslate = 'ai:translate',
     SetStatusTranslationNotApplicable = 'set-status:translation-not-applicable',
     SetStatusCompleteNotApplicable = 'set-status:complete-not-applicable',
+    SetTranslationPair = 'set:translation-pair',
+    GetTranslationPair = 'get:translation-pair',
 }
 
 export async function initAuth0(url: URL) {

@@ -139,3 +139,11 @@ export interface Company {
     id: number;
     name: string;
 }
+
+export interface TranslationPair {
+    languageId: number;
+    translationPairId: number;
+    languageEnglishDisplay: string;
+    translationPairKey: string;
+    translationPairValue: string;
+}
