@@ -125,20 +125,11 @@
                 );
             }
         } catch (e) {
-            errorMessage = 'An error occurred while adding the translation pair.';
-            let containsErrorMessage = isApiErrorWithMessage(e, 'Key already exists for this language');
-
-            if (containsErrorMessage) {
-                errorMessage = 'Key already exists for this language.';
-            }
+            processError(e as Error);
             openErrorModal = true;
             newKey = '';
             newValue = '';
             isTransacting = false;
-
-            if (!containsErrorMessage) {
-                log.exception(e);
-            }
         } finally {
             newKey = '';
             newValue = '';
@@ -154,10 +145,9 @@
             isTransacting = true;
             await patchToApi(`/translation-pairs/${id}`, { key });
         } catch (e) {
-            errorMessage = 'An error occurred while updating the translation pair.';
+            processError(e as Error);
             openErrorModal = true;
             isTransacting = false;
-            log.exception(e);
         } finally {
             isTransacting = false;
         }
@@ -171,10 +161,9 @@
             isTransacting = true;
             await patchToApi(`/translation-pairs/${id}`, { value });
         } catch (e) {
-            errorMessage = 'An error occurred while updating the translation pair.';
+            processError(e as Error);
             openErrorModal = true;
             isTransacting = false;
-            log.exception(e);
         } finally {
             isTransacting = false;
         }
@@ -190,6 +179,27 @@
 
     const getCurrentLanguageDisplayname = (currentLanguageId: number) => {
         return translationPairsLanguages.find((tpl) => tpl.languageId === currentLanguageId)?.englishDisplay ?? '';
+    };
+
+    const processError = (e: Error) => {
+        errorMessage = 'An error occurred while processing the translation pair.';
+
+        let containsErrorMessage = isApiErrorWithMessage(e, 'Key already exists for this language');
+        let containsNotAllowedMessage = isApiErrorWithMessage(
+            e,
+            'Keys must be at least 3 characters long. Some keywords are not allowed.'
+        );
+
+        if (containsErrorMessage) {
+            errorMessage = 'Key already exists for this language.';
+        }
+
+        if (containsNotAllowedMessage) {
+            errorMessage = 'Keys must be at least 3 characters long. Some keywords are not allowed.';
+        }
+        if (!containsErrorMessage && !containsNotAllowedMessage) {
+            log.exception(e);
+        }
     };
 </script>
 
