@@ -8,6 +8,7 @@
     import MenuIcon from '$lib/icons/MenuIcon.svelte';
     import PieChartIcon from '$lib/icons/PieChartIcon.svelte';
     import ProjectsIcon from '$lib/icons/ProjectsIcon.svelte';
+    import GearIcon from '$lib/icons/GearIcon.svelte';
     import { navigating, page } from '$app/stores';
     import { _ as translate } from 'svelte-i18n';
     import { logout, profile, Permission, userCan, currentUser } from '$lib/stores/auth';
@@ -89,6 +90,12 @@
             icon: UsersIcon,
             href: '/users',
             hidden: !($userCan(Permission.CreateUser) || $userCan(Permission.CreateUserInCompany)),
+        },
+        {
+            name: $translate('sidebar.settings.value'),
+            icon: GearIcon,
+            href: '/settings',
+            hidden: !$userCan(Permission.GetTranslationPair),
         },
     ];
 
