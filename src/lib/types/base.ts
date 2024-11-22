@@ -117,7 +117,7 @@ export interface User extends BasicUser {
 export interface CurrentUser extends BasicUser {
     permissions: Permission[];
     roles: UserRole[];
-    company: { id: number };
+    company: { id: number; languageIds: number[] };
     languageId: number | null;
     canBeAssignedContent: boolean;
 }

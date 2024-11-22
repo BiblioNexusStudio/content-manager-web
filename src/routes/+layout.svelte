@@ -31,6 +31,7 @@
     $: log.pageView($page.route.id ?? '');
     $: syncToClarity($page.route.id ?? '', $currentUser);
     $: $parentResources = data.parentResources;
+    $: userHasCompanyLanguages = $currentUser !== null && $currentUser.company.languageIds.length > 0;
 
     let customTransitionPages = [/\/resources\/\d+/];
     let menuElement: HTMLUListElement;
@@ -60,7 +61,7 @@
         }
     }
 
-    let sidebarNavigation = [
+    $: sidebarNavigation = [
         {
             name: $translate('sidebar.dashboard.value'),
             icon: BarChartIcon,
@@ -95,7 +96,7 @@
             name: $translate('sidebar.settings.value'),
             icon: GearIcon,
             href: '/settings',
-            hidden: !$userCan(Permission.GetTranslationPair),
+            hidden: !$userCan(Permission.GetTranslationPair) || !userHasCompanyLanguages,
         },
     ];
 

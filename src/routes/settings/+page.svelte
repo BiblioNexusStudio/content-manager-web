@@ -203,7 +203,7 @@
     };
 </script>
 
-<div class="flex h-full flex-col overflow-x-hidden overflow-y-hidden px-4">
+<div class="flex h-full flex-col overflow-x-hidden overflow-y-hidden px-4 pb-4">
     <div class="mb-6 mt-4 flex">
         <h1 class="my-auto text-3xl">Settings</h1>
     </div>
