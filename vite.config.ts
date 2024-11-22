@@ -7,6 +7,9 @@ export default defineConfig({
         port: 5273,
         strictPort: false,
     },
+    build: {
+        sourcemap: process.env.INCLUDE_SOURCE_MAPS === 'true',
+    },
     test: {
         globals: true,
         environment: 'jsdom',

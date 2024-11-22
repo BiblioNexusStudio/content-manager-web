@@ -5,6 +5,7 @@
     "scripts": {
         "dev": "vite dev",
         "build": "vite build",
+        "build-with-source-maps": "INCLUDE_SOURCE_MAPS=true vite build",
         "preview": "vite preview",
         "test": "vitest",
         "lint:unused-translations": "run-script-os",
