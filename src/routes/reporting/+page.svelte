@@ -4,17 +4,16 @@
     import TranslatedResourcesBarChart from '$lib/charts/TranslatedResourcesBarChart.svelte';
     import { _ as translate } from 'svelte-i18n';
     import Select from '$lib/components/Select.svelte';
-    import { getAllReportingUiLinksAndApiPaths, reportingUiLinks } from '$lib/utils/reporting';
+    import { filterToOnlyDynamicReports, reportingUiLinks } from '$lib/utils/reporting';
     import ReportingLink from '$lib/components/reporting/ReportingLink.svelte';
     import ReportSummaryCard from '$lib/components/reporting/ReportSummaryCard.svelte';
     import MultipleSelect from '$lib/components/MultipleSelect.svelte';
-    import type { BasicDynamicReport } from '$lib/types/reporting';
 
     export let data: PageData;
 
     $: summary = data.summary;
     $: resourceItemsSummary = data.resourceItemsSummary;
-    $: reports = dynamicReports(data.reports);
+    $: reports = filterToOnlyDynamicReports(data.reports);
     $: languages = summary.languages.sort();
 
     const defaultSelection = 'default';
@@ -23,12 +22,6 @@
     let selectedResource: string = defaultSelection;
 
     let selectedChart = 'TotalResourcesAreaChart';
-
-    function dynamicReports(reports: BasicDynamicReport[]) {
-        return reports.filter(
-            ({ slug }) => !getAllReportingUiLinksAndApiPaths().some((reportLink) => reportLink.includes(slug))
-        );
-    }
 </script>
 
 <svelte:head>
