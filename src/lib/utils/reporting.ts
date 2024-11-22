@@ -1,4 +1,4 @@
-import type { DynamicReport } from '$lib/types/reporting';
+import type { BasicDynamicReport, DynamicReport } from '$lib/types/reporting';
 
 export const reportApiPaths = {
     activeProjectsByCompany: '/reports/dynamic/active-projects-by-company',
@@ -53,11 +53,20 @@ export const reportingUiLinks = {
     ],
 };
 
-export function getAllReportingUiLinksAndApiPaths() {
-    return Object.values(reportingUiLinks)
+/**
+ * Filters API reports to only include dynamic reports by excluding those that
+ * are either linked directly via UI report cards or accessed as API endpoints in custom report views.
+ *
+ * @param reports - Array of basic dynamic reports from the API
+ * @returns Filtered array containing only dynamic reports that aren't statically referenced
+ */
+export function filterToOnlyDynamicReports(reports: BasicDynamicReport[]) {
+    const allReportingUiLinksAndApiPaths = Object.values(reportingUiLinks)
         .flatMap((category) => category)
         .map((r) => r.reportLink)
         .concat(Object.values(reportApiPaths));
+
+    return reports.filter((report) => !allReportingUiLinksAndApiPaths.some((path) => path.includes(report.slug)));
 }
 
 export function convertPascalCaseToHumanReadable(columnName: string): string {
