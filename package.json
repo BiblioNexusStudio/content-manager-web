@@ -20,7 +20,7 @@
     "dependencies": {
         "@auth0/auth0-spa-js": "^2.1.2",
         "@microsoft/applicationinsights-web": "^3.0.2",
-        "@sveltejs/kit": "^1.29.1",
+        "@sveltejs/kit": "^2.8.3",
         "@tailwindcss/typography": "^0.5.15",
         "@types/uuid": "^9.0.8",
         "aquifer-tiptap": "https://github.com/BiblioNexusStudio/aquifer-tiptap#1.0.11",
