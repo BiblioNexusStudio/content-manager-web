@@ -18,7 +18,7 @@
     const searchParams = searchParameters(_searchParamsConfig, { runLoadAgainWhenParamsChange: true });
 
     $: resourceContentDataPromise =
-        data.resourceContentData === null ? Promise.resolve(null) : data.resourceContentData.promise;
+        data.resourceContentData === null ? Promise.resolve(null) : data.resourceContentData;
 
     $: bibleBooks = data.bibleBooks;
 

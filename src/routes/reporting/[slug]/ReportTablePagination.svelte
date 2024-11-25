@@ -1,7 +1,7 @@
 <script lang="ts">
     import chevronLeft from 'svelte-awesome/icons/chevronLeft';
     import chevronRight from 'svelte-awesome/icons/chevronRight';
-    import Icon from 'svelte-awesome/components/Icon.svelte';
+    import { Icon } from 'svelte-awesome';
 
     export let perPage: number;
     export let paginationStart: number;

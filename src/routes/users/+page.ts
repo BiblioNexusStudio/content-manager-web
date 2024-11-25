@@ -19,6 +19,6 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             roles: [UserRole.Editor, UserRole.Manager, UserRole.ReportViewer, UserRole.Reviewer],
         };
     } else {
-        throw redirect(302, '/');
+        redirect(302, '/');
     }
 };

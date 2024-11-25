@@ -1,4 +1,4 @@
-﻿import type { column } from '$lib/types/table';
+import type { column } from '$lib/types/table';
 import { SortName } from './dashboard-table-sorters';
 import type { ResourceAssignedToSelf, ResourceAssignedToSelfHistory } from './+page';
 

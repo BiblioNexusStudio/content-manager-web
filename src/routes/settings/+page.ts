@@ -14,6 +14,6 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             translationPairs,
         };
     } else {
-        throw redirect(302, '/');
+        redirect(302, '/');
     }
 };

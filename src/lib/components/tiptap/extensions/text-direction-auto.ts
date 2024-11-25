@@ -1,4 +1,4 @@
-﻿// ported from https://github.com/amirhhashemi/tiptap-text-direction
+// ported from https://github.com/amirhhashemi/tiptap-text-direction
 
 // This plugin will detect the correct LTR/RTL direction of each node and compare to the defaultDirection specified.
 // If it's different than the default, the `dir` HTML attribute will be set.

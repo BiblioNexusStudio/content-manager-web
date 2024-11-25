@@ -1,4 +1,4 @@
-﻿import { fetchBiblePassages } from '$lib/utils/bible-passage-fetcher';
+import { fetchBiblePassages } from '$lib/utils/bible-passage-fetcher';
 import { generateVerseFromReference } from '$lib/utils/reference';
 import type { BibleBookTexts } from '$lib/utils/bible-book-fetcher';
 import { log } from '$lib/logger';

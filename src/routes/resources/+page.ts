@@ -24,27 +24,22 @@ export const load: PageLoad = async ({ parent, url, fetch }) => {
     await parent();
 
     if (!get(userCan)(Permission.ReadResourceLists)) {
-        throw redirect(302, '/');
+        redirect(302, '/');
     }
 
     return {
-        // by returning a nested object here, SvelteKit won't await the promise before rendering the
-        // +page.svelte and instead we can await the promise on the page to show a loader inside the table
-        // TODO: when upgrading to SvelteKit 2 the nested part isn't necessary, just return the unresolved promise
-        resourceContentData: {
-            promise: getResourceContents(
-                fetch,
-                searchParams.page,
-                get(resourcesPerPage),
-                searchParams.languageId,
-                searchParams.resourceId,
-                searchParams.bookCode,
-                searchParams.startChapter,
-                searchParams.endChapter,
-                searchParams.isPublished,
-                searchParams.query
-            ),
-        },
+        resourceContentData: getResourceContents(
+            fetch,
+            searchParams.page,
+            get(resourcesPerPage),
+            searchParams.languageId,
+            searchParams.resourceId,
+            searchParams.bookCode,
+            searchParams.startChapter,
+            searchParams.endChapter,
+            searchParams.isPublished,
+            searchParams.query
+        ),
     };
 };
 

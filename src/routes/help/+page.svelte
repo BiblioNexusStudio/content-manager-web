@@ -9,7 +9,7 @@
     let helpDocuments: HelpDocumentResponse | null = null;
 
     const loadHelpContents = async () => {
-        helpDocuments = await data.helpContents.promise;
+        helpDocuments = await data.helpContents;
     };
 </script>
 

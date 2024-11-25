@@ -1,4 +1,4 @@
-﻿import type { CommentStores } from '$lib/stores/comments';
+import type { CommentStores } from '$lib/stores/comments';
 import TextDirectionAuto from './extensions/text-direction-auto';
 import { filterBoolean } from '$lib/utils/array';
 import type { ScriptDirection } from '$lib/types/base';

@@ -196,6 +196,10 @@ export function searchParameters<T extends object>(
                     ) {
                         await goto(queryAndHash, GOTO_OPTIONS);
                     } else {
+                        // TODO: fix this, SvelteKit gives a warning about it:
+                        //   Avoid using `history.pushState(...)` and `history.replaceState(...)` as these will conflict
+                        //   with SvelteKit's router. Use the `pushState` and `replaceState` imports from
+                        //   `$app/navigation` instead.
                         history.replaceState(history.state, '', queryAndHash);
                         _set(mixSearchAndOptions(new URLSearchParams(queryAndHash), options));
                     }
