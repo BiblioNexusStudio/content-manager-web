@@ -12,6 +12,7 @@
     import Select from '$lib/components/Select.svelte';
     import TrashIcon from '$lib/icons/TrashIcon.svelte';
     import Modal from '$lib/components/Modal.svelte';
+    import { currentUser } from '$lib/stores/auth';
 
     interface TranslationPairsLanguage {
         languageId: number;
@@ -43,7 +44,7 @@
     $: currentLanguageDisplayname = getCurrentLanguageDisplayname($searchParams.currentLanguageId);
     $: settingsColumns = buildSettingsColumns(currentLanguageDisplayname);
     $: translationPairs = data.translationPairs;
-    $: getTranslationPairsLanguages(translationPairs);
+    $: getTranslationPairsLanguages();
 
     const sortSettingsData = createSettingsTableSorter<TranslationPair>();
 
@@ -65,12 +66,14 @@
         { runLoadAgainWhenParamsChange: false }
     );
 
-    const getTranslationPairsLanguages = (translationPairs: TranslationPair[]) => {
-        translationPairsLanguages = Array.from(
-            new Set(translationPairs.map((translationPair) => translationPair.languageId))
-        ).map((tpl) => ({
-            languageId: tpl,
-            englishDisplay: data.languages.find((l) => l.id === tpl)?.englishDisplay ?? '',
+    const getTranslationPairsLanguages = () => {
+        if (!$currentUser) {
+            return;
+        }
+
+        translationPairsLanguages = $currentUser.company.languageIds.map((languageId) => ({
+            languageId: languageId,
+            englishDisplay: data.languages.find((l) => l.id === languageId)?.englishDisplay ?? '',
         }));
 
         if ($searchParams.currentLanguageId === 0) {
