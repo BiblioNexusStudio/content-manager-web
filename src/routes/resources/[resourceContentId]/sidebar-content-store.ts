@@ -98,8 +98,17 @@ export function createSidebarContentStore(resourceContent: ResourceContent) {
             }`;
         } else {
             const isEnglish = resourceContent.language.iso6393Code.toLowerCase() === 'eng';
+
+            const isTranslatedFirstSnapshot =
+                isFirstSnapshot &&
+                snapshotOrVersion?.status === ResourceContentStatusDisplayEnum.AquiferizeEditorReview &&
+                !isEnglish;
+
             if (isFirstSnapshot && isEnglish) {
                 return `${formatDate(snapshotOrVersion.created)}`;
+            } else if (isTranslatedFirstSnapshot) {
+                return `${formatDate(snapshotOrVersion.created)} ${snapshotOrVersion.assignedUserName ?? ''}
+                    ${snapshotOrVersion.status}`;
             } else if (isFirstSnapshot) {
                 return `${formatDate(snapshotOrVersion.created)} English Source`;
             } else if (
