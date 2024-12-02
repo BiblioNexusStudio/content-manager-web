@@ -306,7 +306,13 @@
         <div class="mb-2 text-lg">
             {currentLanguageDisplayname}
         </div>
-        <input type="text" class="input input-bordered mb-4" placeholder="Value" bind:value={newValue} />
+        <input
+            type="text"
+            class="input input-bordered mb-4"
+            placeholder="Value"
+            bind:value={newValue}
+            on:keyup={(e) => (e.code === 'Enter' || e.code === 'NumpadEnter') && addTranslationPair()}
+        />
     </div>
 </Modal>
 <Modal
