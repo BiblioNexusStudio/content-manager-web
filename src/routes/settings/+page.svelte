@@ -141,13 +141,14 @@
     };
 
     const patchTranslationPairKey = async (event: Event, id: number) => {
-        try {
-            const target = event.target as HTMLInputElement;
-            const key = target.value;
+        const target = event.target as HTMLInputElement;
+        const key = target.value;
 
+        try {
             isTransacting = true;
             await patchToApi(`/translation-pairs/${id}`, { key });
         } catch (e) {
+            target.value = translationPairs.find((tp) => tp.translationPairId === id)?.translationPairKey ?? '';
             processError(e as Error);
             openErrorModal = true;
             isTransacting = false;
@@ -157,13 +158,14 @@
     };
 
     const patchTranslationPairValue = async (event: Event, id: number) => {
-        try {
-            const target = event.target as HTMLInputElement;
-            const value = target.value;
+        const target = event.target as HTMLInputElement;
+        const value = target.value;
 
+        try {
             isTransacting = true;
             await patchToApi(`/translation-pairs/${id}`, { value });
         } catch (e) {
+            target.value = translationPairs.find((tp) => tp.translationPairId === id)?.translationPairValue ?? '';
             processError(e as Error);
             openErrorModal = true;
             isTransacting = false;
