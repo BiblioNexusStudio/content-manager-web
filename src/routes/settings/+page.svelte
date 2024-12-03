@@ -210,6 +210,45 @@
             log.exception(e);
         }
     };
+
+    const handleKeyUp = (event: KeyboardEvent, id: number, type: 'key' | 'value') => {
+        const target = event.target as HTMLInputElement;
+
+        if (event.key === 'Enter' || event.key === 'NumpadEnter') {
+            debouncedHandleKeyUp.cancel();
+
+            if (type === 'key') {
+                patchTranslationPairKey(event, id);
+            } else {
+                patchTranslationPairValue(event, id);
+            }
+
+            target.blur();
+            return;
+        }
+
+        if (event.key === 'Escape') {
+            debouncedHandleKeyUp.cancel();
+
+            if (target instanceof HTMLInputElement) {
+                const pair = translationPairs.find((tp) => tp.translationPairId === id);
+                if (pair) target.value = type === 'key' ? pair.translationPairKey : pair.translationPairValue;
+            }
+
+            target.blur();
+            return;
+        }
+
+        debouncedHandleKeyUp(event, id, type);
+    };
+
+    const debouncedHandleKeyUp = debounce((event: KeyboardEvent, id: number, type: 'key' | 'value') => {
+        if (type === 'key') {
+            return patchTranslationPairKey(event, id);
+        }
+
+        return patchTranslationPairValue(event, id);
+    }, 1000) as { (event: KeyboardEvent, id: number, type: 'key' | 'value'): Promise<void>; cancel: () => void };
 </script>
 
 <div class="flex h-full flex-col overflow-x-hidden overflow-y-hidden px-4 pb-4">
@@ -266,16 +305,13 @@
         >
             <tbody slot="customTbody" let:rowItems>
                 {#each rowItems as translationPair (translationPair.translationPairId)}
-                    {@const debouncePatchPerKey = debounce(patchTranslationPairKey, 500)}
-                    {@const debouncePatchPerValue = debounce(patchTranslationPairValue, 500)}
-
                     <tr>
                         <td>
                             <input
                                 type="text"
                                 value={translationPair.translationPairKey}
                                 class="h-full grow p-2"
-                                on:keyup={(event) => debouncePatchPerKey(event, translationPair.translationPairId)}
+                                on:keyup={(event) => handleKeyUp(event, translationPair.translationPairId, 'key')}
                             />
                         </td>
                         <td>
@@ -283,7 +319,7 @@
                                 type="text"
                                 value={translationPair.translationPairValue}
                                 class="h-full grow p-2"
-                                on:keyup={(event) => debouncePatchPerValue(event, translationPair.translationPairId)}
+                                on:keyup={(event) => handleKeyUp(event, translationPair.translationPairId, 'value')}
                             />
                         </td>
                         <td
