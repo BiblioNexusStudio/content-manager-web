@@ -153,6 +153,8 @@
             openErrorModal = true;
             isTransacting = false;
         } finally {
+            const pair = translationPairs.find((tp) => tp.translationPairId === id);
+            if (pair) pair.translationPairKey = key;
             isTransacting = false;
         }
     };
@@ -170,6 +172,8 @@
             openErrorModal = true;
             isTransacting = false;
         } finally {
+            const pair = translationPairs.find((tp) => tp.translationPairId === id);
+            if (pair) pair.translationPairValue = value;
             isTransacting = false;
         }
     };
