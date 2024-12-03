@@ -12,6 +12,7 @@
     import Select from '$lib/components/Select.svelte';
     import TrashIcon from '$lib/icons/TrashIcon.svelte';
     import Modal from '$lib/components/Modal.svelte';
+    import { currentUser } from '$lib/stores/auth';
 
     interface TranslationPairsLanguage {
         languageId: number;
@@ -43,7 +44,7 @@
     $: currentLanguageDisplayname = getCurrentLanguageDisplayname($searchParams.currentLanguageId);
     $: settingsColumns = buildSettingsColumns(currentLanguageDisplayname);
     $: translationPairs = data.translationPairs;
-    $: getTranslationPairsLanguages(translationPairs);
+    $: getTranslationPairsLanguages();
 
     const sortSettingsData = createSettingsTableSorter<TranslationPair>();
 
@@ -65,12 +66,14 @@
         { runLoadAgainWhenParamsChange: false }
     );
 
-    const getTranslationPairsLanguages = (translationPairs: TranslationPair[]) => {
-        translationPairsLanguages = Array.from(
-            new Set(translationPairs.map((translationPair) => translationPair.languageId))
-        ).map((tpl) => ({
-            languageId: tpl,
-            englishDisplay: data.languages.find((l) => l.id === tpl)?.englishDisplay ?? '',
+    const getTranslationPairsLanguages = () => {
+        if (!$currentUser) {
+            return;
+        }
+
+        translationPairsLanguages = $currentUser.company.languageIds.map((languageId) => ({
+            languageId: languageId,
+            englishDisplay: data.languages.find((l) => l.id === languageId)?.englishDisplay ?? '',
         }));
 
         if ($searchParams.currentLanguageId === 0) {
@@ -138,33 +141,39 @@
     };
 
     const patchTranslationPairKey = async (event: Event, id: number) => {
-        try {
-            const target = event.target as HTMLInputElement;
-            const key = target.value;
+        const target = event.target as HTMLInputElement;
+        const key = target.value;
 
+        try {
             isTransacting = true;
             await patchToApi(`/translation-pairs/${id}`, { key });
         } catch (e) {
+            target.value = translationPairs.find((tp) => tp.translationPairId === id)?.translationPairKey ?? '';
             processError(e as Error);
             openErrorModal = true;
             isTransacting = false;
         } finally {
+            const pair = translationPairs.find((tp) => tp.translationPairId === id);
+            if (pair) pair.translationPairKey = key;
             isTransacting = false;
         }
     };
 
     const patchTranslationPairValue = async (event: Event, id: number) => {
-        try {
-            const target = event.target as HTMLInputElement;
-            const value = target.value;
+        const target = event.target as HTMLInputElement;
+        const value = target.value;
 
+        try {
             isTransacting = true;
             await patchToApi(`/translation-pairs/${id}`, { value });
         } catch (e) {
+            target.value = translationPairs.find((tp) => tp.translationPairId === id)?.translationPairValue ?? '';
             processError(e as Error);
             openErrorModal = true;
             isTransacting = false;
         } finally {
+            const pair = translationPairs.find((tp) => tp.translationPairId === id);
+            if (pair) pair.translationPairValue = value;
             isTransacting = false;
         }
     };
@@ -201,6 +210,45 @@
             log.exception(e);
         }
     };
+
+    const handleKeyUp = (event: KeyboardEvent, id: number, type: 'key' | 'value') => {
+        const target = event.target as HTMLInputElement;
+
+        if (event.key === 'Enter' || event.key === 'NumpadEnter') {
+            debouncedHandleKeyUp.cancel();
+
+            if (type === 'key') {
+                patchTranslationPairKey(event, id);
+            } else {
+                patchTranslationPairValue(event, id);
+            }
+
+            target.blur();
+            return;
+        }
+
+        if (event.key === 'Escape') {
+            debouncedHandleKeyUp.cancel();
+
+            if (target instanceof HTMLInputElement) {
+                const pair = translationPairs.find((tp) => tp.translationPairId === id);
+                if (pair) target.value = type === 'key' ? pair.translationPairKey : pair.translationPairValue;
+            }
+
+            target.blur();
+            return;
+        }
+
+        debouncedHandleKeyUp(event, id, type);
+    };
+
+    const debouncedHandleKeyUp = debounce((event: KeyboardEvent, id: number, type: 'key' | 'value') => {
+        if (type === 'key') {
+            return patchTranslationPairKey(event, id);
+        }
+
+        return patchTranslationPairValue(event, id);
+    }, 1000) as { (event: KeyboardEvent, id: number, type: 'key' | 'value'): Promise<void>; cancel: () => void };
 </script>
 
 <div class="flex h-full flex-col overflow-x-hidden overflow-y-hidden px-4 pb-4">
@@ -257,16 +305,13 @@
         >
             <tbody slot="customTbody" let:rowItems>
                 {#each rowItems as translationPair (translationPair.translationPairId)}
-                    {@const debouncePatchPerKey = debounce(patchTranslationPairKey, 1500)}
-                    {@const debouncePatchPerValue = debounce(patchTranslationPairValue, 1500)}
-
                     <tr>
                         <td>
                             <input
                                 type="text"
                                 value={translationPair.translationPairKey}
                                 class="h-full grow p-2"
-                                on:keyup={(event) => debouncePatchPerKey(event, translationPair.translationPairId)}
+                                on:keyup={(event) => handleKeyUp(event, translationPair.translationPairId, 'key')}
                             />
                         </td>
                         <td>
@@ -274,7 +319,7 @@
                                 type="text"
                                 value={translationPair.translationPairValue}
                                 class="h-full grow p-2"
-                                on:keyup={(event) => debouncePatchPerValue(event, translationPair.translationPairId)}
+                                on:keyup={(event) => handleKeyUp(event, translationPair.translationPairId, 'value')}
                             />
                         </td>
                         <td
@@ -303,7 +348,13 @@
         <div class="mb-2 text-lg">
             {currentLanguageDisplayname}
         </div>
-        <input type="text" class="input input-bordered mb-4" placeholder="Value" bind:value={newValue} />
+        <input
+            type="text"
+            class="input input-bordered mb-4"
+            placeholder="Value"
+            bind:value={newValue}
+            on:keyup={(e) => (e.code === 'Enter' || e.code === 'NumpadEnter') && addTranslationPair()}
+        />
     </div>
 </Modal>
 <Modal
