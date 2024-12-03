@@ -266,8 +266,8 @@
         >
             <tbody slot="customTbody" let:rowItems>
                 {#each rowItems as translationPair (translationPair.translationPairId)}
-                    {@const debouncePatchPerKey = debounce(patchTranslationPairKey, 1500)}
-                    {@const debouncePatchPerValue = debounce(patchTranslationPairValue, 1500)}
+                    {@const debouncePatchPerKey = debounce(patchTranslationPairKey, 500)}
+                    {@const debouncePatchPerValue = debounce(patchTranslationPairValue, 500)}
 
                     <tr>
                         <td>
