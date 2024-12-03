@@ -104,11 +104,10 @@ export function createSidebarContentStore(resourceContent: ResourceContent) {
                 snapshotOrVersion?.status === ResourceContentStatusDisplayEnum.AquiferizeEditorReview &&
                 !isEnglish;
 
-            if (isFirstSnapshot && isEnglish) {
-                return `${formatDate(snapshotOrVersion.created)}`;
-            } else if (isTranslatedFirstSnapshot) {
-                return `${formatDate(snapshotOrVersion.created)} ${snapshotOrVersion.assignedUserName ?? ''}
-                    ${snapshotOrVersion.status}`;
+            const isEnglishFirstSnapshot = isFirstSnapshot && isEnglish;
+
+            if (isEnglishFirstSnapshot || isTranslatedFirstSnapshot) {
+                return `${formatDate(snapshotOrVersion.created)} - Source`;
             } else if (isFirstSnapshot) {
                 return `${formatDate(snapshotOrVersion.created)} English Source`;
             } else if (
