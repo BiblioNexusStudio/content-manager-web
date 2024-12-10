@@ -1,4 +1,4 @@
-﻿import { getFromApi } from '$lib/utils/http-service';
+import { getFromApi } from '$lib/utils/http-service';
 import { log } from '$lib/logger';
 
 export interface BasicBible {

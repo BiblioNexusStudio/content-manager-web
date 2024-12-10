@@ -48,6 +48,6 @@ export const load: PageLoad = async ({ params, url, parent, fetch }) => {
             companies,
         };
     } else {
-        throw redirect(302, '/');
+        redirect(302, '/');
     }
 };

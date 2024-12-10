@@ -1,4 +1,4 @@
-﻿import { v4 as uuid } from 'uuid';
+import { v4 as uuid } from 'uuid';
 import type { ContentNode, VerseReference } from '../types';
 import { BibleReference } from 'aquifer-tiptap';
 

@@ -37,7 +37,7 @@
     $: chapters = parseNumbersListFromString(
         chaptersString,
         1,
-        bibleBooks.find((b) => b.code === bookCode)?.totalChapters ?? 0
+        bibleBooks?.find((b) => b.code === bookCode)?.totalChapters ?? 0
     );
 
     $: bookCode && (chaptersString = ''); // reset chapters if book code changes
@@ -123,7 +123,7 @@
                 class="select select-bordered"
                 options={[
                     { value: null, label: 'Select Book' },
-                    ...bibleBooks.map((b) => ({ value: b.code, label: b.localizedName })),
+                    ...(bibleBooks?.map((b) => ({ value: b.code, label: b.localizedName })) ?? []),
                 ]}
                 bind:value={bookCode}
             />

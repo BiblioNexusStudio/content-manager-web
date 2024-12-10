@@ -21,6 +21,6 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             bibleBooks,
         };
     } else {
-        throw redirect(302, '/');
+        redirect(302, '/');
     }
 };

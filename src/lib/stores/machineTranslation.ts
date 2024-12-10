@@ -1,4 +1,4 @@
-﻿import { type Writable, writable } from 'svelte/store';
+import { type Writable, writable } from 'svelte/store';
 import type { MachineTranslation } from '$lib/types/resources';
 
 export type MachineTranslationStore = ReturnType<typeof createMachineTranslationStore>;
