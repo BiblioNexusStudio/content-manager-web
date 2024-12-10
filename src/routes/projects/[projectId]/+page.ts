@@ -17,6 +17,6 @@ export const load: PageLoad = async ({ params, parent, fetch }) => {
         const projectResponse = await getFromApi<ProjectResponse>(`/projects/${params.projectId}`, fetch);
         return { projectResponse, canOnlyViewProjectsInCompany };
     } else {
-        throw redirect(302, '/');
+        redirect(302, '/');
     }
 };

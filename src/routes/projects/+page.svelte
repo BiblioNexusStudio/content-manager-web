@@ -10,9 +10,9 @@
     let currentTab = ProjectStatusTab.active;
 
     $: languages = data.languages;
-    $: activeProjects = data.projects.filter((p) => p.isStarted && !p.isCompleted);
-    $: recentlyFinishedProjects = data.projects.filter((p) => p.isCompleted);
-    $: notStartedProjects = data.projects.filter((p) => !p.isStarted);
+    $: activeProjects = data?.projects?.filter((p) => p.isStarted && !p.isCompleted);
+    $: recentlyFinishedProjects = data?.projects?.filter((p) => p.isCompleted);
+    $: notStartedProjects = data?.projects?.filter((p) => !p.isStarted);
 </script>
 
 <svelte:head>
@@ -25,20 +25,20 @@
     </div>
 
     <ProjectTableTabs
-        activeCount={activeProjects.length}
-        recentlyFinishedCount={recentlyFinishedProjects.length}
-        notStartedCount={notStartedProjects.length}
+        activeCount={activeProjects?.length}
+        recentlyFinishedCount={recentlyFinishedProjects?.length}
+        notStartedCount={notStartedProjects?.length}
         bind:currentTab
     />
 
-    <ProjectReportingTab isShowing={currentTab === ProjectStatusTab.reporting} companies={data.companies} />
+    <ProjectReportingTab isShowing={currentTab === ProjectStatusTab.reporting} companies={data?.companies ?? []} />
 
     <ProjectTable
         isShowing={currentTab !== ProjectStatusTab.reporting}
-        {activeProjects}
-        {recentlyFinishedProjects}
-        {notStartedProjects}
-        companies={data.companies}
+        activeProjects={activeProjects ?? []}
+        recentlyFinishedProjects={recentlyFinishedProjects ?? []}
+        notStartedProjects={notStartedProjects ?? []}
+        companies={data?.companies ?? []}
         {currentTab}
         {languages}
     />

@@ -1,4 +1,4 @@
-﻿import { createListSorter } from '$lib/utils/sorting';
+import { createListSorter } from '$lib/utils/sorting';
 import type {
     Project,
     ResourceAssignedToSelf,

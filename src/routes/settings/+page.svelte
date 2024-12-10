@@ -43,7 +43,7 @@
     $: filteredTranslationPairs = filterTranslationPairs(search, translationPairs, $searchParams.currentLanguageId);
     $: currentLanguageDisplayname = getCurrentLanguageDisplayname($searchParams.currentLanguageId);
     $: settingsColumns = buildSettingsColumns(currentLanguageDisplayname);
-    $: translationPairs = data.translationPairs;
+    $: translationPairs = data?.translationPairs ?? [];
     $: getTranslationPairsLanguages();
 
     const sortSettingsData = createSettingsTableSorter<TranslationPair>();

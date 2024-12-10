@@ -16,6 +16,6 @@ export const load: PageLoad = async ({ parent, fetch }) => {
         ]);
         return { summary, reports, resourceItemsSummary };
     } else {
-        throw redirect(302, '/');
+        redirect(302, '/');
     }
 };

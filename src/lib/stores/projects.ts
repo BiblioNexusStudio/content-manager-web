@@ -3,4 +3,4 @@ import type { User } from '$lib/types/base';
 import type { ProjectResponse } from '$lib/types/projects';
 
 export const users: Writable<User[] | null> = writable(null);
-export const project: Writable<ProjectResponse | null> = writable(null);
+export const project: Writable<ProjectResponse | undefined> = writable(undefined);

@@ -1,4 +1,4 @@
-﻿import type { BasicUser } from '$lib/types/base';
+import type { BasicUser } from '$lib/types/base';
 import type { Editor } from 'aquifer-tiptap';
 
 export interface CommentThreadsResponse {

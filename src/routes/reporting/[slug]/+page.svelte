@@ -26,7 +26,19 @@
     let parentResourceId = $searchParams.parentResourceId;
     let companyId = $searchParams.companyId;
 
-    $: reportData = data.reportData;
+    $: reportData = data?.reportData ?? {
+        name: '',
+        description: '',
+        type: DynamicReportType.Table,
+        acceptsDateRange: false,
+        acceptsLanguage: false,
+        acceptsParentResource: false,
+        acceptsCompany: false,
+        startDate: '',
+        endDate: '',
+        columns: [],
+        results: [],
+    };
 
     function refetch() {
         if (
@@ -110,9 +122,9 @@
                 class="select select-bordered min-w-[10rem] flex-shrink"
                 options={[
                     { value: 0, label: 'Select Company' },
-                    ...data.companies
-                        .filter((c) => !companiesToIgnore.includes(c.name))
-                        .map((c) => ({ value: c.id, label: c.name })),
+                    ...(data?.companies
+                        ?.filter((c) => !companiesToIgnore.includes(c.name))
+                        ?.map((c) => ({ value: c.id, label: c.name })) ?? []),
                 ]}
             />
         {/if}
