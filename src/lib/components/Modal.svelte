@@ -67,14 +67,14 @@
         {#if primaryButtonText}
             <div class="flex w-full flex-row space-x-2 pt-4">
                 <slot name="additional-buttons" />
-                <div class="flex-grow" />
+                <div class="flex-grow"></div>
                 <button
                     class="btn btn-primary"
                     on:click={handlePrimaryClick}
                     disabled={primaryButtonDisabled || isTransacting}
                 >
                     {#if isTransacting}
-                        <span class="loading loading-spinner" />
+                        <span class="loading loading-spinner"></span>
                     {:else}
                         {primaryButtonText}
                     {/if}

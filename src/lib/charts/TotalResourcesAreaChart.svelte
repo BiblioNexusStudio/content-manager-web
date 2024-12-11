@@ -151,5 +151,5 @@
 
 <div class="flex flex-col">
     <div class="mb-6 text-lg font-bold">{$translate('page.dashboard.charts.totalResources.value')}</div>
-    <canvas class="!h-full max-h-[24.125rem] !w-full" id="totalResourcesAreaChart" />
+    <canvas class="!h-full max-h-[24.125rem] !w-full" id="totalResourcesAreaChart"></canvas>
 </div>

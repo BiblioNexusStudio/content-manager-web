@@ -97,7 +97,7 @@
 </script>
 
 {#if !dataPointsAreNullOrEmpty(dataPoints)}
-    <canvas id="bar-chart" />
+    <canvas id="bar-chart"></canvas>
 {:else}
     <div class="flex h-full w-full flex-row items-center rounded-md border">
         <p class="w-full text-center">No data available.</p>

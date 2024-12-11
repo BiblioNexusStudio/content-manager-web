@@ -233,7 +233,7 @@
                     >
                 </div>
             {/if}
-            <div class="divider mx-2 my-0" />
+            <div class="divider mx-2 my-0"></div>
         {:else if !isCommenting && !activeThread.resolved}
             <div class="flex justify-end">
                 {#if comment.user.id === $currentUser?.id}
@@ -247,7 +247,7 @@
                 >
             </div>
         {:else}
-            <div class="h-3" />
+            <div class="h-3"></div>
         {/if}
     {/each}
     {#if isCommenting && !editingCommentId}
@@ -256,7 +256,7 @@
                 {#if isNewThread}
                     <div class="my-2">Create comment</div>
                 {:else}
-                    <div class="divider mx-2 my-1" />
+                    <div class="divider mx-2 my-1"></div>
                 {/if}
                 <CommentTextArea disabled={isSendingComment} bind:value={currentCommentValue}></CommentTextArea>
             </div>

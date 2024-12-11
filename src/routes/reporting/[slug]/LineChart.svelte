@@ -10,8 +10,8 @@
             typeof report.results[0]?.[0] === 'number'
                 ? ('number' as const)
                 : typeof report.results[0]?.[0] === 'string' && !isNaN(Date.parse(report.results[0]?.[0]))
-                ? ('date' as const)
-                : ('string' as const);
+                  ? ('date' as const)
+                  : ('string' as const);
 
         const xLabels = report.results.map(([x, _y]) => {
             if (xType === 'date') {

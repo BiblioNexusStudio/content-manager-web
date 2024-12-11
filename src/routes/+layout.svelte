@@ -180,7 +180,7 @@
                     {/each}
 
                     <li class="mx-2">
-                        <div class="divider before:bg-neutral-100 after:bg-neutral-100" />
+                        <div class="divider before:bg-neutral-100 after:bg-neutral-100"></div>
                         <div class="flex place-items-center justify-between">
                             <div class="col-span-3 text-sm font-bold">
                                 {userFullName}

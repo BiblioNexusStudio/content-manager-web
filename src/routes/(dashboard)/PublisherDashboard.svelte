@@ -200,8 +200,8 @@
             tab === Tab.myWork
                 ? projectNamesForContents(assignedContents)
                 : tab === Tab.reviewPending
-                ? projectNamesForContents(reviewPendingContents)
-                : [];
+                  ? projectNamesForContents(reviewPendingContents)
+                  : [];
         if (
             $searchParams.project &&
             ((tab !== Tab.myWork && tab !== Tab.reviewPending) || !projectNames.includes($searchParams.project))

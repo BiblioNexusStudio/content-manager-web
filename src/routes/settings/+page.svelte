@@ -289,7 +289,7 @@
                 Add
             </button>
             {#if isTransacting}
-                <div class="flex grow justify-end"><div class="loading loading-spinner" /></div>
+                <div class="flex grow justify-end"><div class="loading loading-spinner"></div></div>
             {/if}
         </div>
         <Table

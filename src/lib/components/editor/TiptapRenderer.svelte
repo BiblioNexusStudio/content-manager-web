@@ -125,15 +125,10 @@
     >
         {#if isLoading}
             <div class="absolute h-full w-full">
-                <div class="loading loading-infinity loading-lg absolute left-1/2 top-1/2 text-primary" />
+                <div class="loading loading-infinity loading-lg absolute left-1/2 top-1/2 text-primary"></div>
             </div>
         {/if}
-        <div
-            dir={language.scriptDirection?.toLowerCase()}
-            bind:this={element}
-            role="presentation"
-            class:blur-sm={isLoading}
-        />
+        <div dir={language.scriptDirection} bind:this={element} role="presentation" class:blur-sm={isLoading}></div>
     </div>
     {#if blurOnPendingAiTranslate}
         <div

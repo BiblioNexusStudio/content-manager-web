@@ -165,11 +165,11 @@ export function searchParameters<T extends object>(
                         const option = field in options ? options[field as keyof T] : null;
                         if (option) {
                             fnToCall = option.encode as EncodeAndDecodeOptions<unknown>['encode'];
-                            const newValue = fnToCall(value[field]);
+                            const newValue = fnToCall(value[field] as unknown as string | number | boolean);
                             if (
                                 newValue === undefined ||
                                 newValue === null ||
-                                newValue === fnToCall(option.defaultValue)
+                                newValue === fnToCall(option.defaultValue as unknown as string | number | boolean)
                             ) {
                                 query.delete(field as string);
                             } else {

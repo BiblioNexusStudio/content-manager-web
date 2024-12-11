@@ -80,8 +80,8 @@ export const statusColorMap: Record<ResourceContentStatusEnum, string> = {
 };
 
 export enum ScriptDirection {
-    RTL = 'RTL',
-    LTR = 'LTR',
+    RTL = 'rtl',
+    LTR = 'ltr',
 }
 
 export interface Language {
