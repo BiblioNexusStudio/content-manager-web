@@ -3,7 +3,11 @@
     import type { DynamicReport } from '$lib/types/reporting';
     import { convertPascalCaseToHumanReadable } from '$lib/utils/reporting';
 
-    export let report: DynamicReport;
+    interface Props {
+        report: DynamicReport;
+    }
+
+    let { report }: Props = $props();
 
     function calculateLines(report: DynamicReport) {
         let xType =

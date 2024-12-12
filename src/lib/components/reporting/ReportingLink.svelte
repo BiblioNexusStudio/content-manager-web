@@ -1,7 +1,11 @@
 <script lang="ts">
-    export let reportTitle: string;
-    export let reportDescription: string;
-    export let reportLink: string;
+    interface Props {
+        reportTitle: string;
+        reportDescription: string;
+        reportLink: string;
+    }
+
+    let { reportTitle, reportDescription, reportLink }: Props = $props();
 </script>
 
 <div class="flex flex-col rounded border px-4 py-2 shadow-lg">

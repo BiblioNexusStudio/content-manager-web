@@ -2,8 +2,12 @@
     import Chart, { type ChartConfiguration } from 'chart.js/auto';
     import { onDestroy, tick } from 'svelte';
 
-    export let yLabel: string;
-    export let dataPoints: { x: string; y: number }[];
+    interface Props {
+        yLabel: string;
+        dataPoints: { x: string; y: number }[];
+    }
+
+    let { yLabel, dataPoints }: Props = $props();
 
     async function updateChart(inputYLabel: string, inputDataPoints: typeof dataPoints) {
         if (dataPointsAreNullOrEmpty(inputDataPoints)) {
@@ -30,7 +34,9 @@
         }
     }
 
-    $: updateChart(yLabel, dataPoints);
+    $effect(() => {
+        updateChart(yLabel, dataPoints);
+    });
 
     let chart: Chart | null = null;
 

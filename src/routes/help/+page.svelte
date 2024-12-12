@@ -4,9 +4,13 @@
     import { fly } from 'svelte/transition';
     import type { PageData } from './$types';
 
-    export let data: PageData;
+    interface Props {
+        data: PageData;
+    }
 
-    let helpDocuments: HelpDocumentResponse | null = null;
+    let { data }: Props = $props();
+
+    let helpDocuments: HelpDocumentResponse | null = $state(null);
 
     const loadHelpContents = async () => {
         helpDocuments = await data.helpContents.promise;

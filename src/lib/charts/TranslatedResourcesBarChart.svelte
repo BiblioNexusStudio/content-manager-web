@@ -5,12 +5,17 @@
     import { _ as translate } from 'svelte-i18n';
     import { generateColors } from '$lib/utils/color-gen';
 
+    interface Props {
+        resourcesByLanguage: ResourcesByLanguage[];
+        totalsByMonth: TotalsByMonth[];
+        languages: string[];
+        selectedLanguages: string[];
+        selectedResource: string;
+    }
+
+    let { resourcesByLanguage, totalsByMonth, languages, selectedLanguages, selectedResource }: Props = $props();
+
     const defaultSelection = 'default';
-    export let resourcesByLanguage: ResourcesByLanguage[];
-    export let totalsByMonth: TotalsByMonth[];
-    export let languages: string[];
-    export let selectedLanguages: string[];
-    export let selectedResource: string;
 
     const months = totalsByMonth.map((item) => item.monthAbbreviation);
 
@@ -18,7 +23,9 @@
 
     let chart: Chart | undefined;
 
-    $: updateTranslatedResourcesChart(selectedLanguages, selectedResource);
+    $effect(() => {
+        updateTranslatedResourcesChart(selectedLanguages, selectedResource);
+    });
 
     const updateTranslatedResourcesChart = (selectedLanguages: string[], resource: string) => {
         let resources = resourcesByLanguage;

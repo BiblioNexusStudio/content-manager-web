@@ -9,19 +9,23 @@
     import ReportSummaryCard from '$lib/components/reporting/ReportSummaryCard.svelte';
     import MultipleSelect from '$lib/components/MultipleSelect.svelte';
 
-    export let data: PageData;
+    interface Props {
+        data: PageData;
+    }
 
-    $: summary = data.summary;
-    $: resourceItemsSummary = data.resourceItemsSummary;
-    $: reports = filterToOnlyDynamicReports(data?.reports ?? []);
-    $: languages = summary?.languages.sort();
+    let { data }: Props = $props();
+
+    let summary = $derived(data.summary);
+    let resourceItemsSummary = $derived(data.resourceItemsSummary);
+    let reports = $derived(filterToOnlyDynamicReports(data?.reports ?? []));
+    let languages = $derived(summary?.languages.sort());
 
     const defaultSelection = 'default';
 
-    let selectedLanguages: string[] = [];
-    let selectedResource: string = defaultSelection;
+    let selectedLanguages: string[] = $state([]);
+    let selectedResource: string = $state(defaultSelection);
 
-    let selectedChart = 'TotalResourcesAreaChart';
+    let selectedChart = $state('TotalResourcesAreaChart');
 </script>
 
 <svelte:head>
