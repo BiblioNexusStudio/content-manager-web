@@ -26,11 +26,11 @@
      * Svelte blocks to easily handle errors in a specific part of the page.
      */
 
-    export let uncastError;
+    let { uncastError } = $props();
 
-    let buttonText = '';
-    let errorMessage = '';
-    let didNotRedirect = false;
+    let buttonText = $state('');
+    let errorMessage = $state('');
+    let didNotRedirect = $state(false);
     const error = uncastError as Error | FetchError | ApiError | TokenMissingError | AuthUninitializedError;
 
     function handleButtonClick() {
@@ -68,7 +68,7 @@
     <div class="flex h-[calc(100vh-39px)] w-full items-center justify-center">
         <div class="flex grow flex-col items-center">
             <h1 class="text-4xl">{errorMessage}</h1>
-            <button on:click={handleButtonClick} class="btn btn-primary mt-4 capitalize">{buttonText}</button>
+            <button onclick={handleButtonClick} class="btn btn-primary mt-4 capitalize">{buttonText}</button>
         </div>
     </div>
 {:else}

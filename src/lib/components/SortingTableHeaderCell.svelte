@@ -1,8 +1,12 @@
 ﻿<script lang="ts">
-    export let text: string;
-    export let sortKey: string;
-    export let currentSort: string;
-    export let style = '';
+    interface Props {
+        text: string;
+        sortKey: string;
+        currentSort: string;
+        style?: string;
+    }
+
+    let { text, sortKey, currentSort = $bindable(), style = '' }: Props = $props();
 
     const determineCaret = (sortKey: string, currentSort: string): string => {
         if (currentSort === sortKey) return '↑';
@@ -16,7 +20,7 @@
     }
 </script>
 
-<th {style} class="cursor-pointer select-none" on:click={toggleSort}>
+<th {style} class="cursor-pointer select-none" onclick={toggleSort}>
     {text}
     {#if determineCaret(sortKey, currentSort) === ''}
         <span class="text-sm opacity-50">↓</span>

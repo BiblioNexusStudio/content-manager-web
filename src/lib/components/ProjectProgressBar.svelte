@@ -1,10 +1,23 @@
 ﻿<script lang="ts">
-    export let notStartedCount: number;
-    export let editorReviewCount: number;
-    export let inCompanyReviewCount: number;
-    export let inPublisherReviewCount: number;
-    export let completeCount: number;
-    export let showLegend: boolean;
+    interface Props {
+        class?: string;
+        notStartedCount: number;
+        editorReviewCount: number;
+        inCompanyReviewCount: number;
+        inPublisherReviewCount: number;
+        completeCount: number;
+        showLegend?: boolean;
+    }
+
+    let {
+        notStartedCount,
+        editorReviewCount,
+        inCompanyReviewCount,
+        inPublisherReviewCount,
+        completeCount,
+        showLegend,
+        class: ClassName,
+    }: Props = $props();
 
     const total = notStartedCount + editorReviewCount + inCompanyReviewCount + inPublisherReviewCount + completeCount;
     const getWidth = (count: number) => {
@@ -18,7 +31,7 @@
     const completeWidth = getWidth(completeCount);
 </script>
 
-<div class="flex w-full flex-col {$$props.class}">
+<div class="flex w-full flex-col {ClassName}">
     <div class="flex h-4 w-full flex-row border border-black">
         <div class="bg-neutral" style={`width: ${completeWidth}%`}></div>
         <div class="bg-primary" style={`width: ${inPublisherReviewWidth}%`}></div>

@@ -2,13 +2,20 @@
     import StarIcon from '$lib/icons/StarIcon.svelte';
     import StarFilledIcon from '$lib/icons/StarFilledIcon.svelte';
 
-    export let rating = 0;
-    export let callback: (e: MouseEvent, rating: number) => void;
+    interface Props {
+        rating: number | undefined;
+        callback: (e: MouseEvent, rating: number) => void;
+    }
 
-    let starHighlightPosition = rating - 1;
+    let { rating = 0, callback }: Props = $props();
+
+    let starHighlightPosition = $state(rating - 1);
 
     // this is needed for if the component exists in multiple spots on the page (as the case with MachineTranslationRating.svelte)
-    $: refreshStarPosition(rating);
+    $effect(() => {
+        refreshStarPosition(rating);
+    });
+
     function refreshStarPosition(r: number) {
         starHighlightPosition = r - 1;
     }
@@ -18,14 +25,14 @@
     };
 </script>
 
-<!-- svelte-ignore a11y-mouse-events-have-key-events -->
+<!-- svelte-ignore a11y_mouse_events_have_key_events -->
 <div class="flex text-primary">
     {#each { length: 5 } as _, i (i)}
         <button
             class="px-1"
-            on:click={(e) => onClick(e, i + 1)}
-            on:mouseover={() => (starHighlightPosition = i)}
-            on:mouseleave={() => (starHighlightPosition = rating - 1)}
+            onclick={(e) => onClick(e, i + 1)}
+            onmouseover={() => (starHighlightPosition = i)}
+            onmouseleave={() => (starHighlightPosition = rating - 1)}
         >
             {#if starHighlightPosition >= i}
                 <StarFilledIcon />
