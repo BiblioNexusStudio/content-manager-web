@@ -592,7 +592,7 @@
         const content = get(editableContentStore);
         await patchToApi(`/resources/content/${resourceContent.resourceContentId}`, {
             displayName,
-            wordCount: calculateWordCount(draftCharacterCountsByStep),
+            wordCount: calculateWordCount(draftWordCountsByStep),
             ...(mediaType === MediaTypeEnum.text
                 ? { content: applyMetadataContentFields(stripOutRtlVerseReferenceMarkers(content)) }
                 : null),
