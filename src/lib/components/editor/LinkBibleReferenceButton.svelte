@@ -384,7 +384,7 @@
         {#if existingReference}
             <button disabled={isTransactingRemove} class="btn btn-error" on:click={removeLink}>
                 {#if isTransactingRemove}
-                    <span class="loading loading-spinner" />
+                    <span class="loading loading-spinner"></span>
                 {:else}
                     Remove Link
                 {/if}

@@ -9,19 +9,23 @@
     import ReportSummaryCard from '$lib/components/reporting/ReportSummaryCard.svelte';
     import MultipleSelect from '$lib/components/MultipleSelect.svelte';
 
-    export let data: PageData;
+    interface Props {
+        data: PageData;
+    }
 
-    $: summary = data.summary;
-    $: resourceItemsSummary = data.resourceItemsSummary;
-    $: reports = filterToOnlyDynamicReports(data.reports);
-    $: languages = summary.languages.sort();
+    let { data }: Props = $props();
+
+    let summary = $derived(data.summary);
+    let resourceItemsSummary = $derived(data.resourceItemsSummary);
+    let reports = $derived(filterToOnlyDynamicReports(data?.reports ?? []));
+    let languages = $derived(summary?.languages.sort());
 
     const defaultSelection = 'default';
 
-    let selectedLanguages: string[] = [];
-    let selectedResource: string = defaultSelection;
+    let selectedLanguages: string[] = $state([]);
+    let selectedResource: string = $state(defaultSelection);
 
-    let selectedChart = 'TotalResourcesAreaChart';
+    let selectedChart = $state('TotalResourcesAreaChart');
 </script>
 
 <svelte:head>
@@ -46,7 +50,7 @@
                         label={$translate('page.dashboard.dropdowns.allLanguages.value')}
                         bind:values={selectedLanguages}
                         class="w-[15rem]"
-                        options={[...languages.map((l) => ({ value: l, label: l }))]}
+                        options={[...(languages?.map((l) => ({ value: l, label: l })) ?? [])]}
                     />
                 </span>
                 <span>
@@ -55,7 +59,7 @@
                         class="select select-bordered w-auto"
                         options={[
                             { value: 'default', label: $translate('page.dashboard.dropdowns.allResources.value') },
-                            ...summary.parentResourceNames.sort().map((l) => ({ value: l, label: l })),
+                            ...(summary?.parentResourceNames?.sort().map((l) => ({ value: l, label: l })) ?? []),
                         ]}
                     />
                 </span>
@@ -65,17 +69,17 @@
                     <TotalResourcesAreaChart
                         {selectedLanguages}
                         {selectedResource}
-                        resourcesByLanguage={summary.resourcesByLanguage}
-                        totalsByMonth={summary.totalsByMonth}
-                        resourcesByType={summary.resourcesByParentResource}
+                        resourcesByLanguage={summary?.resourcesByLanguage ?? []}
+                        totalsByMonth={summary?.totalsByMonth ?? []}
+                        resourcesByType={summary?.resourcesByParentResource ?? []}
                     />
                 {:else if selectedChart === 'TranslatedResourcesBarChart'}
                     <TranslatedResourcesBarChart
                         {selectedLanguages}
                         {selectedResource}
-                        resourcesByLanguage={summary.resourcesByLanguage}
-                        totalsByMonth={summary.totalsByMonth}
-                        {languages}
+                        resourcesByLanguage={summary?.resourcesByLanguage ?? []}
+                        totalsByMonth={summary?.totalsByMonth ?? []}
+                        languages={languages ?? []}
                     />
                 {/if}
             </div>
@@ -85,31 +89,31 @@
             <ReportSummaryCard
                 addPlus={true}
                 reportTitle="Total Resource Items"
-                reportTotal={resourceItemsSummary.totalResources}
-                monthTotal={resourceItemsSummary.totalResourcesThisMonth}
+                reportTotal={resourceItemsSummary?.totalResources ?? 0}
+                monthTotal={resourceItemsSummary?.totalResourcesThisMonth ?? 0}
             />
             <ReportSummaryCard
                 addPlus={true}
                 reportTitle="Total Resource Items (non-English)"
-                reportTotal={resourceItemsSummary.totalNonEnglishResources}
-                monthTotal={resourceItemsSummary.totalNonEnglishResourcesThisMonth}
+                reportTotal={resourceItemsSummary?.totalNonEnglishResources ?? 0}
+                monthTotal={resourceItemsSummary?.totalNonEnglishResourcesThisMonth ?? 0}
             />
             <ReportSummaryCard
                 addPlus={true}
                 reportTitle="Total Resource Items (2+ Languages)"
-                reportTotal={resourceItemsSummary.totalResourcesTwoPlusLanguages}
-                monthTotal={resourceItemsSummary.totalResourcesTwoPlusLanguagesThisMonth}
+                reportTotal={resourceItemsSummary?.totalResourcesTwoPlusLanguages ?? 0}
+                monthTotal={resourceItemsSummary?.totalResourcesTwoPlusLanguagesThisMonth ?? 0}
             />
             <ReportSummaryCard
                 reportTitle="Resource Items being Aquiferized"
-                reportTotal={resourceItemsSummary.aquiferizedResources}
-                monthTotal={resourceItemsSummary.aquiferizedResourcesThisMonth}
+                reportTotal={resourceItemsSummary?.aquiferizedResources ?? 0}
+                monthTotal={resourceItemsSummary?.aquiferizedResourcesThisMonth ?? 0}
                 monthText="Started This Month"
             />
             <ReportSummaryCard
                 reportTitle="Resource Items being Translated"
-                reportTotal={resourceItemsSummary.totalResourceBeingTranslated}
-                monthTotal={resourceItemsSummary.totalResourceBeingTranslatedThisMonth}
+                reportTotal={resourceItemsSummary?.totalResourceBeingTranslated ?? 0}
+                monthTotal={resourceItemsSummary?.totalResourceBeingTranslatedThisMonth ?? 0}
                 monthText="Started This Month"
             />
         </div>

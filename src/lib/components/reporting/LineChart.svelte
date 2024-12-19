@@ -2,7 +2,11 @@
     import Chart, { type ChartConfiguration } from 'chart.js/auto';
     import { onDestroy, tick } from 'svelte';
 
-    export let lines: { label: string; values: { x: string; y: number | null }[] }[];
+    interface Props {
+        lines: { label: string; values: { x: string; y: number | null }[] }[];
+    }
+
+    let { lines }: Props = $props();
 
     async function updateChart(inputLines: typeof lines) {
         if (lineDataIsNullOrEmpty(inputLines)) {
@@ -27,7 +31,9 @@
         }
     }
 
-    $: updateChart(lines);
+    $effect(() => {
+        updateChart(lines);
+    });
 
     const colorMap = {
         borderColor: ['#36A2EB', '#FF6384', '#4BC0C0'],
@@ -93,7 +99,7 @@
 </script>
 
 {#if !lineDataIsNullOrEmpty(lines)}
-    <canvas id="line-chart" />
+    <canvas id="line-chart"></canvas>
 {:else}
     <div class="flex h-full w-full flex-row items-center rounded-md border">
         <p class="w-full text-center">No data available.</p>

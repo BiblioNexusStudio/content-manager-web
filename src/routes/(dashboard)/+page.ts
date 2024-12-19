@@ -60,7 +60,7 @@ export const load: PageLoad = async ({ parent, fetch }) => {
 
         return { editorDashboard: { assignedResourceContent, assignedResourceHistoryContent } };
     } else if (get(userCan)(Permission.ReadReports)) {
-        throw redirect(302, '/reporting');
+        redirect(302, '/reporting');
     } else {
         return {};
     }

@@ -4,11 +4,15 @@
     import { convertPascalCaseToHumanReadable } from '$lib/utils/reporting';
     import type { searchParameters } from '$lib/utils/sveltekit-search-params';
 
-    export let searchParams: ReturnType<typeof searchParameters<{ sort: string }>>;
-    export let report: DynamicReport;
-    export let sortedAndPaginatedResults: DynamicReportResult[];
+    interface Props {
+        searchParams: ReturnType<typeof searchParameters<{ sort: string }>>;
+        report: DynamicReport;
+        sortedAndPaginatedResults: DynamicReportResult[];
+    }
 
-    $: columnWidths = calculateColumnWidths(report);
+    let { searchParams, report, sortedAndPaginatedResults }: Props = $props();
+
+    let columnWidths = $derived(calculateColumnWidths(report));
 
     function calculateColumnWidths(reportData: DynamicReport): number[] {
         return reportData.columns.map((column, index) => {

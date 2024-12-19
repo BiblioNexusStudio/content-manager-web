@@ -1,4 +1,4 @@
-﻿import type { SingleCommands } from 'aquifer-tiptap';
+import type { SingleCommands } from 'aquifer-tiptap';
 import { v4 as uuid } from 'uuid';
 import type { EditorState } from '@tiptap/pm/state';
 import type { CommentStores } from '$lib/stores/comments';

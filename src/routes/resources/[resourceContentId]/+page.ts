@@ -9,7 +9,7 @@ export const load: PageLoad = async ({ parent, params, fetch }) => {
     await parent();
 
     if (!get(userCan)(Permission.ReadResources)) {
-        throw redirect(302, '/');
+        redirect(302, '/');
     }
 
     return {

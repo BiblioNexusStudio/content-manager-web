@@ -98,8 +98,8 @@
                 resourceSize === 'both'
                     ? responseItem.longResourceCount + responseItem.shortResourceCount
                     : resourceSize === 'short'
-                    ? responseItem.shortResourceCount
-                    : responseItem.longResourceCount,
+                      ? responseItem.shortResourceCount
+                      : responseItem.longResourceCount,
         }));
     }
 
@@ -116,8 +116,8 @@
                         resourceSize === 'both'
                             ? responseItem.daysToStart
                             : resourceSize === 'short'
-                            ? responseItem.shortResourcesDaysToStart
-                            : responseItem.longResourcesDaysToStart,
+                              ? responseItem.shortResourcesDaysToStart
+                              : responseItem.longResourcesDaysToStart,
                 })),
             },
             {
@@ -128,8 +128,8 @@
                         resourceSize === 'both'
                             ? responseItem.daysWithPartner
                             : resourceSize === 'short'
-                            ? responseItem.shortResourcesDaysWithPartner
-                            : responseItem.longResourcesDaysWithPartner,
+                              ? responseItem.shortResourcesDaysWithPartner
+                              : responseItem.longResourcesDaysWithPartner,
                 })),
             },
             {
@@ -140,8 +140,8 @@
                         resourceSize === 'both'
                             ? responseItem.daysTotal
                             : resourceSize === 'short'
-                            ? responseItem.shortResourcesDaysTotal
-                            : responseItem.longResourcesDaysTotal,
+                              ? responseItem.shortResourcesDaysTotal
+                              : responseItem.longResourcesDaysTotal,
                 })),
             },
         ];

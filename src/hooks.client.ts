@@ -1,4 +1,4 @@
-﻿import type { HandleClientError } from '@sveltejs/kit';
+import type { HandleClientError } from '@sveltejs/kit';
 import { log } from '$lib/logger';
 
 // This client-side hook runs when an error is thrown in a page.ts/layout.ts load function.

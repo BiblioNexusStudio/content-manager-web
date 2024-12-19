@@ -3,15 +3,19 @@
     import type { DynamicReport } from '$lib/types/reporting';
     import { convertPascalCaseToHumanReadable } from '$lib/utils/reporting';
 
-    export let report: DynamicReport;
+    interface Props {
+        report: DynamicReport;
+    }
+
+    let { report }: Props = $props();
 
     function calculateLines(report: DynamicReport) {
         let xType =
             typeof report.results[0]?.[0] === 'number'
                 ? ('number' as const)
                 : typeof report.results[0]?.[0] === 'string' && !isNaN(Date.parse(report.results[0]?.[0]))
-                ? ('date' as const)
-                : ('string' as const);
+                  ? ('date' as const)
+                  : ('string' as const);
 
         const xLabels = report.results.map(([x, _y]) => {
             if (xType === 'date') {

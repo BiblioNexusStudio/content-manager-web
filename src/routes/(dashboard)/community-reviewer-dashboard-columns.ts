@@ -1,4 +1,4 @@
-﻿import type { column } from '$lib/types/table';
+import type { column } from '$lib/types/table';
 import { SortName } from './dashboard-table-sorters';
 import type { ResourceThatNeedsTranslation, ResourceAssignedToSelfHistory } from './+page';
 

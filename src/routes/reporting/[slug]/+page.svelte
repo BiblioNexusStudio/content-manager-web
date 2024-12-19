@@ -14,19 +14,37 @@
     import Select from '$lib/components/Select.svelte';
     import { companiesToIgnore } from '$lib/types/base';
 
-    export let data: PageData;
+    interface Props {
+        data: PageData;
+    }
+
+    let { data }: Props = $props();
 
     const searchParams = searchParameters(_searchParamsConfig, {
         runLoadAgainWhenParamsChange: ['startDate', 'endDate', 'languageId', 'parentResourceId', 'companyId'],
     });
 
-    let startDate = $searchParams.startDate;
-    let endDate = $searchParams.endDate;
-    let languageId = $searchParams.languageId;
-    let parentResourceId = $searchParams.parentResourceId;
-    let companyId = $searchParams.companyId;
+    let startDate = $state($searchParams.startDate);
+    let endDate = $state($searchParams.endDate);
+    let languageId = $state($searchParams.languageId);
+    let parentResourceId = $state($searchParams.parentResourceId);
+    let companyId = $state($searchParams.companyId);
 
-    $: reportData = data.reportData;
+    let reportData = $derived(
+        data?.reportData ?? {
+            name: '',
+            description: '',
+            type: DynamicReportType.Table,
+            acceptsDateRange: false,
+            acceptsLanguage: false,
+            acceptsParentResource: false,
+            acceptsCompany: false,
+            startDate: '',
+            endDate: '',
+            columns: [],
+            results: [],
+        }
+    );
 
     function refetch() {
         if (
@@ -47,12 +65,16 @@
         $searchParams.companyId = companyId;
     }
 
-    $: initializeFromReport(reportData);
-    $: sortReportTable = createListSorter<DynamicReportResult>(
-        Object.fromEntries(reportData.columns.map((name, index) => [name, { primarySortKeys: [index] }]))
+    $effect(() => {
+        initializeFromReport(reportData);
+    });
+    let sortReportTable = $derived(
+        createListSorter<DynamicReportResult>(
+            Object.fromEntries(reportData.columns.map((name, index) => [name, { primarySortKeys: [index] }]))
+        )
     );
 
-    $: sortedResults = sortReportTable(reportData.results, $searchParams.sort);
+    let sortedResults = $derived(sortReportTable(reportData.results, $searchParams.sort));
 
     function initializeFromReport(reportData: DynamicReport) {
         if (!startDate) {
@@ -110,9 +132,9 @@
                 class="select select-bordered min-w-[10rem] flex-shrink"
                 options={[
                     { value: 0, label: 'Select Company' },
-                    ...data.companies
-                        .filter((c) => !companiesToIgnore.includes(c.name))
-                        .map((c) => ({ value: c.id, label: c.name })),
+                    ...(data?.companies
+                        ?.filter((c) => !companiesToIgnore.includes(c.name))
+                        ?.map((c) => ({ value: c.id, label: c.name })) ?? []),
                 ]}
             />
         {/if}
@@ -125,7 +147,7 @@
             </div>
         {/if}
         {#if reportData.acceptsDateRange || reportData.acceptsLanguage || reportData.acceptsParentResource || reportData.acceptsCompany}
-            <button class="btn btn-link !mx-1" on:click={refetch}>
+            <button class="btn btn-link !mx-1" onclick={refetch}>
                 <Icon data={refresh} />
             </button>
         {/if}

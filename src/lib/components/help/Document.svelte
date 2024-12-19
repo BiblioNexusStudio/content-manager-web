@@ -4,12 +4,16 @@
     import WrenchScrewdriverSolidIcon from '$lib/icons/WrenchScrewdriverSolidIcon.svelte';
     import { HelpDocumentType, type HelpDocument } from '$lib/types/helpDocuments';
 
-    export let document: HelpDocument;
+    interface Props {
+        document: HelpDocument;
+    }
+
+    let { document }: Props = $props();
 
     // some documents have dates in front, and by parsing this we can put the date on its own line
-    $: dateString = document.title.match(/\d{2}-[A-Za-z]{3}-\d{4}/)?.[0] ?? '';
+    let dateString = $derived(document.title.match(/\d{2}-[A-Za-z]{3}-\d{4}/)?.[0] ?? '');
 
-    $: titleString = document.title.replace(/^\d{2}-[A-Za-z]{3}-\d{4}\s*/, '');
+    let titleString = $derived(document.title.replace(/^\d{2}-[A-Za-z]{3}-\d{4}\s*/, ''));
 </script>
 
 <a href={document.url} target="_blank" class="overflow flex w-40 flex-col items-center hover:text-primary">

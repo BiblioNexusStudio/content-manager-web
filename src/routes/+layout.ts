@@ -16,7 +16,7 @@ export const load: LayoutLoad = async ({ url, fetch }) => {
     // this is not actually shown anywhere, since if the user is not authenticated then they'll be logged out.
     // it's only here to prevent logout loops if we were to call the fetches below.
     if (!isAuthenticated) {
-        throw error(401, 'Unauthenticated');
+        error(401, 'Unauthenticated');
     }
 
     const [languages, parentResources, resourceContentStatuses, currentUser] = await Promise.all([
