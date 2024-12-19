@@ -423,7 +423,7 @@
         await takeActionAndCallback(
             async () =>
                 await postToApi<{ assignments: Assignment[] }>(
-                    `/resources/content/${currentResourceContentId}/send-for-manager-review`
+                    `/resources/content/${currentResourceContentId}/send-for-company-review`
                 ),
             async (response) => {
                 if (
