@@ -1,4 +1,4 @@
-﻿import { v4 as uuid } from 'uuid';
+import { v4 as uuid } from 'uuid';
 import type { ContentNode, ResourceReference as ResourceReferenceType } from '../types';
 import { ResourceReference } from 'aquifer-tiptap';
 

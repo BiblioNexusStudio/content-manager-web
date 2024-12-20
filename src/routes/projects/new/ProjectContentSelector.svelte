@@ -37,7 +37,7 @@
     $: chapters = parseNumbersListFromString(
         chaptersString,
         1,
-        bibleBooks.find((b) => b.code === bookCode)?.totalChapters ?? 0
+        bibleBooks?.find((b) => b.code === bookCode)?.totalChapters ?? 0
     );
 
     $: bookCode && (chaptersString = ''); // reset chapters if book code changes
@@ -97,8 +97,7 @@
 
 <div class="flex flex-col overflow-hidden">
     <div class="flex flex-row space-x-4">
-        <!-- svelte-ignore a11y-label-has-associated-control -->
-        <label class="form-control">
+        <label class="form-control" for="resource-select">
             <div class="label">
                 <span class="label-text">Resource</span>
             </div>
@@ -113,8 +112,7 @@
                 bind:value={resourceTypeId}
             />
         </label>
-        <!-- svelte-ignore a11y-label-has-associated-control -->
-        <label class="form-control">
+        <label class="form-control" for="book-select">
             <div class="label">
                 <span class="label-text">Book</span>
             </div>
@@ -123,7 +121,7 @@
                 class="select select-bordered"
                 options={[
                     { value: null, label: 'Select Book' },
-                    ...bibleBooks.map((b) => ({ value: b.code, label: b.localizedName })),
+                    ...(bibleBooks?.map((b) => ({ value: b.code, label: b.localizedName })) ?? []),
                 ]}
                 bind:value={bookCode}
             />

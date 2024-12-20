@@ -1,10 +1,23 @@
 <script lang="ts">
-    export let date: string;
-    export let callback: ((date: string) => void) | undefined = undefined;
-    export let earliestDate: string | undefined = undefined;
-    export let latestDate: string | undefined = undefined;
+    interface Props {
+        date: string;
+        callback?: ((date: string) => void) | undefined;
+        earliestDate?: string | undefined;
+        latestDate?: string | undefined;
+    }
 
-    $: internalDate = date;
+    let {
+        date = $bindable(),
+        callback = undefined,
+        earliestDate = undefined,
+        latestDate = undefined,
+    }: Props = $props();
+
+    let internalDate: string = $state(date);
+
+    $effect(() => {
+        internalDate = date;
+    });
 
     function update() {
         if (callback) {
@@ -19,7 +32,7 @@
     <input
         type="date"
         bind:value={internalDate}
-        on:blur={update}
+        onblur={update}
         min={earliestDate}
         max={latestDate}
         class="h-auto w-full rounded-md border px-4 py-2"

@@ -1,4 +1,4 @@
-﻿import { browser } from '$app/environment';
+import { browser } from '$app/environment';
 
 export function download<T>(json: T[], fileName: string, fieldMapping: Partial<Record<keyof T, string>>) {
     const csv = jsonToCsv(json, fieldMapping);

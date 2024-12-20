@@ -185,7 +185,8 @@
                     {:else}
                         {#each items as item, index (idColumn === 'index' ? index : item[idColumn])}
                             {@const href =
-                                itemUrlPrefix && `${itemUrlPrefix}${idColumn === 'index' ? '' : item[idColumn] ?? ''}`}
+                                itemUrlPrefix &&
+                                `${itemUrlPrefix}${idColumn === 'index' ? '' : (item[idColumn] ?? '')}`}
                             <tr class="hover">
                                 {#if enableSelectAll || enableSelect}
                                     <TableCell class="w-4">

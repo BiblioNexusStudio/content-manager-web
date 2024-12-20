@@ -25,5 +25,5 @@ export function formatUtcToLocalTimeAndDate(dateString: string): string {
 }
 
 export function formatSimpleDaysAgo(daysAgo: number | null) {
-    return daysAgo === 0 ? '< 1' : daysAgo ?? '';
+    return daysAgo === 0 ? '< 1' : (daysAgo ?? '');
 }

@@ -204,7 +204,7 @@
             {/if}
             <button class="btn btn-primary" on:click={handlePrimaryClick} disabled={!canSave}
                 >{#if isSaving}
-                    <span class="loading loading-spinner" />
+                    <span class="loading loading-spinner"></span>
                 {:else}
                     Add User
                 {/if}</button

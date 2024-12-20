@@ -136,7 +136,7 @@
     >
         {#if diffedHtml}
             <div
-                dir={languageScriptDirection?.toLowerCase()}
+                dir={languageScriptDirection}
                 class="prose prose-sm m-4 max-w-none text-black sm:prose-base focus:outline-none"
             >
                 {@html diffedHtml}

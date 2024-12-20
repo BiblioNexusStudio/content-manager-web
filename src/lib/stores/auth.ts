@@ -1,4 +1,4 @@
-﻿import { type Writable, writable, derived } from 'svelte/store';
+import { type Writable, writable, derived } from 'svelte/store';
 import { Auth0Client, createAuth0Client, User as Auth0User } from '@auth0/auth0-spa-js';
 import config from '$lib/config';
 import type { CurrentUser } from '$lib/types/base';

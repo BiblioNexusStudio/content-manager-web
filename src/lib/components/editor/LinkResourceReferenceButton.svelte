@@ -293,10 +293,10 @@
     {/if}
     <svelte:fragment slot="additional-buttons">
         {#if existingReference && !isLoading}
-            <div class="grow" />
+            <div class="grow"></div>
             <button disabled={isTransactingRemove} class="btn btn-error" on:click={removeLink}>
                 {#if isTransactingRemove}
-                    <span class="loading loading-spinner" />
+                    <span class="loading loading-spinner"></span>
                 {:else}
                     Remove Link
                 {/if}
