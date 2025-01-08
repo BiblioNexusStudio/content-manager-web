@@ -112,8 +112,8 @@
                 $createNewThread(true, threadId, false);
                 showParent = false;
 
-                // Make sure activeThread is refreshed
-                await tick();
+                // await tick() no longer working in svelte 5. We have to manually update activeThread.
+                activeThread = $commentThreads?.threads.find((x) => x.id === threadId);
             } else {
                 res = await postToApi('/comments', {
                     threadId: threadId,
