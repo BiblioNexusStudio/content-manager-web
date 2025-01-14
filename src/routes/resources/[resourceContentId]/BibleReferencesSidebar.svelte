@@ -7,15 +7,22 @@
     import { fetchLanguageDefaultBible, type BasicBible } from '$lib/utils/bibles-fetcher';
     import type { Language } from '$lib/types/base';
 
-    export let references: (PassageReference | VerseReference)[];
-    export let language: Language;
-    export let visible: boolean;
-
-    $: if (visible && !promise) {
-        promise = getBibleTextsReferences();
+    interface Props {
+        references: (PassageReference | VerseReference)[];
+        language: Language;
+        visible: boolean;
     }
 
-    let promise: Promise<{ bible: BasicBible | undefined; bibleTextsReferences: BibleTextsReference[] }> | null = null;
+    let { references, language, visible }: Props = $props();
+
+    $effect(() => {
+        if (visible && !promise) {
+            promise = getBibleTextsReferences();
+        }
+    });
+
+    let promise: Promise<{ bible: BasicBible | undefined; bibleTextsReferences: BibleTextsReference[] }> | null =
+        $state(null);
 
     async function getBibleTextsReferences() {
         const bible = await fetchLanguageDefaultBible(language.id);
