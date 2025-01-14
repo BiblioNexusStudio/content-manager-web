@@ -188,20 +188,23 @@
     const processError = (e: Error) => {
         errorMessage = 'An error occurred while processing the translation pair.';
 
-        let containsErrorMessage = isApiErrorWithMessage(e, 'Key already exists for this language');
-        let containsNotAllowedMessage = isApiErrorWithMessage(
-            e,
-            'Keys must be at least 3 characters long. Some keywords are not allowed.'
-        );
+        let errorMessages = [
+            'Key already exists for this language',
+            'Keys must be at least 3 characters long. Some keywords are not allowed.',
+            "The length of 'key' must be at least 3 characters.",
+            "The length of 'value' must be at least 3 characters.",
+        ];
+
+        let containsErrorMessage = false;
+        let i = -1;
+        while (!containsErrorMessage && i < errorMessages.length - 1) {
+            i++;
+            containsErrorMessage = isApiErrorWithMessage(e, errorMessages[i]!);
+        }
 
         if (containsErrorMessage) {
-            errorMessage = 'Key already exists for this language.';
-        }
-
-        if (containsNotAllowedMessage) {
-            errorMessage = 'Keys must be at least 3 characters long. Some keywords are not allowed.';
-        }
-        if (!containsErrorMessage && !containsNotAllowedMessage) {
+            errorMessage = errorMessages[i]!;
+        } else {
             log.exception(e);
         }
     };
