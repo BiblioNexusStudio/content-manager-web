@@ -8,26 +8,26 @@
     } from './dashboard-table-sorters';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import { formatSimpleDaysAgo, utcDateTimeStringToDateTime } from '$lib/utils/date-time';
-    import type { ResourceAssignedToSelf, ResourceAssignedToSelfHistory } from './+page';
+    import { type ResourceAssignedToSelf, type ResourceAssignedToSelfHistory, _EditorTab as Tab } from './+page';
     import Table from '$lib/components/Table.svelte';
     import { myHistoryColumns, myWorkColumns } from './editor-dashboard-columns';
     import TableCell from '$lib/components/TableCell.svelte';
     import { download } from '$lib/utils/csv-download-handler';
     import Select from '$lib/components/Select.svelte';
     import { filterBoolean } from '$lib/utils/array';
+    import { untrack } from 'svelte';
 
     const sortMyWorkData = createEditorDashboardMyWorkSorter();
     const sortMyHistoryData = createEditorDashboardMyHistorySorter();
 
-    export let data: PageData;
-
-    $: myWorkContents = data.editorDashboard!.assignedResourceContent;
-    $: myHistoryContents = data.editorDashboard!.assignedResourceHistoryContent;
-
-    enum Tab {
-        myWork = 'my-work',
-        myHistory = 'my-history',
+    interface Props {
+        data: PageData;
     }
+
+    let { data }: Props = $props();
+
+    let myWorkContents = $derived(data.editorDashboard!.assignedResourceContent);
+    let myHistoryContents = $derived(data.editorDashboard!.assignedResourceHistoryContent);
 
     const downloadMyHistoryCsv = () => {
         download(
@@ -75,12 +75,28 @@
         }
     };
 
-    let search = '';
-    let visibleMyWorkContents: ResourceAssignedToSelf[] = [];
-    let visibleMyHistoryContents: ResourceAssignedToSelfHistory[] = [];
-    let table: Table<ResourceAssignedToSelfHistory> | Table<ResourceAssignedToSelf> | undefined;
-    $: $searchParams.sort && table?.resetScroll();
-    $: setTabContents($searchParams.tab, search, $searchParams.project);
+    let search = $state('');
+    let visibleMyWorkContents: ResourceAssignedToSelf[] = $state([]);
+    let visibleMyHistoryContents: ResourceAssignedToSelfHistory[] = $state([]);
+    let table: Table<ResourceAssignedToSelfHistory> | Table<ResourceAssignedToSelf> | undefined = $state(undefined);
+
+    $effect(() => {
+        if ($searchParams.sort && table !== undefined) {
+            untrack(() => table?.resetScroll());
+        }
+    });
+
+    $effect(() => {
+        setTabContents($searchParams.tab, search, $searchParams.project);
+    });
+
+    $effect(() => {
+        visibleMyWorkContents = sortMyWorkData(visibleMyWorkContents, $searchParams.sort);
+    });
+
+    $effect(() => {
+        visibleMyHistoryContents = sortMyHistoryData(visibleMyHistoryContents, $searchParams.sort);
+    });
 
     function projectNamesForContents(contents: ResourceAssignedToSelf[]) {
         return Array.from(new Set(filterBoolean(contents.map((c) => c.projectName)))).sort();
@@ -92,12 +108,12 @@
     <div class="flex flex-row items-center pt-4">
         <div role="tablist" class="tabs tabs-bordered w-fit">
             <button
-                on:click={() => switchTabs(Tab.myWork)}
+                onclick={() => switchTabs(Tab.myWork)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.myWork && 'tab-active'}">My Work ({myWorkContents.length})</button
             >
             <button
-                on:click={() => switchTabs(Tab.myHistory)}
+                onclick={() => switchTabs(Tab.myHistory)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.myHistory && 'tab-active'}"
                 >My History ({myHistoryContents.length})</button
@@ -130,7 +146,7 @@
             <button
                 data-app-insights-event-name="editor-dashboard-download-my-history-csv-click"
                 class="btn btn-primary"
-                on:click={downloadMyHistoryCsv}>Download Word Counts</button
+                onclick={downloadMyHistoryCsv}>Download Word Counts</button
             >
         {/if}
     </div>
@@ -139,7 +155,7 @@
             bind:this={table}
             class="my-4"
             columns={myWorkColumns}
-            items={sortMyWorkData(visibleMyWorkContents, $searchParams.sort)}
+            items={visibleMyWorkContents}
             idColumn="id"
             itemUrlPrefix="/resources/"
             bind:searchParams={$searchParams}
@@ -164,7 +180,7 @@
             bind:this={table}
             class="my-4"
             columns={myHistoryColumns}
-            items={sortMyHistoryData(visibleMyHistoryContents, $searchParams.sort)}
+            items={visibleMyHistoryContents}
             idColumn="id"
             itemUrlPrefix="/resources/"
             bind:searchParams={$searchParams}
