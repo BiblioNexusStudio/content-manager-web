@@ -70,6 +70,8 @@
 
     let search = '';
 
+    let isFilteringUnresolved = false;
+
     const searchParams = searchParameters(
         {
             sort: ssp.string('-' + SortName.Days),
@@ -223,13 +225,20 @@
         };
     }
 
-    const setTabContents = (tab: string, search: string, status: string, project: string) => {
+    const setTabContents = (
+        tab: string,
+        search: string,
+        status: string,
+        project: string,
+        isFilteringUnresolved: boolean
+    ) => {
         if (tab === Tab.myWork) {
             currentAssignedContents = assignedContents.filter(
                 (ac) =>
                     ac.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
                     (!status || ac.statusDisplayName === status) &&
-                    (!project || ac.projectName === project)
+                    (!project || ac.projectName === project) &&
+                    (!isFilteringUnresolved || ac.isResolved === false)
             );
         } else if (tab === Tab.reviewPending) {
             currentReviewPendingContents = reviewPendingContents.filter(
@@ -242,13 +251,15 @@
                 ap.name.toLowerCase().includes(search.toLowerCase())
             );
         } else if (tab === Tab.community) {
-            currentCommunityPendingContents = communityPendingContents.filter((crpc) =>
-                crpc.englishLabel.toLowerCase().includes(search.toLowerCase())
+            currentCommunityPendingContents = communityPendingContents.filter(
+                (crpc) =>
+                    crpc.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
+                    (!isFilteringUnresolved || crpc.isResolved === false)
             );
         }
     };
 
-    $: setTabContents($searchParams.tab, search, $searchParams.status, $searchParams.project);
+    $: setTabContents($searchParams.tab, search, $searchParams.status, $searchParams.project, isFilteringUnresolved);
 </script>
 
 <div class="flex flex-col overflow-y-hidden px-4">
@@ -315,6 +326,19 @@
                         ).map((p) => ({ value: p, label: p })),
                     ]}
                 />
+            {/if}
+            {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.community}
+                <label class="label cursor-pointer py-0 opacity-70">
+                    <input
+                        type="checkbox"
+                        bind:checked={isFilteringUnresolved}
+                        data-app-insights-event-name="publisher-dashboard-has-unresolved-comments-toggle-{isFilteringUnresolved
+                            ? 'off'
+                            : 'on'}"
+                        class="checkbox no-animation checkbox-sm me-2"
+                    />
+                    <span class="label-text text-xs">Has Unresolved Comments</span>
+                </label>
             {/if}
             <button
                 data-app-insights-event-name="publisher-dashboard-bulk-assign-click"

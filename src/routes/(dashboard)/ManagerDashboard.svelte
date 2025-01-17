@@ -54,6 +54,8 @@
 
     let search = '';
 
+    let isFilteringUnresolved = false;
+
     enum Tab {
         myWork = 'my-work',
         toAssign = 'to-assign',
@@ -105,14 +107,16 @@
         assignedUserId: number,
         toAssignProjectName: string,
         lastAssignedId: number,
-        search: string
+        search: string,
+        isFilteringUnresolved: boolean
     ) => {
         if (tab === Tab.myWork) {
             currentMyWorkContents = myWorkContents.filter(
                 (x) =>
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
                     (toAssignProjectName === '' || x.projectName === toAssignProjectName) &&
-                    (lastAssignedId === 0 || x.lastAssignedUser?.id === lastAssignedId)
+                    (lastAssignedId === 0 || x.lastAssignedUser?.id === lastAssignedId) &&
+                    (!isFilteringUnresolved || x.isResolved === false)
             );
         } else if (tab === Tab.toAssign) {
             currentToAssignContents = toAssignContents.filter(
@@ -126,7 +130,8 @@
                     (assignedUserId === 0 || x.assignedUser.id === assignedUserId) &&
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
                     (toAssignProjectName === '' || x.projectName === toAssignProjectName) &&
-                    (lastAssignedId === 0 || x.lastAssignedUser?.id === lastAssignedId)
+                    (lastAssignedId === 0 || x.lastAssignedUser?.id === lastAssignedId) &&
+                    (!isFilteringUnresolved || x.isResolved === false)
             );
         }
     };
@@ -136,7 +141,8 @@
         $searchParams.assignedUserId,
         $searchParams.project,
         $searchParams.lastAssignedId,
-        search
+        search,
+        isFilteringUnresolved
     );
     $: anyRowSelected =
         selectedMyWorkContents.length > 0 || selectedToAssignContents.length > 0 || selectedManageContents.length > 0;
@@ -342,6 +348,20 @@
                     ...(data.users || []).map((u) => ({ value: u.id, label: u.name })),
                 ]}
             />
+        {/if}
+
+        {#if $searchParams.tab === Tab.manage || $searchParams.tab === Tab.myWork}
+            <label class="label cursor-pointer py-0 opacity-70">
+                <input
+                    type="checkbox"
+                    bind:checked={isFilteringUnresolved}
+                    data-app-insights-event-name="manager-dashboard-has-unresolved-comments-toggle-{isFilteringUnresolved
+                        ? 'off'
+                        : 'on'}"
+                    class="checkbox no-animation checkbox-sm me-2"
+                />
+                <span class="label-text text-xs">Has Unresolved Comments</span>
+            </label>
         {/if}
 
         <button
