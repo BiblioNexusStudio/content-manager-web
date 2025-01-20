@@ -10,12 +10,18 @@
     import { formatSimpleDaysAgo, utcDateTimeStringToDateTime } from '$lib/utils/date-time';
     import { type ResourceAssignedToSelf, type ResourceAssignedToSelfHistory, _EditorTab as Tab } from './+page';
     import Table from '$lib/components/Table.svelte';
+    import type { column } from '$lib/types/table';
     import { myHistoryColumns, myWorkColumns } from './editor-dashboard-columns';
     import TableCell from '$lib/components/TableCell.svelte';
     import { download } from '$lib/utils/csv-download-handler';
     import Select from '$lib/components/Select.svelte';
     import { filterBoolean } from '$lib/utils/array';
     import { untrack } from 'svelte';
+    import Modal from '$lib/components/Modal.svelte';
+    import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
+    import { UserRole } from '$lib/types/base';
+    import { userIsInCompany } from '$lib/stores/auth';
+    import { postToApi } from '$lib/utils/http-service';
 
     const sortMyWorkData = createEditorDashboardMyWorkSorter();
     const sortMyHistoryData = createEditorDashboardMyHistorySorter();
@@ -28,6 +34,12 @@
 
     let myWorkContents = $derived(data.editorDashboard!.assignedResourceContent);
     let myHistoryContents = $derived(data.editorDashboard!.assignedResourceHistoryContent);
+    let isAssignContentModalOpen = $state(false);
+
+    let selectedMyWorkContents: ResourceAssignedToSelf[] = $state([]);
+    let isTransacting = $state(false);
+    let assignToUserId: number | null = $state(null);
+    let errorModalText: string | undefined = $state(undefined);
 
     const downloadMyHistoryCsv = () => {
         download(
@@ -74,6 +86,36 @@
             );
         }
     };
+
+    function editorsThatCanBeAssigned() {
+        return data.users?.filter((u) => $userIsInCompany(u.company.id) && u.role !== UserRole.ReportViewer) ?? null;
+    }
+
+    async function bulkAssignContentToEditor() {
+        let selectedIds: number[] = [];
+        isTransacting = true;
+
+        selectedMyWorkContents.forEach((x) => {
+            selectedIds.push(x.id);
+        });
+
+        const inProgressAssignments =
+            selectedIds.length > 0
+                ? postToApi<null>('/resources/content/send-for-editor-review', {
+                      assignedUserId: assignToUserId,
+                      contentIds: selectedIds,
+                  })
+                : Promise.resolve(null);
+
+        try {
+            await Promise.all([inProgressAssignments]);
+            isTransacting = false;
+            window.location.reload();
+        } catch {
+            errorModalText = 'Error while assigning content.';
+            isTransacting = false;
+        }
+    }
 
     let search = $state('');
     let visibleMyWorkContents: ResourceAssignedToSelf[] = $state([]);
@@ -133,6 +175,15 @@
             />
         {/if}
         {#if $searchParams.tab === Tab.myWork}
+            <button
+                data-app-insights-event-name="editor-dashboard-bulk-assign-click"
+                class="btn btn-primary"
+                onclick={() => (isAssignContentModalOpen = true)}
+                disabled={selectedMyWorkContents.length === 0}
+                >Assign
+            </button>
+        {/if}
+        {#if $searchParams.tab === Tab.myWork}
             <div class="my-1 ml-auto flex flex-col items-end justify-center">
                 <div class="text-sm text-gray-500">Total Items: {visibleMyWorkContents.length}</div>
                 <div class="text-sm text-gray-500">
@@ -154,11 +205,13 @@
         <Table
             bind:this={table}
             class="my-4"
-            columns={myWorkColumns}
-            items={visibleMyWorkContents}
+            enableSelectAll={true}
+            columns={myWorkColumns as column<unknown>[]}
+            items={visibleMyWorkContents as ResourceAssignedToSelf[]}
             idColumn="id"
             itemUrlPrefix="/resources/"
             bind:searchParams={$searchParams}
+            bind:selectedItems={selectedMyWorkContents}
             noItemsText="Your work is all done!"
             searchable={true}
             searchText={search}
@@ -179,7 +232,7 @@
         <Table
             bind:this={table}
             class="my-4"
-            columns={myHistoryColumns}
+            columns={myHistoryColumns as column<unknown>[]}
             items={visibleMyHistoryContents}
             idColumn="id"
             itemUrlPrefix="/resources/"
@@ -204,3 +257,16 @@
         </Table>
     {/if}
 </div>
+
+<Modal
+    {isTransacting}
+    primaryButtonText={'Assign'}
+    primaryButtonOnClick={bulkAssignContentToEditor}
+    primaryButtonDisabled={!assignToUserId}
+    bind:open={isAssignContentModalOpen}
+    header="Choose an Editor or Reviewer"
+>
+    <UserSelector users={editorsThatCanBeAssigned()} defaultLabel="Select User" bind:selectedUserId={assignToUserId} />
+</Modal>
+
+<Modal header="Error" bind:description={errorModalText} isError={true} />
