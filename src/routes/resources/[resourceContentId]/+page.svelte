@@ -423,7 +423,7 @@
         await takeActionAndCallback(
             async () =>
                 await postToApi<{ assignments: Assignment[] }>(
-                    `/resources/content/${currentResourceContentId}/send-for-manager-review`
+                    `/resources/content/${currentResourceContentId}/send-for-company-review`
                 ),
             async (response) => {
                 if (
@@ -592,7 +592,7 @@
         const content = get(editableContentStore);
         await patchToApi(`/resources/content/${resourceContent.resourceContentId}`, {
             displayName,
-            wordCount: calculateWordCount(draftCharacterCountsByStep),
+            wordCount: calculateWordCount(draftWordCountsByStep),
             ...(mediaType === MediaTypeEnum.text
                 ? { content: applyMetadataContentFields(stripOutRtlVerseReferenceMarkers(content)) }
                 : null),
@@ -898,6 +898,7 @@
                                 {commentStores}
                                 {machineTranslationStore}
                                 blurOnPendingAiTranslate={isStatusInAwaitingAiDraft}
+                                isSourceContentArea={false}
                             />
                         </div>
                         <div class="flex flex-row items-center space-x-4">
@@ -953,6 +954,7 @@
                                     {resourceContent}
                                     {commentStores}
                                     {machineTranslationStore}
+                                    isSourceContentArea={true}
                                 />
                                 {#if mediaType === MediaTypeEnum.text}
                                     <div
@@ -1001,6 +1003,7 @@
                     <BibleReferencesSidebar
                         visible={openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences}
                         language={resourceContent.language}
+                        languages={data.languages}
                         references={getSortedReferences(resourceContent)}
                     />
                 </div>
@@ -1020,7 +1023,7 @@
     </div>
 
     <InlineComment {commentStores} />
-    <VersePopout language={resourceContent.language} />
+    <VersePopout language={resourceContent.language} languages={data.languages} />
     <ResourcePopout />
 
     <Modal

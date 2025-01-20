@@ -12,6 +12,7 @@
     export let canComment: boolean;
     export let commentStores: CommentStores;
     export let tiptapJson: TiptapContentItem | undefined;
+    export let isSourceContentArea = false;
 
     function onChange(tiptapJson: object, wordCount: number, charCount: number) {
         wordCountsByStep[itemIndex] = wordCount;
@@ -25,5 +26,14 @@
 </script>
 
 <div class="flex h-full flex-col space-y-4">
-    <TiptapRenderer {language} {tiptapJson} {canEdit} {canComment} {commentStores} {onChange} {onCreate} />
+    <TiptapRenderer
+        {language}
+        {tiptapJson}
+        {canEdit}
+        {canComment}
+        {commentStores}
+        {onChange}
+        {onCreate}
+        {isSourceContentArea}
+    />
 </div>

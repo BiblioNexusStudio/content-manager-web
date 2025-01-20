@@ -40,7 +40,7 @@
     ) {
         const editor = new Editor({
             editable: false,
-            extensions: extensions(false, undefined, true, languageScriptDirection),
+            extensions: extensions(false, undefined, true, languageScriptDirection, false),
             content: tiptapJson.tiptap,
         });
         return editor.getHTML();
