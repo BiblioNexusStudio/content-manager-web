@@ -898,6 +898,7 @@
                                 {commentStores}
                                 {machineTranslationStore}
                                 blurOnPendingAiTranslate={isStatusInAwaitingAiDraft}
+                                isSourceContentArea={false}
                             />
                         </div>
                         <div class="flex flex-row items-center space-x-4">
@@ -953,6 +954,7 @@
                                     {resourceContent}
                                     {commentStores}
                                     {machineTranslationStore}
+                                    isSourceContentArea={true}
                                 />
                                 {#if mediaType === MediaTypeEnum.text}
                                     <div
@@ -1020,7 +1022,7 @@
     </div>
 
     <InlineComment {commentStores} />
-    <VersePopout language={resourceContent.language} />
+    <VersePopout language={resourceContent.language} languages={data.languages} />
     <ResourcePopout />
 
     <Modal

@@ -3,6 +3,12 @@ import type { ContentNode, VerseReference } from '../types';
 import { BibleReference } from 'aquifer-tiptap';
 
 export default BibleReference.extend({
+    addOptions() {
+        return {
+            ...this.parent?.(),
+            isSourceContentArea: false,
+        };
+    },
     renderHTML(args) {
         // use the aquifer-tiptap BibleReference renderer and add more to it
         const parentRender = this.parent?.(args);
@@ -10,7 +16,7 @@ export default BibleReference.extend({
             const spanId = `bibleref-${uuid()}`;
             parentRender[1].id = spanId;
             parentRender[1].style = 'color: green;';
-            parentRender[1].onClick = `onBibleReferenceClick('${spanId}', ${parentRender[1]['data-verses']})`;
+            parentRender[1].onClick = `onBibleReferenceClick('${spanId}', ${parentRender[1]['data-verses']}, ${this.options.isSourceContentArea})`;
 
             return parentRender;
         }

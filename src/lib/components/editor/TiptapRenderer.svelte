@@ -17,6 +17,7 @@
     export let isLoading = false;
     export let commentStores: CommentStores;
     export let blurOnPendingAiTranslate = false;
+    export let isSourceContentArea = false;
 
     let scrollSyncElement: HTMLDivElement | undefined;
     let element: HTMLDivElement | undefined;
@@ -70,7 +71,7 @@
         editor = new Editor({
             element,
             editable: canEdit,
-            extensions: extensions(canComment, commentStores, true, language.scriptDirection),
+            extensions: extensions(canComment, commentStores, true, language.scriptDirection, isSourceContentArea),
             editorProps: {
                 attributes: {
                     class: 'prose prose-sm sm:prose-base focus:outline-none text-black m-4 max-w-none',
