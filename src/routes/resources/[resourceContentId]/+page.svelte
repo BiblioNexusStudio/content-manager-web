@@ -1003,6 +1003,7 @@
                     <BibleReferencesSidebar
                         visible={openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences}
                         language={resourceContent.language}
+                        languages={data.languages}
                         references={getSortedReferences(resourceContent)}
                     />
                 </div>

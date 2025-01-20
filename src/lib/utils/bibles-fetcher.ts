@@ -23,3 +23,11 @@ export const fetchLanguageDefaultBible = async (languageId: number): Promise<Bas
         bibles?.find((b) => b.languageId === 1 && b.isLanguageDefault)
     );
 };
+
+export const fetchLanguageBiblesAndEnglishDefault = async (languageId: number) => {
+    const bibles = await fetchBibles();
+    const filteredBibles = bibles.filter(
+        (b) => b.languageId === languageId || (b.languageId === 1 && b.isLanguageDefault)
+    );
+    return filteredBibles;
+};
