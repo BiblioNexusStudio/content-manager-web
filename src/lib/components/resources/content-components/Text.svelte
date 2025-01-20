@@ -23,6 +23,7 @@
     export let commentStores: CommentStores;
     export let machineTranslationStore: MachineTranslationStore;
     export let blurOnPendingAiTranslate = false;
+    export let isSourceContentArea = false;
     let isComparingToCurrent: boolean;
 
     onMount(() => (selectedStepNumber ||= 1));
@@ -134,6 +135,7 @@
                         {resourceContent}
                         {machineTranslationStore}
                         {blurOnPendingAiTranslate}
+                        {isSourceContentArea}
                     />
                 {:else if isComparingToCurrent}
                     <TiptapDiffRenderer
@@ -155,6 +157,7 @@
                             canComment={false}
                             {commentStores}
                             tiptapJson={content[index]}
+                            {isSourceContentArea}
                         />
                     </div>
                 {/if}
