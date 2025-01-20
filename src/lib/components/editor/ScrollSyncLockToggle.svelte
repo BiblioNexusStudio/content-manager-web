@@ -1,10 +1,10 @@
 <script>
     import LockClosedIcon from '$lib/icons/LockClosedIcon.svelte';
     import LockOpenIcon from '$lib/icons/LockOpenIcon.svelte';
-    import { isScrollSyncEnabled } from '$lib/stores/scrollSync';
+    import { scrollSync } from '$lib/stores/scrollSync.svelte.ts';
     import Tooltip from '../Tooltip.svelte';
 
-    $: tooltipStr = $isScrollSyncEnabled ? 'Disable' : 'Enable';
+    let tooltipStr = $derived(scrollSync.isEnabled() ? 'Disable' : 'Enable');
 </script>
 
 <Tooltip
@@ -12,12 +12,8 @@
     class="flex border-primary align-middle text-primary"
     text="{tooltipStr} Scroll Lock"
 >
-    <button
-        on:click={() => ($isScrollSyncEnabled = !$isScrollSyncEnabled)}
-        class="btn mt-1 h-auto min-h-0 p-1"
-        class:btn-primary={$isScrollSyncEnabled}
-    >
-        {#if $isScrollSyncEnabled}
+    <button onclick={scrollSync.toggle} class="btn mt-1 h-auto min-h-0 p-1" class:btn-primary={scrollSync.isEnabled()}>
+        {#if scrollSync.isEnabled()}
             <LockClosedIcon />
         {:else}
             <LockOpenIcon />
