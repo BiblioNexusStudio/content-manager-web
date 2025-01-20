@@ -45,7 +45,11 @@
             bibles = await fetchLanguageBiblesAndEnglishDefault(language.id);
             fetchedBibles = true;
         }
-        const bible = bibles.find((b) => b.languageId === language.id && b.isLanguageDefault);
+
+        const bible = bibles.some((b) => b.languageId === language.id && b.isLanguageDefault)
+            ? bibles.find((b) => b.languageId === language.id && b.isLanguageDefault)
+            : bibles.find((b) => b.languageId === 1 && b.isLanguageDefault);
+
         if (currentBibleId === null) {
             currentBibleId = bible?.id ?? null;
         }
