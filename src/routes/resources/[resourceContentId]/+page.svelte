@@ -423,7 +423,7 @@
         await takeActionAndCallback(
             async () =>
                 await postToApi<{ assignments: Assignment[] }>(
-                    `/resources/content/${currentResourceContentId}/send-for-manager-review`
+                    `/resources/content/${currentResourceContentId}/send-for-company-review`
                 ),
             async (response) => {
                 if (
@@ -592,7 +592,7 @@
         const content = get(editableContentStore);
         await patchToApi(`/resources/content/${resourceContent.resourceContentId}`, {
             displayName,
-            wordCount: calculateWordCount(draftCharacterCountsByStep),
+            wordCount: calculateWordCount(draftWordCountsByStep),
             ...(mediaType === MediaTypeEnum.text
                 ? { content: applyMetadataContentFields(stripOutRtlVerseReferenceMarkers(content)) }
                 : null),
