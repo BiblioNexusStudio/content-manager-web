@@ -1,9 +1,13 @@
 <script lang="ts">
-    export let addPlus = false;
-    export let reportTitle: string;
-    export let reportTotal: number;
-    export let monthTotal: number;
-    export let monthText = 'This Month';
+    interface Props {
+        addPlus?: boolean;
+        reportTitle: string;
+        reportTotal: number;
+        monthTotal: number;
+        monthText?: string;
+    }
+
+    let { addPlus = false, reportTitle, reportTotal, monthTotal, monthText = 'This Month' }: Props = $props();
 </script>
 
 <div class="mb-4 flex h-auto flex-col rounded border px-4 py-4 shadow-lg">

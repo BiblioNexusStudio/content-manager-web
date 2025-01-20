@@ -23,28 +23,23 @@
         id: number;
     }
 
-    export let data: PageData;
+    interface Props {
+        data: PageData;
+    }
 
-    let isTransacting = false;
-    let search = '';
-    let translationPairs: TranslationPair[] = [];
-    let filteredTranslationPairs: TranslationPair[] = [];
-    let translationPairsLanguages: TranslationPairsLanguage[] = [];
-    let openDeleteModal = false;
-    let openCreateModal = false;
-    let newKey = '';
-    let newValue = '';
-    let currentLanguageDisplayname = '';
+    let { data }: Props = $props();
+
+    let isTransacting = $state(false);
+    let search = $state('');
+    let translationPairsLanguages: TranslationPairsLanguage[] = $state([]);
+    let openDeleteModal = $state(false);
+    let openCreateModal = $state(false);
+    let newKey = $state('');
+    let newValue = $state('');
     let currentDeleteTranslationPairId = 0;
-    let errorMessage = '';
-    let openErrorModal = false;
-    let table: Table<TranslationPair> | undefined;
-
-    $: filteredTranslationPairs = filterTranslationPairs(search, translationPairs, $searchParams.currentLanguageId);
-    $: currentLanguageDisplayname = getCurrentLanguageDisplayname($searchParams.currentLanguageId);
-    $: settingsColumns = buildSettingsColumns(currentLanguageDisplayname);
-    $: translationPairs = data.translationPairs;
-    $: getTranslationPairsLanguages();
+    let errorMessage = $state('');
+    let openErrorModal = $state(false);
+    let table: Table<TranslationPair> | undefined = $state(undefined);
 
     const sortSettingsData = createSettingsTableSorter<TranslationPair>();
 
@@ -249,6 +244,19 @@
 
         return patchTranslationPairValue(event, id);
     }, 1000) as { (event: KeyboardEvent, id: number, type: 'key' | 'value'): Promise<void>; cancel: () => void };
+
+    let translationPairs = $derived(data?.translationPairs ?? []);
+    let filteredTranslationPairs = $derived(
+        filterTranslationPairs(search, translationPairs, $searchParams.currentLanguageId)
+    );
+
+    let currentLanguageDisplayname = $derived(getCurrentLanguageDisplayname($searchParams.currentLanguageId));
+
+    let settingsColumns = $derived(buildSettingsColumns(currentLanguageDisplayname));
+
+    $effect(() => {
+        getTranslationPairsLanguages();
+    });
 </script>
 
 <div class="flex h-full flex-col overflow-x-hidden overflow-y-hidden px-4 pb-4">
@@ -282,14 +290,14 @@
             {/if}
             <button
                 class="btn btn-primary ms-4"
-                on:click={() => {
+                onclick={() => {
                     openCreateModal = true;
                 }}
             >
                 Add
             </button>
             {#if isTransacting}
-                <div class="flex grow justify-end"><div class="loading loading-spinner" /></div>
+                <div class="flex grow justify-end"><div class="loading loading-spinner"></div></div>
             {/if}
         </div>
         <Table
@@ -311,7 +319,7 @@
                                 type="text"
                                 value={translationPair.translationPairKey}
                                 class="h-full grow p-2"
-                                on:keyup={(event) => handleKeyUp(event, translationPair.translationPairId, 'key')}
+                                onkeyup={(event) => handleKeyUp(event, translationPair.translationPairId, 'key')}
                             />
                         </td>
                         <td>
@@ -319,11 +327,11 @@
                                 type="text"
                                 value={translationPair.translationPairValue}
                                 class="h-full grow p-2"
-                                on:keyup={(event) => handleKeyUp(event, translationPair.translationPairId, 'value')}
+                                onkeyup={(event) => handleKeyUp(event, translationPair.translationPairId, 'value')}
                             />
                         </td>
                         <td
-                            on:click={openDeleteTranslationPair(translationPair.translationPairId)}
+                            onclick={openDeleteTranslationPair(translationPair.translationPairId)}
                             class="cursor-pointer"
                         >
                             <TrashIcon />
@@ -353,7 +361,7 @@
             class="input input-bordered mb-4"
             placeholder="Value"
             bind:value={newValue}
-            on:keyup={(e) => (e.code === 'Enter' || e.code === 'NumpadEnter') && addTranslationPair()}
+            onkeyup={(e) => (e.code === 'Enter' || e.code === 'NumpadEnter') && addTranslationPair()}
         />
     </div>
 </Modal>

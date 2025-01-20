@@ -144,7 +144,7 @@
                 {:else}
                     <div class="flex h-full flex-col">
                         {#if !isShowingSnapshotOrVersion}
-                            <div class="h-[2.625rem]" />
+                            <div class="h-[2.625rem]"></div>
                         {/if}
                         <SingleItemDisplay
                             language={resourceContent.language}

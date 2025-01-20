@@ -258,7 +258,7 @@
                         </button>
                     {/each}
                 {/if}
-                <div class="divider divider-horizontal w-0" />
+                <div class="divider divider-horizontal w-0"></div>
                 {#if canEditBibleReferences}
                     <LinkBibleReferenceButton {resourceContent} languageId={resourceContent.language.id} {editor} />
                 {/if}

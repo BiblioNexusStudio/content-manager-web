@@ -19,6 +19,6 @@ export const load: PageLoad = async ({ parent, fetch }) => {
         const projects = await getFromApi<ProjectListResponse[]>('/projects', fetch);
         return { projects, companies: [] as Company[] };
     } else {
-        throw redirect(302, '/');
+        redirect(302, '/');
     }
 };

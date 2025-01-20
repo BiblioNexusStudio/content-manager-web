@@ -82,7 +82,7 @@
     <div class="flex w-2/3 items-center">
         <BackButton defaultPathIfNoHistory="/projects" />
         <span class="ms-2 text-2xl">
-            {projectResponse.company} - {projectResponse.name}
+            {projectResponse?.company} - {projectResponse?.name}
         </span>
     </div>
     <div class="flex">
@@ -99,15 +99,15 @@
 </div>
 <div class="flex flex-col overflow-hidden xl:flex-row">
     <div class="px-4 xl:me-8">
-        <ProjectViewTabs canOnlyViewProjectsInCompany={data.canOnlyViewProjectsInCompany} />
-        {#if projectResponse.counts.notStarted + projectResponse.counts.editorReview + projectResponse.counts.inCompanyReview + projectResponse.counts.inPublisherReview + projectResponse.counts.completed > 0}
+        <ProjectViewTabs canOnlyViewProjectsInCompany={data?.canOnlyViewProjectsInCompany ?? false} />
+        {#if (projectResponse?.counts?.notStarted ?? 0) + (projectResponse?.counts?.editorReview ?? 0) + (projectResponse?.counts?.inCompanyReview ?? 0) + (projectResponse?.counts?.inPublisherReview ?? 0) + (projectResponse?.counts?.completed ?? 0) > 0}
             <div class="mb-4 w-1/2 pe-4 xl:w-full xl:pe-0">
                 <ProjectProgressBar
-                    notStartedCount={projectResponse.counts.notStarted}
-                    editorReviewCount={projectResponse.counts.editorReview}
-                    inCompanyReviewCount={projectResponse.counts.inCompanyReview}
-                    inPublisherReviewCount={projectResponse.counts.inPublisherReview}
-                    completeCount={projectResponse.counts.completed}
+                    notStartedCount={projectResponse?.counts?.notStarted ?? 0}
+                    editorReviewCount={projectResponse?.counts?.editorReview ?? 0}
+                    inCompanyReviewCount={projectResponse?.counts?.inCompanyReview ?? 0}
+                    inPublisherReviewCount={projectResponse?.counts?.inPublisherReview ?? 0}
+                    completeCount={projectResponse?.counts?.completed ?? 0}
                     showLegend={true}
                 />
             </div>

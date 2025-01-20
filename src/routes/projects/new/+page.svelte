@@ -186,7 +186,7 @@
         <div class="flex-grow"></div>
         <button class="btn btn-primary" on:click={save} disabled={!canSave}>
             {#if isSaving}
-                <span class="loading loading-spinner" />
+                <span class="loading loading-spinner"></span>
             {:else}
                 Create
             {/if}

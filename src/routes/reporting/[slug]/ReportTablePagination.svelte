@@ -3,10 +3,14 @@
     import chevronRight from 'svelte-awesome/icons/chevronRight';
     import Icon from 'svelte-awesome/components/Icon.svelte';
 
-    export let perPage: number;
-    export let paginationStart: number;
-    export let paginationEnd: number;
-    export let totalCount: number;
+    interface Props {
+        perPage: number;
+        paginationStart: number;
+        paginationEnd: number;
+        totalCount: number;
+    }
+
+    let { perPage, paginationStart = $bindable(), paginationEnd = $bindable(), totalCount }: Props = $props();
 
     function handleLeftClick() {
         if (paginationStart === 0) return;
@@ -43,7 +47,7 @@
 <div class="flex h-full w-auto items-center justify-between space-x-2">
     <button
         class="btn btn-link btn-secondary disabled:bg-white"
-        on:click={handleLeftClick}
+        onclick={handleLeftClick}
         disabled={paginationStart === 0}
     >
         <Icon data={chevronLeft} />
@@ -53,7 +57,7 @@
 
     <button
         class="btn btn-link btn-secondary disabled:bg-white"
-        on:click={handleRightClick}
+        onclick={handleRightClick}
         disabled={paginationEnd === totalCount}
     >
         <Icon data={chevronRight} />

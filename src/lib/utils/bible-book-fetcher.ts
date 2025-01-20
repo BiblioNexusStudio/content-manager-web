@@ -1,4 +1,4 @@
-﻿import { log } from '$lib/logger';
+import { log } from '$lib/logger';
 import { getFromApi } from '$lib/utils/http-service';
 import type { ApiError } from './http-errors';
 

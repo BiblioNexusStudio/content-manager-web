@@ -4,17 +4,24 @@
     import type { ResourcesByLanguage, ResourcesByParentResource, TotalsByMonth } from '../../routes/(dashboard)/+page';
     import { _ as translate } from 'svelte-i18n';
 
+    interface Props {
+        totalsByMonth: TotalsByMonth[];
+        resourcesByLanguage: ResourcesByLanguage[];
+        resourcesByType: ResourcesByParentResource[];
+        selectedLanguages: string[];
+        selectedResource: string;
+    }
+
+    let { totalsByMonth, resourcesByLanguage, resourcesByType, selectedLanguages, selectedResource }: Props = $props();
+
     const defaultSelection = 'default';
-    export let totalsByMonth: TotalsByMonth[];
-    export let resourcesByLanguage: ResourcesByLanguage[];
-    export let resourcesByType: ResourcesByParentResource[];
-    export let selectedLanguages: string[];
-    export let selectedResource: string;
     const months = totalsByMonth.map((item) => item.monthAbbreviation);
 
     let chart: Chart | undefined;
 
-    $: updateTotalResourcesChart(selectedLanguages, selectedResource);
+    $effect(() => {
+        updateTotalResourcesChart(selectedLanguages, selectedResource);
+    });
 
     const updateTotalResourcesChart = (languages: string[], resource: string) => {
         if (languages.length === 0 && resource !== defaultSelection) {
@@ -151,5 +158,5 @@
 
 <div class="flex flex-col">
     <div class="mb-6 text-lg font-bold">{$translate('page.dashboard.charts.totalResources.value')}</div>
-    <canvas class="!h-full max-h-[24.125rem] !w-full" id="totalResourcesAreaChart" />
+    <canvas class="!h-full max-h-[24.125rem] !w-full" id="totalResourcesAreaChart"></canvas>
 </div>

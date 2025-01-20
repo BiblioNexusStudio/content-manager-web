@@ -863,10 +863,10 @@
                     'transition-[width]'} {!$sidebarContentStore.isOpen && !isShowingSupplementalSidebar
                     ? 'w-full'
                     : $sidebarContentStore.isOpen && !isShowingSupplementalSidebar
-                    ? 'w-1/2'
-                    : !$sidebarContentStore.isOpen && isShowingSupplementalSidebar
-                    ? 'w-4/5'
-                    : 'w-2/5'}"
+                      ? 'w-1/2'
+                      : !$sidebarContentStore.isOpen && isShowingSupplementalSidebar
+                        ? 'w-4/5'
+                        : 'w-2/5'}"
                 class:order-first={!$isEditorPaneOnLeft}
                 class:pe-3={!$isEditorPaneOnLeft}
                 class:ps-3={$isEditorPaneOnLeft}
@@ -882,7 +882,7 @@
                                 readonly={!canMakeContentEdits || !resourceContent.isDraft || $isPageTransacting}
                             />
                             {#if resourceContent.isDraft}
-                                <div class="grow" />
+                                <div class="grow"></div>
                                 <div class="me-2 font-semibold text-gray-700">Draft</div>
                             {/if}
                         </div>
@@ -922,8 +922,8 @@
                     'transition-[width]'} {!$sidebarContentStore.isOpen
                     ? 'w-0'
                     : isShowingSupplementalSidebar
-                    ? 'w-2/5'
-                    : 'w-1/2'}"
+                      ? 'w-2/5'
+                      : 'w-1/2'}"
                 class:order-first={$isEditorPaneOnLeft}
                 class:ps-3={!$isEditorPaneOnLeft}
                 class:pe-3={$isEditorPaneOnLeft}
@@ -1098,8 +1098,7 @@
                     <span class="label-text">Aquiferization Needed</span>
                 </label>
             </div>
-            <!-- svelte-ignore a11y-label-has-associated-control -->
-            <label class="form-control">
+            <label class="form-control" for="aquiferization-assignment">
                 <div class="label">
                     <span class="label-text">Aquiferization Assignment (optional)</span>
                 </div>

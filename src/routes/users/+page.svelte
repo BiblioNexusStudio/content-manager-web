@@ -97,7 +97,7 @@
                         <th>{$translate('page.users.role.value')}</th>
                         <th>{$translate('page.users.company.value')}</th>
                         <th>{$translate('page.users.status.value')}</th>
-                        <th />
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>

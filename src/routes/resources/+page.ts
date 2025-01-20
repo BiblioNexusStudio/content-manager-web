@@ -24,7 +24,7 @@ export const load: PageLoad = async ({ parent, url, fetch }) => {
     await parent();
 
     if (!get(userCan)(Permission.ReadResourceLists)) {
-        throw redirect(302, '/');
+        redirect(302, '/');
     }
 
     return {

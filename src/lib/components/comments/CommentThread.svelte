@@ -112,8 +112,9 @@
                 $createNewThread(true, threadId, false);
                 showParent = false;
 
-                // Make sure activeThread is refreshed
-                await tick();
+                // await tick() no longer working in this instance after the Svelte 5 upgrade.
+                // We have to manually update activeThread.
+                activeThread = $commentThreads?.threads.find((x) => x.id === threadId);
             } else {
                 res = await postToApi('/comments', {
                     threadId: threadId,
@@ -233,7 +234,7 @@
                     >
                 </div>
             {/if}
-            <div class="divider mx-2 my-0" />
+            <div class="divider mx-2 my-0"></div>
         {:else if !isCommenting && !activeThread.resolved}
             <div class="flex justify-end">
                 {#if comment.user.id === $currentUser?.id}
@@ -247,7 +248,7 @@
                 >
             </div>
         {:else}
-            <div class="h-3" />
+            <div class="h-3"></div>
         {/if}
     {/each}
     {#if isCommenting && !editingCommentId}
@@ -256,7 +257,7 @@
                 {#if isNewThread}
                     <div class="my-2">Create comment</div>
                 {:else}
-                    <div class="divider mx-2 my-1" />
+                    <div class="divider mx-2 my-1"></div>
                 {/if}
                 <CommentTextArea disabled={isSendingComment} bind:value={currentCommentValue}></CommentTextArea>
             </div>

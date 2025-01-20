@@ -1,4 +1,4 @@
-﻿import { derived, type Readable, type Writable, writable } from 'svelte/store';
+import { derived, type Readable, type Writable, writable } from 'svelte/store';
 import type { CommentThreadsResponse, CommentMark } from '$lib/types/comments';
 
 export type CommentStores = ReturnType<typeof createCommentStores>;
