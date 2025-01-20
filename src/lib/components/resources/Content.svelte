@@ -27,6 +27,7 @@
     export let commentStores: CommentStores;
     export let machineTranslationStore: MachineTranslationStore;
     export let blurOnPendingAiTranslate = false;
+    export let isSourceContentArea = false;
 
     $: imageContent = (snapshotOrVersion?.content ?? resourceContent.content) as ImageContentItem;
     $: videoContent = (snapshotOrVersion?.content ?? resourceContent.content) as VideoContentItem;
@@ -50,5 +51,6 @@
         {commentStores}
         {machineTranslationStore}
         {blurOnPendingAiTranslate}
+        {isSourceContentArea}
     />
 {/if}
