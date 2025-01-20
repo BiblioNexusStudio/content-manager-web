@@ -70,6 +70,11 @@ function fetchAssignedResourceContent(injectedFetch: typeof window.fetch) {
     return getFromApi<ResourceAssignedToSelf[]>('/resources/content/assigned-to-self', injectedFetch);
 }
 
+export enum _CommunityReviewerTab {
+    resources = 'resources',
+    myHistory = 'my-history',
+}
+
 export interface ResourcesByParentResource extends TotalsByMonth {
     parentResourceName: string;
 }
