@@ -100,6 +100,8 @@
     let currentManageContents: ResourceAssignedToOwnCompany[] = [];
     let selectedManageContents: ResourceAssignedToOwnCompany[] = [];
 
+    let isSkipEditor = false;
+
     const setTabContents = (
         tab: string,
         assignedUserId: number,
@@ -175,6 +177,10 @@
         }
     }
 
+    function toggleSkipEditor() {
+        isSkipEditor = !isSkipEditor;
+    }
+
     const switchProjectAndLastAssignedNames = (tab: string) => {
         if (tab === Tab.myWork) {
             currentProjectNames = myWorkProjectNames;
@@ -220,9 +226,10 @@
     const assignEditor = async (contentIds: number[]) => {
         if (contentIds.length > 0) {
             await postToApi<null>('/resources/content/send-for-editor-review', {
-                assignedUserId: assignToEditorUserId,
-                assignedReviewerUserId: assignToReviewerUserId,
+                assignedUserId: isSkipEditor ? assignToReviewerUserId : assignToEditorUserId,
+                assignedReviewerUserId: isSkipEditor ? null : assignToReviewerUserId,
                 contentIds: contentIds,
+                skipEditorStep: isSkipEditor,
             });
         }
     };
@@ -500,19 +507,40 @@
     isTransacting={isAssigning}
     primaryButtonText={'Assign'}
     primaryButtonOnClick={() => updateContent(assignEditor)}
-    primaryButtonDisabled={!assignToEditorUserId}
+    primaryButtonDisabled={isSkipEditor ? !assignToReviewerUserId : !assignToEditorUserId}
     bind:open={isAssignContentModalOpen}
     header={'Assign Resource(s)'}
 >
-    <h3 class="my-4 text-xl">Editor<span class="text-error">*</span></h3>
+    <h3 class="my-4 text-xl">
+        Editor
+        {#if !isSkipEditor}
+            <span class="text-error">*</span>
+        {/if}
+    </h3>
     <UserSelector
         users={data.users?.filter((u) => u.role !== UserRole.ReportViewer) ?? []}
         defaultLabel="Select Editor"
+        bind:disabled={isSkipEditor}
         bind:selectedUserId={assignToEditorUserId}
     />
 
     {#if $searchParams.tab === Tab.toAssign}
-        <h3 class="my-4 text-xl">Reviewer</h3>
+        <label class="label mt-5 cursor-pointer justify-start">
+            <input
+                type="checkbox"
+                class="checkbox checkbox-sm"
+                on:click={toggleSkipEditor}
+                checked={isSkipEditor}
+                aria-label="Skip Editor Step"
+            />
+            <span class="label-text pl-2 text-xs text-opacity-70">Skip Editor Step</span>
+        </label>
+        <h3 class="my-4 text-xl">
+            Reviewer
+            {#if isSkipEditor}
+                <span class="text-error">*</span>
+            {/if}
+        </h3>
         <UserSelector
             users={data.users?.filter((u) => u.role === UserRole.Reviewer || u.role === UserRole.Manager) ?? []}
             defaultLabel="Select Reviewer"
