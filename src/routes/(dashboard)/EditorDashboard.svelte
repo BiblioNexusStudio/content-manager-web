@@ -10,7 +10,6 @@
     import { formatSimpleDaysAgo, utcDateTimeStringToDateTime } from '$lib/utils/date-time';
     import { type ResourceAssignedToSelf, type ResourceAssignedToSelfHistory, _EditorTab as Tab } from './+page';
     import Table from '$lib/components/Table.svelte';
-    import type { column } from '$lib/types/table';
     import { myHistoryColumns, myWorkColumns } from './editor-dashboard-columns';
     import TableCell from '$lib/components/TableCell.svelte';
     import { download } from '$lib/utils/csv-download-handler';
@@ -206,7 +205,7 @@
             bind:this={table}
             class="my-4"
             enableSelectAll={true}
-            columns={myWorkColumns as column<unknown>[]}
+            columns={myWorkColumns}
             items={visibleMyWorkContents as ResourceAssignedToSelf[]}
             idColumn="id"
             itemUrlPrefix="/resources/"
@@ -232,8 +231,8 @@
         <Table
             bind:this={table}
             class="my-4"
-            columns={myHistoryColumns as column<unknown>[]}
-            items={visibleMyHistoryContents}
+            columns={myHistoryColumns}
+            items={visibleMyHistoryContents as ResourceAssignedToSelfHistory[]}
             idColumn="id"
             itemUrlPrefix="/resources/"
             bind:searchParams={$searchParams}
