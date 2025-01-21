@@ -192,7 +192,7 @@
             'Key already exists for this language',
             'Keys must be at least 3 characters long. Some keywords are not allowed.',
             "The length of 'key' must be at least 3 characters.",
-            "The length of 'value' must be at least 3 characters.",
+            "The length of 'value' must be at least 2 characters.",
         ];
 
         let containsErrorMessage = false;
