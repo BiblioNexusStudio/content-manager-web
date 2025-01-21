@@ -4,7 +4,7 @@
     import type { TiptapContentItem } from '$lib/types/resources';
     import { extensions } from '../tiptap/config';
     import type { CommentStores } from '$lib/stores/comments';
-    import { scrollPosition, isScrollSyncEnabled, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
+    import { scrollSync } from '$lib/stores/scrollSync.svelte.ts';
     import type { Language } from '$lib/types/base';
 
     export let language: Language;
@@ -17,40 +17,12 @@
     export let isLoading = false;
     export let commentStores: CommentStores;
     export let blurOnPendingAiTranslate = false;
+    export let isSourceContentArea = false;
 
-    let scrollSyncElement: HTMLDivElement | undefined;
     let element: HTMLDivElement | undefined;
 
     $: updateEditor(tiptapJson);
     $: enableOrDisableEditing(canEdit);
-
-    $: {
-        if (
-            $isScrollSyncEnabled &&
-            scrollSyncElement &&
-            $scrollSyncSourceDiv &&
-            $scrollSyncSourceDiv !== scrollSyncElement
-        ) {
-            const scrollHeight = scrollSyncElement.scrollHeight;
-            const clientHeight = scrollSyncElement.clientHeight;
-
-            scrollSyncElement.scrollTop = $scrollPosition * (scrollHeight - clientHeight);
-        }
-    }
-
-    const setScrollSyncElement = () => {
-        $scrollSyncSourceDiv = scrollSyncElement;
-    };
-
-    const handleScroll = () => {
-        if (scrollSyncElement) {
-            const scrollHeight = scrollSyncElement.scrollHeight;
-            const clientHeight = scrollSyncElement.clientHeight;
-            const scrollTop = scrollSyncElement.scrollTop;
-
-            $scrollPosition = Math.round((scrollTop / (scrollHeight - clientHeight)) * 1000) / 1000;
-        }
-    };
 
     function updateEditor(tiptapJson: TiptapContentItem | undefined) {
         if (tiptapJson && editor) {
@@ -63,14 +35,10 @@
     }
 
     onMount(() => {
-        if (scrollSyncElement) {
-            scrollSyncElement.scrollTop = 0;
-        }
-
         editor = new Editor({
             element,
             editable: canEdit,
-            extensions: extensions(canComment, commentStores, true, language.scriptDirection),
+            extensions: extensions(canComment, commentStores, true, language.scriptDirection, isSourceContentArea),
             editorProps: {
                 attributes: {
                     class: 'prose prose-sm sm:prose-base focus:outline-none text-black m-4 max-w-none',
@@ -114,12 +82,8 @@
 </script>
 
 <div class="relative grow">
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div
-        bind:this={scrollSyncElement}
-        on:scroll={handleScroll}
-        on:mouseenter={setScrollSyncElement}
-        on:focus={setScrollSyncElement}
+        use:scrollSync
         class="absolute bottom-0 left-0 right-0 top-0 overflow-y-auto rounded-md border border-base-300 bg-white"
         class:blur-sm={blurOnPendingAiTranslate}
     >

@@ -23,7 +23,8 @@ export function extensions(
     canComment: boolean,
     commentStores: CommentStores | undefined,
     includeTextDirection: boolean,
-    languageScriptDirection: ScriptDirection | undefined
+    languageScriptDirection: ScriptDirection | undefined,
+    isSourceContentArea: boolean
 ) {
     return filterBoolean([
         ...configureAndOverrideExtensions(officialNodes, [
@@ -37,7 +38,7 @@ export function extensions(
         ...configureAndOverrideExtensions(editOnlyExtensions, []),
 
         ...configureAndOverrideExtensions(customExtensions, [
-            BibleReference.configure({}),
+            BibleReference.configure({ isSourceContentArea }),
             ResourceReference.configure({}),
             Comments.configure({ render: canComment, commentStores: commentStores }),
         ]),

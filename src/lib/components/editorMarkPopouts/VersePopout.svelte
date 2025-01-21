@@ -7,6 +7,7 @@
     import type { Language } from '$lib/types/base';
 
     export let language: Language;
+    export let languages: Language[];
 
     let markSpan: HTMLElement | null;
     let show = false;
@@ -16,7 +17,7 @@
     let failedFetch = false;
 
     onMount(() => {
-        window.onBibleReferenceClick = async (spanId, verses) => {
+        window.onBibleReferenceClick = async (spanId, verses, isSourceContentArea) => {
             // Because of the response caching used, there can still be a very slight delay when loading
             // a resource that's already cached. The timeout and duplicated show = true prevents some jank
             // when switching back and forth between references.
@@ -28,11 +29,19 @@
                 show = true;
             }, 100);
 
+            let localLanguage: Language;
+
             markSpan = document.getElementById(spanId);
+
+            if (isSourceContentArea) {
+                localLanguage = languages.find((l) => l.iso6393Code === 'eng')!;
+            } else {
+                localLanguage = language;
+            }
 
             const responses: BibleTextsReference[] = [];
             for (const [startVerse, endVerse] of verses) {
-                const fetchResponse = await fetchAndFormat(startVerse, endVerse, language);
+                const fetchResponse = await fetchAndFormat(startVerse, endVerse, localLanguage);
                 if (fetchResponse) {
                     responses.push(fetchResponse);
                 }
