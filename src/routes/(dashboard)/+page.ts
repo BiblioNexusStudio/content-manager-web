@@ -75,6 +75,14 @@ export enum _CommunityReviewerTab {
     myHistory = 'my-history',
 }
 
+export enum _PublisherTab {
+    myWork = 'my-work',
+    reviewPending = 'review-pending',
+    myProjects = 'my-projects',
+    community = 'community',
+    notApplicable = 'not-applicable',
+}
+
 export interface ResourcesByParentResource extends TotalsByMonth {
     parentResourceName: string;
 }
