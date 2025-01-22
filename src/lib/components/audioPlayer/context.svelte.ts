@@ -19,8 +19,8 @@ import { getContext, setContext } from 'svelte';
 // };
 
 export type AudioPlaylist = {
-    paused: boolean;
     currentTrack: number;
+    paused: boolean;
     tracks: AudioTrack[];
 };
 

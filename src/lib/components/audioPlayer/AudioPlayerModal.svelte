@@ -12,8 +12,8 @@
     // have to prep playlist wher you want to use the audio player
     // preferred media types like webm should be listed first and the fall back last
     let playlist: AudioPlaylist = $state({
-        paused: true,
         currentTrack: 0,
+        paused: true,
         tracks: [
             [
                 {
@@ -56,7 +56,7 @@
 
     setAudioPlaylistContext(playlist);
 
-    let isAudioPlayerModalOpen = $state(true);
+    let isAudioPlayerModalOpen = $state(false);
 
     $effect(() => {
         if (isAudioPlayerModalOpen === false) {

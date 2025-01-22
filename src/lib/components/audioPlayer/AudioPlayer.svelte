@@ -5,8 +5,8 @@
     import PauseMediaIcon from './icons/PauseMediaIcon.svelte';
     import PlayMediaIcon from './icons/PlayMediaIcon.svelte';
     import ArrowForward10Icon from './icons/ArrowForward10Icon.svelte';
-    import PlayMediaSpeedIcon from './icons/PlayMediaSpeedIcon.svelte';
     import { getAudioPlaylistContext, type AudioPlaylist } from './context.svelte';
+    import PlayBackSpeedPopover from './PlayBackSpeedPopover.svelte';
 
     let playlist: AudioPlaylist = getAudioPlaylistContext() ?? { tracks: [], currentTrack: 0 };
 
@@ -156,14 +156,7 @@
                 <ArrowForward10Icon />
             </button>
 
-            <button
-                class="audio-control-btn"
-                title="Adjust playback speed"
-                aria-label="Adjust playback speed"
-                data-app-insights-event-name="audio-player-play-or-pause-button-clicked"
-            >
-                <PlayMediaSpeedIcon />
-            </button>
+            <PlayBackSpeedPopover bind:playbackRate />
         {/if}
     </div>
 </div>
@@ -211,6 +204,6 @@
     }
 
     .audio-control-btn:hover {
-        filter: brightness(01.1);
+        filter: brightness(1.1);
     }
 </style>
