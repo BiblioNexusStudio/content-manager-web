@@ -6,12 +6,12 @@
     import PlayMediaIcon from './icons/PlayMediaIcon.svelte';
     import ArrowForward10Icon from './icons/ArrowForward10Icon.svelte';
     import PlayMediaSpeedIcon from './icons/PlayMediaSpeedIcon.svelte';
+    import { getAudioPlaylistContext, type AudioPlaylist } from './context.svelte';
 
-    let { playlist } = $props();
+    let playlist: AudioPlaylist = getAudioPlaylistContext() ?? { tracks: [], currentTrack: 0 };
 
     let duration: number = $state(0);
     let currentTime: number = $state(0);
-    let paused: boolean = $state(true);
     let volume: number = $state(0.5);
     let muted: boolean = $state(false);
     let playbackRate: number = $state(1);
@@ -42,7 +42,7 @@
     }
 
     function playOrPause() {
-        paused = !paused;
+        playlist.paused = !playlist.paused;
     }
 
     function skipAhead() {
@@ -69,7 +69,12 @@
     function selectAudioSource() {
         const audioElement = document.createElement('audio');
 
-        for (let source of playlist[currentTrack]) {
+        if (!playlist.tracks || !playlist.tracks[currentTrack]) {
+            currentTrackSrc = '';
+            return;
+        }
+
+        for (let source of playlist.tracks[currentTrack]) {
             if (audioElement.canPlayType(`audio/${source.type}`)) {
                 currentTrackSrc = source.url;
                 break;
@@ -84,7 +89,7 @@
     <audio
         bind:duration
         bind:currentTime
-        bind:paused
+        bind:paused={playlist.paused}
         bind:volume
         bind:muted
         bind:playbackRate
@@ -131,10 +136,10 @@
             <button
                 onclick={playOrPause}
                 class="audio-control-btn"
-                aria-label={paused ? 'play' : 'pause'}
+                aria-label={playlist.paused ? 'play' : 'pause'}
                 data-app-insights-event-name="audio-player-play-or-pause-button-clicked"
             >
-                {#if !paused}
+                {#if !playlist.paused}
                     <PauseMediaIcon />
                 {:else}
                     <PlayMediaIcon />
@@ -168,7 +173,7 @@
         display: grid;
         padding: 1rem;
         border: 1px solid #ccc;
-        width: 30rem;
+        width: 29rem;
         height: 10rem;
     }
 
