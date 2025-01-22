@@ -66,3 +66,26 @@ export function isApiErrorWithMessage(error: unknown, message: string, atKey?: s
     }
     return false;
 }
+/*
+When the validator throws an error, the errors object will be keyed by the parameter name that failed validation.
+Pass an array of parameter keys for the api request to this function to get the error message for the first parameter that failed validation.
+Returns a string if the error is found, false if the error is not found or if the error is not an ApiError.
+*/
+
+export function parseApiValidatorErrorMessage(error: unknown, parameterKeys: string[]): string | boolean {
+    if (error instanceof ApiError) {
+        if (typeof error.body === 'object') {
+            const errorBody = error.body as { message: string; errors: Record<string, unknown[]> };
+            for (const key of parameterKeys) {
+                if (
+                    key in errorBody.errors &&
+                    Array.isArray(errorBody.errors[key]) &&
+                    typeof errorBody.errors[key][0] === 'string'
+                ) {
+                    return errorBody.errors[key][0];
+                }
+            }
+        }
+    }
+    return false;
+}
