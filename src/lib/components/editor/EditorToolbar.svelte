@@ -24,31 +24,44 @@
     import { ResourceContentStatusEnum } from '$lib/types/base';
     import MachineTranslationRating from '$lib/components/MachineTranslationRating.svelte';
 
-    export let itemIndex: number;
-    export let editor: Editor | undefined;
-    export let commentStores: CommentStores;
-    export let canEdit: boolean;
-    export let resourceContent: ResourceContent;
-    export let isLoading: boolean;
-    export let machineTranslationStore: MachineTranslationStore;
+    interface Props {
+        itemIndex: number;
+        editor: Editor | undefined;
+        commentStores: CommentStores;
+        canEdit: boolean;
+        resourceContent: ResourceContent;
+        isLoading: boolean;
+        machineTranslationStore: MachineTranslationStore;
+    }
+
+    let {
+        itemIndex,
+        editor,
+        commentStores,
+        canEdit,
+        resourceContent,
+        isLoading = $bindable(),
+        machineTranslationStore,
+    }: Props = $props();
 
     const isPageTransacting = getIsPageTransactingContext();
 
-    $: canEditBibleReferences = $userCan(Permission.EditBibleReferences);
-    $: canEditResourceReferences = $userCan(Permission.EditResourceReferences);
+    let canEditBibleReferences = $derived($userCan(Permission.EditBibleReferences));
+    let canEditResourceReferences = $derived($userCan(Permission.EditResourceReferences));
 
-    let outerDiv: HTMLDivElement | null = null;
+    let outerDiv: HTMLDivElement | null = $state(null);
     let isCommentBoxOpen = false;
     const { createNewThread } = commentStores;
 
     const showMachineTranslationRating =
         canEdit && resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview;
 
-    $: widthRequired =
+    let widthRequired = $derived(
         (canEditBibleReferences ? 30 : 0) +
-        (canEditResourceReferences ? 30 : 0) +
-        (showMachineTranslationRating ? 136 : 0) +
-        460;
+            (canEditResourceReferences ? 30 : 0) +
+            (showMachineTranslationRating ? 136 : 0) +
+            460
+    );
 
     function getCommentOptions(editor: Editor) {
         return {
@@ -189,7 +202,7 @@
     }
 
     let resizeObserver: ResizeObserver;
-    let outerDivWidth: number | null = null;
+    let outerDivWidth: number | null = $state(null);
 
     onMount(() => {
         if (outerDiv) {
@@ -216,7 +229,7 @@
                         <div tabindex="0" role="button" class="btn btn-link h-auto min-h-0 scale-[90%] p-0">
                             <MenuIcon />
                         </div>
-                        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+                        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
                         <ul
                             tabindex="0"
                             class="dropdown-content menu-horizontal z-50 h-auto min-h-0 items-center space-x-2
@@ -231,10 +244,10 @@
                                             ? 'btn-primary'
                                             : 'btn-link hover:bg-[#e6f7fc]'}"
                                         disabled={disable}
-                                        on:click={option.onClick}
+                                        onclick={option.onClick}
                                     >
                                         <div class="mt-[-1px] scale-[85%]">
-                                            <svelte:component this={option.icon} />
+                                            <option.icon />
                                         </div>
                                     </button>
                                 </li>
@@ -250,10 +263,10 @@
                                 ? 'btn-primary'
                                 : 'btn-link hover:bg-[#e6f7fc]'}"
                             disabled={disable}
-                            on:click={option.onClick}
+                            onclick={option.onClick}
                         >
                             <div class="mt-[-1px] scale-[85%]">
-                                <svelte:component this={option.icon} />
+                                <option.icon />
                             </div>
                         </button>
                     {/each}
@@ -277,10 +290,10 @@
                         ? 'btn-primary'
                         : 'btn-link hover:bg-[#e6f7fc]'}"
                     disabled={commentDisabled}
-                    on:click={commentOptions.onClick}
+                    onclick={commentOptions.onClick}
                 >
                     <div class="mt-[-1px] scale-[85%]">
-                        <svelte:component this={commentOptions.icon} />
+                        <commentOptions.icon />
                     </div>
                 </button>
             </Tooltip>
