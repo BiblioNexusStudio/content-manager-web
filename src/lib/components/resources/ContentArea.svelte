@@ -13,6 +13,7 @@
     import type { CommentStores } from '$lib/stores/comments';
     import { onMount } from 'svelte';
     import PersonLinesIcon from '$lib/icons/PersonLinesIcon.svelte';
+    import AudioPlayerModal from '../audioPlayer/AudioPlayerModal.svelte';
 
     export let resourceContent: ResourceContent;
     export let sidebarHistoryAvailable: boolean;
@@ -72,6 +73,15 @@
                         <Icon data={ban} style="height: 18px; width: auto; color: #485467;" />
                     </Tooltip>
                 {/if}
+
+                <!-- todo : if has audio -->
+                <Tooltip
+                    position={{ left: '2.5rem', top: '-0.25rem' }}
+                    class="border-primary text-primary"
+                    text="Click to play audio"
+                >
+                    <AudioPlayerModal />
+                </Tooltip>
             </div>
         </div>
     </div>

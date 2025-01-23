@@ -4,7 +4,7 @@
     import { Icon } from 'svelte-awesome';
     import Modal from '../Modal.svelte';
     import volumeUp from 'svelte-awesome/icons/volumeUp';
-
+    // TODO accept audio info for the audio player
     // this will be the wraper to handle playlist management for a resource,
     // it will also handle FIA content steps and state management
     // When 'selectedStep' changes, grab snapshot of audio player state ( track and current time )
@@ -65,8 +65,8 @@
     });
 </script>
 
-<button onclick={() => (isAudioPlayerModalOpen = !isAudioPlayerModalOpen)}>
-    <Icon class="h-[3rem] w-[3rem] grow-0 text-primary hover:text-secondary" data={volumeUp} />
+<button class="ml-4 flex" onclick={() => (isAudioPlayerModalOpen = !isAudioPlayerModalOpen)}>
+    <Icon class="grow-0 text-primary hover:brightness-110" style="height: 18px; width: auto;" data={volumeUp} />
 </button>
 
 <Modal bind:open={isAudioPlayerModalOpen}>
