@@ -7,7 +7,11 @@
     import { type AssociatedResource, MediaTypeEnum } from '$lib/types/resources';
     import EmptyMessage from '../EmptyMessage.svelte';
 
-    export let relatedContent: AssociatedResource[];
+    interface Props {
+        relatedContent: AssociatedResource[];
+    }
+
+    let { relatedContent }: Props = $props();
     function getIcon(type: string | undefined) {
         switch (type) {
             case MediaTypeEnum.image:
