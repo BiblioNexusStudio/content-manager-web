@@ -194,7 +194,9 @@
     onMount(() => {
         if (outerDiv) {
             resizeObserver = new ResizeObserver(() => {
-                outerDivWidth = outerDiv?.offsetWidth ?? null;
+                requestAnimationFrame(() => {
+                    outerDivWidth = outerDiv?.offsetWidth ?? null;
+                });
             });
             resizeObserver.observe(outerDiv);
 
