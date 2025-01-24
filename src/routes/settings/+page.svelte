@@ -249,6 +249,7 @@
     let filteredTranslationPairs = $derived(
         filterTranslationPairs(search, translationPairs, $searchParams.currentLanguageId)
     );
+    let sortedTranslationPairs = $derived(sortSettingsData(filteredTranslationPairs, $searchParams.sort));
 
     let currentLanguageDisplayname = $derived(getCurrentLanguageDisplayname($searchParams.currentLanguageId));
 
@@ -306,39 +307,41 @@
             enableSelectAll={false}
             idColumn="translationPairId"
             noItemsText="No Translation Pairs Found"
-            items={sortSettingsData(filteredTranslationPairs, $searchParams.sort)}
+            items={sortedTranslationPairs}
             searchable={true}
             bind:searchText={search}
             bind:searchParams={$searchParams}
         >
-            <tbody slot="customTbody" let:rowItems>
-                {#each rowItems as translationPair (translationPair.translationPairId)}
-                    <tr>
-                        <td>
-                            <input
-                                type="text"
-                                value={translationPair.translationPairKey}
-                                class="h-full grow p-2"
-                                onkeyup={(event) => handleKeyUp(event, translationPair.translationPairId, 'key')}
-                            />
-                        </td>
-                        <td>
-                            <input
-                                type="text"
-                                value={translationPair.translationPairValue}
-                                class="h-full grow p-2"
-                                onkeyup={(event) => handleKeyUp(event, translationPair.translationPairId, 'value')}
-                            />
-                        </td>
-                        <td
-                            onclick={openDeleteTranslationPair(translationPair.translationPairId)}
-                            class="cursor-pointer"
-                        >
-                            <TrashIcon />
-                        </td>
-                    </tr>
-                {/each}
-            </tbody>
+            {#snippet customTbody(rowItems)}
+                <tbody>
+                    {#each rowItems as translationPair (translationPair.translationPairId)}
+                        <tr>
+                            <td>
+                                <input
+                                    type="text"
+                                    value={translationPair.translationPairKey}
+                                    class="h-full grow p-2"
+                                    onkeyup={(event) => handleKeyUp(event, translationPair.translationPairId, 'key')}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    value={translationPair.translationPairValue}
+                                    class="h-full grow p-2"
+                                    onkeyup={(event) => handleKeyUp(event, translationPair.translationPairId, 'value')}
+                                />
+                            </td>
+                            <td
+                                onclick={openDeleteTranslationPair(translationPair.translationPairId)}
+                                class="cursor-pointer"
+                            >
+                                <TrashIcon />
+                            </td>
+                        </tr>
+                    {/each}
+                </tbody>
+            {/snippet}
         </Table>
     </div>
 </div>

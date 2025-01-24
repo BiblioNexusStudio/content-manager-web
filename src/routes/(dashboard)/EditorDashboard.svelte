@@ -215,17 +215,16 @@
             searchable={true}
             searchText={search}
             noItemsAfterSearchText="No items found"
-            let:item
-            let:href
-            let:itemKey
         >
-            {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-            {:else if href !== undefined && itemKey}
-                <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-            {:else if itemKey}
-                <TableCell>{item[itemKey] ?? ''}</TableCell>
-            {/if}
+            {#snippet tableCells(item, href, itemKey)}
+                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                {:else if href !== undefined && itemKey}
+                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey}
+                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+                {/if}
+            {/snippet}
         </Table>
     {:else if $searchParams.tab === Tab.myHistory}
         <Table
@@ -240,19 +239,18 @@
             searchable={true}
             searchText={search}
             noItemsAfterSearchText="No items found"
-            let:item
-            let:href
-            let:itemKey
         >
-            {#if itemKey === 'lastActionTime' && item[itemKey] !== null}
-                <LinkedTableCell {href}
-                    >{utcDateTimeStringToDateTime(item[itemKey]).toLocaleDateString()}</LinkedTableCell
-                >
-            {:else if href !== undefined && itemKey}
-                <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-            {:else if itemKey}
-                <TableCell>{item[itemKey] ?? ''}</TableCell>
-            {/if}
+            {#snippet tableCells(item, href, itemKey)}
+                {#if itemKey === 'lastActionTime' && item[itemKey] !== null}
+                    <LinkedTableCell {href}
+                        >{utcDateTimeStringToDateTime(item[itemKey]).toLocaleDateString()}</LinkedTableCell
+                    >
+                {:else if href !== undefined && itemKey}
+                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey}
+                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+                {/if}
+            {/snippet}
         </Table>
     {/if}
 </div>

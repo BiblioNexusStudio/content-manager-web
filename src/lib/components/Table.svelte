@@ -1,4 +1,4 @@
-<script lang="ts" generics="T">
+<script lang="ts" generics="T extends object">
     import { onMount, tick } from 'svelte';
     import SortingTableHeaderCell from '$lib/components/SortingTableHeaderCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
@@ -8,46 +8,80 @@
     import type { SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
     import CenteredSpinner from './CenteredSpinner.svelte';
     import { _ as translate } from 'svelte-i18n';
+    import type { Snippet } from 'svelte';
 
-    export let searchParams: SubscribedSearchParams<ReturnType<typeof searchParameters<{ sort: string }>>> | undefined =
-        undefined;
-
-    export let enableSelect = false;
-    export let enableSelectAll = false;
-    export let columns: column<T>[] = [];
-    export let items: T[] = [];
-    export let idColumn: keyof T | 'index';
-    export let itemUrlPrefix: string | undefined = undefined;
-    export let selectedItems: T[] = [];
-    export let noItemsText: string;
-    export let searchable = false;
-    export let searchText: string | undefined = undefined;
-    export let noItemsAfterSearchText = 'No results.';
-    export let isLoading = false;
-
-    export let currentPage: number | undefined = undefined;
-    export let totalItems: number | undefined = undefined;
-    export let itemsPerPage: number | undefined = undefined;
-
-    let scrollingDiv: HTMLDivElement | null = null;
-    let isLeftScrollable = false;
-    let isRightScrollable = false;
-    let isTopScrollable = false;
-    let isBottomScrollable = false;
-    let internalSort = '';
-    let headerRow: HTMLTableRowElement | undefined;
-    let headerRowHeight = 0;
-
-    $: itemsPerPage && (currentPage = 1);
-
-    $: totalPages =
-        totalItems !== undefined && itemsPerPage !== undefined ? Math.ceil(totalItems / itemsPerPage) : undefined;
-
-    $: allItemsSelected = items && items.length > 0 && items.length === selectedItems.length;
-    $: if (items) {
-        selectedItems = [];
+    interface Props {
+        searchParams?: SubscribedSearchParams<ReturnType<typeof searchParameters<{ sort: string }>>> | undefined;
+        enableSelect?: boolean;
+        enableSelectAll?: boolean;
+        columns: column<T>[];
+        items: T[];
+        idColumn: keyof T | 'index';
+        itemUrlPrefix?: string;
+        selectedItems?: T[];
+        noItemsText: string;
+        searchable?: boolean;
+        searchText?: string;
+        noItemsAfterSearchText?: string;
+        isLoading?: boolean;
+        currentPage?: number;
+        totalItems?: number;
+        itemsPerPage?: number;
+        class?: string;
+        tableCells?: Snippet<[T, string, keyof T, string]>;
+        customTbody?: Snippet<[T[]]>;
+        children?: Snippet;
     }
-    $: showingPaginator = !isLoading && currentPage && totalPages;
+
+    let {
+        searchParams = $bindable(),
+        enableSelect = false,
+        enableSelectAll = false,
+        columns = [],
+        items = [],
+        idColumn = 'index',
+        itemUrlPrefix = undefined,
+        selectedItems = $bindable(),
+        noItemsText,
+        searchable = false,
+        searchText = $bindable(),
+        noItemsAfterSearchText = undefined,
+        isLoading = false,
+        currentPage = $bindable(),
+        totalItems = undefined,
+        itemsPerPage = $bindable(),
+        class: className = '',
+        tableCells,
+        customTbody,
+        children,
+    }: Props = $props();
+
+    let scrollingDiv: HTMLDivElement | null = $state(null);
+    let isLeftScrollable = $state(false);
+    let isRightScrollable = $state(false);
+    let isTopScrollable = $state(false);
+    let isBottomScrollable = $state(false);
+    let internalSort = $state('');
+    let headerRow: HTMLTableRowElement | undefined = $state(undefined);
+    let headerRowHeight = $state(0);
+
+    $effect(() => {
+        itemsPerPage && (currentPage = 1);
+    });
+
+    let totalPages = $derived(
+        totalItems !== undefined && itemsPerPage !== undefined ? Math.ceil(totalItems / itemsPerPage) : undefined
+    );
+
+    let allItemsSelected = $derived(items && items.length > 0 && items.length === selectedItems?.length);
+
+    $effect(() => {
+        if (items) {
+            selectedItems = [];
+        }
+    });
+
+    let showingPaginator = $derived(!isLoading && currentPage && totalPages);
 
     export function resetScroll() {
         if (scrollingDiv) {
@@ -64,11 +98,11 @@
     }
 
     function onSelectItem(item: T) {
-        const index = selectedItems.indexOf(item);
+        const index = selectedItems?.indexOf(item);
         if (index === -1) {
-            selectedItems = [...selectedItems, item];
+            selectedItems = [...(selectedItems ?? []), item];
         } else {
-            selectedItems = selectedItems.filter((_, i) => i !== index);
+            selectedItems = selectedItems?.filter((_, i) => i !== index) ?? [];
         }
     }
 
@@ -87,7 +121,9 @@
         }
     }
 
-    $: scrollingDiv && items && checkScrollable();
+    $effect(() => {
+        scrollingDiv && items && checkScrollable();
+    });
 
     function calculateScrollShadows({
         isRightScrollable,
@@ -118,7 +154,7 @@
     });
 </script>
 
-<div class="relative flex max-h-full w-full flex-col overflow-x-hidden overflow-y-hidden {$$props.class}">
+<div class="relative flex max-h-full w-full flex-col overflow-x-hidden overflow-y-hidden {className}">
     <div
         class="pointer-events-none absolute inset-0 z-10"
         style="box-shadow:{calculateScrollShadows({
@@ -145,7 +181,7 @@
                             <input
                                 type="checkbox"
                                 class="checkbox checkbox-sm"
-                                on:click={onSelectAll}
+                                onclick={onSelectAll}
                                 checked={allItemsSelected}
                                 disabled={items.length === 0}
                             />
@@ -174,7 +210,9 @@
                     {/each}
                 </tr>
             </thead>
-            <slot name="customTbody" rowItems={items}>
+            {#if customTbody}
+                {@render customTbody?.(items)}
+            {:else}
                 <tbody>
                     {#if isLoading}
                         <tr>
@@ -193,23 +231,25 @@
                                         <input
                                             type="checkbox"
                                             class="checkbox checkbox-sm"
-                                            on:change={() => onSelectItem(item)}
-                                            checked={selectedItems.includes(item)}
+                                            onchange={() => onSelectItem(item)}
+                                            checked={selectedItems?.includes(item)}
                                         />
                                     </TableCell>
                                 {/if}
-                                {#each columns as { itemKey, text, width } (itemKey)}
-                                    <slot {item} {href} {itemKey} columnText={text}>
-                                        {#if href !== undefined && itemKey}
-                                            <LinkedTableCell style={width ? `width: ${width}ch;` : ''} {href}
-                                                >{item[itemKey]?.toLocaleString() ?? ''}</LinkedTableCell
-                                            >
-                                        {:else if itemKey !== undefined}
-                                            <TableCell style={width ? `width: ${width}ch;` : ''}
-                                                >{item[itemKey]?.toLocaleString() ?? ''}</TableCell
-                                            >
-                                        {/if}
-                                    </slot>
+                                {#each columns as { itemKey, text: columnText, width } (itemKey)}
+                                    {#if tableCells}
+                                        {@render tableCells?.(item, href ?? '', itemKey!, columnText ?? '')}
+                                    {:else if children}
+                                        {@render children?.()}
+                                    {:else if href !== undefined && itemKey}
+                                        <LinkedTableCell style={width ? `width: ${width}ch;` : ''} {href}
+                                            >{item[itemKey]?.toLocaleString() ?? ''}</LinkedTableCell
+                                        >
+                                    {:else if itemKey !== undefined}
+                                        <TableCell style={width ? `width: ${width}ch;` : ''}
+                                            >{item[itemKey]?.toLocaleString() ?? ''}</TableCell
+                                        >
+                                    {/if}
                                 {/each}
                             </tr>
                         {/each}
@@ -226,7 +266,7 @@
                         {/if}
                     {/if}
                 </tbody>
-            </slot>
+            {/if}
         </table>
     </div>
 
@@ -235,7 +275,7 @@
             <button
                 class="btn btn-outline self-center justify-self-start"
                 class:btn-disabled={currentPage === 1}
-                on:click={() => currentPage && currentPage--}
+                onclick={() => currentPage && currentPage--}
                 >{$translate('page.resources.table.navigation.previous.value')}</button
             >
             <div class="grid place-self-center">
@@ -255,7 +295,7 @@
             <button
                 class="btn btn-outline self-center justify-self-end"
                 class:btn-disabled={currentPage === totalPages}
-                on:click={() => currentPage && currentPage++}
+                onclick={() => currentPage && currentPage++}
                 >{$translate('page.resources.table.navigation.next.value')}</button
             >
         </div>

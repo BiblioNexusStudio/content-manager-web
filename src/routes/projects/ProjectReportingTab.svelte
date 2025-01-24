@@ -17,26 +17,37 @@
     import type { column } from '$lib/types/table';
     import { getFromApi } from '$lib/utils/http-service';
     import { convertDynamicReportToResponseObjects, reportingUiLinks, reportApiPaths } from '$lib/utils/reporting';
+    interface Props {
+        companies: Company[];
+        isShowing: boolean;
+    }
 
-    export let companies: Company[];
-    export let isShowing: boolean;
+    let { companies, isShowing }: Props = $props();
 
     type ResourceSize = 'both' | 'short' | 'long';
 
-    let activeProjectsPerCompany: ActiveProjectsPerCompanyResponse[] | null = null;
-    let companyCompletedItemsPerMonth: CompanyCompletedItemsPerMonthResponse[] | null = null;
-    let companyAverageDaysInWorkflow: CompanyAverageDaysInWorkflowResponse[] | null = null;
+    let activeProjectsPerCompany: ActiveProjectsPerCompanyResponse[] | null = $state(null);
+    let companyCompletedItemsPerMonth: CompanyCompletedItemsPerMonthResponse[] | null = $state(null);
+    let companyAverageDaysInWorkflow: CompanyAverageDaysInWorkflowResponse[] | null = $state(null);
 
-    let companyPerformanceMetricsCompanyId: number | null = null;
-    let companyPerformanceMetricsResourceSize: ResourceSize = 'both';
+    let companyPerformanceMetricsCompanyId: number | null = $state(null);
+    let companyPerformanceMetricsResourceSize: ResourceSize = $state('both');
 
-    $: companies[0] &&
-        companyPerformanceMetricsCompanyId === null &&
-        (companyPerformanceMetricsCompanyId = companies[0].id);
+    $effect(() => {
+        companies[0] &&
+            companyPerformanceMetricsCompanyId === null &&
+            (companyPerformanceMetricsCompanyId = companies[0].id);
+    });
 
-    $: fetchActiveProjectsTableReport(isShowing);
-    $: fetchCompanyCompletedItemsPerMonth(isShowing, companyPerformanceMetricsCompanyId);
-    $: fetchCompanyAverageDaysInWorkflow(isShowing, companyPerformanceMetricsCompanyId);
+    $effect(() => {
+        fetchActiveProjectsTableReport(isShowing);
+    });
+    $effect(() => {
+        fetchCompanyCompletedItemsPerMonth(isShowing, companyPerformanceMetricsCompanyId);
+    });
+    $effect(() => {
+        fetchCompanyAverageDaysInWorkflow(isShowing, companyPerformanceMetricsCompanyId);
+    });
 
     async function fetchActiveProjectsTableReport(isShowing: boolean) {
         if (isShowing && activeProjectsPerCompany === null) {
@@ -162,25 +173,24 @@
                 searchable={false}
                 noItemsText="No active projects."
                 isLoading={activeProjectsPerCompany === null}
-                let:item
-                let:itemKey
-                let:columnText
             >
-                {#if columnText === ''}
-                    <td>
-                        <ProjectProgressBar
-                            class="!w-16"
-                            notStartedCount={item.notStartedItemCount}
-                            editorReviewCount={item.editorReviewItemCount}
-                            inCompanyReviewCount={item.inCompanyReviewItemCount}
-                            inPublisherReviewCount={item.inPublisherReviewItemCount}
-                            completeCount={item.completedItemCount}
-                            showLegend={false}
-                        />
-                    </td>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey]?.toLocaleString() ?? ''}</TableCell>
-                {/if}
+                {#snippet tableCells(item, _href, itemKey, columnText)}
+                    {#if columnText === ''}
+                        <td>
+                            <ProjectProgressBar
+                                class="!w-16"
+                                notStartedCount={item.notStartedItemCount}
+                                editorReviewCount={item.editorReviewItemCount}
+                                inCompanyReviewCount={item.inCompanyReviewItemCount}
+                                inPublisherReviewCount={item.inPublisherReviewItemCount}
+                                completeCount={item.completedItemCount}
+                                showLegend={false}
+                            />
+                        </td>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey]?.toLocaleString() ?? ''}</TableCell>
+                    {/if}
+                {/snippet}
             </Table>
         </div>
         <div class="flex w-full max-w-md flex-col gap-4">
