@@ -7,15 +7,27 @@
     import StatusColor from '../StatusColor.svelte';
     import type { ResourceContentStatusEnum } from '$lib/types/base';
 
-    export let languages: Language[];
-    export let translations: ContentTranslation[];
-    export let englishTranslation: ContentTranslation | undefined;
-    export let canCreateTranslation: boolean;
-    export let openModal: () => void;
-    export let currentResourceId: number;
-    export let project: Project | null;
+    interface Props {
+        languages: Language[];
+        translations: ContentTranslation[];
+        englishTranslation: ContentTranslation | undefined;
+        canCreateTranslation: boolean;
+        openModal: () => void;
+        currentResourceId: number;
+        project: Project | null;
+    }
 
-    $: numberOfTranslations = translations.length;
+    let {
+        languages,
+        translations,
+        englishTranslation,
+        canCreateTranslation,
+        openModal,
+        currentResourceId,
+        project,
+    }: Props = $props();
+
+    let numberOfTranslations = $derived(translations.length);
 
     const mappedTranslations = sortByKey(
         translations.map((translation) => ({
@@ -49,7 +61,7 @@
                 <button
                     data-app-insights-event-name="translations-new-menu-click"
                     class="flex w-full items-center justify-start rounded-md border border-[#bbe7f7] bg-[#e6f6fc] px-2 py-1 text-lg font-bold"
-                    on:click={() => openModal()}
+                    onclick={() => openModal()}
                 >
                     <span class="me-2 text-[#15abe3]"><Icon data={plus} /></span>Translation
                 </button>
