@@ -11,27 +11,46 @@
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
     import SingleItemDisplay from '$lib/components/editor/SingleItemDisplay.svelte';
 
-    export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
-    export let canEdit: boolean;
-    export let canComment: boolean;
-    export let wordCountsByStep: number[] | undefined;
-    export let characterCountsByStep: number[];
-    export let resourceContent: ResourceContent;
-    export let snapshotOrVersion: Snapshot | Version | undefined;
-    export let sidebarIsOpen: boolean;
-    export let selectedStepNumber: number | undefined;
-    export let commentStores: CommentStores;
-    export let machineTranslationStore: MachineTranslationStore;
-    export let blurOnPendingAiTranslate = false;
-    export let isSourceContentArea = false;
-    let isComparingToCurrent: boolean;
+    interface TextProps {
+        editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
+        canEdit: boolean;
+        canComment: boolean;
+        wordCountsByStep: number[] | undefined;
+        characterCountsByStep: number[];
+        resourceContent: ResourceContent;
+        snapshotOrVersion: Snapshot | Version | undefined;
+        sidebarIsOpen: boolean;
+        selectedStepNumber: number | undefined;
+        commentStores: CommentStores;
+        machineTranslationStore: MachineTranslationStore;
+        blurOnPendingAiTranslate?: boolean;
+        isSourceContentArea?: boolean;
+    }
+
+    let {
+        editableContentStore,
+        canEdit,
+        canComment,
+        wordCountsByStep = $bindable(undefined),
+        characterCountsByStep = $bindable([]),
+        resourceContent,
+        snapshotOrVersion,
+        sidebarIsOpen,
+        selectedStepNumber = $bindable(),
+        commentStores,
+        machineTranslationStore,
+        blurOnPendingAiTranslate = false,
+        isSourceContentArea = false,
+    }: TextProps = $props();
+
+    let isComparingToCurrent: boolean = $state(false);
 
     onMount(() => (selectedStepNumber ||= 1));
 
-    $: content = (snapshotOrVersion?.content ?? resourceContent.content) as TiptapContentItem[];
-    $: numberOfSteps = content.length;
-    $: stepNavigation = numberOfSteps > 1;
-    $: isShowingSnapshotOrVersion = !!snapshotOrVersion?.content;
+    let content = $derived((snapshotOrVersion?.content ?? resourceContent.content) as TiptapContentItem[]);
+    let numberOfSteps = $derived(content.length);
+    let stepNavigation = $derived(numberOfSteps > 1);
+    let isShowingSnapshotOrVersion = $derived(!!snapshotOrVersion?.content);
 
     const headings = [
         {
@@ -83,7 +102,7 @@
             <div class="mx-12">
                 <div class="mt-2 flex items-center justify-between">
                     {#if selectedStepNumber !== 1}
-                        <button on:click={() => handleStep('backward')}>
+                        <button onclick={() => handleStep('backward')}>
                             <Icon data={arrowCircleLeft} scale={1.5} />
                         </button>
                     {/if}
@@ -91,7 +110,7 @@
                     <h2 class="mx-auto text-xl font-bold">{headings[selectedStepNumber - 1]?.heading}</h2>
 
                     {#if selectedStepNumber !== numberOfSteps}
-                        <button on:click={() => handleStep('forward')}>
+                        <button onclick={() => handleStep('forward')}>
                             <Icon data={arrowCircleRight} scale={1.5} />
                         </button>
                     {/if}
