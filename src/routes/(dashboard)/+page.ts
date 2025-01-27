@@ -70,6 +70,25 @@ function fetchAssignedResourceContent(injectedFetch: typeof window.fetch) {
     return getFromApi<ResourceAssignedToSelf[]>('/resources/content/assigned-to-self', injectedFetch);
 }
 
+export enum _CommunityReviewerTab {
+    resources = 'resources',
+    myHistory = 'my-history',
+}
+
+export enum _PublisherTab {
+    myWork = 'my-work',
+    reviewPending = 'review-pending',
+    myProjects = 'my-projects',
+    community = 'community',
+    notApplicable = 'not-applicable',
+}
+
+export enum _ManagerTab {
+    myWork = 'my-work',
+    toAssign = 'to-assign',
+    manage = 'manage',
+}
+
 export interface ResourcesByParentResource extends TotalsByMonth {
     parentResourceName: string;
 }
@@ -120,6 +139,7 @@ export interface ResourceAssignedToSelf {
     daysSinceContentUpdated: number | null;
     sortOrder: number;
     lastAssignedUser: ResourceUser | null;
+    isResolved: boolean;
 }
 
 export interface ResourceThatNeedsTranslationResponse {
@@ -163,6 +183,7 @@ export interface ResourcePendingReview {
     daysSinceContentUpdated: number | null;
     reviewLevel: ResourceContentVersionReviewLevel;
     sortOrder: number;
+    isResolved: boolean;
 }
 
 export interface UserWordCount {

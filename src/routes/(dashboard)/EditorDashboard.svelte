@@ -31,8 +31,8 @@
 
     let { data }: Props = $props();
 
-    let myWorkContents = $derived(data.editorDashboard!.assignedResourceContent);
-    let myHistoryContents = $derived(data.editorDashboard!.assignedResourceHistoryContent);
+    let myWorkContents = data.editorDashboard!.assignedResourceContent;
+    let myHistoryContents = data.editorDashboard!.assignedResourceHistoryContent;
     let isAssignContentModalOpen = $state(false);
 
     let selectedMyWorkContents: ResourceAssignedToSelf[] = $state([]);
@@ -72,12 +72,13 @@
         { runLoadAgainWhenParamsChange: false }
     );
 
-    const setTabContents = (tab: string, search: string, project: string) => {
+    const setTabContents = (tab: string, search: string, project: string, isFilteringUnresolved: boolean) => {
         if (tab === Tab.myWork) {
             visibleMyWorkContents = myWorkContents.filter(
                 (x) =>
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
-                    (!project || x.projectName === project)
+                    (!project || x.projectName === project) &&
+                    (!isFilteringUnresolved || x.isResolved === false)
             );
         } else if (tab === Tab.myHistory) {
             visibleMyHistoryContents = myHistoryContents.filter((x) =>
@@ -117,8 +118,15 @@
     }
 
     let search = $state('');
+    let isFilteringUnresolved = $state(false);
     let visibleMyWorkContents: ResourceAssignedToSelf[] = $state([]);
     let visibleMyHistoryContents: ResourceAssignedToSelfHistory[] = $state([]);
+    let sortedMyWorkContents: ResourceAssignedToSelf[] = $derived(
+        sortMyWorkData(visibleMyWorkContents, $searchParams.sort)
+    );
+    let sortedMyHistoryContents: ResourceAssignedToSelfHistory[] = $derived(
+        sortMyHistoryData(visibleMyHistoryContents, $searchParams.sort)
+    );
     let table: Table<ResourceAssignedToSelfHistory> | Table<ResourceAssignedToSelf> | undefined = $state(undefined);
 
     $effect(() => {
@@ -128,15 +136,7 @@
     });
 
     $effect(() => {
-        setTabContents($searchParams.tab, search, $searchParams.project);
-    });
-
-    $effect(() => {
-        visibleMyWorkContents = sortMyWorkData(visibleMyWorkContents, $searchParams.sort);
-    });
-
-    $effect(() => {
-        visibleMyHistoryContents = sortMyHistoryData(visibleMyHistoryContents, $searchParams.sort);
+        setTabContents($searchParams.tab, search, $searchParams.project, isFilteringUnresolved);
     });
 
     function projectNamesForContents(contents: ResourceAssignedToSelf[]) {
@@ -172,6 +172,17 @@
                     ...projectNamesForContents(myWorkContents).map((p) => ({ value: p, label: p })),
                 ]}
             />
+            <label class="label cursor-pointer py-0 opacity-70">
+                <input
+                    type="checkbox"
+                    bind:checked={isFilteringUnresolved}
+                    data-app-insights-event-name="editor-dashboard-has-unresolved-comments-toggle-{isFilteringUnresolved
+                        ? 'off'
+                        : 'on'}"
+                    class="checkbox no-animation checkbox-sm me-2"
+                />
+                <span class="label-text text-xs">Has Unresolved Comments</span>
+            </label>
         {/if}
         {#if $searchParams.tab === Tab.myWork}
             <button
@@ -206,7 +217,7 @@
             class="my-4"
             enableSelectAll={true}
             columns={myWorkColumns}
-            items={visibleMyWorkContents as ResourceAssignedToSelf[]}
+            items={sortedMyWorkContents as ResourceAssignedToSelf[]}
             idColumn="id"
             itemUrlPrefix="/resources/"
             bind:searchParams={$searchParams}
@@ -231,7 +242,7 @@
             bind:this={table}
             class="my-4"
             columns={myHistoryColumns}
-            items={visibleMyHistoryContents as ResourceAssignedToSelfHistory[]}
+            items={sortedMyHistoryContents as ResourceAssignedToSelfHistory[]}
             idColumn="id"
             itemUrlPrefix="/resources/"
             bind:searchParams={$searchParams}
