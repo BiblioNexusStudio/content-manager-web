@@ -8,21 +8,37 @@
     import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
 
-    export let itemIndex: number;
-    export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
-    export let wordCountsByStep: number[];
-    export let characterCountsByStep: number[];
-    export let canEdit: boolean;
-    export let canComment: boolean;
-    export let resourceContent: ResourceContent;
-    export let commentStores: CommentStores;
-    export let machineTranslationStore: MachineTranslationStore;
-    export let blurOnPendingAiTranslate = false;
-    export let isSourceContentArea = false;
+    interface Props {
+        itemIndex: number;
+        editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
+        wordCountsByStep: number[];
+        characterCountsByStep: number[];
+        canEdit: boolean;
+        canComment: boolean;
+        resourceContent: ResourceContent;
+        commentStores: CommentStores;
+        machineTranslationStore: MachineTranslationStore;
+        blurOnPendingAiTranslate?: boolean;
+        isSourceContentArea?: boolean;
+    }
 
-    let editor: Editor | undefined = undefined;
+    let {
+        itemIndex,
+        editableContentStore,
+        wordCountsByStep = $bindable(),
+        characterCountsByStep = $bindable(),
+        canEdit,
+        canComment,
+        resourceContent,
+        commentStores,
+        machineTranslationStore,
+        blurOnPendingAiTranslate = false,
+        isSourceContentArea = false,
+    }: Props = $props();
+
+    let editor: Editor | undefined = $state(undefined);
     let tiptapJson = $editableContentStore[itemIndex];
-    let isLoading = false;
+    let isLoading = $state(false);
 
     const isPageTransacting = getIsPageTransactingContext();
 
