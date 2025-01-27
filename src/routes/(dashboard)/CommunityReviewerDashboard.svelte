@@ -16,20 +16,21 @@
     import type { BibleBook } from '$lib/types/base';
     import { parseStartAndEndFromSingleOrRangeString } from '$lib/utils/number-list-parser';
     import { debounce } from '$lib/utils/debounce';
+    import { untrack } from 'svelte';
+    import { _CommunityReviewerTab as Tab } from './+page';
 
     const sortMyHistoryData = createEditorDashboardMyHistorySorter();
 
-    export let data: PageData;
-
-    $: bibleBooks = data.communityReviewerDashboard!.bibleBooks;
-    $: myAssignedContents = data.communityReviewerDashboard!.assignedResourceContent;
-    $: myHistoryContents = data.communityReviewerDashboard!.assignedResourceHistoryContent;
-    $: currentlyReviewingItem = myAssignedContents[0];
-
-    enum Tab {
-        resources = 'resources',
-        myHistory = 'my-history',
+    interface Props {
+        data: PageData;
     }
+
+    let { data }: Props = $props();
+
+    let bibleBooks = $derived(data.communityReviewerDashboard!.bibleBooks);
+    let myAssignedContents = $derived(data.communityReviewerDashboard!.assignedResourceContent);
+    let myHistoryContents = $derived(data.communityReviewerDashboard!.assignedResourceHistoryContent);
+    let currentlyReviewingItem = $derived(myAssignedContents[0]);
 
     const switchTabs = (tab: Tab) => {
         if ($searchParams.tab !== tab) {
@@ -46,27 +47,42 @@
         { runLoadAgainWhenParamsChange: false }
     );
 
-    let myHistorySearchQuery = '';
-    let table: Table<ResourceThatNeedsTranslation> | Table<ResourceAssignedToSelfHistory> | undefined;
-    $: $searchParams.sort && table?.resetScroll();
+    let myHistorySearchQuery = $state('');
+    let table: Table<ResourceThatNeedsTranslation> | Table<ResourceAssignedToSelfHistory> | undefined =
+        $state(undefined);
 
-    let resourcesThatNeedTranslation: ResourceThatNeedsTranslation[] | null = null;
-    let resourcesThatNeedTranslationParams: Param[] = [];
-    let resourcesSearchQuery = '';
-    let parentResourceId = 0;
-    let bookCode = '';
-    let chapterRange = '';
-    let currentPage = 1;
-    let totalItems = 0;
-    let itemsPerPage = 50;
-    let isLoading = false;
+    $effect(() => {
+        if ($searchParams.sort && table) {
+            untrack(() => {
+                table?.resetScroll();
+            });
+        }
+    });
 
-    $: parsedRange = parseStartAndEndFromSingleOrRangeString(chapterRange, 1, calculateMaxChapter(bibleBooks));
-    $: invalidChapterRange = !!chapterRange && parsedRange.start === 0 && parsedRange.end === 0;
-    $: canApplyFilters = (!!resourcesSearchQuery || !!parentResourceId || !!bookCode) && !invalidChapterRange;
+    $effect(() => {
+        currentPage && itemsPerPage && debouncedFetchResources(true);
+    });
 
-    // When currentPage or itemsPerPage change, fetch
-    $: currentPage && itemsPerPage && debouncedFetchResources(true);
+    let resourcesThatNeedTranslation: ResourceThatNeedsTranslation[] | null = $state(null);
+    let resourcesThatNeedTranslationParams: Param[] = $state([]);
+    let resourcesSearchQuery = $state('');
+    let parentResourceId = $state(0);
+    let bookCode = $state('');
+    let chapterRange = $state('');
+    let currentPage = $state(1);
+    let totalItems = $state(0);
+    let itemsPerPage = $state(50);
+    let isLoading = $state(false);
+
+    let parsedRange = $derived(
+        parseStartAndEndFromSingleOrRangeString(chapterRange, 1, calculateMaxChapter(bibleBooks))
+    );
+
+    let invalidChapterRange = $derived(!!chapterRange && parsedRange.start === 0 && parsedRange.end === 0);
+
+    let canApplyFilters = $derived(
+        (!!resourcesSearchQuery || !!parentResourceId || !!bookCode) && !invalidChapterRange
+    );
 
     // Debounce to ensure if currentPage and itemsPerPage change in quick succession we don't fire multiple requests
     const debouncedFetchResources = debounce(fetchResources, 50);
@@ -85,7 +101,9 @@
                     { key: 'parentResourceId', value: parentResourceId, ignoreIfEquals: 0 },
                     { key: 'bookCode', value: bookCode, ignoreIfEquals: '' },
                     { key: 'startChapter', value: parsedRange.start, ignoreIfEquals: 0 },
+
                     { key: 'endChapter', value: parsedRange.end, ignoreIfEquals: 0 },
+
                     { key: 'searchQuery', value: resourcesSearchQuery, ignoreIfEquals: '' },
                 ];
             }
@@ -132,12 +150,12 @@
     <div class="flex flex-shrink-0 flex-row items-center">
         <div role="tablist" class="tabs tabs-bordered w-fit">
             <button
-                on:click={() => switchTabs(Tab.resources)}
+                onclick={() => switchTabs(Tab.resources)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.resources && 'tab-active'}">Resources</button
             >
             <button
-                on:click={() => switchTabs(Tab.myHistory)}
+                onclick={() => switchTabs(Tab.myHistory)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.myHistory && 'tab-active'}"
                 >My History ({myHistoryContents.length})</button
@@ -187,7 +205,7 @@
                 class="input input-bordered input-md w-[11rem] focus:outline-none"
                 placeholder="Chapter (e.g. 2, 1-5)"
             />
-            <button class="btn btn-primary" disabled={!canApplyFilters} on:click={() => fetchResources()}>Apply</button>
+            <button class="btn btn-primary" disabled={!canApplyFilters} onclick={() => fetchResources()}>Apply</button>
         {/if}
     </div>
     {#if $searchParams.tab === Tab.resources}

@@ -48,7 +48,7 @@ export function createListSorter<T>(mapping: SortConfig<T>): (list: T[], sort: s
 
         if (!sortConfig) return list;
 
-        return list.sort((a, b) => {
+        return list.toSorted((a, b) => {
             // Apply primary sort keys
             for (const primaryKey of sortConfig.primarySortKeys) {
                 const result = compareSortValues(a, b, primaryKey, isDescending);
