@@ -2,6 +2,7 @@
     import type { PageData } from './$types';
     import { searchParameters, ssp, type SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
     import type { ResourceAssignedToOwnCompany, ResourceAssignedToSelf, UserWordCount } from './+page';
+    import { _ManagerTab as Tab } from './+page';
     import { createManagerDashboardSorter, SortName, createUserWordCountSorter } from './dashboard-table-sorters';
     import Select from '$lib/components/Select.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
@@ -22,49 +23,66 @@
         manageContentsColumns,
         userWordCountColumns,
     } from './manager-dashboard-columns';
+    import { untrack } from 'svelte';
 
-    export let data: PageData;
-
-    $: manageContents = data.managerDashboard!.manageResourceContent;
-    $: toAssignContents = data.managerDashboard!.toAssignContent;
-    $: myWorkContents = data.managerDashboard!.assignedResourceContent;
-    $: userWordCounts = data.managerDashboard!.assignedUsersWordCount;
-
-    $: myWorkProjectNames = Array.from(new Set(filterBoolean(myWorkContents.map((c) => c.projectName)))).sort();
-    $: myWorkLastAssignedUsers = sortByKey(
-        'name',
-        filterDuplicatesByKey('id', filterBoolean(myWorkContents.map((c) => c.lastAssignedUser)))
-    );
-
-    $: toAssignProjectNames = Array.from(new Set(filterBoolean(toAssignContents.map((c) => c.projectName)))).sort();
-
-    $: manageProjectNames = Array.from(new Set(filterBoolean(manageContents.map((c) => c.projectName)))).sort();
-    $: manageLastAssignedUsers = sortByKey(
-        'name',
-        filterDuplicatesByKey('id', filterBoolean(manageContents.map((c) => c.lastAssignedUser)))
-    );
-
-    $: maybeResetSearchParams(
-        toAssignProjectNames,
-        manageProjectNames,
-        myWorkProjectNames,
-        manageLastAssignedUsers,
-        myWorkLastAssignedUsers
-    );
-
-    let search = '';
-
-    let isFilteringUnresolved = false;
-
-    enum Tab {
-        myWork = 'my-work',
-        toAssign = 'to-assign',
-        manage = 'manage',
+    interface Props {
+        data: PageData;
     }
+
+    let { data }: Props = $props();
+
+    let manageContents = $derived(data.managerDashboard!.manageResourceContent);
+    let toAssignContents = $derived(data.managerDashboard!.toAssignContent);
+    let myWorkContents = $derived(data.managerDashboard!.assignedResourceContent);
+    let userWordCounts = $derived(data.managerDashboard!.assignedUsersWordCount);
+
+    let myWorkProjectNames = $derived.by(() =>
+        Array.from(new Set(filterBoolean(myWorkContents.map((c) => c.projectName)))).sort()
+    );
+    let myWorkLastAssignedUsers = $derived.by(() =>
+        sortByKey('name', filterDuplicatesByKey('id', filterBoolean(myWorkContents.map((c) => c.lastAssignedUser))))
+    );
+
+    let toAssignProjectNames = $derived.by(() =>
+        Array.from(new Set(filterBoolean(toAssignContents.map((c) => c.projectName)))).sort()
+    );
+
+    let manageProjectNames = $derived.by(() =>
+        Array.from(new Set(filterBoolean(manageContents.map((c) => c.projectName)))).sort()
+    );
+    let manageLastAssignedUsers = $derived.by(() =>
+        sortByKey('name', filterDuplicatesByKey('id', filterBoolean(manageContents.map((c) => c.lastAssignedUser))))
+    );
+
+    $effect(() => {
+        maybeResetSearchParams(
+            toAssignProjectNames,
+            manageProjectNames,
+            myWorkProjectNames,
+            manageLastAssignedUsers,
+            myWorkLastAssignedUsers
+        );
+    });
+
+    let search = $state('');
+
+    let isFilteringUnresolved = $state(false);
 
     const sortAssignedData = createManagerDashboardSorter<ResourceAssignedToSelf>();
     const sortManageData = createManagerDashboardSorter<ResourceAssignedToOwnCompany>();
     const sortUserWordCountData = createUserWordCountSorter();
+    const sortAndFilterManageData = (
+        list: ResourceAssignedToOwnCompany[],
+        params: SubscribedSearchParams<typeof searchParams>
+    ) => {
+        if (params.assignedUserId === 0) {
+            return sortManageData(list, params.sort);
+        }
+        return sortManageData(
+            list.filter((r) => r.assignedUser.id === params.assignedUserId),
+            params.sort
+        );
+    };
 
     const searchParams = searchParameters(
         {
@@ -77,32 +95,38 @@
         { runLoadAgainWhenParamsChange: false }
     );
 
-    let userWordCountParams = {
+    let userWordCountParams = $state({
         sort: SortName.User,
-    };
+    });
 
-    let assignToEditorUserId: number | null = null;
-    let assignToReviewerUserId: number | null = null;
-    let isAssignContentModalOpen = false;
-    let isSendToPublisherModalOpen = false;
-    let isErrorModalOpen = false;
-    let customErrorMessage: string | null = null;
-    let isAssigning = false;
+    let assignToEditorUserId: number | null = $state(null);
+    let assignToReviewerUserId: number | null = $state(null);
+    let isAssignContentModalOpen = $state(false);
+    let isSendToPublisherModalOpen = $state(false);
+    let isErrorModalOpen = $state(false);
+    let isAssigning = $state(false);
 
-    $: !isErrorModalOpen && (customErrorMessage = null);
+    let customErrorMessage = $derived.by(() => {
+        if (!isErrorModalOpen) {
+            return null;
+        }
+    });
 
-    let currentProjectNames: string[] = [];
-    let currentLastAssignedUsers: BasicUser[] = [];
-    let currentMyWorkContents: ResourceAssignedToSelf[] = [];
-    let selectedMyWorkContents: ResourceAssignedToSelf[] = [];
+    let currentMyWorkContents: ResourceAssignedToSelf[] = $state([]);
+    let selectedMyWorkContents: ResourceAssignedToSelf[] = $state([]);
 
-    let currentToAssignContents: ResourceAssignedToSelf[] = [];
-    let selectedToAssignContents: ResourceAssignedToSelf[] = [];
+    let currentToAssignContents: ResourceAssignedToSelf[] = $state([]);
+    let selectedToAssignContents: ResourceAssignedToSelf[] = $state([]);
 
-    let currentManageContents: ResourceAssignedToOwnCompany[] = [];
-    let selectedManageContents: ResourceAssignedToOwnCompany[] = [];
+    let currentManageContents: ResourceAssignedToOwnCompany[] = $state([]);
+    let selectedManageContents: ResourceAssignedToOwnCompany[] = $state([]);
 
-    let isSkipEditor = false;
+    let isSkipEditor = $state(false);
+
+    let sortedCurrentMyWorkContents = $derived(sortAssignedData(currentMyWorkContents, $searchParams.sort));
+    let sortedCurrentToAssignContents = $derived(sortAssignedData(currentToAssignContents, $searchParams.sort));
+    let sortedUserWordCounts = $derived(sortUserWordCountData(userWordCounts, userWordCountParams.sort));
+    let sortedCurrentManageContents = $derived(sortAndFilterManageData(currentManageContents, $searchParams));
 
     const setTabContents = (
         tab: string,
@@ -138,22 +162,27 @@
         }
     };
 
-    $: setTabContents(
-        $searchParams.tab,
-        $searchParams.assignedUserId,
-        $searchParams.project,
-        $searchParams.lastAssignedId,
-        search,
-        isFilteringUnresolved
+    $effect(() =>
+        setTabContents(
+            $searchParams.tab,
+            $searchParams.assignedUserId,
+            $searchParams.project,
+            $searchParams.lastAssignedId,
+            search,
+            isFilteringUnresolved
+        )
     );
-    $: anyRowSelected =
-        selectedMyWorkContents.length > 0 || selectedToAssignContents.length > 0 || selectedManageContents.length > 0;
-    $: nonCompanyReviewSelected = selectedMyWorkContents.some(
-        (x) =>
-            ![
-                ResourceContentStatusEnum.AquiferizeCompanyReview,
-                ResourceContentStatusEnum.TranslationCompanyReview,
-            ].includes(x.statusValue)
+    let anyRowSelected = $derived(
+        selectedMyWorkContents.length > 0 || selectedToAssignContents.length > 0 || selectedManageContents.length > 0
+    );
+    let nonCompanyReviewSelected = $derived.by(() =>
+        selectedMyWorkContents.some(
+            (x) =>
+                ![
+                    ResourceContentStatusEnum.AquiferizeCompanyReview,
+                    ResourceContentStatusEnum.TranslationCompanyReview,
+                ].includes(x.statusValue)
+        )
     );
 
     function maybeResetSearchParams(
@@ -166,20 +195,24 @@
         // Handle situation where project is set in the searchParams but is no longer valid. E.g. saved bookmark
         // or forced refresh after assign that removed all of them.
         if (
-            ($searchParams.tab === Tab.toAssign && !toAssignProjectNames.includes($searchParams.project)) ||
-            ($searchParams.tab === Tab.manage && !manageProjectNames.includes($searchParams.project)) ||
-            ($searchParams.tab === Tab.myWork && !myWorkProjectNames.includes($searchParams.project))
+            (untrack(() => $searchParams.tab) === Tab.toAssign &&
+                !toAssignProjectNames.includes(untrack(() => $searchParams.project))) ||
+            (untrack(() => $searchParams.tab === Tab.manage) &&
+                !manageProjectNames.includes(untrack(() => $searchParams.project))) ||
+            (untrack(() => $searchParams.tab === Tab.myWork) &&
+                !myWorkProjectNames.includes(untrack(() => $searchParams.project)))
         ) {
-            $searchParams.project = '';
+            untrack(() => ($searchParams.project = ''));
         }
-
         if (
-            ($searchParams.tab === Tab.manage &&
-                manageLastAssignedUsers.filter((u) => u.id === $searchParams.lastAssignedId).length === 0) ||
-            ($searchParams.tab === Tab.myWork &&
-                myWorkLastAssignedUsers.filter((u) => u.id === $searchParams.lastAssignedId).length === 0)
+            (untrack(() => $searchParams.tab === Tab.manage) &&
+                manageLastAssignedUsers.filter((u) => u.id === untrack(() => $searchParams.lastAssignedId)).length ===
+                    0) ||
+            (untrack(() => $searchParams.tab === Tab.myWork) &&
+                myWorkLastAssignedUsers.filter((u) => u.id === untrack(() => $searchParams.lastAssignedId)).length ===
+                    0)
         ) {
-            $searchParams.lastAssignedId = 0;
+            untrack(() => ($searchParams.lastAssignedId = 0));
         }
     }
 
@@ -187,17 +220,25 @@
         isSkipEditor = !isSkipEditor;
     }
 
-    const switchProjectAndLastAssignedNames = (tab: string) => {
-        if (tab === Tab.myWork) {
-            currentProjectNames = myWorkProjectNames;
-            currentLastAssignedUsers = myWorkLastAssignedUsers;
-        } else if (tab === Tab.toAssign) {
-            currentProjectNames = toAssignProjectNames;
-        } else if (tab === Tab.manage) {
-            currentProjectNames = manageProjectNames;
-            currentLastAssignedUsers = manageLastAssignedUsers;
+    let currentProjectNames = $derived.by(() => {
+        if ($searchParams.tab === Tab.myWork) {
+            return myWorkProjectNames;
+        } else if ($searchParams.tab === Tab.toAssign) {
+            return toAssignProjectNames;
+        } else if ($searchParams.tab === Tab.manage) {
+            return manageProjectNames;
         }
-    };
+        return [];
+    });
+
+    let currentLastAssignedUsers = $derived.by(() => {
+        if ($searchParams.tab === Tab.myWork) {
+            return myWorkLastAssignedUsers;
+        } else if ($searchParams.tab === Tab.manage) {
+            return manageLastAssignedUsers;
+        }
+        return [];
+    });
 
     const switchTabs = (tab: Tab) => {
         if ($searchParams.tab === tab) return;
@@ -214,19 +255,6 @@
         selectedMyWorkContents = [];
         selectedToAssignContents = [];
         selectedManageContents = [];
-    };
-
-    const sortAndFilterManageData = (
-        list: ResourceAssignedToOwnCompany[],
-        params: SubscribedSearchParams<typeof searchParams>
-    ) => {
-        if (params.assignedUserId === 0) {
-            return sortManageData(list, params.sort);
-        }
-        return sortManageData(
-            list.filter((r) => r.assignedUser.id === params.assignedUserId),
-            params.sort
-        );
     };
 
     const assignEditor = async (contentIds: number[]) => {
@@ -271,14 +299,22 @@
         }
     }
 
-    let table: Table<ResourceAssignedToSelf> | Table<ResourceAssignedToOwnCompany> | undefined;
-    let userWordCountTable: Table<UserWordCount> | undefined;
+    let table: Table<ResourceAssignedToSelf> | Table<ResourceAssignedToOwnCompany> | undefined = $state(undefined);
+    let userWordCountTable: Table<UserWordCount> | undefined = $state(undefined);
 
-    $: userWordCountParams.sort && userWordCountTable?.resetScroll();
-    $: $searchParams.sort && $searchParams.tab && table?.resetScroll();
+    $effect(() => {
+        if (userWordCountParams.sort && userWordCountTable) {
+            untrack(() => userWordCountTable?.resetScroll());
+        }
+    });
+    $effect(() => {
+        if ($searchParams.sort && $searchParams.tab && table) {
+            untrack(() => table?.resetScroll());
+        }
+    });
 
-    let selectedCount = 0;
-    let selectedWordCount = 0;
+    let selectedCount = $state(0);
+    let selectedWordCount = $state(0);
 
     function calculateSelectedCounts(
         selectedMyWorkContents: ResourceAssignedToSelf[],
@@ -297,8 +333,7 @@
         }
     }
 
-    $: calculateSelectedCounts(selectedMyWorkContents, selectedToAssignContents, selectedManageContents);
-    $: switchProjectAndLastAssignedNames($searchParams.tab);
+    $effect(() => calculateSelectedCounts(selectedMyWorkContents, selectedToAssignContents, selectedManageContents));
 </script>
 
 <div class="flex flex-col overflow-y-hidden px-4">
@@ -306,18 +341,18 @@
     <div class="flex flex-row items-center pt-4">
         <div role="tablist" class="tabs tabs-bordered w-fit">
             <button
-                on:click={() => switchTabs(Tab.myWork)}
+                onclick={() => switchTabs(Tab.myWork)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.myWork && 'tab-active'}">My Work ({myWorkContents.length})</button
             >
             <button
-                on:click={() => switchTabs(Tab.toAssign)}
+                onclick={() => switchTabs(Tab.toAssign)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.toAssign && 'tab-active'}"
                 >To Assign ({toAssignContents.length})</button
             >
             <button
-                on:click={() => switchTabs(Tab.manage)}
+                onclick={() => switchTabs(Tab.manage)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.manage && 'tab-active'}">Manage ({manageContents.length})</button
             >
@@ -374,7 +409,7 @@
         <button
             data-app-insights-event-name="manager-dashboard-bulk-assign-click"
             class="btn btn-primary"
-            on:click={() => (isAssignContentModalOpen = true)}
+            onclick={() => (isAssignContentModalOpen = true)}
             disabled={selectedMyWorkContents.length === 0 &&
                 selectedToAssignContents.length === 0 &&
                 selectedManageContents.length === 0}>Assign</button
@@ -385,7 +420,7 @@
                 <button
                     data-app-insights-event-name="manager-dashboard-bulk-assign-click"
                     class="btn btn-primary"
-                    on:click={() => (isSendToPublisherModalOpen = true)}
+                    onclick={() => (isSendToPublisherModalOpen = true)}
                     disabled={!anyRowSelected || nonCompanyReviewSelected}>Send to Publisher</button
                 >
             </Tooltip>
@@ -402,7 +437,7 @@
             class="my-4"
             enableSelectAll={true}
             columns={assignedContentsColumns}
-            items={sortAssignedData(currentMyWorkContents, $searchParams.sort)}
+            items={sortedCurrentMyWorkContents}
             itemUrlPrefix="/resources/"
             idColumn="id"
             bind:searchParams={$searchParams}
@@ -435,7 +470,7 @@
                 class="my-4 max-h-[31.25rem] xl:grow"
                 enableSelectAll={true}
                 columns={toAssignContentsColumns}
-                items={sortAssignedData(currentToAssignContents, $searchParams.sort)}
+                items={sortedCurrentToAssignContents}
                 idColumn="id"
                 bind:searchParams={$searchParams}
                 bind:selectedItems={selectedToAssignContents}
@@ -464,7 +499,7 @@
                     bind:this={userWordCountTable}
                     class="my-4 w-full xl:max-w-[275px]"
                     columns={userWordCountColumns}
-                    items={sortUserWordCountData(userWordCounts, userWordCountParams.sort)}
+                    items={sortedUserWordCounts}
                     idColumn="userId"
                     noItemsText="No Users Found."
                     bind:searchParams={userWordCountParams}
@@ -478,7 +513,7 @@
                 class="my-4 max-h-[31.25rem] xl:grow"
                 enableSelectAll={true}
                 columns={manageContentsColumns}
-                items={sortAndFilterManageData(currentManageContents, $searchParams)}
+                items={sortedCurrentManageContents}
                 idColumn="id"
                 bind:searchParams={$searchParams}
                 bind:selectedItems={selectedManageContents}
@@ -513,7 +548,7 @@
                     bind:this={userWordCountTable}
                     class="my-4 w-full xl:max-w-[275px]"
                     columns={userWordCountColumns}
-                    items={sortUserWordCountData(userWordCounts, userWordCountParams.sort)}
+                    items={sortedUserWordCounts}
                     idColumn="userId"
                     noItemsText="No Users Found."
                     bind:searchParams={userWordCountParams}
@@ -549,7 +584,7 @@
             <input
                 type="checkbox"
                 class="checkbox checkbox-sm"
-                on:click={toggleSkipEditor}
+                onclick={toggleSkipEditor}
                 checked={isSkipEditor}
                 aria-label="Skip Editor Step"
             />

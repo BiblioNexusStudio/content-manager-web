@@ -74,11 +74,6 @@
 
     let isFilteringUnresolved = $state(false);
 
-    let sortedCurrentAssignedContents: ResourceAssignedToSelf[] = $state([]);
-    let sortedCurrentReviewPendingContents: ResourcePendingReview[] = $state([]);
-    let sortedCurrentCommunityPendingContents: ResourcePendingReview[] = $state([]);
-    let sortedCurrentAssignedProjects: Project[] = $state([]);
-
     const searchParams = searchParameters(
         {
             sort: ssp.string('-' + SortName.Days),
@@ -288,19 +283,14 @@
         setTabContents($searchParams.tab, search, $searchParams.status, $searchParams.project, isFilteringUnresolved);
     });
 
-    $effect(() => {
-        sortedCurrentAssignedContents = sortAssignedResourceData(currentAssignedContents, $searchParams.sort);
-    });
-
-    $effect(() => {
-        sortedCurrentReviewPendingContents = sortPendingData(currentReviewPendingContents, $searchParams.sort);
-    });
-    $effect(() => {
-        sortedCurrentCommunityPendingContents = sortPendingData(currentCommunityPendingContents, $searchParams.sort);
-    });
-    $effect(() => {
-        sortedCurrentAssignedProjects = sortAssignedProjectData(currentAssignedProjects, $searchParams.sort);
-    });
+    let sortedCurrentAssignedContents = $derived(sortAssignedResourceData(currentAssignedContents, $searchParams.sort));
+    let sortedCurrentReviewPendingContents = $derived(
+        sortPendingData(currentReviewPendingContents, $searchParams.sort)
+    );
+    let sortedCurrentCommunityPendingContents = $derived(
+        sortPendingData(currentCommunityPendingContents, $searchParams.sort)
+    );
+    let sortedCurrentAssignedProjects = $derived(sortAssignedProjectData(currentAssignedProjects, $searchParams.sort));
 </script>
 
 <div class="flex flex-col overflow-y-hidden px-4">

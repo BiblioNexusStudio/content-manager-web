@@ -83,6 +83,12 @@ export enum _PublisherTab {
     notApplicable = 'not-applicable',
 }
 
+export enum _ManagerTab {
+    myWork = 'my-work',
+    toAssign = 'to-assign',
+    manage = 'manage',
+}
+
 export interface ResourcesByParentResource extends TotalsByMonth {
     parentResourceName: string;
 }
