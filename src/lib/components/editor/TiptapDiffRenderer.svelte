@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-    import { onDestroy, onMount, tick } from 'svelte';
+    import { onDestroy, tick } from 'svelte';
     import type { TiptapContentItem } from '$lib/types/resources';
     import HtmlDiffWorker from '../../../workers/html-differ.ts?worker';
     import CenteredSpinner from '../CenteredSpinner.svelte';
@@ -8,7 +8,7 @@
     import { log } from '$lib/logger';
     import { Editor } from 'aquifer-tiptap';
     import type { ScriptDirection } from '$lib/types/base';
-    import { scrollPosition, isScrollSyncEnabled, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
+    import { scrollSync } from '$lib/stores/scrollSync.svelte.ts';
 
     export let tiptapJson: TiptapContentItem | undefined;
     export let currentTiptapJsonForDiffing: TiptapContentItem | undefined;
@@ -22,7 +22,6 @@
     let currentTiptapJsonString: string | undefined;
     let previousBaseHtmlWithTextDirection: string | undefined;
     let baseHtmlWithTextDirection: string | undefined;
-    let scrollSyncElement: HTMLDivElement | undefined;
 
     function calculateBaseHtmlWithTextDirection(tiptapJson: TiptapContentItem | undefined) {
         if (tiptapJson) {
@@ -40,7 +39,7 @@
     ) {
         const editor = new Editor({
             editable: false,
-            extensions: extensions(false, undefined, true, languageScriptDirection),
+            extensions: extensions(false, undefined, true, languageScriptDirection, false),
             content: tiptapJson.tiptap,
         });
         return editor.getHTML();
@@ -75,7 +74,6 @@
                     if (event.data.success) {
                         diffedHtml = event.data.success;
                         await tick();
-                        setScroll($scrollPosition);
                     } else if (event.data.error) {
                         log.exception(event.data.error);
                     }
@@ -87,51 +85,12 @@
         750
     );
 
-    $: {
-        if ($isScrollSyncEnabled && $scrollSyncSourceDiv && $scrollSyncSourceDiv !== scrollSyncElement) {
-            setScroll($scrollPosition);
-        }
-    }
-
-    const setScroll = (scrollPosition: number) => {
-        if (scrollSyncElement) {
-            const scrollHeight = scrollSyncElement.scrollHeight;
-            const clientHeight = scrollSyncElement.clientHeight;
-
-            scrollSyncElement.scrollTop = scrollPosition * (scrollHeight - clientHeight);
-        }
-    };
-
-    const setScrollSyncElement = () => {
-        $scrollSyncSourceDiv = scrollSyncElement;
-    };
-
-    const handleScroll = () => {
-        if (scrollSyncElement) {
-            const scrollHeight = scrollSyncElement.scrollHeight;
-            const clientHeight = scrollSyncElement.clientHeight;
-            const scrollTop = scrollSyncElement.scrollTop;
-
-            $scrollPosition = Math.round((scrollTop / (scrollHeight - clientHeight)) * 1000) / 1000;
-        }
-    };
-
-    onMount(() => {
-        if (scrollSyncElement) {
-            scrollSyncElement.scrollTop = 0;
-        }
-    });
-
     onDestroy(() => diffWorker && diffWorker.terminate());
 </script>
 
 <div class="relative grow">
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div
-        bind:this={scrollSyncElement}
-        on:scroll={handleScroll}
-        on:mouseenter={setScrollSyncElement}
-        on:focus={setScrollSyncElement}
+        use:scrollSync
         class="absolute bottom-0 left-0 right-0 top-0 overflow-y-scroll rounded-md border border-base-300 bg-white"
     >
         {#if diffedHtml}

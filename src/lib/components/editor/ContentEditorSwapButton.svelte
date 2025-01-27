@@ -9,7 +9,7 @@
     class="flex border-primary align-middle text-primary"
     text="Swap Editor Panes"
 >
-    <button on:click={() => ($isEditorPaneOnLeft = !$isEditorPaneOnLeft)} class="btn mt-1 h-auto min-h-0 p-1">
+    <button onclick={() => ($isEditorPaneOnLeft = !$isEditorPaneOnLeft)} class="btn mt-1 h-auto min-h-0 p-1">
         <ArrowsLeftRight />
     </button>
 </Tooltip>

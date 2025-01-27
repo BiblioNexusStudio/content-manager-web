@@ -4,21 +4,55 @@
     import type { PassageReference, VerseReference } from '$lib/types/resources';
     import { instanceOfPassageReference } from '$lib/utils/reference';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
-    import { fetchLanguageDefaultBible, type BasicBible } from '$lib/utils/bibles-fetcher';
+    import { fetchLanguageBiblesAndEnglishDefault, type BasicBible } from '$lib/utils/bibles-fetcher';
     import type { Language } from '$lib/types/base';
+    import Select from '$lib/components/Select.svelte';
 
-    export let references: (PassageReference | VerseReference)[];
-    export let language: Language;
-    export let visible: boolean;
-
-    $: if (visible && !promise) {
-        promise = getBibleTextsReferences();
+    interface Props {
+        references: (PassageReference | VerseReference)[];
+        language: Language;
+        languages: Language[];
+        visible: boolean;
     }
 
-    let promise: Promise<{ bible: BasicBible | undefined; bibleTextsReferences: BibleTextsReference[] }> | null = null;
+    let { references, language, languages, visible }: Props = $props();
 
-    async function getBibleTextsReferences() {
-        const bible = await fetchLanguageDefaultBible(language.id);
+    let currentBibleId: number | null = $state(null);
+    let bibles: BasicBible[] = $state([]);
+    let fetchedBibles = $state(false);
+
+    let currentBible = $derived(() => {
+        return bibles.find((b) => b.id === currentBibleId);
+    });
+
+    let currentBibleLanguage = $derived(() => {
+        return languages.find((l) => l.id === currentBible()?.languageId);
+    });
+
+    $effect(() => {
+        if (visible && !promise) {
+            promise = getBibleTextsReferences(language);
+        }
+    });
+
+    let promise: Promise<{
+        bible: BasicBible | undefined;
+        bibleTextsReferences: BibleTextsReference[];
+    }> | null = $state(null);
+
+    async function getBibleTextsReferences(language: Language) {
+        if (!fetchedBibles) {
+            bibles = await fetchLanguageBiblesAndEnglishDefault(language.id);
+            fetchedBibles = true;
+        }
+
+        const bible = bibles.some((b) => b.languageId === language.id && b.isLanguageDefault)
+            ? bibles.find((b) => b.languageId === language.id && b.isLanguageDefault)
+            : bibles.find((b) => b.languageId === 1 && b.isLanguageDefault);
+
+        if (currentBibleId === null) {
+            currentBibleId = bible?.id ?? null;
+        }
         const bibleTextsReferences: BibleTextsReference[] = [];
         // The reason I loop instead of firing them all off at once is because it grabs by book, and
         // presumably there will be multiple within the same book. This way any follow-ups can use the cached
@@ -48,7 +82,15 @@
                 {#if fetched.bibleTextsReferences.length === 0}
                     <div>No linked Bible references.</div>
                 {:else}
-                    <div class="text-lg font-semibold" dir="auto">{fetched.bible?.name}</div>
+                    <Select
+                        class="select select-bordered"
+                        options={bibles.map((b) => ({ value: b.id, label: b.name }))}
+                        value={currentBibleId}
+                        onChange={(value) => {
+                            currentBibleId = parseInt(value as string);
+                            promise = getBibleTextsReferences(currentBibleLanguage() ?? language);
+                        }}
+                    />
                     {#each fetched.bibleTextsReferences as bibleTextsReference, i (bibleTextsReference)}
                         <div>
                             <BibleTextReference

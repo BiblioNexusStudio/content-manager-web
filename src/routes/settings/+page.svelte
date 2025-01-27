@@ -6,7 +6,7 @@
     import { debounce } from '$lib/utils/debounce';
     import { createSettingsTableSorter, SortName } from './settings-table-sorter';
     import { log } from '$lib/logger';
-    import { isApiErrorWithMessage } from '$lib/utils/http-errors';
+    import { parseApiValidatorErrorMessage } from '$lib/utils/http-errors';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
     import Table from '$lib/components/Table.svelte';
     import Select from '$lib/components/Select.svelte';
@@ -40,6 +40,8 @@
     let errorMessage = $state('');
     let openErrorModal = $state(false);
     let table: Table<TranslationPair> | undefined = $state(undefined);
+
+    const addTranslationPairParameters = ['languageId', 'key', 'value'];
 
     const sortSettingsData = createSettingsTableSorter<TranslationPair>();
 
@@ -123,7 +125,7 @@
                 );
             }
         } catch (e) {
-            processError(e as Error);
+            processError(e);
             openErrorModal = true;
             newKey = '';
             newValue = '';
@@ -132,6 +134,17 @@
             newKey = '';
             newValue = '';
             isTransacting = false;
+        }
+    };
+
+    const processError = (e: unknown) => {
+        let messageOrNotValidationError = parseApiValidatorErrorMessage(e, addTranslationPairParameters);
+        if (!messageOrNotValidationError) {
+            errorMessage = 'An error occurred while processing the request.';
+            openErrorModal = true;
+            log.exception(e);
+        } else {
+            errorMessage = messageOrNotValidationError as string;
         }
     };
 
@@ -144,7 +157,7 @@
             await patchToApi(`/translation-pairs/${id}`, { key });
         } catch (e) {
             target.value = translationPairs.find((tp) => tp.translationPairId === id)?.translationPairKey ?? '';
-            processError(e as Error);
+            processError(e);
             openErrorModal = true;
             isTransacting = false;
         } finally {
@@ -163,7 +176,7 @@
             await patchToApi(`/translation-pairs/${id}`, { value });
         } catch (e) {
             target.value = translationPairs.find((tp) => tp.translationPairId === id)?.translationPairValue ?? '';
-            processError(e as Error);
+            processError(e);
             openErrorModal = true;
             isTransacting = false;
         } finally {
@@ -183,27 +196,6 @@
 
     const getCurrentLanguageDisplayname = (currentLanguageId: number) => {
         return translationPairsLanguages.find((tpl) => tpl.languageId === currentLanguageId)?.englishDisplay ?? '';
-    };
-
-    const processError = (e: Error) => {
-        errorMessage = 'An error occurred while processing the translation pair.';
-
-        let containsErrorMessage = isApiErrorWithMessage(e, 'Key already exists for this language');
-        let containsNotAllowedMessage = isApiErrorWithMessage(
-            e,
-            'Keys must be at least 3 characters long. Some keywords are not allowed.'
-        );
-
-        if (containsErrorMessage) {
-            errorMessage = 'Key already exists for this language.';
-        }
-
-        if (containsNotAllowedMessage) {
-            errorMessage = 'Keys must be at least 3 characters long. Some keywords are not allowed.';
-        }
-        if (!containsErrorMessage && !containsNotAllowedMessage) {
-            log.exception(e);
-        }
     };
 
     const handleKeyUp = (event: KeyboardEvent, id: number, type: 'key' | 'value') => {
