@@ -445,23 +445,22 @@
             noItemsText="Your work is all done!"
             searchable={true}
             bind:searchText={search}
-            let:item
-            let:href
-            let:itemKey
         >
-            {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-            {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
-                <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
-                    >{item[itemKey] ?? ''}</LinkedTableCell
-                >
-            {:else if itemKey === 'lastAssignedUser'}
-                <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
-            {:else if href !== undefined && itemKey}
-                <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-            {:else if itemKey}
-                <TableCell>{item[itemKey] ?? ''}</TableCell>
-            {/if}
+            {#snippet tableCells(item, href, itemKey)}
+                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                    <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                        >{item[itemKey] ?? ''}</LinkedTableCell
+                    >
+                {:else if itemKey === 'lastAssignedUser'}
+                    <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
+                {:else if href !== undefined && itemKey}
+                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey}
+                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+                {/if}
+            {/snippet}
         </Table>
     {:else if $searchParams.tab === Tab.toAssign}
         <div class="flex h-full flex-[2] grow flex-col gap-4 overflow-y-hidden xl:flex-row">
@@ -478,21 +477,20 @@
                 noItemsText="Your work is all done!"
                 searchable={true}
                 bind:searchText={search}
-                let:item
-                let:href
-                let:itemKey
             >
-                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
-                    <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
-                        >{item[itemKey] ?? ''}</LinkedTableCell
-                    >
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
-                {/if}
+                {#snippet tableCells(item, href, itemKey)}
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                        <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                            >{item[itemKey] ?? ''}</LinkedTableCell
+                        >
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                {/snippet}
             </Table>
             {#if userWordCounts.length > 0}
                 <Table
@@ -523,25 +521,24 @@
                     : 'Nothing assigned to this user.'}
                 searchable={true}
                 bind:searchText={search}
-                let:item
-                let:href
-                let:itemKey
             >
-                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                {:else if itemKey === 'assignedUser' && item[itemKey] !== null && item[itemKey]?.name !== null}
-                    <LinkedTableCell {href}>{item[itemKey]?.name}</LinkedTableCell>
-                {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
-                    <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
-                        >{item[itemKey] ?? ''}</LinkedTableCell
-                    >
-                {:else if itemKey === 'lastAssignedUser'}
-                    <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
-                {/if}
+                {#snippet tableCells(item, href, itemKey)}
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'assignedUser' && item[itemKey] !== null && item[itemKey]?.name !== null}
+                        <LinkedTableCell {href}>{item[itemKey]?.name}</LinkedTableCell>
+                    {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                        <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                            >{item[itemKey] ?? ''}</LinkedTableCell
+                        >
+                    {:else if itemKey === 'lastAssignedUser'}
+                        <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                {/snippet}
             </Table>
             {#if userWordCounts.length > 0}
                 <Table
