@@ -14,7 +14,6 @@
     import Tooltip from '$lib/components/Tooltip.svelte';
     import type { CommentStores } from '$lib/stores/comments';
     import type { ResourceContent } from '$lib/types/resources';
-    import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
     import MenuIcon from '$lib/icons/MenuIcon.svelte';
     import { onMount } from 'svelte';
@@ -31,18 +30,9 @@
         canEdit: boolean;
         resourceContent: ResourceContent;
         isLoading: boolean;
-        machineTranslationStore: MachineTranslationStore;
     }
 
-    let {
-        itemIndex,
-        editor,
-        commentStores,
-        canEdit,
-        resourceContent,
-        isLoading = $bindable(),
-        machineTranslationStore,
-    }: Props = $props();
+    let { itemIndex, editor, commentStores, canEdit, resourceContent, isLoading = $bindable() }: Props = $props();
 
     const isPageTransacting = getIsPageTransactingContext();
 
@@ -303,7 +293,7 @@
         <div class="flex">
             {#if showMachineTranslationRating && !isLoading}
                 <div class="mx-2 flex items-center">
-                    <MachineTranslationRating {itemIndex} {machineTranslationStore} />
+                    <MachineTranslationRating {itemIndex} />
                 </div>
             {/if}
         </div>

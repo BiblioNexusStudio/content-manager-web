@@ -13,7 +13,6 @@
     } from '$lib/types/resources';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
     import type { CommentStores } from '$lib/stores/comments';
-    import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
 
     interface ContentProps {
         editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
@@ -26,7 +25,6 @@
         selectedStepNumber: number | undefined;
         sidebarIsOpen?: boolean;
         commentStores: CommentStores;
-        machineTranslationStore: MachineTranslationStore;
         blurOnPendingAiTranslate?: boolean;
         isSourceContentArea?: boolean;
     }
@@ -42,7 +40,6 @@
         selectedStepNumber = $bindable(),
         sidebarIsOpen = false,
         commentStores,
-        machineTranslationStore,
         blurOnPendingAiTranslate = false,
         isSourceContentArea = false,
     }: ContentProps = $props();
@@ -67,7 +64,6 @@
         {canEdit}
         {canComment}
         {commentStores}
-        {machineTranslationStore}
         {blurOnPendingAiTranslate}
         {isSourceContentArea}
     />

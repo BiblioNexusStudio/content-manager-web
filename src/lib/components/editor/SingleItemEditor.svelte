@@ -5,7 +5,6 @@
     import TiptapRenderer from './TiptapRenderer.svelte';
     import type { Editor } from 'aquifer-tiptap';
     import type { CommentStores } from '$lib/stores/comments';
-    import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
 
     interface Props {
@@ -17,7 +16,6 @@
         canComment: boolean;
         resourceContent: ResourceContent;
         commentStores: CommentStores;
-        machineTranslationStore: MachineTranslationStore;
         blurOnPendingAiTranslate?: boolean;
         isSourceContentArea?: boolean;
     }
@@ -31,7 +29,6 @@
         canComment,
         resourceContent,
         commentStores,
-        machineTranslationStore,
         blurOnPendingAiTranslate = false,
         isSourceContentArea = false,
     }: Props = $props();
@@ -66,15 +63,7 @@
 </script>
 
 <div class="flex h-full flex-col space-y-4">
-    <EditorToolbar
-        {editor}
-        {canEdit}
-        {commentStores}
-        {resourceContent}
-        {machineTranslationStore}
-        {itemIndex}
-        bind:isLoading
-    />
+    <EditorToolbar {editor} {canEdit} {commentStores} {resourceContent} {itemIndex} bind:isLoading />
 
     <TiptapRenderer
         language={resourceContent.language}

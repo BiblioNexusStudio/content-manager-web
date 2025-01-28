@@ -46,7 +46,7 @@
     import type { CommentThreadsResponse } from '$lib/types/comments';
     import { createSidebarContentStore } from './sidebar-content-store';
     import CommentsSidebar from '$lib/components/comments/CommentsSidebar.svelte';
-    import { createMachineTranslationStore } from '$lib/stores/machineTranslation';
+    import { createMachineTranslationStore, setMachineTranslationContext } from '$lib/stores/machineTranslation';
     import MachineTranslationRating from '$lib/components/MachineTranslationRating.svelte';
     import { fly } from 'svelte/transition';
     import BibleReferencesSidebar from './BibleReferencesSidebar.svelte';
@@ -120,6 +120,7 @@
     $: hasUnresolvedThreads = $commentThreads?.threads.some((x) => !x.resolved && x.id !== -1) || false;
 
     const machineTranslationStore = createMachineTranslationStore();
+    setMachineTranslationContext(machineTranslationStore);
     const promptForMachineTranslationRating = machineTranslationStore.promptForRating;
 
     function handleFetchedResource(resourceContent: ResourceContent) {
@@ -890,7 +891,6 @@
                                 canComment={resourceContent.isDraft}
                                 {resourceContent}
                                 {commentStores}
-                                {machineTranslationStore}
                                 blurOnPendingAiTranslate={isStatusInAwaitingAiDraft}
                                 isSourceContentArea={false}
                             />
@@ -947,7 +947,6 @@
                                     snapshotOrVersion={$sidebarContentStore.selected}
                                     {resourceContent}
                                     {commentStores}
-                                    {machineTranslationStore}
                                     isSourceContentArea={true}
                                 />
                                 {#if mediaType === MediaTypeEnum.text}
@@ -1060,11 +1059,7 @@
             <div class="mb-8 flex flex-col justify-start gap-4">
                 <div class="font-semibold text-error">Please rate the AI translation before reassigning.</div>
                 <div>
-                    <MachineTranslationRating
-                        {machineTranslationStore}
-                        showingInPrompt={true}
-                        improvementHorizontalPositionPx={0}
-                    />
+                    <MachineTranslationRating showingInPrompt={true} improvementHorizontalPositionPx={0} />
                 </div>
             </div>
         {/if}

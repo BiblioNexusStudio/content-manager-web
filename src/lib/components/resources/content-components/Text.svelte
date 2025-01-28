@@ -8,7 +8,6 @@
     import { onMount } from 'svelte';
     import TiptapDiffRenderer from '$lib/components/editor/TiptapDiffRenderer.svelte';
     import type { CommentStores } from '$lib/stores/comments';
-    import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
     import SingleItemDisplay from '$lib/components/editor/SingleItemDisplay.svelte';
 
     interface TextProps {
@@ -22,7 +21,6 @@
         sidebarIsOpen: boolean;
         selectedStepNumber: number | undefined;
         commentStores: CommentStores;
-        machineTranslationStore: MachineTranslationStore;
         blurOnPendingAiTranslate?: boolean;
         isSourceContentArea?: boolean;
     }
@@ -38,7 +36,6 @@
         sidebarIsOpen,
         selectedStepNumber = $bindable(),
         commentStores,
-        machineTranslationStore,
         blurOnPendingAiTranslate = false,
         isSourceContentArea = false,
     }: TextProps = $props();
@@ -152,7 +149,6 @@
                         {canComment}
                         {commentStores}
                         {resourceContent}
-                        {machineTranslationStore}
                         {blurOnPendingAiTranslate}
                         {isSourceContentArea}
                     />
