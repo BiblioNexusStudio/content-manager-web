@@ -8,29 +8,39 @@
     import { Permission, currentUser, userCan } from '$lib/stores/auth';
     import { log } from '$lib/logger';
 
-    export let open: boolean;
-    export let header: string;
-    export let companies: Company[] | undefined;
-    export let roles: UserRole[];
-
+    interface Props {
+        open: boolean;
+        header: string;
+        companies: Company[] | undefined;
+        roles: UserRole[];
+    }
+    let { open = $bindable(), header, companies, roles }: Props = $props();
     let dialog: HTMLDialogElement;
-    let firstName: string;
-    let firstNameErr: string | null = null;
-    let lastName: string;
-    let lastNameErr: string | null = null;
-    let email: string;
-    let emailErr: string | null = null;
-    let companyId: number | null = null;
-    let role: UserRole | null = null;
-    let isSaving = false;
-    let errorMessage: string | null = null;
+    let firstName: string | null = $state(null);
+    let firstNameErr: string | null = $state(null);
+    let lastName: string | null = $state(null);
+    let lastNameErr: string | null = $state(null);
+    let email: string | null = $state(null);
+    let emailErr: string | null = $state(null);
+    let role: UserRole | null = $state(null);
+    let isSaving = $state(false);
+    let errorMessage: string | null = $state(null);
+    let isValidInput = $state(true);
     const inputMinCharErrMessage = 'Please enter at least 3 characters';
     const onlyCreateUserInCompany = $userCan(Permission.CreateUserInCompany);
 
-    $: dialog ? (open ? dialog.showModal() : dialog.close()) : null;
+    $effect(() => {
+        if (dialog) open ? dialog.showModal() : dialog.close();
+    });
 
-    $: canSave = !!firstName && !!lastName && !!email && !!companyId && !!role;
-    $: onlyCreateUserInCompany && (companyId = $currentUser!.company.id);
+    let companyId = $state(onlyCreateUserInCompany ? $currentUser!.company.id : null);
+    let canSave = $derived(!!firstName && !!lastName && !!email && !!companyId && !!role && isValidInput);
+
+    $effect(() => {
+        if (!firstNameErr && !lastNameErr && !emailErr && !errorMessage) {
+            isValidInput = true;
+        }
+    });
 
     function buildOptions(companies: Company[]) {
         let companyOptions = [
@@ -53,18 +63,18 @@
         return [...[{ value: null, label: 'Select Role' }, ...roleOptions]];
     }
 
-    function validateLength(input: string) {
-        if (!(input.length >= 3)) {
+    function validateLength(input: string | null) {
+        if (input && !(input.length >= 3)) {
             errorMessage = 'Input validation failed';
-            canSave = false;
+            isValidInput = false;
             return false;
         }
         return true;
     }
 
     function validateEmail() {
-        if (!email.includes('@')) {
-            canSave = false;
+        if (!email?.includes('@')) {
+            isValidInput = false;
             errorMessage = 'Input validation failed';
             return false;
         }
@@ -75,7 +85,6 @@
         open = false;
     }
 
-    $: isSaving;
     async function handlePrimaryClick() {
         isSaving = true;
         !validateLength(firstName) ? (firstNameErr = inputMinCharErrMessage) : (firstNameErr = null);
@@ -115,7 +124,7 @@
 <dialog bind:this={dialog} class="modal">
     <div class="modal-box px-0 pt-0">
         <form method="dialog">
-            <button class="text-gray-60 btn btn-circle btn-ghost btn-sm absolute right-2 top-4" on:click={close}
+            <button class="text-gray-60 btn btn-circle btn-ghost btn-sm absolute right-2 top-4" onclick={close}
                 >✕</button
             >
         </form>
@@ -138,7 +147,7 @@
                 <input
                     class="input input-bordered max-h-[50%] w-full"
                     bind:value={firstName}
-                    on:input={() => {
+                    oninput={() => {
                         firstNameErr = null;
                         errorMessage = null;
                     }}
@@ -155,7 +164,7 @@
                 <input
                     class="input input-bordered max-h-[50%] w-full"
                     bind:value={lastName}
-                    on:input={() => {
+                    oninput={() => {
                         lastNameErr = null;
                         errorMessage = null;
                     }}
@@ -173,7 +182,7 @@
                     type="email"
                     class="input input-bordered max-h-[50%] w-full"
                     bind:value={email}
-                    on:input={() => {
+                    oninput={() => {
                         emailErr = null;
                         errorMessage = null;
                     }}
@@ -202,7 +211,7 @@
             {#if errorMessage}
                 <div class="pr-2 pt-2 text-error">{errorMessage}</div>
             {/if}
-            <button class="btn btn-primary" on:click={handlePrimaryClick} disabled={!canSave}
+            <button class="btn btn-primary" onclick={handlePrimaryClick} disabled={!canSave}
                 >{#if isSaving}
                     <span class="loading loading-spinner"></span>
                 {:else}
