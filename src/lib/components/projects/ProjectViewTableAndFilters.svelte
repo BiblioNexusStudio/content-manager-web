@@ -45,9 +45,7 @@
             ) ?? [];
     }
 
-    $effect(() => {
-        items = projectViewSorter(items, $searchParams.sort);
-    });
+    let sortedItems = $derived(projectViewSorter(items, $searchParams.sort));
 </script>
 
 {#if $project?.items}
@@ -69,7 +67,7 @@
     <Table
         class="rounded-md border"
         columns={projectViewTableColumns}
-        {items}
+        items={sortedItems}
         idColumn="resourceContentId"
         enableSelectAll={false}
         enableSelect={false}
