@@ -67,7 +67,7 @@
                 (x) =>
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
                     (!project || x.projectName === project) &&
-                    (!isFilteringUnresolved || x.isResolved === false)
+                    (!isFilteringUnresolved || x.hasUnresolvedCommentThreads === true)
             );
         } else if (tab === Tab.myHistory) {
             visibleMyHistoryContents = myHistoryContents.filter((x) =>

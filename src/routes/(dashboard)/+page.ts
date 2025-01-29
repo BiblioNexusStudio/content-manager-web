@@ -139,7 +139,7 @@ export interface ResourceAssignedToSelf {
     daysSinceContentUpdated: number | null;
     sortOrder: number;
     lastAssignedUser: ResourceUser | null;
-    isResolved: boolean;
+    hasUnresolvedCommentThreads: boolean;
 }
 
 export interface ResourceThatNeedsTranslationResponse {
@@ -183,7 +183,7 @@ export interface ResourcePendingReview {
     daysSinceContentUpdated: number | null;
     reviewLevel: ResourceContentVersionReviewLevel;
     sortOrder: number;
-    isResolved: boolean;
+    hasUnresolvedCommentThreads: boolean;
 }
 
 export interface UserWordCount {
