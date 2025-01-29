@@ -11,35 +11,47 @@
     import { ProjectConstants } from '$lib/types/projects';
     import BackButton from '$lib/components/BackButton.svelte';
 
-    export let data: PageData;
+    interface Props {
+        data: PageData;
+    }
+
+    let { data }: Props = $props();
 
     const { languages, users, projectPlatforms, companies } = data;
 
-    let title = '';
-    let languageId: number | null = null;
-    let projectManagerUserId: number | null = null;
-    let companyId: number | null = null;
-    let platformId: number | null = null;
-    let companyLeadUserId: number | null = null;
-    let selectedResourceIds: number[] = [];
-    let isSaving = false;
-    let isShowingErrorModal = false;
-    let errorMessage = '';
+    let title = $state('');
+    let languageId: number | null = $state(null);
+    let projectManagerUserId: number | null = $state(null);
+    let companyId: number | null = $state(null);
+    let platformId: number | null = $state(null);
+    let companyLeadUserId: number | null = $state(null);
+    let selectedResourceIds: number[] = $state([]);
+    let isSaving = $state(false);
+    let isShowingErrorModal = $state(false);
+    let errorMessage = $state('');
 
-    $: !isShowingErrorModal && (errorMessage = '');
+    $effect(() => {
+        !isShowingErrorModal && (errorMessage = '');
+    });
 
-    $: isForAquiferization = (languages || []).find((l) => l.id === languageId)?.iso6393Code === 'eng';
-    $: requiresCompanyLead = projectPlatforms?.find((p) => p.id === platformId)?.name === ProjectConstants.AQUIFER;
-    $: !requiresCompanyLead && (companyLeadUserId = null);
+    let isForAquiferization = $derived((languages || []).find((l) => l.id === languageId)?.iso6393Code === 'eng');
+    let requiresCompanyLead = $derived(
+        projectPlatforms?.find((p) => p.id === platformId)?.name === ProjectConstants.AQUIFER
+    );
 
-    $: canSave =
+    $effect(() => {
+        !requiresCompanyLead && (companyLeadUserId = null);
+    });
+
+    let canSave = $derived(
         !!title &&
-        !!languageId &&
-        !!projectManagerUserId &&
-        !!companyId &&
-        !!platformId &&
-        (!requiresCompanyLead || !!companyLeadUserId) &&
-        selectedResourceIds.length > 0;
+            !!languageId &&
+            !!projectManagerUserId &&
+            !!companyId &&
+            !!platformId &&
+            (!requiresCompanyLead || !!companyLeadUserId) &&
+            selectedResourceIds.length > 0
+    );
 
     async function save() {
         isSaving = true;
@@ -184,7 +196,7 @@
     </div>
     <div class="absolute bottom-0 left-0 right-0 z-50 flex flex-row border-t bg-white p-4">
         <div class="flex-grow"></div>
-        <button class="btn btn-primary" on:click={save} disabled={!canSave}>
+        <button class="btn btn-primary" onclick={save} disabled={!canSave}>
             {#if isSaving}
                 <span class="loading loading-spinner"></span>
             {:else}

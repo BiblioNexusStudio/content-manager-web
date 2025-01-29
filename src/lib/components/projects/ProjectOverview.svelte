@@ -6,11 +6,16 @@
     import { updateProject } from '$lib/utils/projects';
     import { ProjectConstants } from '$lib/types/projects';
 
-    $: currentProjectManager = $users?.find((u) => u.name === $project?.projectManager);
-    $: projectManagerUserId = currentProjectManager?.id ?? 0;
-    $: currentCompanyLead = $users?.find((u) => u.name === $project?.companyLead);
-    $: companyLeadUserId = currentCompanyLead?.id ?? 0;
-    export let canOnlyViewProjectsInCompany: boolean;
+    interface Props {
+        canOnlyViewProjectsInCompany: boolean;
+    }
+
+    let { canOnlyViewProjectsInCompany }: Props = $props();
+
+    let currentProjectManager = $derived($users?.find((u) => u.name === $project?.projectManager));
+    let projectManagerUserId = $derived(currentProjectManager?.id ?? 0);
+    let currentCompanyLead = $derived($users?.find((u) => u.name === $project?.companyLead));
+    let companyLeadUserId = $derived(currentCompanyLead?.id ?? 0);
 
     async function handleProjectManagerSelectChange(value: string | number | null) {
         const selectedUser = $users?.find((u) => u.id === value);

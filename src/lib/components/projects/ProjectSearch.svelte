@@ -1,6 +1,11 @@
 <script lang="ts">
     import { _ as translate } from 'svelte-i18n';
-    export let projectSearchValue = '';
+
+    interface Props {
+        projectSearchValue: string;
+    }
+
+    let { projectSearchValue = $bindable() }: Props = $props();
 </script>
 
 <input

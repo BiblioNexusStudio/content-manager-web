@@ -9,7 +9,7 @@
     import { SortName, createProjectViewListSorter } from './project-view-table-sorter';
     import type { ProjectResource } from '$lib/types/projects';
 
-    let items = $project?.items ?? [];
+    let items = $state($project?.items ?? []);
     const projectViewSorter = createProjectViewListSorter<ProjectResource>();
 
     const searchParams = searchParameters(
@@ -17,7 +17,9 @@
         { runLoadAgainWhenParamsChange: false }
     );
 
-    $: filterItems($searchParams.assignedUserName, $searchParams.status);
+    $effect(() => {
+        filterItems($searchParams.assignedUserName, $searchParams.status);
+    });
 
     function createOptions(label: string, key: keyof ProjectResource) {
         const uniqueMap = new Map();
@@ -42,6 +44,8 @@
                     (status === '' || p.statusDisplayName === status)
             ) ?? [];
     }
+
+    let sortedItems = $derived(projectViewSorter(items, $searchParams.sort));
 </script>
 
 {#if $project?.items}
@@ -63,7 +67,7 @@
     <Table
         class="rounded-md border"
         columns={projectViewTableColumns}
-        items={projectViewSorter(items, $searchParams.sort)}
+        items={sortedItems}
         idColumn="resourceContentId"
         enableSelectAll={false}
         enableSelect={false}
@@ -71,21 +75,22 @@
         bind:searchParams={$searchParams}
         itemUrlPrefix="/resources/"
         noItemsText="No items found."
-        let:item
-        let:href
-        let:itemKey
     >
-        {#if itemKey === 'assignedUserName'}
-            <td>
-                <LinkedTableCell {href}
-                    >{item[itemKey] ??
-                        (item['statusDisplayName']?.includes('Editor Review') ? 'External User' : '')}</LinkedTableCell
-                >
-            </td>
-        {:else if href !== undefined && itemKey}
-            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-        {:else if itemKey}
-            <TableCell>{item[itemKey] ?? ''}</TableCell>
-        {/if}
+        {#snippet tableCells(item, href, itemKey)}
+            {#if itemKey === 'assignedUserName'}
+                <td>
+                    <LinkedTableCell {href}
+                        >{item[itemKey] ??
+                            (item['statusDisplayName']?.includes('Editor Review')
+                                ? 'External User'
+                                : '')}</LinkedTableCell
+                    >
+                </td>
+            {:else if href !== undefined && itemKey}
+                <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+            {:else if itemKey}
+                <TableCell>{item[itemKey] ?? ''}</TableCell>
+            {/if}
+        {/snippet}
     </Table>
 {/if}
