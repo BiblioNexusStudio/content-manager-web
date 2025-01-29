@@ -142,7 +142,7 @@
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
                     (toAssignProjectName === '' || x.projectName === toAssignProjectName) &&
                     (lastAssignedId === 0 || x.lastAssignedUser?.id === lastAssignedId) &&
-                    (!isFilteringUnresolved || x.isResolved === false)
+                    (!isFilteringUnresolved || x.hasUnresolvedCommentThreads === true)
             );
         } else if (tab === Tab.toAssign) {
             currentToAssignContents = toAssignContents.filter(
@@ -157,7 +157,7 @@
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
                     (toAssignProjectName === '' || x.projectName === toAssignProjectName) &&
                     (lastAssignedId === 0 || x.lastAssignedUser?.id === lastAssignedId) &&
-                    (!isFilteringUnresolved || x.isResolved === false)
+                    (!isFilteringUnresolved || x.hasUnresolvedCommentThreads === true)
             );
         }
     };

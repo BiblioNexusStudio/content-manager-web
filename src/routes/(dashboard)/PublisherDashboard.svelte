@@ -258,7 +258,7 @@
                     ac.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
                     (!status || ac.statusDisplayName === status) &&
                     (!project || ac.projectName === project) &&
-                    (!isFilteringUnresolved || ac.isResolved === false)
+                    (!isFilteringUnresolved || ac.hasUnresolvedCommentThreads === true)
             );
         } else if (tab === Tab.reviewPending) {
             currentReviewPendingContents = reviewPendingContents.filter(
@@ -274,7 +274,7 @@
             currentCommunityPendingContents = communityPendingContents.filter(
                 (crpc) =>
                     crpc.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
-                    (!isFilteringUnresolved || crpc.isResolved === false)
+                    (!isFilteringUnresolved || crpc.hasUnresolvedCommentThreads === true)
             );
         }
     };
