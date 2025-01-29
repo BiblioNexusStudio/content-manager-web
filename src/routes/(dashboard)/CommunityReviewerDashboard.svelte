@@ -222,15 +222,14 @@
             bind:currentPage
             bind:itemsPerPage
             {totalItems}
-            let:item
-            let:href
-            let:itemKey
         >
-            {#if href !== undefined && itemKey}
-                <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-            {:else if itemKey}
-                <TableCell>{item[itemKey] ?? ''}</TableCell>
-            {/if}
+            {#snippet tableCells(item, href, itemKey)}
+                {#if href !== undefined && itemKey}
+                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey}
+                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+                {/if}
+            {/snippet}
         </Table>
     {:else if $searchParams.tab === Tab.myHistory}
         <Table
@@ -242,19 +241,18 @@
             itemUrlPrefix="/resources/"
             bind:searchParams={$searchParams}
             noItemsText="No history items"
-            let:item
-            let:href
-            let:itemKey
         >
-            {#if itemKey === 'lastActionTime' && item[itemKey] !== null}
-                <LinkedTableCell {href}
-                    >{utcDateTimeStringToDateTime(item[itemKey]).toLocaleDateString()}</LinkedTableCell
-                >
-            {:else if href !== undefined && itemKey}
-                <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-            {:else if itemKey}
-                <TableCell>{item[itemKey] ?? ''}</TableCell>
-            {/if}
+            {#snippet tableCells(item, href, itemKey)}
+                {#if itemKey === 'lastActionTime' && item[itemKey] !== null}
+                    <LinkedTableCell {href}
+                        >{utcDateTimeStringToDateTime(item[itemKey]).toLocaleDateString()}</LinkedTableCell
+                    >
+                {:else if href !== undefined && itemKey}
+                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey}
+                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+                {/if}
+            {/snippet}
         </Table>
     {/if}
 </div>

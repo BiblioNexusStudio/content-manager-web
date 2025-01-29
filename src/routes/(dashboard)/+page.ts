@@ -199,3 +199,8 @@ export interface NotApplicableContent {
     title: string;
     projectName: string | null;
 }
+
+export enum _EditorTab {
+    myWork = 'my-work',
+    myHistory = 'my-history',
+}

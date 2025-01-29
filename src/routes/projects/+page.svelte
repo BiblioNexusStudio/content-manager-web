@@ -4,15 +4,18 @@
     import { ProjectStatusTab } from '$lib/types/projects';
     import ProjectTableTabs from '$lib/components/projects/ProjectTableTabs.svelte';
     import ProjectReportingTab from './ProjectReportingTab.svelte';
+    interface Props {
+        data: PageData;
+    }
 
-    export let data: PageData;
+    let { data }: Props = $props();
 
-    let currentTab = ProjectStatusTab.active;
+    let currentTab = $state(ProjectStatusTab.active);
 
-    $: languages = data.languages;
-    $: activeProjects = data?.projects?.filter((p) => p.isStarted && !p.isCompleted);
-    $: recentlyFinishedProjects = data?.projects?.filter((p) => p.isCompleted);
-    $: notStartedProjects = data?.projects?.filter((p) => !p.isStarted);
+    let languages = $derived(data.languages);
+    let activeProjects = $derived(data?.projects?.filter((p) => p.isStarted && !p.isCompleted));
+    let recentlyFinishedProjects = $derived(data?.projects?.filter((p) => p.isCompleted));
+    let notStartedProjects = $derived(data?.projects?.filter((p) => !p.isStarted));
 </script>
 
 <svelte:head>
