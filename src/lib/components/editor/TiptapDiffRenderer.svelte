@@ -10,18 +10,19 @@
     import type { ScriptDirection } from '$lib/types/base';
     import { scrollSync } from '$lib/stores/scrollSync.svelte.ts';
 
-    export let tiptapJson: TiptapContentItem | undefined;
-    export let currentTiptapJsonForDiffing: TiptapContentItem | undefined;
-    export let languageScriptDirection: ScriptDirection | undefined;
+    interface TipTapDiffRendererProps {
+        tiptapJson: TiptapContentItem | undefined;
+        currentTiptapJsonForDiffing: TiptapContentItem | undefined;
+        languageScriptDirection: ScriptDirection | undefined;
+    }
 
-    $: calculateBaseHtmlWithTextDirection(tiptapJson);
-    $: debouncedGenerateDiffHtml(currentTiptapJsonForDiffing, baseHtmlWithTextDirection);
+    let { tiptapJson, currentTiptapJsonForDiffing, languageScriptDirection }: TipTapDiffRendererProps = $props();
 
     let diffWorker: Worker | null = null;
-    let diffedHtml: string | undefined;
+    let diffedHtml: string | undefined = $state();
     let currentTiptapJsonString: string | undefined;
     let previousBaseHtmlWithTextDirection: string | undefined;
-    let baseHtmlWithTextDirection: string | undefined;
+    let baseHtmlWithTextDirection: string | undefined = $state();
 
     function calculateBaseHtmlWithTextDirection(tiptapJson: TiptapContentItem | undefined) {
         if (tiptapJson) {
@@ -84,6 +85,14 @@
         },
         750
     );
+
+    $effect(() => {
+        calculateBaseHtmlWithTextDirection(tiptapJson);
+    });
+
+    $effect(() => {
+        debouncedGenerateDiffHtml(currentTiptapJsonForDiffing, baseHtmlWithTextDirection);
+    });
 
     onDestroy(() => diffWorker && diffWorker.terminate());
 </script>
