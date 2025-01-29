@@ -61,12 +61,13 @@
         { runLoadAgainWhenParamsChange: false }
     );
 
-    const setTabContents = (tab: string, search: string, project: string) => {
+    const setTabContents = (tab: string, search: string, project: string, isFilteringUnresolved: boolean) => {
         if (tab === Tab.myWork) {
             visibleMyWorkContents = myWorkContents.filter(
                 (x) =>
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
-                    (!project || x.projectName === project)
+                    (!project || x.projectName === project) &&
+                    (!isFilteringUnresolved || x.hasUnresolvedCommentThreads === true)
             );
         } else if (tab === Tab.myHistory) {
             visibleMyHistoryContents = myHistoryContents.filter((x) =>
@@ -76,11 +77,12 @@
     };
 
     let search = '';
+    let isFilteringUnresolved = false;
     let visibleMyWorkContents: ResourceAssignedToSelf[] = [];
     let visibleMyHistoryContents: ResourceAssignedToSelfHistory[] = [];
     let table: Table<ResourceAssignedToSelfHistory> | Table<ResourceAssignedToSelf> | undefined;
     $: $searchParams.sort && table?.resetScroll();
-    $: setTabContents($searchParams.tab, search, $searchParams.project);
+    $: setTabContents($searchParams.tab, search, $searchParams.project, isFilteringUnresolved);
 
     function projectNamesForContents(contents: ResourceAssignedToSelf[]) {
         return Array.from(new Set(filterBoolean(contents.map((c) => c.projectName)))).sort();
@@ -115,6 +117,17 @@
                     ...projectNamesForContents(myWorkContents).map((p) => ({ value: p, label: p })),
                 ]}
             />
+            <label class="label cursor-pointer py-0 opacity-70">
+                <input
+                    type="checkbox"
+                    bind:checked={isFilteringUnresolved}
+                    data-app-insights-event-name="editor-dashboard-has-unresolved-comments-toggle-{isFilteringUnresolved
+                        ? 'off'
+                        : 'on'}"
+                    class="checkbox no-animation checkbox-sm me-2"
+                />
+                <span class="label-text text-xs">Has Unresolved Comments</span>
+            </label>
         {/if}
         {#if $searchParams.tab === Tab.myWork}
             <div class="my-1 ml-auto flex flex-col items-end justify-center">
