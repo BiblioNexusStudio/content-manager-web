@@ -418,17 +418,16 @@
                 noItemsText="Your work is all done!"
                 searchable={true}
                 bind:searchText={search}
-                let:item
-                let:href
-                let:itemKey
             >
-                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
-                {/if}
+                {#snippet tableCells(item, href, itemKey)}
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                {/snippet}
             </Table>
         {:else if $searchParams.tab === Tab.reviewPending}
             <Table
@@ -444,17 +443,16 @@
                 noItemsText="No items pending review."
                 searchable={true}
                 bind:searchText={search}
-                let:item
-                let:href
-                let:itemKey
             >
-                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
-                {/if}
+                {#snippet tableCells(item, href, itemKey)}
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                {/snippet}
             </Table>
         {:else if $searchParams.tab === Tab.myProjects}
             <Table
@@ -468,27 +466,25 @@
                 bind:searchParams={$searchParams}
                 noItemsText="No projects assigned to you."
                 searchable={true}
-                let:item
-                let:href
-                let:itemKey
-                let:columnText
             >
-                {#if columnText === 'Progress'}
-                    <td>
-                        <ProjectProgressBar
-                            notStartedCount={item?.counts?.notStarted ?? 0}
-                            editorReviewCount={item?.counts?.editorReview ?? 0}
-                            inCompanyReviewCount={item?.counts?.inCompanyReview ?? 0}
-                            inPublisherReviewCount={item?.counts?.inPublisherReview ?? 0}
-                            completeCount={item?.counts?.completed ?? 0}
-                            showLegend={false}
-                        />
-                    </td>
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
-                {/if}
+                {#snippet tableCells(item, href, itemKey, columnText)}
+                    {#if columnText === 'Progress'}
+                        <td>
+                            <ProjectProgressBar
+                                notStartedCount={item?.counts?.notStarted ?? 0}
+                                editorReviewCount={item?.counts?.editorReview ?? 0}
+                                inCompanyReviewCount={item?.counts?.inCompanyReview ?? 0}
+                                inPublisherReviewCount={item?.counts?.inPublisherReview ?? 0}
+                                completeCount={item?.counts?.completed ?? 0}
+                                showLegend={false}
+                            />
+                        </td>
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                {/snippet}
             </Table>
         {:else if $searchParams.tab === Tab.community}
             <Table
@@ -504,17 +500,16 @@
                 noItemsText="No items pending review."
                 searchable={true}
                 bind:searchText={search}
-                let:item
-                let:href
-                let:itemKey
             >
-                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
-                {/if}
+                {#snippet tableCells(item, href, itemKey)}
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                {/snippet}
             </Table>
         {:else if $searchParams.tab === Tab.notApplicable}
             <Table

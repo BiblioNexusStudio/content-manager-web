@@ -2,28 +2,40 @@
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import type { ResourceContentForSelection } from './types';
 
-    export let allContent: ResourceContentForSelection[];
-    export let selectedIds: Set<number>;
-    export let showTotalWordCount = false;
-    export let isLoading = false;
-    export let hasSearched = false;
+    interface Props {
+        allContent: ResourceContentForSelection[];
+        selectedIds: number[];
+        showTotalWordCount?: boolean;
+        isLoading?: boolean;
+        hasSearched?: boolean;
+    }
 
-    $: allSelected = allContent.length > 0 && allContent.every((c) => selectedIds.has(c.resourceId));
+    let {
+        allContent,
+        selectedIds = $bindable(),
+        showTotalWordCount = false,
+        isLoading = false,
+        hasSearched = false,
+    }: Props = $props();
+
+    let allSelected = $derived(
+        allContent.length > 0 && allContent.every((c) => selectedIds.some((id) => id === c.resourceId))
+    );
 
     function selectOrDeselectAll() {
         if (allSelected) {
-            allContent.forEach((c) => selectedIds.delete(c.resourceId));
+            selectedIds = selectedIds.filter((id) => !allContent.some((c) => c.resourceId === id));
         } else {
-            allContent.forEach((c) => selectedIds.add(c.resourceId));
+            allContent.forEach((c) => selectedIds.push(c.resourceId));
         }
         selectedIds = selectedIds;
     }
 
     function toggleSelectedId(resourceId: number) {
-        if (selectedIds.has(resourceId)) {
-            selectedIds.delete(resourceId);
+        if (selectedIds.some((id) => id === resourceId)) {
+            selectedIds = selectedIds.filter((id) => id !== resourceId);
         } else {
-            selectedIds.add(resourceId);
+            selectedIds.push(resourceId);
         }
         selectedIds = selectedIds;
     }
@@ -37,7 +49,7 @@
                     disabled={allContent.length === 0}
                     type="checkbox"
                     checked={allSelected}
-                    on:change={selectOrDeselectAll}
+                    onchange={selectOrDeselectAll}
                     class="checkbox"
                 /></th
             >
@@ -59,8 +71,14 @@
             </tr>
         {:else}
             {#each allContent as content (content.resourceId)}
-                <tr class="cursor-pointer" on:click={() => toggleSelectedId(content.resourceId)}>
-                    <td><input type="checkbox" checked={selectedIds.has(content.resourceId)} class="checkbox" /></td>
+                <tr class="cursor-pointer" onclick={() => toggleSelectedId(content.resourceId)}>
+                    <td
+                        ><input
+                            type="checkbox"
+                            checked={selectedIds.some((id) => id === content.resourceId)}
+                            class="checkbox"
+                        /></td
+                    >
                     <td>{content.title}</td>
                     <td>{content.wordCount}</td>
                 </tr>
