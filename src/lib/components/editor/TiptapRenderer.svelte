@@ -7,22 +7,35 @@
     import { scrollSync } from '$lib/stores/scrollSync.svelte.ts';
     import type { Language } from '$lib/types/base';
 
-    export let language: Language;
-    export let tiptapJson: TiptapContentItem | undefined;
-    export let onChange: ((tiptapJson: object, wordCount: number, charCount: number) => void) | undefined = undefined;
-    export let onCreate: ((tiptapJson: object, wordCount: number, charCount: number) => void) | undefined = undefined;
-    export let editor: Editor | undefined = undefined;
-    export let canEdit: boolean;
-    export let canComment: boolean;
-    export let isLoading = false;
-    export let commentStores: CommentStores;
-    export let blurOnPendingAiTranslate = false;
-    export let isSourceContentArea = false;
+    interface TipTapRenderProps {
+        language: Language;
+        tiptapJson: TiptapContentItem | undefined;
+        onChange?: ((tiptapJson: object, wordCount: number, charCount: number) => void) | undefined;
+        onCreate?: ((tiptapJson: object, wordCount: number, charCount: number) => void) | undefined;
+        editor?: Editor | undefined;
+        canEdit: boolean;
+        canComment: boolean;
+        isLoading?: boolean;
+        commentStores: CommentStores;
+        blurOnPendingAiTranslate?: boolean;
+        isSourceContentArea?: boolean;
+    }
 
-    let element: HTMLDivElement | undefined;
+    let {
+        language,
+        tiptapJson,
+        onChange = undefined,
+        onCreate = undefined,
+        editor = $bindable(),
+        canEdit,
+        canComment,
+        isLoading = $bindable(false),
+        commentStores,
+        blurOnPendingAiTranslate = false,
+        isSourceContentArea = false,
+    }: TipTapRenderProps = $props();
 
-    $: updateEditor(tiptapJson);
-    $: enableOrDisableEditing(canEdit);
+    let element: HTMLDivElement | undefined = $state();
 
     function updateEditor(tiptapJson: TiptapContentItem | undefined) {
         if (tiptapJson && editor) {
@@ -33,6 +46,13 @@
     function enableOrDisableEditing(canEdit: boolean) {
         editor?.setEditable(canEdit);
     }
+
+    $effect(() => {
+        updateEditor(tiptapJson);
+    });
+    $effect(() => {
+        enableOrDisableEditing(canEdit);
+    });
 
     onMount(() => {
         editor = new Editor({

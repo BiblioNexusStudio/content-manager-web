@@ -2,11 +2,17 @@
     import type { Language } from '$lib/types/base';
     import type { ContentTranslation } from '$lib/types/resources';
 
-    export let allLanguages: Language[];
-    export let existingTranslations: ContentTranslation[];
-    export let selectedLanguageId: number | null;
+    interface Props {
+        allLanguages: Language[];
+        existingTranslations: ContentTranslation[];
+        selectedLanguageId: number | null;
+    }
 
-    $: languagesToShow = allLanguages.filter((x) => existingTranslations.every((et) => et.languageId !== x.id));
+    let { allLanguages, existingTranslations, selectedLanguageId = $bindable() }: Props = $props();
+
+    let languagesToShow = $derived(
+        allLanguages.filter((x) => existingTranslations.every((et) => et.languageId !== x.id))
+    );
 </script>
 
 <select bind:value={selectedLanguageId} class="select select-bordered">

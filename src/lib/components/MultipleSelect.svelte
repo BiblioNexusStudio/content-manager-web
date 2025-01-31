@@ -65,7 +65,7 @@
     }
 </script>
 
-<svelte:window on:click={onClickOutside} />
+<svelte:window onclick={onClickOutside} />
 
 <div bind:this={listboxRef} class={className}>
     <div class="relative w-full">

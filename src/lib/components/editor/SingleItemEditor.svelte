@@ -5,24 +5,37 @@
     import TiptapRenderer from './TiptapRenderer.svelte';
     import type { Editor } from 'aquifer-tiptap';
     import type { CommentStores } from '$lib/stores/comments';
-    import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
 
-    export let itemIndex: number;
-    export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
-    export let wordCountsByStep: number[];
-    export let characterCountsByStep: number[];
-    export let canEdit: boolean;
-    export let canComment: boolean;
-    export let resourceContent: ResourceContent;
-    export let commentStores: CommentStores;
-    export let machineTranslationStore: MachineTranslationStore;
-    export let blurOnPendingAiTranslate = false;
-    export let isSourceContentArea = false;
+    interface Props {
+        itemIndex: number;
+        editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
+        wordCountsByStep: number[];
+        characterCountsByStep: number[];
+        canEdit: boolean;
+        canComment: boolean;
+        resourceContent: ResourceContent;
+        commentStores: CommentStores;
+        blurOnPendingAiTranslate?: boolean;
+        isSourceContentArea?: boolean;
+    }
 
-    let editor: Editor | undefined = undefined;
+    let {
+        itemIndex,
+        editableContentStore,
+        wordCountsByStep = $bindable(),
+        characterCountsByStep = $bindable(),
+        canEdit,
+        canComment,
+        resourceContent,
+        commentStores,
+        blurOnPendingAiTranslate = false,
+        isSourceContentArea = false,
+    }: Props = $props();
+
+    let editor: Editor | undefined = $state(undefined);
     let tiptapJson = $editableContentStore[itemIndex];
-    let isLoading = false;
+    let isLoading = $state(false);
 
     const isPageTransacting = getIsPageTransactingContext();
 
@@ -50,15 +63,7 @@
 </script>
 
 <div class="flex h-full flex-col space-y-4">
-    <EditorToolbar
-        {editor}
-        {canEdit}
-        {commentStores}
-        {resourceContent}
-        {machineTranslationStore}
-        {itemIndex}
-        bind:isLoading
-    />
+    <EditorToolbar {editor} {canEdit} {commentStores} {resourceContent} {itemIndex} bind:isLoading />
 
     <TiptapRenderer
         language={resourceContent.language}

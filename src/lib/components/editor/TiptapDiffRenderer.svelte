@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-    import { onDestroy, tick } from 'svelte';
+    import { onDestroy, onMount, tick } from 'svelte';
     import type { TiptapContentItem } from '$lib/types/resources';
     import HtmlDiffWorker from '../../../workers/html-differ.ts?worker';
     import CenteredSpinner from '../CenteredSpinner.svelte';
@@ -10,18 +10,27 @@
     import type { ScriptDirection } from '$lib/types/base';
     import { scrollSync } from '$lib/stores/scrollSync.svelte.ts';
 
-    export let tiptapJson: TiptapContentItem | undefined;
-    export let currentTiptapJsonForDiffing: TiptapContentItem | undefined;
-    export let languageScriptDirection: ScriptDirection | undefined;
+    interface TipTapDiffRendererProps {
+        tiptapJson: TiptapContentItem | undefined;
+        currentTiptapJsonForDiffing: TiptapContentItem | undefined;
+        languageScriptDirection: ScriptDirection | undefined;
+    }
 
-    $: calculateBaseHtmlWithTextDirection(tiptapJson);
-    $: debouncedGenerateDiffHtml(currentTiptapJsonForDiffing, baseHtmlWithTextDirection);
+    let { tiptapJson, currentTiptapJsonForDiffing, languageScriptDirection }: TipTapDiffRendererProps = $props();
 
     let diffWorker: Worker | null = null;
-    let diffedHtml: string | undefined;
+    let diffedHtml: string | undefined = $state();
     let currentTiptapJsonString: string | undefined;
     let previousBaseHtmlWithTextDirection: string | undefined;
-    let baseHtmlWithTextDirection: string | undefined;
+    let baseHtmlWithTextDirection: string | undefined = $state();
+
+    onMount(() => {
+        calculateBaseHtmlWithTextDirection(tiptapJson);
+    });
+
+    $effect(() => {
+        debouncedGenerateDiffHtml(currentTiptapJsonForDiffing, baseHtmlWithTextDirection);
+    });
 
     function calculateBaseHtmlWithTextDirection(tiptapJson: TiptapContentItem | undefined) {
         if (tiptapJson) {

@@ -2,15 +2,25 @@
     import StarRating from '$lib/components/StarRating.svelte';
     import { patchToApi } from '$lib/utils/http-service';
     import type { MachineTranslation } from '$lib/types/resources';
-    import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
+    import { getMachineTranslationContext, type MachineTranslationStore } from '$lib/stores/machineTranslation';
+    import { untrack } from 'svelte';
 
-    export let itemIndex: number | null = null;
-    export let machineTranslationStore: MachineTranslationStore;
-    export let showingInPrompt = false;
-    export let improvementHorizontalPositionPx = 60;
+    interface MachineTranslationRatingProps {
+        itemIndex?: number | null;
+        showingInPrompt?: boolean;
+        improvementHorizontalPositionPx?: number;
+    }
 
+    let {
+        itemIndex = null,
+        showingInPrompt = false,
+        improvementHorizontalPositionPx = 60,
+    }: MachineTranslationRatingProps = $props();
+
+    let machineTranslationStore: MachineTranslationStore = getMachineTranslationContext();
     let store = machineTranslationStore.machineTranslations;
-    let machineTranslation: MachineTranslation = {
+
+    let machineTranslation: MachineTranslation = $state({
         id: 0,
         contentIndex: 0,
         userId: 0,
@@ -18,8 +28,8 @@
         improveClarity: false,
         improveConsistency: false,
         improveTone: false,
-    };
-    let translationsMissingRatings: MachineTranslation[] | null = null;
+    });
+    let translationsMissingRatings: MachineTranslation[] | null = $state(null);
 
     function syncMachineTranslationFromStore(store: Map<number, MachineTranslation>) {
         if (itemIndex !== null) {
@@ -31,13 +41,18 @@
     }
 
     let promptForRating = machineTranslationStore.promptForRating;
-    let showImprovements = false;
-    let showImprovementsDiv: HTMLDivElement;
+    let showImprovements = $state(false);
+    let showImprovementsDiv: HTMLDivElement | undefined = $state();
     let ratedFromPrompt = false;
 
     // if promptForRating is set we'll need to recalculate translationsMissingRatings
-    $: $promptForRating && (translationsMissingRatings = null);
-    $: syncMachineTranslationFromStore($store);
+    $effect(() => {
+        promptForRating && untrack(() => (translationsMissingRatings = null));
+    });
+
+    $effect(() => {
+        syncMachineTranslationFromStore($store);
+    });
 
     function updateMachineTranslation() {
         if (showingInPrompt) {
@@ -113,7 +128,7 @@
     };
 </script>
 
-<svelte:window on:click={onAnyClick} />
+<svelte:window onclick={onAnyClick} />
 
 {#if showingInPrompt}
     <StarRating callback={onRating} rating={machineTranslation.userRating} />
@@ -133,21 +148,21 @@
             <input
                 type="checkbox"
                 bind:checked={machineTranslation.improveClarity}
-                on:change={updateMachineTranslation}
+                onchange={updateMachineTranslation}
                 aria-label="Clarity"
                 class="btn btn-outline btn-primary btn-sm"
             />
             <input
                 type="checkbox"
                 bind:checked={machineTranslation.improveTone}
-                on:change={updateMachineTranslation}
+                onchange={updateMachineTranslation}
                 aria-label="Tone/Style"
                 class="btn btn-outline btn-primary btn-sm"
             />
             <input
                 type="checkbox"
                 bind:checked={machineTranslation.improveConsistency}
-                on:change={updateMachineTranslation}
+                onchange={updateMachineTranslation}
                 aria-label="Consistency"
                 class="btn btn-outline btn-primary btn-sm"
             />

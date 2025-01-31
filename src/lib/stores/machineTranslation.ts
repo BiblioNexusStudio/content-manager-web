@@ -1,5 +1,6 @@
 import { type Writable, writable } from 'svelte/store';
 import type { MachineTranslation } from '$lib/types/resources';
+import { getContext, setContext } from 'svelte';
 
 export type MachineTranslationStore = ReturnType<typeof createMachineTranslationStore>;
 
@@ -23,4 +24,13 @@ export function createMachineTranslationStore() {
             promptForRating.set(false);
         },
     };
+}
+
+const machineTranslationsKey = Symbol('machineTranslations');
+export function setMachineTranslationContext(context: MachineTranslationStore) {
+    setContext(machineTranslationsKey, context);
+}
+
+export function getMachineTranslationContext(): MachineTranslationStore {
+    return getContext(machineTranslationsKey);
 }

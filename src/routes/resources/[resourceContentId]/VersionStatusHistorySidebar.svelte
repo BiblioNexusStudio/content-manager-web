@@ -4,17 +4,23 @@
     import { getFromApi } from '$lib/utils/http-service';
     import { formatUtcToLocalTimeAndDate } from '$lib/utils/date-time';
 
-    export let resourceContentVersionId: number;
-    export let visible: boolean;
-
-    let promise: Promise<VersionStatusHistory[] | null> | null = null;
-
-    $: if (!promise && visible) {
-        promise = getFromApi<VersionStatusHistory[]>(
-            `/resources/content/versions/${resourceContentVersionId}/status-history`,
-            fetch
-        );
+    interface Props {
+        resourceContentVersionId: number;
+        visible: boolean;
     }
+
+    let { resourceContentVersionId, visible }: Props = $props();
+
+    let promise: Promise<VersionStatusHistory[] | null> | null = $state(null);
+
+    $effect(() => {
+        if (!promise && visible) {
+            promise = getFromApi<VersionStatusHistory[]>(
+                `/resources/content/versions/${resourceContentVersionId}/status-history`,
+                fetch
+            );
+        }
+    });
 </script>
 
 {#await promise}

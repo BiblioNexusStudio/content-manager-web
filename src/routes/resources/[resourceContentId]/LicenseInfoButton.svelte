@@ -2,13 +2,17 @@
     import type { ResourceContent } from '$lib/types/resources';
     import { filterBoolean } from '$lib/utils/array';
 
-    export let resourceContent: ResourceContent;
+    interface Props {
+        resourceContent: ResourceContent;
+    }
+
+    let { resourceContent }: Props = $props();
 
     let licenseInfo = resourceContent.parentResourceLicenseInfo!;
     let englishLicenses = filterBoolean(licenseInfo.licenses.map(({ eng }) => eng));
     let englishLicensesForAdaptation = englishLicenses.filter(({ name }) => name.toLowerCase() !== 'public domain');
     let container: HTMLDivElement;
-    let show = false;
+    let show = $state(false);
 
     const handleClick = (e: MouseEvent) => {
         if (!container.contains(e.target as Node)) {
@@ -17,7 +21,7 @@
     };
 </script>
 
-<svelte:window on:click={handleClick} />
+<svelte:window onclick={handleClick} />
 
 <div bind:this={container} class="dropdown dropdown-top">
     <div
@@ -25,12 +29,12 @@
         tabindex="0"
         role="button"
         class="btn btn-ghost btn-sm text-gray-600 hover:bg-[#e6f7fc]"
-        on:mouseup={() => (show = !show)}
+        onmouseup={() => (show = !show)}
     >
         License Info
     </div>
     {#if show}
-        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
         <div
             tabindex="0"
             class="dropdown-content flex w-[30rem] flex-col space-y-2 rounded-md border border-base-300 bg-white
