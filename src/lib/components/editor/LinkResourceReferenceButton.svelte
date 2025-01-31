@@ -8,12 +8,14 @@
     import CenteredSpinner from '../CenteredSpinner.svelte';
     import { deleteToApi, getFromApi, postToApi } from '$lib/utils/http-service';
     import { parseResourceReferences } from '../tiptap/extensions/resource-reference';
-    import { parentResources } from '$lib/stores/parent-resources';
     import MagnifyingGlassIcon from '$lib/icons/MagnifyingGlassIcon.svelte';
     import XSquareIcon from '$lib/icons/XSquareIcon.svelte';
     import { BibleReference, ResourceReference } from 'aquifer-tiptap';
+    import { getContext } from 'svelte';
+    import type { ParentResource } from '$lib/types/base';
 
     const isPageTransacting = getIsPageTransactingContext();
+    const parentResources = getContext<() => ParentResource[]>('parentResources');
 
     $: {
         if (!isModalOpen) {
@@ -80,7 +82,7 @@
         isTransactingAdd = true;
         errorMessage = null;
         try {
-            const prType = $parentResources.find((p) => p.id === parentResourceId)?.code;
+            const prType = parentResources().find((p) => p.id === parentResourceId)?.code;
             if (prType && referenceResource?.resourceId) {
                 await postToApi('/resources/resource-references', {
                     resourceContentId,
@@ -194,11 +196,11 @@
     }
 
     function parentResourceCodeToId(code: string) {
-        return $parentResources.find((p) => p.code === code)?.id;
+        return parentResources().find((p) => p.code === code)?.id;
     }
 
     function parentResourceIdToCode(id: number) {
-        return $parentResources.find((p) => p.id === id)?.code;
+        return parentResources().find((p) => p.id === id)?.code;
     }
 </script>
 
@@ -239,7 +241,7 @@
                 isNumber={true}
                 options={[
                     { value: 0, label: 'Resource' },
-                    ...($parentResources || []).map((pr) => ({ value: pr.id, label: pr.displayName })),
+                    ...(parentResources() || []).map((pr) => ({ value: pr.id, label: pr.displayName })),
                 ]}
                 bind:value={parentResourceId}
                 disabled={existingReference}
