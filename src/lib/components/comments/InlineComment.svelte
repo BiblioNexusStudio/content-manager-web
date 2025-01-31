@@ -4,16 +4,20 @@
     import CommentThread from '$lib/components/comments/CommentThread.svelte';
     import MarkPopout from '$lib/components/editorMarkPopouts/MarkPopout.svelte';
 
-    export let commentStores: CommentStores;
+    interface Props {
+        commentStores: CommentStores;
+    }
+
+    let { commentStores }: Props = $props();
 
     const { sidebarParentDivs } = commentStores;
 
-    let markSpan: HTMLElement | null;
-    let container: HTMLDivElement | undefined;
-    let show = false;
-    let isCommenting: boolean;
-    let threadId: number;
-    let bubblingClick = false;
+    let markSpan: HTMLElement | null = $state(null);
+    let container: HTMLDivElement | undefined = $state(undefined);
+    let show = $state(false);
+    let isCommenting = $state(false);
+    let threadId: number = $state(-1);
+    let bubblingClick = $state(false);
 
     onMount(() => {
         window.onInlineCommentClick = onInlineCommentClick;
