@@ -56,10 +56,11 @@
     }
 
     function getRoles() {
+        let displayRoles = roles || [];
         if (onlyCreateUserInCompany) {
-            roles = [UserRole.Editor, UserRole.Reviewer];
+            displayRoles = [UserRole.Editor, UserRole.Reviewer];
         }
-        const roleOptions = [...(roles || []).map((r) => ({ value: r, label: r }))];
+        const roleOptions = [...(displayRoles || []).map((r) => ({ value: r, label: r }))];
         return [...[{ value: null, label: 'Select Role' }, ...roleOptions]];
     }
 

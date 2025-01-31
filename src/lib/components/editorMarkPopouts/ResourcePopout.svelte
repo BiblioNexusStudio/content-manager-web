@@ -1,8 +1,7 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { getContext, onMount } from 'svelte';
     import MarkPopout from '$lib/components/editorMarkPopouts/MarkPopout.svelte';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
-    import { parentResources } from '$lib/stores/parent-resources';
     import { getFromApi } from '$lib/utils/http-service';
     import type { ParentResource } from '$lib/types/base';
 
@@ -18,10 +17,11 @@
         resourceId: number;
         englishLabel: number;
     }
+    const parentResources = getContext<() => ParentResource[]>('parentResources');
 
     onMount(() => {
         window.onResourceReferenceClick = async (spanId, resourceType, resourceId) => {
-            parentResource = $parentResources.find((p) => p.code === resourceType) ?? null;
+            parentResource = parentResources().find((p) => p.code === resourceType) ?? null;
             resourceReference = null;
             markSpan = document.getElementById(spanId);
             bubblingClick = true;
