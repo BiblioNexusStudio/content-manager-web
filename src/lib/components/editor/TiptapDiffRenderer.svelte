@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-    import { onDestroy, tick } from 'svelte';
+    import { onDestroy, onMount, tick } from 'svelte';
     import type { TiptapContentItem } from '$lib/types/resources';
     import HtmlDiffWorker from '../../../workers/html-differ.ts?worker';
     import CenteredSpinner from '../CenteredSpinner.svelte';
@@ -23,6 +23,14 @@
     let currentTiptapJsonString: string | undefined;
     let previousBaseHtmlWithTextDirection: string | undefined;
     let baseHtmlWithTextDirection: string | undefined = $state();
+
+    onMount(() => {
+        calculateBaseHtmlWithTextDirection(tiptapJson);
+    });
+
+    $effect(() => {
+        debouncedGenerateDiffHtml(currentTiptapJsonForDiffing, baseHtmlWithTextDirection);
+    });
 
     function calculateBaseHtmlWithTextDirection(tiptapJson: TiptapContentItem | undefined) {
         if (tiptapJson) {
@@ -85,14 +93,6 @@
         },
         750
     );
-
-    $effect(() => {
-        calculateBaseHtmlWithTextDirection(tiptapJson);
-    });
-
-    $effect(() => {
-        debouncedGenerateDiffHtml(currentTiptapJsonForDiffing, baseHtmlWithTextDirection);
-    });
 
     onDestroy(() => diffWorker && diffWorker.terminate());
 </script>
