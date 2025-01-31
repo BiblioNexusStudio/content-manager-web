@@ -10,18 +10,22 @@
     import { patchToApi } from '$lib/utils/http-service';
     import { createIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
 
-    export let data: PageData;
+    interface Props {
+        data: PageData;
+    }
+
+    let { data }: Props = $props();
 
     const isPageTransacting = createIsPageTransactingContext();
-    let filterBySearch: string | null = null;
-    let filterByCompanyId: number | null = null;
-    let isDisableUserModalOpen = false;
-    let isShowingErrorModal = false;
-    let isModalOpen = false;
+    let filterBySearch: string | null = $state(null);
+    let filterByCompanyId: number | null = $state(null);
+    let isDisableUserModalOpen = $state(false);
+    let isShowingErrorModal = $state(false);
+    let isModalOpen = $state(false);
 
-    $: users = data.users;
-    $: companies = data.companies;
-    $: roles = data.roles;
+    let users = $state(data.users);
+    let companies = $derived(data.companies);
+    let roles = $derived(data.roles);
 
     const filterUsers = (users: User[], search: string | null, companyId: number | null) => {
         return users.filter(
@@ -31,7 +35,7 @@
         );
     };
 
-    let onConfirmDisableUser: (() => Promise<void>) | undefined = undefined;
+    let onConfirmDisableUser: (() => Promise<void>) | undefined = $state(undefined);
     const disableUser = (userId: number) => {
         isDisableUserModalOpen = true;
         onConfirmDisableUser = async () => await postDisableUser(userId);
@@ -84,7 +88,7 @@
                 class="min-h-12 w-[320px] rounded-md border-[1px] py-2 ps-5 text-sm text-gray-900 focus:outline-none"
                 placeholder={$translate('page.resources.searchBox.value')}
             />
-            <button class="btn btn-primary" on:click={openModal}>Add</button>
+            <button class="btn btn-primary" onclick={openModal}>Add</button>
         </div>
     </div>
     <div class="flex flex-row space-x-4 overflow-y-hidden">
@@ -113,7 +117,7 @@
                                     <button
                                         data-app-insights-event-name="disable-user-button-click"
                                         class="btn btn-circle btn-link btn-xs"
-                                        on:click={() => disableUser(user.id)}
+                                        onclick={() => disableUser(user.id)}
                                         ><PersonDashIcon />
                                     </button>
                                 {/if}
