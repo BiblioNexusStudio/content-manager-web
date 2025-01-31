@@ -4,18 +4,22 @@
     import type { CommentStores } from '$lib/stores/comments';
     import { onMount } from 'svelte';
 
-    export let commentStores: CommentStores;
-    export let thread: CommentThreadType;
+    interface Props {
+        commentStores: CommentStores;
+        thread: CommentThreadType;
+    }
+
+    let { commentStores, thread }: Props = $props();
 
     const { commentMarks, sidebarParentDivs } = commentStores;
     const borderClass = 'border-primary';
     const normalSpanBackgroundColorClass = 'bg-primary/20';
     const selectedSpanBackgroundColorClass = ['bg-primary/50', 'border-2', borderClass];
 
-    let parentDiv: HTMLDivElement | null = null;
-    let bubbledClick = false;
-    let focused = false;
-    let isCommenting: boolean;
+    let parentDiv: HTMLDivElement | null = $state(null);
+    let bubbledClick = $state(false);
+    let focused = $state(false);
+    let isCommenting = $state(false);
 
     onMount(() => {
         const existing = $sidebarParentDivs.find((x) => x.threadId === thread.id);
@@ -87,12 +91,12 @@
 
 <svelte:window on:click={onAnyClick} />
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
     bind:this={parentDiv}
     class="rounded-md border-2 {thread.resolved && 'bg-gray-100'}"
-    on:click={() => focusParent(false)}
+    onclick={() => focusParent(false)}
 >
     <CommentThread componentSource="sidebar" {commentStores} threadId={thread.id} bind:isCommenting />
 </div>
