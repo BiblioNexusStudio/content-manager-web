@@ -11,23 +11,34 @@
     import { currentUser } from '$lib/stores/auth';
     import type { CommentStores } from '$lib/stores/comments';
 
-    export let showParent = true;
-    export let parentDiv: HTMLDivElement | undefined = undefined;
-    export let isCommenting = false;
-    export let threadId: number;
-    export let componentSource: string;
+    interface Props {
+        showParent?: boolean;
+        parentDiv?: HTMLDivElement;
+        isCommenting: boolean;
+        threadId: number;
+        componentSource: string;
+        commentStores: CommentStores;
+    }
 
-    export let commentStores: CommentStores;
+    let {
+        showParent = $bindable(true),
+        parentDiv = undefined,
+        isCommenting = $bindable(false),
+        threadId = $bindable(),
+        componentSource,
+        commentStores,
+    }: Props = $props();
+
     const { commentThreads, createNewThread, commentMarks } = commentStores;
 
-    let isSendingComment = false;
-    let wasSavingCommentError = false;
-    let editingCommentId = 0;
-    let previousCommentValue = '';
-    let currentCommentValue = '';
+    let isSendingComment = $state(false);
+    let wasSavingCommentError = $state(false);
+    let editingCommentId = $state(0);
+    let previousCommentValue = $state('');
+    let currentCommentValue = $state('');
 
-    $: activeThread = $commentThreads?.threads.find((x) => x.id === threadId);
-    $: isNewThread = threadId === -1;
+    let activeThread = $state($commentThreads?.threads.find((x) => x.id === threadId));
+    let isNewThread = $state(threadId === -1);
 
     const onReplyClick = async () => {
         isCommenting = true;
@@ -197,7 +208,7 @@
                         <button
                             data-app-insights-event-name="{componentSource}-comment-resolve-click"
                             class="me-1 text-primary"
-                            on:click={onResolveClick}><CheckLongIcon /></button
+                            onclick={onResolveClick}><CheckLongIcon /></button
                         >
                     </Tooltip>
                 {/if}
@@ -211,11 +222,12 @@
                     {#if isSendingComment}
                         <div class="loading loading-dots my-3 me-4 text-primary"></div>
                     {:else}
-                        <CommentButton on:click={onCancelClick}>Cancel</CommentButton>
+                        <CommentButton buttonProps={{ onclick: onCancelClick }}>Cancel</CommentButton>
                         <CommentButton
                             appInsightsEventName="{componentSource}-comment-save-click"
                             disabled={currentCommentValue === '' || currentCommentValue === previousCommentValue}
-                            on:click={(e) => onEditCommentClick(e, comment)}>Save</CommentButton
+                            buttonProps={{ onclick: (e: MouseEvent) => onEditCommentClick(e, comment) }}
+                            >Save</CommentButton
                         >
                     {/if}
                 </div>
@@ -230,7 +242,7 @@
                 <div class="flex justify-end">
                     <CommentButton
                         appInsightsEventName="{componentSource}-comment-edit-click"
-                        on:click={() => onEditClick(comment)}>Edit</CommentButton
+                        buttonProps={{ onclick: () => onEditClick(comment) }}>Edit</CommentButton
                     >
                 </div>
             {/if}
@@ -240,11 +252,12 @@
                 {#if comment.user.id === $currentUser?.id}
                     <CommentButton
                         appInsightsEventName="{componentSource}-comment-edit-click"
-                        on:click={() => onEditClick(comment)}>Edit</CommentButton
+                        buttonProps={{ onclick: () => onEditClick(comment) }}>Edit</CommentButton
                     >
                 {/if}
-                <CommentButton appInsightsEventName="{componentSource}-comment-reply-click" on:click={onReplyClick}
-                    >Reply</CommentButton
+                <CommentButton
+                    appInsightsEventName="{componentSource}-comment-reply-click"
+                    buttonProps={{ onclick: onReplyClick }}>Reply</CommentButton
                 >
             </div>
         {:else}
@@ -268,11 +281,11 @@
                 {#if isSendingComment}
                     <div class="loading loading-dots my-3 me-4 text-primary"></div>
                 {:else}
-                    <CommentButton on:click={onCancelClick}>Cancel</CommentButton>
+                    <CommentButton buttonProps={{ onclick: onCancelClick }}>Cancel</CommentButton>
                     <CommentButton
                         appInsightsEventName="{componentSource}-comment-create-click"
                         disabled={currentCommentValue === ''}
-                        on:click={onNewCommentClick}>Comment</CommentButton
+                        buttonProps={{ onclick: onNewCommentClick }}>Comment</CommentButton
                     >
                 {/if}
             </div>

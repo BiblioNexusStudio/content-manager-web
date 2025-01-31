@@ -3,16 +3,13 @@
     import SidebarComment from '$lib/components/comments/SidebarComment.svelte';
     import type { CommentThread } from '$lib/types/comments';
 
-    export let commentStores: CommentStores;
+    interface Props {
+        commentStores: CommentStores;
+    }
+
+    let { commentStores }: Props = $props();
 
     const { commentThreads, commentMarks } = commentStores;
-
-    $: orderedThreads = ($commentMarks && getOrderedThreads($commentThreads?.threads ?? [])) ?? [];
-    $: unresolvedThreads = orderedThreads.filter((x) => !x.resolved) ?? [];
-    $: resolvedThreads = orderedThreads.filter((x) => x.resolved) ?? [];
-    $: commentCount = orderedThreads.reduce((count, thread) => {
-        return count + thread.comments.length;
-    }, 0);
 
     const getOrderedThreads = (threads: CommentThread[]) => {
         // The purpose of this is to get the comment spans as they appear in the editor
@@ -34,6 +31,15 @@
             return idA - idB;
         });
     };
+
+    let orderedThreads = $derived(($commentMarks && getOrderedThreads($commentThreads?.threads ?? [])) ?? []);
+    let unresolvedThreads = $derived(orderedThreads.filter((x) => !x.resolved) ?? []);
+    let resolvedThreads = $derived(orderedThreads.filter((x) => x.resolved) ?? []);
+    let commentCount = $derived(
+        orderedThreads.reduce((count, thread) => {
+            return count + thread.comments.length;
+        }, 0)
+    );
 </script>
 
 <div class="w-full flex-col space-y-4 overflow-y-auto p-4">

@@ -8,8 +8,12 @@
         }, 100);
     });
 
-    export let value: string;
-    export let disabled: boolean;
+    interface Props {
+        value: string;
+        disabled: boolean;
+    }
+
+    let { value = $bindable(), disabled }: Props = $props();
 
     let element: HTMLTextAreaElement;
 </script>
