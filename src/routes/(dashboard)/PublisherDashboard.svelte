@@ -48,6 +48,7 @@
     let assignToUserId: number | null = $state(null);
     let isAssignContentModalOpen = $state(false);
     let isConfirmPublishModalOpen = $state(false);
+    let isCreateNewResourceItemModalOpen = $state(false);
     let errorModalText: string | undefined = $state(undefined);
     let isTransacting = $state(false);
 
@@ -73,6 +74,10 @@
     let search = $state('');
 
     let isFilteringUnresolved = $state(false);
+
+    let createNewResourceLanguage: number = $state(1);
+    let createNewResourceTitle: string = $state('');
+    let parentResourceIdForNewResource: number = $state(0);
 
     const searchParams = searchParameters(
         {
@@ -164,6 +169,23 @@
             window.location.reload();
         } catch {
             errorModalText = 'Error while publishing content.';
+            isTransacting = false;
+        }
+    }
+
+    async function createResourceItem() {
+        isTransacting = true;
+
+        try {
+            const resourceId = await postToApi(`/resources/content/create`, {
+                languageId: createNewResourceLanguage,
+                title: createNewResourceTitle,
+                parentResourceId: parentResourceIdForNewResource,
+            });
+            isTransacting = false;
+            window.location.href = `/resources/${resourceId}`;
+        } catch {
+            errorModalText = 'Error while creating resource item.';
             isTransacting = false;
         }
     }
@@ -395,6 +417,15 @@
                     </button>
                 </Tooltip>
             {/if}
+            {#if $searchParams.tab === Tab.myWork}
+                <button
+                    data-app-insights-event-name="publisher-dashboard-create-resource-item-click"
+                    class="btn btn-outline btn-primary ms-4"
+                    onclick={() => (isCreateNewResourceItemModalOpen = true)}
+                    disabled={false}
+                    >Create Resource Item
+                </button>
+            {/if}
         </div>
     {/if}
     {#if $searchParams.tab === Tab.myProjects}
@@ -549,5 +580,39 @@
     description="The {selectedMyWorkTableItems.length} selected resource items will be published immediately."
     {isTransacting}
 />
+
+<Modal
+    header="Create Resource Item"
+    bind:open={isCreateNewResourceItemModalOpen}
+    primaryButtonText="Create"
+    primaryButtonOnClick={createResourceItem}
+    primaryButtonDisabled={!createNewResourceLanguage || !createNewResourceTitle}
+    {isTransacting}
+>
+    <h3 class="mb-4 text-xl">Language</h3>
+    <Select
+        class="select select-bordered mb-4 min-w-[14rem] flex-grow"
+        bind:value={createNewResourceLanguage}
+        isNumber={true}
+        options={[...data.languages.map((l) => ({ value: l.id, label: l.englishDisplay }))]}
+    />
+    <h3 class="my-4 text-xl">Resource Information</h3>
+    <Select
+        appInsightsEventName="resources-resources-filter-selection"
+        bind:value={parentResourceIdForNewResource}
+        isNumber={true}
+        class="select select-bordered mb-4 min-w-[14rem] flex-grow"
+        options={[
+            { value: 0, label: 'All Resources' },
+            ...data.parentResources.map((t) => ({ value: t.id, label: t.displayName })),
+        ]}
+    />
+    <input
+        type="text"
+        class="input input-bordered mb-6 w-full"
+        placeholder="Title"
+        bind:value={createNewResourceTitle}
+    />
+</Modal>
 
 <Modal header="Error" bind:description={errorModalText} isError={true} />
