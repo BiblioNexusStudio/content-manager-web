@@ -161,6 +161,10 @@
                         showLegend={false}
                     />
                 </td>
+            {:else if href !== undefined && itemKey && itemKey === 'days'}
+                <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                    >{item[itemKey] ?? ''}</LinkedTableCell
+                >
             {:else if href !== undefined && itemKey}
                 <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
             {:else if itemKey}
