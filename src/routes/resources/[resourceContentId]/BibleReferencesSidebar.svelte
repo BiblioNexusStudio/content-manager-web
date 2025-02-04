@@ -89,7 +89,7 @@
     {#if fetched}
         <div class="overflow-y-auto">
             <div class="m-4 flex flex-col justify-center gap-3">
-                {#if fetched.bibleTextsReferences.length === 0}
+                {#if fetched.bibleTextsReferences.length === 0 && bibles.length < 2}
                     <div>No linked Bible references.</div>
                 {:else}
                     <Select
@@ -102,15 +102,19 @@
                             promise = getBibleTextsReferences(currentBibleLanguage() ?? language);
                         }}
                     />
-                    {#each fetched.bibleTextsReferences as bibleTextsReference, i (bibleTextsReference)}
-                        <div>
-                            <BibleTextReference
-                                bibleTextsReferences={[bibleTextsReference]}
-                                collapsible={true}
-                                isOpen={i === 0}
-                            />
-                        </div>
-                    {/each}
+                    {#if fetched.bibleTextsReferences.length === 0}
+                        <div>No linked Bible references for selected Bible.</div>
+                    {:else}
+                        {#each fetched.bibleTextsReferences as bibleTextsReference, i (bibleTextsReference)}
+                            <div>
+                                <BibleTextReference
+                                    bibleTextsReferences={[bibleTextsReference]}
+                                    collapsible={true}
+                                    isOpen={i === 0}
+                                />
+                            </div>
+                        {/each}
+                    {/if}
                 {/if}
             </div>
         </div>
