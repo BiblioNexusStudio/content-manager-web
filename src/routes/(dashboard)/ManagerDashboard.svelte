@@ -525,7 +525,7 @@
                 {#snippet tableCells(item, href, itemKey)}
                     {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
                         <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                    {:else if itemKey === 'assignedUser' && item[itemKey] !== null && item[itemKey]?.name !== null}
+                    {:else if (itemKey === 'assignedUser' || itemKey === 'assignedReviewerUser') && item[itemKey] !== null && item[itemKey]?.name !== null}
                         <LinkedTableCell {href}>{item[itemKey]?.name}</LinkedTableCell>
                     {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
                         <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}

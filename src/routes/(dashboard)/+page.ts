@@ -165,6 +165,7 @@ export interface ResourceAssignedToSelfHistory {
 
 export interface ResourceAssignedToOwnCompany extends ResourceAssignedToSelf {
     assignedUser: ResourceUser;
+    assignedReviewerUser: ResourceUser | null;
 }
 
 export interface ResourceUser {
