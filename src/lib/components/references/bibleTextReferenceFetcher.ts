@@ -14,9 +14,10 @@ export interface BibleTextsReference {
 export const fetchAndFormat = async (
     startVerse: number,
     endVerse: number,
-    language: Language
+    language: Language,
+    passedBibleId?: number
 ): Promise<BibleTextsReference | null> => {
-    const bookTexts = await fetchBiblePassages(startVerse, endVerse, language.id);
+    const bookTexts = await fetchBiblePassages(startVerse, endVerse, language.id, passedBibleId);
 
     if (!bookTexts || bookTexts.length === 0) {
         return null;
