@@ -47,6 +47,7 @@ export const manageContentsColumns: column<ResourceAssignedToOwnCompany>[] = [
     { text: 'Status', itemKey: 'statusDisplayName', sortKey: undefined },
     { text: 'Last Assigned', itemKey: 'lastAssignedUser', sortKey: undefined },
     { text: 'Assigned', itemKey: 'assignedUser', sortKey: undefined },
+    { text: 'Company Review', itemKey: 'assignedReviewerUser', sortKey: undefined },
     { text: 'Last Edit (Days)', itemKey: 'daysSinceContentUpdated', sortKey: undefined },
     {
         text: 'Deadline (Days)',

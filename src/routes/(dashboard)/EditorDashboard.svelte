@@ -10,7 +10,7 @@
     import { formatSimpleDaysAgo, utcDateTimeStringToDateTime } from '$lib/utils/date-time';
     import { type ResourceAssignedToSelf, type ResourceAssignedToSelfHistory, _EditorTab as Tab } from './+page';
     import Table from '$lib/components/Table.svelte';
-    import { myHistoryColumns, myWorkColumns } from './editor-dashboard-columns';
+    import { myHistoryColumns, myWorkColumns, reviewerMyWorkColumns } from './editor-dashboard-columns';
     import TableCell from '$lib/components/TableCell.svelte';
     import { download } from '$lib/utils/csv-download-handler';
     import Select from '$lib/components/Select.svelte';
@@ -18,9 +18,10 @@
     import { untrack } from 'svelte';
     import Modal from '$lib/components/Modal.svelte';
     import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
-    import { UserRole } from '$lib/types/base';
-    import { userIsInCompany } from '$lib/stores/auth';
+    import { UserRole, ResourceContentStatusEnum } from '$lib/types/base';
+    import { userIsInCompany, userCan, Permission } from '$lib/stores/auth';
     import { postToApi } from '$lib/utils/http-service';
+    import { log } from '$lib/logger';
 
     const sortMyWorkData = createEditorDashboardMyWorkSorter();
     const sortMyHistoryData = createEditorDashboardMyHistorySorter();
@@ -34,11 +35,19 @@
     let myWorkContents = data.editorDashboard!.assignedResourceContent;
     let myHistoryContents = data.editorDashboard!.assignedResourceHistoryContent;
     let isAssignContentModalOpen = $state(false);
+    let isSendToPublisherModalOpen = $state(false);
 
     let selectedMyWorkContents: ResourceAssignedToSelf[] = $state([]);
     let isTransacting = $state(false);
     let assignToUserId: number | null = $state(null);
     let errorModalText: string | undefined = $state(undefined);
+    let isReviewer = $derived($userCan(Permission.SendReviewContent));
+    let isAssignButtonDisabled = $derived(() => selectedMyWorkContents.length === 0);
+    let isSendToPublisherButtonDisabled = $derived(
+        () =>
+            selectedMyWorkContents.length === 0 ||
+            !selectedMyWorkContents.every((x) => x.statusValue === ResourceContentStatusEnum.TranslationCompanyReview)
+    );
 
     const downloadMyHistoryCsv = () => {
         download(
@@ -91,28 +100,38 @@
         return data.users?.filter((u) => $userIsInCompany(u.company.id) && u.role !== UserRole.ReportViewer) ?? null;
     }
 
-    async function bulkAssignContentToEditor() {
-        let selectedIds: number[] = [];
+    const assignEditor = async (contentIds: number[]) => {
+        if (contentIds.length > 0) {
+            await postToApi<null>('/resources/content/send-for-editor-review', {
+                assignedUserId: assignToUserId,
+                contentIds: contentIds,
+            });
+        }
+    };
+
+    const sendForReview = async (contentIds: number[]) => {
+        if (contentIds.length > 0) {
+            try {
+                await postToApi<null>('/resources/content/send-for-publisher-review', {
+                    contentIds: contentIds,
+                });
+            } catch (error) {
+                log.exception(error);
+                throw error;
+            }
+        }
+    };
+
+    async function updateContent(action: (contentIds: number[]) => Promise<void>) {
         isTransacting = true;
 
-        selectedMyWorkContents.forEach((x) => {
-            selectedIds.push(x.id);
-        });
-
-        const inProgressAssignments =
-            selectedIds.length > 0
-                ? postToApi<null>('/resources/content/send-for-editor-review', {
-                      assignedUserId: assignToUserId,
-                      contentIds: selectedIds,
-                  })
-                : Promise.resolve(null);
-
         try {
-            await Promise.all([inProgressAssignments]);
+            const contentIds = [...selectedMyWorkContents.map((x) => x.id)];
+            await action(contentIds);
             isTransacting = false;
             window.location.reload();
         } catch {
-            errorModalText = 'Error while assigning content.';
+            errorModalText = 'Error Assigning content.';
             isTransacting = false;
         }
     }
@@ -189,8 +208,17 @@
                 data-app-insights-event-name="editor-dashboard-bulk-assign-click"
                 class="btn btn-primary"
                 onclick={() => (isAssignContentModalOpen = true)}
-                disabled={selectedMyWorkContents.length === 0}
+                disabled={isAssignButtonDisabled()}
                 >Assign
+            </button>
+        {/if}
+        {#if $searchParams.tab === Tab.myWork && isReviewer}
+            <button
+                data-app-insights-event-name="editor-dashboard-bulk-assign-click"
+                class="btn btn-primary"
+                onclick={() => (isSendToPublisherModalOpen = true)}
+                disabled={isSendToPublisherButtonDisabled()}
+                >Send to Publisher
             </button>
         {/if}
         {#if $searchParams.tab === Tab.myWork}
@@ -216,7 +244,7 @@
             bind:this={table}
             class="my-4"
             enableSelectAll={true}
-            columns={myWorkColumns}
+            columns={isReviewer ? reviewerMyWorkColumns : myWorkColumns}
             items={sortedMyWorkContents as ResourceAssignedToSelf[]}
             idColumn="id"
             itemUrlPrefix="/resources/"
@@ -269,12 +297,22 @@
 <Modal
     {isTransacting}
     primaryButtonText={'Assign'}
-    primaryButtonOnClick={bulkAssignContentToEditor}
+    primaryButtonOnClick={() => updateContent(assignEditor)}
     primaryButtonDisabled={!assignToUserId}
     bind:open={isAssignContentModalOpen}
-    header="Choose an Editor or Reviewer"
+    header="Select a User"
 >
     <UserSelector users={editorsThatCanBeAssigned()} defaultLabel="Select User" bind:selectedUserId={assignToUserId} />
+</Modal>
+
+<Modal
+    {isTransacting}
+    primaryButtonText={'Send to Publisher'}
+    primaryButtonOnClick={() => updateContent(sendForReview)}
+    bind:open={isSendToPublisherModalOpen}
+    header={'Confirm Send to Publisher'}
+>
+    <div class="my-4 text-xl">Have you completed your editing? Your assignment will be removed.</div>
 </Modal>
 
 <Modal header="Error" bind:description={errorModalText} isError={true} />
