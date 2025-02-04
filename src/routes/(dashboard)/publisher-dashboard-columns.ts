@@ -42,7 +42,6 @@ export const reviewPendingContentsColumns: column<ResourcePendingReview>[] = [
 export const projectColumns: column<Project>[] = [
     { text: 'Title', itemKey: 'name', sortKey: undefined },
     { text: 'Company', itemKey: 'company', sortKey: undefined },
-    { text: 'Platform', itemKey: 'projectPlatform', sortKey: undefined },
     { text: 'Language', itemKey: 'language', sortKey: undefined },
     { text: 'Days', itemKey: 'days', sortKey: SortName.Days },
     { text: 'Progress', sortKey: undefined },
