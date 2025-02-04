@@ -61,9 +61,19 @@
         for (const reference of references) {
             let bibleTextsReference: BibleTextsReference | null;
             if (instanceOfPassageReference(reference)) {
-                bibleTextsReference = await fetchAndFormat(reference.startVerseId, reference.endVerseId, language);
+                bibleTextsReference = await fetchAndFormat(
+                    reference.startVerseId,
+                    reference.endVerseId,
+                    language,
+                    currentBible()?.id
+                );
             } else {
-                bibleTextsReference = await fetchAndFormat(reference.verseId, reference.verseId, language);
+                bibleTextsReference = await fetchAndFormat(
+                    reference.verseId,
+                    reference.verseId,
+                    language,
+                    currentBible()?.id
+                );
             }
 
             if (bibleTextsReference) bibleTextsReferences.push(bibleTextsReference);
@@ -83,11 +93,12 @@
                     <div>No linked Bible references.</div>
                 {:else}
                     <Select
-                        class="select select-bordered"
+                        class="select select-bordered select-sm mb-2"
                         options={bibles.map((b) => ({ value: b.id, label: b.name }))}
-                        value={currentBibleId}
-                        onChange={(value) => {
-                            currentBibleId = parseInt(value as string);
+                        bind:value={currentBibleId}
+                        isNumber={true}
+                        appInsightsEventName="bible-reference-sidebar-select-bible"
+                        onChange={() => {
                             promise = getBibleTextsReferences(currentBibleLanguage() ?? language);
                         }}
                     />
