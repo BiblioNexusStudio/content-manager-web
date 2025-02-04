@@ -6,13 +6,15 @@
     import type { CommentStores } from '$lib/stores/comments';
     import { scrollSync } from '$lib/stores/scrollSync.svelte.ts';
     import type { Language } from '$lib/types/base';
+    import { createEditor } from './createEditor';
+    import type { Readable } from 'svelte/store';
 
     interface TipTapRenderProps {
         language: Language;
         tiptapJson: TiptapContentItem | undefined;
         onChange?: ((tiptapJson: object, wordCount: number, charCount: number) => void) | undefined;
         onCreate?: ((tiptapJson: object, wordCount: number, charCount: number) => void) | undefined;
-        editor?: Editor | undefined;
+        editor?: Readable<Editor> | undefined;
         canEdit: boolean;
         canComment: boolean;
         isLoading?: boolean;
@@ -35,16 +37,20 @@
         isSourceContentArea = false,
     }: TipTapRenderProps = $props();
 
-    let element: HTMLDivElement | undefined = $state();
+    let element: HTMLDivElement;
+    let lastProcessedTiptapJson: TiptapContentItem | undefined;
 
     function updateEditor(tiptapJson: TiptapContentItem | undefined) {
-        if (tiptapJson && editor) {
-            editor.commands.setContent(tiptapJson.tiptap);
+        if (tiptapJson && $editor) {
+            if (lastProcessedTiptapJson && tiptapJson.tiptap === lastProcessedTiptapJson.tiptap) return;
+
+            $editor?.commands.setContent(tiptapJson.tiptap);
+            lastProcessedTiptapJson = tiptapJson;
         }
     }
 
     function enableOrDisableEditing(canEdit: boolean) {
-        editor?.setEditable(canEdit);
+        $editor?.setEditable(canEdit);
     }
 
     $effect(() => {
@@ -55,7 +61,7 @@
     });
 
     onMount(() => {
-        editor = new Editor({
+        editor = createEditor({
             element,
             editable: canEdit,
             extensions: extensions(canComment, commentStores, true, language.scriptDirection, isSourceContentArea),
@@ -65,18 +71,6 @@
                 },
             },
             content: tiptapJson?.tiptap,
-            onTransaction: () => {
-                // force re-render so `editor.isActive` works as expected
-                editor = editor;
-
-                if (editor) {
-                    onChange?.(
-                        editor.getJSON(),
-                        editor.storage.characterCount.words(),
-                        editor.storage.characterCount.characters()
-                    );
-                }
-            },
             onUpdate: ({ editor }) => {
                 onChange?.(
                     editor.getJSON(),
@@ -97,7 +91,7 @@
     });
 
     onDestroy(() => {
-        editor?.destroy();
+        $editor?.destroy();
     });
 </script>
 

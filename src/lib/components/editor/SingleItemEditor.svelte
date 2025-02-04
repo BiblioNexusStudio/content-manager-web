@@ -6,6 +6,7 @@
     import type { Editor } from 'aquifer-tiptap';
     import type { CommentStores } from '$lib/stores/comments';
     import { getIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
+    import type { Readable } from 'svelte/store';
 
     interface Props {
         itemIndex: number;
@@ -33,7 +34,7 @@
         isSourceContentArea = false,
     }: Props = $props();
 
-    let editor: Editor | undefined = $state(undefined);
+    let editor: Readable<Editor> | undefined = $state(undefined);
     let tiptapJson = $editableContentStore[itemIndex];
     let isLoading = $state(false);
 
@@ -63,7 +64,7 @@
 </script>
 
 <div class="flex h-full flex-col space-y-4">
-    <EditorToolbar {editor} {canEdit} {commentStores} {resourceContent} {itemIndex} bind:isLoading />
+    <EditorToolbar editor={$editor} {canEdit} {commentStores} {resourceContent} {itemIndex} bind:isLoading />
 
     <TiptapRenderer
         language={resourceContent.language}
