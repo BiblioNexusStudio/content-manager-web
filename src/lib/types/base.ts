@@ -1,4 +1,4 @@
-import type {Permission} from '$lib/stores/auth';
+import type { Permission } from '$lib/stores/auth';
 
 export type ExtendType<T, K extends keyof T, V> = Omit<T, K> & { [P in K]?: V };
 

@@ -1,5 +1,5 @@
-import {createListSorter} from '$lib/utils/sorting';
-import type {ProjectListResponse} from '$lib/types/projects';
+import { createListSorter } from '$lib/utils/sorting';
+import type { ProjectListResponse } from '$lib/types/projects';
 
 export enum SortName {
     Title = 'title',

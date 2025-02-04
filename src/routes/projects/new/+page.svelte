@@ -1,12 +1,12 @@
 <script lang="ts">
-    import {goto} from '$app/navigation';
+    import { goto } from '$app/navigation';
     import Modal from '$lib/components/Modal.svelte';
     import Select from '$lib/components/Select.svelte';
-    import {log} from '$lib/logger';
-    import {UserRole} from '$lib/types/base';
-    import {postToApi} from '$lib/utils/http-service';
-    import {isApiErrorWithMessage} from '$lib/utils/http-errors';
-    import type {PageData} from './$types';
+    import { log } from '$lib/logger';
+    import { UserRole } from '$lib/types/base';
+    import { postToApi } from '$lib/utils/http-service';
+    import { isApiErrorWithMessage } from '$lib/utils/http-errors';
+    import type { PageData } from './$types';
     import ProjectContentSelector from './ProjectContentSelector.svelte';
     import BackButton from '$lib/components/BackButton.svelte';
 
@@ -14,9 +14,9 @@
         data: PageData;
     }
 
-    let {data}: Props = $props();
+    let { data }: Props = $props();
 
-    const {languages, users, companies} = data;
+    const { languages, users, companies } = data;
 
     let title = $state('');
     let languageId: number | null = $state(null);
@@ -36,11 +36,11 @@
 
     let canSave = $derived(
         !!title &&
-        !!languageId &&
-        !!projectManagerUserId &&
-        !!companyId &&
-        !!companyLeadUserId &&
-        selectedResourceIds.length > 0
+            !!languageId &&
+            !!projectManagerUserId &&
+            !!companyId &&
+            !!companyLeadUserId &&
+            selectedResourceIds.length > 0
     );
 
     async function save() {
@@ -78,7 +78,7 @@
 
 <div class="relative flex h-screen flex-col overflow-hidden px-8 py-4 short:h-full short:overflow-auto">
     <div class="mb-4 flex flex-row items-center">
-        <BackButton defaultPathIfNoHistory="/projects"/>
+        <BackButton defaultPathIfNoHistory="/projects" />
         <div class="text-3xl">Create Project</div>
     </div>
     <div class="mb-8 flex flex-col">
@@ -87,17 +87,17 @@
             <div class="flex flex-row items-center border-b p-2">
                 <div class="text-md">Title <span class="text-error">*</span></div>
                 <div class="flex-grow"></div>
-                <input bind:value={title} class="input input-bordered input-sm w-full max-w-[50%]"/>
+                <input bind:value={title} class="input input-bordered input-sm w-full max-w-[50%]" />
             </div>
             <div class="flex flex-row items-center border-b p-2">
                 <div class="text-md">Language <span class="text-error">*</span></div>
                 <div class="flex-grow"></div>
                 <Select
-                        bind:value={languageId}
-                        class="select select-bordered select-sm w-full max-w-[50%]"
-                        disabled={selectedResourceIds.length > 0}
-                        isNumber={true}
-                        options={[
+                    bind:value={languageId}
+                    class="select select-bordered select-sm w-full max-w-[50%]"
+                    disabled={selectedResourceIds.length > 0}
+                    isNumber={true}
+                    options={[
                         { value: null, label: 'Select Language' },
                         ...(languages || []).map((l) => ({
                             value: l.id,
@@ -110,10 +110,10 @@
                 <div class="text-md">Project Manager <span class="text-error">*</span></div>
                 <div class="flex-grow"></div>
                 <Select
-                        bind:value={projectManagerUserId}
-                        class="select select-bordered select-sm w-full max-w-[50%]"
-                        isNumber={true}
-                        options={[
+                    bind:value={projectManagerUserId}
+                    class="select select-bordered select-sm w-full max-w-[50%]"
+                    isNumber={true}
+                    options={[
                         { value: null, label: 'Select User' },
                         ...(users || [])
                             .filter((u) => u.role === UserRole.Publisher)
@@ -125,10 +125,10 @@
                 <div class="text-md">Company <span class="text-error">*</span></div>
                 <div class="flex-grow"></div>
                 <Select
-                        bind:value={companyId}
-                        class="select select-bordered select-sm w-full max-w-[50%]"
-                        isNumber={true}
-                        options={[
+                    bind:value={companyId}
+                    class="select select-bordered select-sm w-full max-w-[50%]"
+                    isNumber={true}
+                    options={[
                         { value: null, label: 'Select Company' },
                         ...(companies || [])
                             .filter((c) => c.name !== 'N/A')
@@ -141,10 +141,10 @@
                     <div class="text-md">Company Lead <span class="text-error">*</span></div>
                     <div class="flex-grow"></div>
                     <Select
-                            bind:value={companyLeadUserId}
-                            class="select select-bordered select-sm w-full max-w-[50%]"
-                            isNumber={true}
-                            options={[
+                        bind:value={companyLeadUserId}
+                        class="select select-bordered select-sm w-full max-w-[50%]"
+                        isNumber={true}
+                        options={[
                             { value: null, label: 'Select User' },
                             ...(users || [])
                                 .filter((u) => u.role === UserRole.Manager)
@@ -160,11 +160,11 @@
         <!-- the key ensures we reset the project content selection when language changes -->
         {#key languageId}
             <ProjectContentSelector
-                    disabled={!languageId}
-                    {languageId}
-                    {data}
-                    {isForAquiferization}
-                    bind:finalizedResourceIds={selectedResourceIds}
+                disabled={!languageId}
+                {languageId}
+                {data}
+                {isForAquiferization}
+                bind:finalizedResourceIds={selectedResourceIds}
             />
         {/key}
     </div>
@@ -180,4 +180,4 @@
     </div>
 </div>
 
-<Modal bind:open={isShowingErrorModal} description={errorMessage} header="Error creating" isError={true}/>
+<Modal bind:open={isShowingErrorModal} description={errorMessage} header="Error creating" isError={true} />
