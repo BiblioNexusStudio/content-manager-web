@@ -4,7 +4,6 @@ export interface ProjectListResponse {
     language: string;
     projectLead: string;
     company: string;
-    projectPlatform: string;
     resource: string;
     itemCount: number;
     wordCount: number;
@@ -78,7 +77,6 @@ export interface ProjectResponse {
     language: string;
     projectManager: string;
     company: string;
-    projectPlatform: string;
     companyLead?: string;
     sourceWordCount: number;
     effectiveWordCount?: number;
@@ -90,10 +88,6 @@ export interface ProjectResponse {
     actualPublishDate?: string;
     counts: ProjectResourceStatusCounts;
     items: ProjectResource[];
-}
-
-export enum ProjectConstants {
-    AQUIFER = 'Aquifer',
 }
 
 export enum ProjectStatusTab {

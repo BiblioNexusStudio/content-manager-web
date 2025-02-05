@@ -4,7 +4,6 @@ import type { ProjectListResponse } from '$lib/types/projects';
 export enum SortName {
     Title = 'title',
     Company = 'company',
-    Platform = 'platform',
     Resource = 'resource',
     Language = 'language',
     Manager = 'manager',
@@ -21,9 +20,6 @@ export function createProjectListSorter<T extends ProjectListResponse>() {
         },
         [SortName.Company]: {
             primarySortKeys: ['company'],
-        },
-        [SortName.Platform]: {
-            primarySortKeys: ['projectPlatform'],
         },
         [SortName.Resource]: {
             primarySortKeys: ['resource'],

@@ -1,10 +1,9 @@
 <script lang="ts">
-    import { users, project } from '$lib/stores/projects';
+    import { project, users } from '$lib/stores/projects';
     import Select from '$lib/components/Select.svelte';
     import { UserRole } from '$lib/types/base';
     import ViewTabSlot from './ViewTabSlot.svelte';
     import { updateProject } from '$lib/utils/projects';
-    import { ProjectConstants } from '$lib/types/projects';
 
     interface Props {
         canOnlyViewProjectsInCompany: boolean;
@@ -68,10 +67,7 @@
         <ViewTabSlot title="Company">
             <div>{$project?.company ?? ''}</div>
         </ViewTabSlot>
-        <ViewTabSlot title="Platform">
-            <div>{$project?.projectPlatform ?? ''}</div>
-        </ViewTabSlot>
-        {#if $project?.projectPlatform === ProjectConstants.AQUIFER && $users}
+        {#if $users}
             <ViewTabSlot title="Company Lead">
                 {#if $project?.started === null}
                     <Select
@@ -86,7 +82,7 @@
                         onChange={handleCompanyLeadSelectChange}
                     />
                 {:else}
-                    {$project.companyLead}
+                    {$project?.companyLead}
                 {/if}
             </ViewTabSlot>
         {/if}
