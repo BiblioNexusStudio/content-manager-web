@@ -108,7 +108,6 @@ export interface Project {
     name: string;
     language: string;
     company: string;
-    projectPlatform: string;
     days?: number;
     counts: ProjectResourceStatusCounts;
     isStarted: boolean;
