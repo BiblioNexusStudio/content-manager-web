@@ -8,38 +8,40 @@
     import { isApiErrorWithMessage } from '$lib/utils/http-errors';
     import type { PageData } from './$types';
     import ProjectContentSelector from './ProjectContentSelector.svelte';
-    import { ProjectConstants } from '$lib/types/projects';
     import BackButton from '$lib/components/BackButton.svelte';
 
-    export let data: PageData;
+    interface Props {
+        data: PageData;
+    }
 
-    const { languages, users, projectPlatforms, companies } = data;
+    let { data }: Props = $props();
 
-    let title = '';
-    let languageId: number | null = null;
-    let projectManagerUserId: number | null = null;
-    let companyId: number | null = null;
-    let platformId: number | null = null;
-    let companyLeadUserId: number | null = null;
-    let selectedResourceIds: number[] = [];
-    let isSaving = false;
-    let isShowingErrorModal = false;
-    let errorMessage = '';
+    const { languages, users, companies } = data;
 
-    $: !isShowingErrorModal && (errorMessage = '');
+    let title = $state('');
+    let languageId: number | null = $state(null);
+    let projectManagerUserId: number | null = $state(null);
+    let companyId: number | null = $state(null);
+    let companyLeadUserId: number | null = $state(null);
+    let selectedResourceIds: number[] = $state([]);
+    let isSaving = $state(false);
+    let isShowingErrorModal = $state(false);
+    let errorMessage = $state('');
 
-    $: isForAquiferization = (languages || []).find((l) => l.id === languageId)?.iso6393Code === 'eng';
-    $: requiresCompanyLead = projectPlatforms?.find((p) => p.id === platformId)?.name === ProjectConstants.AQUIFER;
-    $: !requiresCompanyLead && (companyLeadUserId = null);
+    $effect(() => {
+        !isShowingErrorModal && (errorMessage = '');
+    });
 
-    $: canSave =
+    let isForAquiferization = $derived((languages || []).find((l) => l.id === languageId)?.iso6393Code === 'eng');
+
+    let canSave = $derived(
         !!title &&
-        !!languageId &&
-        !!projectManagerUserId &&
-        !!companyId &&
-        !!platformId &&
-        (!requiresCompanyLead || !!companyLeadUserId) &&
-        selectedResourceIds.length > 0;
+            !!languageId &&
+            !!projectManagerUserId &&
+            !!companyId &&
+            !!companyLeadUserId &&
+            selectedResourceIds.length > 0
+    );
 
     async function save() {
         isSaving = true;
@@ -49,7 +51,6 @@
                 languageId,
                 projectManagerUserId,
                 companyId,
-                projectPlatformId: platformId,
                 companyLeadUserId,
                 resourceIds: selectedResourceIds,
             });
@@ -86,14 +87,16 @@
             <div class="flex flex-row items-center border-b p-2">
                 <div class="text-md">Title <span class="text-error">*</span></div>
                 <div class="flex-grow"></div>
-                <input class="input input-bordered input-sm w-full max-w-[50%]" bind:value={title} />
+                <input bind:value={title} class="input input-bordered input-sm w-full max-w-[50%]" />
             </div>
             <div class="flex flex-row items-center border-b p-2">
                 <div class="text-md">Language <span class="text-error">*</span></div>
                 <div class="flex-grow"></div>
                 <Select
+                    bind:value={languageId}
                     class="select select-bordered select-sm w-full max-w-[50%]"
                     disabled={selectedResourceIds.length > 0}
+                    isNumber={true}
                     options={[
                         { value: null, label: 'Select Language' },
                         ...(languages || []).map((l) => ({
@@ -101,69 +104,52 @@
                             label: l.iso6393Code === 'eng' ? 'English (Aquiferize)' : l.englishDisplay,
                         })),
                     ]}
-                    isNumber={true}
-                    bind:value={languageId}
                 />
             </div>
             <div class="flex flex-row items-center border-b p-2">
                 <div class="text-md">Project Manager <span class="text-error">*</span></div>
                 <div class="flex-grow"></div>
                 <Select
+                    bind:value={projectManagerUserId}
                     class="select select-bordered select-sm w-full max-w-[50%]"
+                    isNumber={true}
                     options={[
                         { value: null, label: 'Select User' },
                         ...(users || [])
                             .filter((u) => u.role === UserRole.Publisher)
                             .map((u) => ({ value: u.id, label: u.name })),
                     ]}
-                    isNumber={true}
-                    bind:value={projectManagerUserId}
                 />
             </div>
             <div class="flex flex-row items-center border-b p-2">
                 <div class="text-md">Company <span class="text-error">*</span></div>
                 <div class="flex-grow"></div>
                 <Select
+                    bind:value={companyId}
                     class="select select-bordered select-sm w-full max-w-[50%]"
+                    isNumber={true}
                     options={[
                         { value: null, label: 'Select Company' },
                         ...(companies || [])
                             .filter((c) => c.name !== 'N/A')
                             .map((c) => ({ value: c.id, label: c.name })),
                     ]}
-                    isNumber={true}
-                    bind:value={companyId}
-                />
-            </div>
-            <div class="flex flex-row items-center border-b p-2">
-                <div class="text-md">Platform <span class="text-error">*</span></div>
-                <div class="flex-grow"></div>
-                <Select
-                    class="select select-bordered select-sm w-full max-w-[50%]"
-                    options={[
-                        { value: null, label: 'Select Platform' },
-                        ...(projectPlatforms || []).map((c) => ({ value: c.id, label: c.name })),
-                    ]}
-                    isNumber={true}
-                    bind:value={platformId}
                 />
             </div>
             <div class="border-b p-2">
-                <div class="{!requiresCompanyLead && 'contrast-0'} flex flex-row items-center">
+                <div class="flex flex-row items-center">
                     <div class="text-md">Company Lead <span class="text-error">*</span></div>
                     <div class="flex-grow"></div>
                     <Select
-                        disabled={!requiresCompanyLead}
-                        class="select select-bordered select-sm w-full max-w-[50%] {!requiresCompanyLead &&
-                            '!bg-transparent'}"
+                        bind:value={companyLeadUserId}
+                        class="select select-bordered select-sm w-full max-w-[50%]"
+                        isNumber={true}
                         options={[
                             { value: null, label: 'Select User' },
                             ...(users || [])
                                 .filter((u) => u.role === UserRole.Manager)
                                 .map((c) => ({ value: c.id, label: c.name })),
                         ]}
-                        isNumber={true}
-                        bind:value={companyLeadUserId}
                     />
                 </div>
             </div>
@@ -184,7 +170,7 @@
     </div>
     <div class="absolute bottom-0 left-0 right-0 z-50 flex flex-row border-t bg-white p-4">
         <div class="flex-grow"></div>
-        <button class="btn btn-primary" on:click={save} disabled={!canSave}>
+        <button class="btn btn-primary" disabled={!canSave} onclick={save}>
             {#if isSaving}
                 <span class="loading loading-spinner"></span>
             {:else}
@@ -194,4 +180,4 @@
     </div>
 </div>
 
-<Modal isError={true} header="Error creating" description={errorMessage} bind:open={isShowingErrorModal} />
+<Modal bind:open={isShowingErrorModal} description={errorMessage} header="Error creating" isError={true} />

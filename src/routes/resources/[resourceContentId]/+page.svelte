@@ -53,7 +53,6 @@
     import { log } from '$lib/logger';
     import { createIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
     import ScrollSyncLockToggle from '$lib/components/editor/ScrollSyncLockToggle.svelte';
-    import { scrollPosition, scrollSyncSourceDiv } from '$lib/stores/scrollSync';
     import { isApiErrorWithMessage } from '$lib/utils/http-errors';
     import { isEditorPaneOnLeft } from '$lib/stores/resourceEditor';
     import ContentEditorSwapButton from '$lib/components/editor/ContentEditorSwapButton.svelte';
@@ -289,11 +288,6 @@
     const isPageTransacting = createIsPageTransactingContext();
 
     beforeNavigate(async ({ to, cancel }) => {
-        if ($scrollSyncSourceDiv) {
-            $scrollSyncSourceDiv.scrollTop = 0;
-        }
-        $scrollPosition = 0;
-
         // beforeNavigate runs synchronously, but we can work around the limitation by always canceling the
         // navigation up front, and then conditionally doing a `goto` if the save is successful.
         // See https://github.com/sveltejs/kit/issues/4421#issuecomment-1129879937

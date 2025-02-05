@@ -1,16 +1,20 @@
 <script lang="ts">
-    import { users, project } from '$lib/stores/projects';
+    import { project, users } from '$lib/stores/projects';
     import Select from '$lib/components/Select.svelte';
     import { UserRole } from '$lib/types/base';
     import ViewTabSlot from './ViewTabSlot.svelte';
     import { updateProject } from '$lib/utils/projects';
-    import { ProjectConstants } from '$lib/types/projects';
 
-    $: currentProjectManager = $users?.find((u) => u.name === $project?.projectManager);
-    $: projectManagerUserId = currentProjectManager?.id ?? 0;
-    $: currentCompanyLead = $users?.find((u) => u.name === $project?.companyLead);
-    $: companyLeadUserId = currentCompanyLead?.id ?? 0;
-    export let canOnlyViewProjectsInCompany: boolean;
+    interface Props {
+        canOnlyViewProjectsInCompany: boolean;
+    }
+
+    let { canOnlyViewProjectsInCompany }: Props = $props();
+
+    let currentProjectManager = $derived($users?.find((u) => u.name === $project?.projectManager));
+    let projectManagerUserId = $derived(currentProjectManager?.id ?? 0);
+    let currentCompanyLead = $derived($users?.find((u) => u.name === $project?.companyLead));
+    let companyLeadUserId = $derived(currentCompanyLead?.id ?? 0);
 
     async function handleProjectManagerSelectChange(value: string | number | null) {
         const selectedUser = $users?.find((u) => u.id === value);
@@ -63,10 +67,7 @@
         <ViewTabSlot title="Company">
             <div>{$project?.company ?? ''}</div>
         </ViewTabSlot>
-        <ViewTabSlot title="Platform">
-            <div>{$project?.projectPlatform ?? ''}</div>
-        </ViewTabSlot>
-        {#if $project?.projectPlatform === ProjectConstants.AQUIFER && $users}
+        {#if $users}
             <ViewTabSlot title="Company Lead">
                 {#if $project?.started === null}
                     <Select
@@ -81,7 +82,7 @@
                         onChange={handleCompanyLeadSelectChange}
                     />
                 {:else}
-                    {$project.companyLead}
+                    {$project?.companyLead}
                 {/if}
             </ViewTabSlot>
         {/if}

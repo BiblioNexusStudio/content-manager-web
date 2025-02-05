@@ -1,31 +1,32 @@
 <script lang="ts">
     import type { PageData } from './$types';
     import { Permission, userCan } from '$lib/stores/auth';
-    import { users, project } from '$lib/stores/projects';
+    import { project, users } from '$lib/stores/projects';
     import ProjectViewTabs from '$lib/components/projects/ProjectViewTabs.svelte';
     import ProjectViewTableAndFilters from '$lib/components/projects/ProjectViewTableAndFilters.svelte';
     import ProjectProgressBar from '$lib/components/ProjectProgressBar.svelte';
     import { startProject } from '$lib/utils/projects';
-    import { ProjectConstants } from '$lib/types/projects';
-    import BackButton from '$lib/components/BackButton.svelte';
     import type { ProjectResource } from '$lib/types/projects';
+    import BackButton from '$lib/components/BackButton.svelte';
     import { browser } from '$app/environment';
 
-    export let data: PageData;
+    interface Props {
+        data: PageData;
+    }
 
-    $: projectResponse = data.projectResponse;
-    $: $project = projectResponse;
-    $: $users = data.users;
+    let { data }: Props = $props();
 
-    $: companyLeadSet = $project?.projectPlatform !== ProjectConstants.AQUIFER ? true : $project?.companyLead;
+    let projectResponse = data.projectResponse;
+    $project = projectResponse;
+    $users = data.users;
 
-    $: disabledStartButton =
+    let disabledStartButton = $derived(
         $project?.projectManager &&
-        $project?.effectiveWordCount &&
-        $project?.quotedCost &&
-        $project?.projectedDeliveryDate &&
-        $project?.projectedPublishDate &&
-        companyLeadSet;
+            $project?.effectiveWordCount &&
+            $project?.quotedCost &&
+            $project?.projectedDeliveryDate &&
+            $project?.projectedPublishDate
+    );
 
     async function onStartProject() {
         if ($project) {
@@ -87,13 +88,14 @@
     </div>
     <div class="flex">
         {#if $project?.started === null && $userCan(Permission.EditProjects)}
-            <button class="btn btn-primary" disabled={!disabledStartButton} on:click={onStartProject}>Start</button>
+            <button class="btn btn-primary" disabled={!disabledStartButton} onclick={onStartProject}>Start</button>
         {:else}
             <button
                 data-app-insights-event-name="project-download-word-counts-click"
                 class="btn btn-primary"
-                on:click={handleDownloadWordCounts}>Download Word Counts</button
-            >
+                onclick={handleDownloadWordCounts}
+                >Download Word Counts
+            </button>
         {/if}
     </div>
 </div>

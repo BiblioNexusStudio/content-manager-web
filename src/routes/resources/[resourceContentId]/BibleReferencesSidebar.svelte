@@ -45,7 +45,11 @@
             bibles = await fetchLanguageBiblesAndEnglishDefault(language.id);
             fetchedBibles = true;
         }
-        const bible = bibles.find((b) => b.languageId === language.id && b.isLanguageDefault);
+
+        const bible = bibles.some((b) => b.languageId === language.id && b.isLanguageDefault)
+            ? bibles.find((b) => b.languageId === language.id && b.isLanguageDefault)
+            : bibles.find((b) => b.languageId === 1 && b.isLanguageDefault);
+
         if (currentBibleId === null) {
             currentBibleId = bible?.id ?? null;
         }
@@ -57,9 +61,19 @@
         for (const reference of references) {
             let bibleTextsReference: BibleTextsReference | null;
             if (instanceOfPassageReference(reference)) {
-                bibleTextsReference = await fetchAndFormat(reference.startVerseId, reference.endVerseId, language);
+                bibleTextsReference = await fetchAndFormat(
+                    reference.startVerseId,
+                    reference.endVerseId,
+                    language,
+                    currentBible()?.id
+                );
             } else {
-                bibleTextsReference = await fetchAndFormat(reference.verseId, reference.verseId, language);
+                bibleTextsReference = await fetchAndFormat(
+                    reference.verseId,
+                    reference.verseId,
+                    language,
+                    currentBible()?.id
+                );
             }
 
             if (bibleTextsReference) bibleTextsReferences.push(bibleTextsReference);
@@ -75,27 +89,32 @@
     {#if fetched}
         <div class="overflow-y-auto">
             <div class="m-4 flex flex-col justify-center gap-3">
-                {#if fetched.bibleTextsReferences.length === 0}
+                {#if fetched.bibleTextsReferences.length === 0 && bibles.length < 2}
                     <div>No linked Bible references.</div>
                 {:else}
                     <Select
-                        class="select select-bordered"
+                        class="select select-bordered select-sm mb-2"
                         options={bibles.map((b) => ({ value: b.id, label: b.name }))}
-                        value={currentBibleId}
-                        onChange={(value) => {
-                            currentBibleId = parseInt(value as string);
+                        bind:value={currentBibleId}
+                        isNumber={true}
+                        appInsightsEventName="bible-reference-sidebar-select-bible"
+                        onChange={() => {
                             promise = getBibleTextsReferences(currentBibleLanguage() ?? language);
                         }}
                     />
-                    {#each fetched.bibleTextsReferences as bibleTextsReference, i (bibleTextsReference)}
-                        <div>
-                            <BibleTextReference
-                                bibleTextsReferences={[bibleTextsReference]}
-                                collapsible={true}
-                                isOpen={i === 0}
-                            />
-                        </div>
-                    {/each}
+                    {#if fetched.bibleTextsReferences.length === 0}
+                        <div>No linked Bible references for selected Bible.</div>
+                    {:else}
+                        {#each fetched.bibleTextsReferences as bibleTextsReference, i (bibleTextsReference)}
+                            <div>
+                                <BibleTextReference
+                                    bibleTextsReferences={[bibleTextsReference]}
+                                    collapsible={true}
+                                    isOpen={i === 0}
+                                />
+                            </div>
+                        {/each}
+                    {/if}
                 {/if}
             </div>
         </div>

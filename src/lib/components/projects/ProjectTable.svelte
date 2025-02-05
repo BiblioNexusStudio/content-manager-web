@@ -11,31 +11,44 @@
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import TableCell from '$lib/components/TableCell.svelte';
     import { createProjectListSorter, SortName } from './project-table-sorter';
+    interface Props {
+        isShowing: boolean;
+        languages: Language[];
+        companies: Company[];
+        currentTab: ProjectStatusTab;
+        activeProjects: ProjectListResponse[];
+        recentlyFinishedProjects: ProjectListResponse[];
+        notStartedProjects: ProjectListResponse[];
+    }
 
-    export let isShowing: boolean;
-    export let languages: Language[];
-    export let companies: Company[];
-    export let currentTab: ProjectStatusTab;
-    export let activeProjects: ProjectListResponse[];
-    export let recentlyFinishedProjects: ProjectListResponse[];
-    export let notStartedProjects: ProjectListResponse[];
+    let {
+        isShowing,
+        languages,
+        companies,
+        currentTab,
+        activeProjects,
+        recentlyFinishedProjects,
+        notStartedProjects,
+    }: Props = $props();
 
-    let filterByCompany: string | null = null;
-    let filterByLanguage: string | null = null;
-    let projectSearchValue = '';
+    let filterByCompany: string | null = $state(null);
+    let filterByLanguage: string | null = $state(null);
+    let projectSearchValue = $state('');
 
     const sortProjectListData = createProjectListSorter<ProjectListResponse>();
 
     const searchParams = searchParameters({ sort: ssp.string(SortName.Days) }, { runLoadAgainWhenParamsChange: false });
 
-    $: listData = handleListData(
-        activeProjects,
-        recentlyFinishedProjects,
-        notStartedProjects,
-        projectSearchValue,
-        currentTab,
-        filterByCompany,
-        filterByLanguage
+    let listData = $derived(
+        handleListData(
+            activeProjects,
+            recentlyFinishedProjects,
+            notStartedProjects,
+            projectSearchValue,
+            currentTab,
+            filterByCompany,
+            filterByLanguage
+        )
     );
 
     function handleListData(
@@ -135,26 +148,28 @@
         bind:searchParams={$searchParams}
         itemUrlPrefix="/projects/"
         noItemsText="No results."
-        let:item
-        let:href
-        let:itemKey
-        let:columnText
     >
-        {#if columnText === 'Progress'}
-            <td>
-                <ProjectProgressBar
-                    notStartedCount={item.counts.notStarted}
-                    editorReviewCount={item.counts.editorReview}
-                    inCompanyReviewCount={item.counts.inCompanyReview}
-                    inPublisherReviewCount={item.counts.inPublisherReview}
-                    completeCount={item.counts.completed}
-                    showLegend={false}
-                />
-            </td>
-        {:else if href !== undefined && itemKey}
-            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-        {:else if itemKey}
-            <TableCell>{item[itemKey] ?? ''}</TableCell>
-        {/if}
+        {#snippet tableCells(item, href, itemKey, columnText)}
+            {#if columnText === 'Progress'}
+                <td>
+                    <ProjectProgressBar
+                        notStartedCount={item.counts.notStarted}
+                        editorReviewCount={item.counts.editorReview}
+                        inCompanyReviewCount={item.counts.inCompanyReview}
+                        inPublisherReviewCount={item.counts.inPublisherReview}
+                        completeCount={item.counts.completed}
+                        showLegend={false}
+                    />
+                </td>
+            {:else if href !== undefined && itemKey && itemKey === 'days'}
+                <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                    >{item[itemKey] ?? ''}</LinkedTableCell
+                >
+            {:else if href !== undefined && itemKey}
+                <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+            {:else if itemKey}
+                <TableCell>{item[itemKey] ?? ''}</TableCell>
+            {/if}
+        {/snippet}
     </Table>
 </div>

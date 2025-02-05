@@ -70,6 +70,25 @@ function fetchAssignedResourceContent(injectedFetch: typeof window.fetch) {
     return getFromApi<ResourceAssignedToSelf[]>('/resources/content/assigned-to-self', injectedFetch);
 }
 
+export enum _CommunityReviewerTab {
+    resources = 'resources',
+    myHistory = 'my-history',
+}
+
+export enum _PublisherTab {
+    myWork = 'my-work',
+    reviewPending = 'review-pending',
+    myProjects = 'my-projects',
+    community = 'community',
+    notApplicable = 'not-applicable',
+}
+
+export enum _ManagerTab {
+    myWork = 'my-work',
+    toAssign = 'to-assign',
+    manage = 'manage',
+}
+
 export interface ResourcesByParentResource extends TotalsByMonth {
     parentResourceName: string;
 }
@@ -89,7 +108,6 @@ export interface Project {
     name: string;
     language: string;
     company: string;
-    projectPlatform: string;
     days?: number;
     counts: ProjectResourceStatusCounts;
     isStarted: boolean;
@@ -120,6 +138,7 @@ export interface ResourceAssignedToSelf {
     daysSinceContentUpdated: number | null;
     sortOrder: number;
     lastAssignedUser: ResourceUser | null;
+    hasUnresolvedCommentThreads: boolean;
 }
 
 export interface ResourceThatNeedsTranslationResponse {
@@ -145,6 +164,7 @@ export interface ResourceAssignedToSelfHistory {
 
 export interface ResourceAssignedToOwnCompany extends ResourceAssignedToSelf {
     assignedUser: ResourceUser;
+    assignedReviewerUser: ResourceUser | null;
 }
 
 export interface ResourceUser {
@@ -163,6 +183,7 @@ export interface ResourcePendingReview {
     daysSinceContentUpdated: number | null;
     reviewLevel: ResourceContentVersionReviewLevel;
     sortOrder: number;
+    hasUnresolvedCommentThreads: boolean;
 }
 
 export interface UserWordCount {
@@ -177,4 +198,9 @@ export interface NotApplicableContent {
     parentResourceName: string;
     title: string;
     projectName: string | null;
+}
+
+export enum _EditorTab {
+    myWork = 'my-work',
+    myHistory = 'my-history',
 }

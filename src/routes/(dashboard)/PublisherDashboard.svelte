@@ -29,46 +29,50 @@
     import { filterBoolean } from '$lib/utils/array';
     import { ResourceContentVersionReviewLevel } from '$lib/types/resources';
     import type { NotApplicableContent } from './+page';
+    import { _PublisherTab as Tab } from './+page';
+    import { untrack } from 'svelte';
 
-    enum Tab {
-        myWork = 'my-work',
-        reviewPending = 'review-pending',
-        myProjects = 'my-projects',
-        community = 'community',
-        notApplicable = 'not-applicable',
+    interface Props {
+        data: PageData;
     }
 
-    let currentAssignedContents: ResourceAssignedToSelf[] = [];
-    let currentReviewPendingContents: ResourcePendingReview[] = [];
-    let currentAssignedProjects: Project[] = [];
-    let currentCommunityPendingContents: ResourcePendingReview[] = [];
-    let selectedMyWorkTableItems: ResourceAssignedToSelf[] = [];
-    let selectedReviewPendingTableItems: ResourcePendingReview[] = [];
-    let selectedCommunityPendingTableItems: ResourcePendingReview[] = [];
-    let assignToUserId: number | null = null;
-    let isAssignContentModalOpen = false;
-    let isConfirmPublishModalOpen = false;
-    let errorModalText: string | undefined;
-    let isTransacting = false;
+    let { data }: Props = $props();
+
+    let currentAssignedContents: ResourceAssignedToSelf[] = $state([]);
+    let currentReviewPendingContents: ResourcePendingReview[] = $state([]);
+    let currentAssignedProjects: Project[] = $state([]);
+    let currentCommunityPendingContents: ResourcePendingReview[] = $state([]);
+    let selectedMyWorkTableItems: ResourceAssignedToSelf[] = $state([]);
+    let selectedReviewPendingTableItems: ResourcePendingReview[] = $state([]);
+    let selectedCommunityPendingTableItems: ResourcePendingReview[] = $state([]);
+    let assignToUserId: number | null = $state(null);
+    let isAssignContentModalOpen = $state(false);
+    let isConfirmPublishModalOpen = $state(false);
+    let errorModalText: string | undefined = $state(undefined);
+    let isTransacting = $state(false);
 
     const sortAssignedResourceData = createPublisherDashboardMyWorkSorter();
     const sortPendingData = createPublisherDashboardReviewPendingSorter();
     const sortAssignedProjectData = createPublisherDashboardProjectsSorter();
 
-    export let data: PageData;
-
-    $: assignedContents = data.publisherDashboard!.assignedResourceContent;
-    $: allReviewPendingContents = data.publisherDashboard!.reviewPendingResourceContent;
-    $: assignedProjects = data.publisherDashboard!.assignedProjects;
-    $: notApplicableContent = data.publisherDashboard!.notApplicableContent;
-    $: communityPendingContents = allReviewPendingContents.filter((item) => {
-        return item.reviewLevel === ResourceContentVersionReviewLevel.community;
+    let assignedContents = $derived(data.publisherDashboard!.assignedResourceContent);
+    let allReviewPendingContents = $derived(data.publisherDashboard!.reviewPendingResourceContent);
+    let assignedProjects = data.publisherDashboard!.assignedProjects;
+    let notApplicableContent = data.publisherDashboard!.notApplicableContent;
+    let communityPendingContents = $derived.by(() => {
+        return allReviewPendingContents.filter((item) => {
+            return item.reviewLevel === ResourceContentVersionReviewLevel.community;
+        });
     });
-    $: reviewPendingContents = allReviewPendingContents.filter((item) => {
-        return item.reviewLevel !== ResourceContentVersionReviewLevel.community;
+    let reviewPendingContents = $derived.by(() => {
+        return allReviewPendingContents.filter((item) => {
+            return item.reviewLevel !== ResourceContentVersionReviewLevel.community;
+        });
     });
 
-    let search = '';
+    let search = $state('');
+
+    let isFilteringUnresolved = $state(false);
 
     const searchParams = searchParameters(
         {
@@ -80,7 +84,11 @@
         { runLoadAgainWhenParamsChange: false }
     );
 
-    $: $searchParams.tab && resetSelection();
+    $effect(() => {
+        if ($searchParams.tab) {
+            resetSelection();
+        }
+    });
 
     function resetSelection() {
         selectedMyWorkTableItems = [];
@@ -168,22 +176,36 @@
         return Array.from(new Set(filterBoolean(contents.map((c) => c.statusDisplayName)))).sort();
     }
 
-    $: nonPublisherReviewSelected = selectedMyWorkTableItems.some(
-        (i) =>
-            ![
-                ResourceContentStatusEnum.AquiferizePublisherReview,
-                ResourceContentStatusEnum.TranslationPublisherReview,
-            ].includes(i.statusValue)
-    );
+    let nonPublisherReviewSelected = $derived.by(() => {
+        return selectedMyWorkTableItems.some(
+            (i) =>
+                ![
+                    ResourceContentStatusEnum.AquiferizePublisherReview,
+                    ResourceContentStatusEnum.TranslationPublisherReview,
+                ].includes(i.statusValue)
+        );
+    });
+
+    let completeSelected = $derived.by(() => {
+        return selectedMyWorkTableItems.some((i) => i.statusValue === ResourceContentStatusEnum.Complete);
+    });
 
     let table:
         | Table<ResourceAssignedToSelf>
         | Table<Project>
         | Table<ResourcePendingReview>
         | Table<NotApplicableContent>
-        | undefined;
-    $: $searchParams.sort && table?.resetScroll();
-    $: clearStaleSearchParams($searchParams.tab, assignedContents, reviewPendingContents);
+        | undefined = $state(undefined);
+
+    $effect(() => {
+        if ($searchParams.sort && table) {
+            untrack(() => table?.resetScroll());
+        }
+    });
+
+    $effect(() => {
+        clearStaleSearchParams($searchParams.tab, assignedContents, reviewPendingContents);
+    });
 
     // Handle situation where project/status is set in the searchParams but is no longer valid. E.g. saved bookmark
     // or forced refresh after assign that removed all of them.
@@ -223,13 +245,20 @@
         };
     }
 
-    const setTabContents = (tab: string, search: string, status: string, project: string) => {
+    const setTabContents = (
+        tab: string,
+        search: string,
+        status: string,
+        project: string,
+        isFilteringUnresolved: boolean
+    ) => {
         if (tab === Tab.myWork) {
             currentAssignedContents = assignedContents.filter(
                 (ac) =>
                     ac.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
                     (!status || ac.statusDisplayName === status) &&
-                    (!project || ac.projectName === project)
+                    (!project || ac.projectName === project) &&
+                    (!isFilteringUnresolved || ac.hasUnresolvedCommentThreads === true)
             );
         } else if (tab === Tab.reviewPending) {
             currentReviewPendingContents = reviewPendingContents.filter(
@@ -242,13 +271,26 @@
                 ap.name.toLowerCase().includes(search.toLowerCase())
             );
         } else if (tab === Tab.community) {
-            currentCommunityPendingContents = communityPendingContents.filter((crpc) =>
-                crpc.englishLabel.toLowerCase().includes(search.toLowerCase())
+            currentCommunityPendingContents = communityPendingContents.filter(
+                (crpc) =>
+                    crpc.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
+                    (!isFilteringUnresolved || crpc.hasUnresolvedCommentThreads === true)
             );
         }
     };
 
-    $: setTabContents($searchParams.tab, search, $searchParams.status, $searchParams.project);
+    $effect(() => {
+        setTabContents($searchParams.tab, search, $searchParams.status, $searchParams.project, isFilteringUnresolved);
+    });
+
+    let sortedCurrentAssignedContents = $derived(sortAssignedResourceData(currentAssignedContents, $searchParams.sort));
+    let sortedCurrentReviewPendingContents = $derived(
+        sortPendingData(currentReviewPendingContents, $searchParams.sort)
+    );
+    let sortedCurrentCommunityPendingContents = $derived(
+        sortPendingData(currentCommunityPendingContents, $searchParams.sort)
+    );
+    let sortedCurrentAssignedProjects = $derived(sortAssignedProjectData(currentAssignedProjects, $searchParams.sort));
 </script>
 
 <div class="flex flex-col overflow-y-hidden px-4">
@@ -256,32 +298,32 @@
     <div class="flex flex-row items-center pt-4">
         <div role="tablist" class="tabs tabs-bordered w-fit">
             <button
-                on:click={selectTab(Tab.myWork)}
+                onclick={selectTab(Tab.myWork)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.myWork && 'tab-active'}"
                 >My Work ({assignedContents.length})</button
             >
             <button
-                on:click={selectTab(Tab.reviewPending)}
+                onclick={selectTab(Tab.reviewPending)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.reviewPending && 'tab-active'}"
                 >Review Pending ({reviewPendingContents.length})</button
             >
             <button
-                on:click={selectTab(Tab.myProjects)}
+                onclick={selectTab(Tab.myProjects)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.myProjects && 'tab-active'}"
                 >My Projects ({assignedProjects.length})</button
             >
             <button
-                on:click={selectTab(Tab.community)}
+                onclick={selectTab(Tab.community)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.community && 'tab-active'}"
             >
                 Community Pending ({communityPendingContents.length})
             </button>
             <button
-                on:click={selectTab(Tab.notApplicable)}
+                onclick={selectTab(Tab.notApplicable)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.notApplicable && 'tab-active'}"
             >
@@ -316,13 +358,27 @@
                     ]}
                 />
             {/if}
+            {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.community}
+                <label class="label cursor-pointer py-0 opacity-70">
+                    <input
+                        type="checkbox"
+                        bind:checked={isFilteringUnresolved}
+                        data-app-insights-event-name="publisher-dashboard-has-unresolved-comments-toggle-{isFilteringUnresolved
+                            ? 'off'
+                            : 'on'}"
+                        class="checkbox no-animation checkbox-sm me-2"
+                    />
+                    <span class="label-text text-xs">Has Unresolved Comments</span>
+                </label>
+            {/if}
             <button
                 data-app-insights-event-name="publisher-dashboard-bulk-assign-click"
                 class="btn btn-primary"
-                on:click={() => (isAssignContentModalOpen = true)}
-                disabled={selectedReviewPendingTableItems.length === 0 &&
+                onclick={() => (isAssignContentModalOpen = true)}
+                disabled={(selectedReviewPendingTableItems.length === 0 &&
                     selectedMyWorkTableItems.length === 0 &&
-                    selectedCommunityPendingTableItems.length === 0}
+                    selectedCommunityPendingTableItems.length === 0) ||
+                    completeSelected}
                 >Assign
             </button>
             {#if $searchParams.tab === Tab.myWork}
@@ -333,7 +389,7 @@
                     <button
                         data-app-insights-event-name="publisher-dashboard-bulk-publish-click"
                         class="btn btn-primary ms-4"
-                        on:click={() => (isConfirmPublishModalOpen = true)}
+                        onclick={() => (isConfirmPublishModalOpen = true)}
                         disabled={selectedMyWorkTableItems.length === 0 || nonPublisherReviewSelected}
                         >Publish
                     </button>
@@ -354,7 +410,7 @@
                 class="my-4"
                 enableSelectAll={true}
                 columns={assignedContentsColumns}
-                items={sortAssignedResourceData(currentAssignedContents, $searchParams.sort)}
+                items={sortedCurrentAssignedContents}
                 idColumn="id"
                 itemUrlPrefix="/resources/"
                 bind:searchParams={$searchParams}
@@ -362,17 +418,16 @@
                 noItemsText="Your work is all done!"
                 searchable={true}
                 bind:searchText={search}
-                let:item
-                let:href
-                let:itemKey
             >
-                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
-                {/if}
+                {#snippet tableCells(item, href, itemKey)}
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                {/snippet}
             </Table>
         {:else if $searchParams.tab === Tab.reviewPending}
             <Table
@@ -380,7 +435,7 @@
                 class="my-4"
                 enableSelectAll={true}
                 columns={reviewPendingContentsColumns}
-                items={sortPendingData(currentReviewPendingContents, $searchParams.sort)}
+                items={sortedCurrentReviewPendingContents}
                 idColumn="id"
                 itemUrlPrefix="/resources/"
                 bind:searchParams={$searchParams}
@@ -388,17 +443,16 @@
                 noItemsText="No items pending review."
                 searchable={true}
                 bind:searchText={search}
-                let:item
-                let:href
-                let:itemKey
             >
-                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
-                {/if}
+                {#snippet tableCells(item, href, itemKey)}
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                {/snippet}
             </Table>
         {:else if $searchParams.tab === Tab.myProjects}
             <Table
@@ -406,33 +460,35 @@
                 class="my-4"
                 enableSelectAll={false}
                 columns={projectColumns}
-                items={sortAssignedProjectData(currentAssignedProjects, $searchParams.sort)}
+                items={sortedCurrentAssignedProjects}
                 idColumn="id"
                 itemUrlPrefix="/projects/"
                 bind:searchParams={$searchParams}
                 noItemsText="No projects assigned to you."
                 searchable={true}
-                let:item
-                let:href
-                let:itemKey
-                let:columnText
             >
-                {#if columnText === 'Progress'}
-                    <td>
-                        <ProjectProgressBar
-                            notStartedCount={item?.counts?.notStarted ?? 0}
-                            editorReviewCount={item?.counts?.editorReview ?? 0}
-                            inCompanyReviewCount={item?.counts?.inCompanyReview ?? 0}
-                            inPublisherReviewCount={item?.counts?.inPublisherReview ?? 0}
-                            completeCount={item?.counts?.completed ?? 0}
-                            showLegend={false}
-                        />
-                    </td>
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
-                {/if}
+                {#snippet tableCells(item, href, itemKey, columnText)}
+                    {#if columnText === 'Progress'}
+                        <td>
+                            <ProjectProgressBar
+                                notStartedCount={item?.counts?.notStarted ?? 0}
+                                editorReviewCount={item?.counts?.editorReview ?? 0}
+                                inCompanyReviewCount={item?.counts?.inCompanyReview ?? 0}
+                                inPublisherReviewCount={item?.counts?.inPublisherReview ?? 0}
+                                completeCount={item?.counts?.completed ?? 0}
+                                showLegend={false}
+                            />
+                        </td>
+                    {:else if href !== undefined && itemKey && itemKey === 'days'}
+                        <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                            >{item[itemKey] ?? ''}</LinkedTableCell
+                        >
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                {/snippet}
             </Table>
         {:else if $searchParams.tab === Tab.community}
             <Table
@@ -440,7 +496,7 @@
                 class="my-4"
                 enableSelectAll={true}
                 columns={communityPendingContentsColumns}
-                items={sortPendingData(currentCommunityPendingContents, $searchParams.sort)}
+                items={sortedCurrentCommunityPendingContents}
                 idColumn="id"
                 itemUrlPrefix="/resources/"
                 bind:searchParams={$searchParams}
@@ -448,17 +504,16 @@
                 noItemsText="No items pending review."
                 searchable={true}
                 bind:searchText={search}
-                let:item
-                let:href
-                let:itemKey
             >
-                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
-                {/if}
+                {#snippet tableCells(item, href, itemKey)}
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                {/snippet}
             </Table>
         {:else if $searchParams.tab === Tab.notApplicable}
             <Table

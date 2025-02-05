@@ -2,16 +2,24 @@
     import ProjectOverview from './ProjectOverview.svelte';
     import ProjectQuote from './ProjectQuote.svelte';
     import ProjectDelivery from './ProjectDelivery.svelte';
-    export let canOnlyViewProjectsInCompany: boolean;
 
-    let tabs = !canOnlyViewProjectsInCompany
-        ? [
-              { name: 'Overview', current: true },
-              { name: 'Quote', current: false },
-              { name: 'Delivery', current: false },
-          ]
-        : [{ name: 'Overview', current: true }];
-    $: currentTab = tabs.find((tab) => tab.current)!;
+    interface Props {
+        canOnlyViewProjectsInCompany: boolean;
+    }
+
+    let { canOnlyViewProjectsInCompany }: Props = $props();
+
+    let tabs = $state(
+        !canOnlyViewProjectsInCompany
+            ? [
+                  { name: 'Overview', current: true },
+                  { name: 'Quote', current: false },
+                  { name: 'Delivery', current: false },
+              ]
+            : [{ name: 'Overview', current: true }]
+    );
+
+    let currentTab = $derived(tabs.find((tab) => tab.current)!);
 
     function setCurrentTab(index: number) {
         tabs = tabs.map((tab, i) => {
@@ -31,7 +39,7 @@
                 class="me-4 {canOnlyViewProjectsInCompany ? 'hidden' : ''} py-2 text-lg {tab.current
                     ? 'border-b-4 border-primary'
                     : ''}"
-                on:click={() => setCurrentTab(index)}
+                onclick={() => setCurrentTab(index)}
             >
                 {tab.name}
             </button>

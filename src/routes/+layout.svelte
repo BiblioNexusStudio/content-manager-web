@@ -18,23 +18,27 @@
     import CenteredSpinnerFullScreen from '$lib/components/CenteredSpinnerFullScreen.svelte';
     import config from '$lib/config';
     import type { CurrentUser } from '$lib/types/base';
-    import { onMount } from 'svelte';
-    import { parentResources } from '$lib/stores/parent-resources';
+    import { onMount, setContext, type Snippet } from 'svelte';
     import type { LayoutData } from './$types';
     import QuestionMarkIcon from '$lib/icons/QuestionMarkIcon.svelte';
     import Tooltip from '$lib/components/Tooltip.svelte';
 
-    export let data: LayoutData;
+    interface Props {
+        data: LayoutData;
+        children: Snippet;
+    }
 
-    $: userFullName = $profile?.name ?? ' '; // set to avoid flashing undefined
+    let { data, children }: Props = $props();
 
-    $: log.pageView($page.route.id ?? '');
-    $: syncToClarity($page.route.id ?? '', $currentUser);
-    $: $parentResources = data.parentResources;
-    $: userHasCompanyLanguages = $currentUser !== null && $currentUser.company.languageIds.length > 0;
+    let userFullName = $derived($profile?.name ?? ' '); // set to avoid flashing undefined
+
+    $effect(() => log.pageView($page.route.id ?? ''));
+    $effect(() => syncToClarity($page.route.id ?? '', $currentUser));
+    setContext('parentResources', () => data.parentResources);
+    let userHasCompanyLanguages = $derived($currentUser !== null && $currentUser.company.languageIds.length > 0);
 
     let customTransitionPages = [/\/resources\/\d+/];
-    let menuElement: HTMLUListElement;
+    let menuElement: HTMLUListElement | null = $state(null);
 
     function isCustomTransitionNavigation(navigation: Navigation) {
         return customTransitionPages.some((pageRegex) => {
@@ -61,7 +65,7 @@
         }
     }
 
-    $: sidebarNavigation = [
+    let sidebarNavigation = $derived([
         {
             name: $translate('sidebar.dashboard.value'),
             icon: BarChartIcon,
@@ -98,7 +102,7 @@
             href: '/settings',
             hidden: !$userCan(Permission.GetTranslationPair) || !userHasCompanyLanguages,
         },
-    ];
+    ]);
 
     function onError(event: Event) {
         if ('error' in event) {
@@ -153,13 +157,13 @@
 <svelte:window on:error={onError} on:unhandledrejection={onRejection} on:click={onInteraction} />
 
 {#if $sideBarHiddenOnPage}
-    <slot />
+    {@render children()}
 {:else}
     <div class="h-full">
         <div class="flex h-[39px] place-items-center bg-neutral px-4">
             <div class="dropdown-start dropdown dropdown-bottom">
                 <div tabindex="0" role="button" class="btn btn-link btn-xs m-1 text-white"><MenuIcon /></div>
-                <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+                <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
                 <ul
                     bind:this={menuElement}
                     tabindex="0"
@@ -170,10 +174,10 @@
                             <li class="">
                                 <a
                                     href={navItem.href}
-                                    on:click={menuElement.blur}
+                                    onclick={menuElement.blur}
                                     class="btn btn-ghost btn-neutral btn-block justify-start px-2 text-lg normal-case"
                                 >
-                                    <svelte:component this={navItem.icon} />{navItem.name}</a
+                                    <navItem.icon />{navItem.name}</a
                                 >
                             </li>
                         {/if}
@@ -190,7 +194,7 @@
                                     <button
                                         data-app-insights-event-name="logout-click"
                                         class="btn btn-link m-0 h-4 min-h-0 w-4 p-0 text-neutral-100"
-                                        on:click={() => logout($page.url)}
+                                        onclick={() => logout($page.url)}
                                     >
                                         <LoginIcon />
                                     </button>
@@ -217,7 +221,7 @@
             <CenteredSpinnerFullScreen />
         {:else}
             <div class="relative flex h-full max-h-[calc(100vh-39px)] w-full flex-col">
-                <slot />
+                {@render children()}
             </div>
         {/if}
     </div>

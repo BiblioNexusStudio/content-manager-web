@@ -32,7 +32,7 @@
             {#if $project?.started === null}
                 <input
                     type="text"
-                    on:blur={(e) => updateEffectiveWordCount(e)}
+                    onblur={(e) => updateEffectiveWordCount(e)}
                     value={$project?.effectiveWordCount ?? '0'}
                     class="rounded border py-2 ps-4"
                 />
@@ -46,7 +46,7 @@
             {#if $project?.started === null}
                 <input
                     type="text"
-                    on:blur={(e) => updateQuotedCost(e)}
+                    onblur={(e) => updateQuotedCost(e)}
                     value={$project?.quotedCost ?? '0'}
                     class="rounded border py-2 ps-4"
                 />

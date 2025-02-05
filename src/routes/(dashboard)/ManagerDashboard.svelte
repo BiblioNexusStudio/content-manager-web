@@ -2,6 +2,7 @@
     import type { PageData } from './$types';
     import { searchParameters, ssp, type SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
     import type { ResourceAssignedToOwnCompany, ResourceAssignedToSelf, UserWordCount } from './+page';
+    import { _ManagerTab as Tab } from './+page';
     import { createManagerDashboardSorter, SortName, createUserWordCountSorter } from './dashboard-table-sorters';
     import Select from '$lib/components/Select.svelte';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
@@ -22,47 +23,66 @@
         manageContentsColumns,
         userWordCountColumns,
     } from './manager-dashboard-columns';
+    import { untrack } from 'svelte';
 
-    export let data: PageData;
-
-    $: manageContents = data.managerDashboard!.manageResourceContent;
-    $: toAssignContents = data.managerDashboard!.toAssignContent;
-    $: myWorkContents = data.managerDashboard!.assignedResourceContent;
-    $: userWordCounts = data.managerDashboard!.assignedUsersWordCount;
-
-    $: myWorkProjectNames = Array.from(new Set(filterBoolean(myWorkContents.map((c) => c.projectName)))).sort();
-    $: myWorkLastAssignedUsers = sortByKey(
-        'name',
-        filterDuplicatesByKey('id', filterBoolean(myWorkContents.map((c) => c.lastAssignedUser)))
-    );
-
-    $: toAssignProjectNames = Array.from(new Set(filterBoolean(toAssignContents.map((c) => c.projectName)))).sort();
-
-    $: manageProjectNames = Array.from(new Set(filterBoolean(manageContents.map((c) => c.projectName)))).sort();
-    $: manageLastAssignedUsers = sortByKey(
-        'name',
-        filterDuplicatesByKey('id', filterBoolean(manageContents.map((c) => c.lastAssignedUser)))
-    );
-
-    $: maybeResetSearchParams(
-        toAssignProjectNames,
-        manageProjectNames,
-        myWorkProjectNames,
-        manageLastAssignedUsers,
-        myWorkLastAssignedUsers
-    );
-
-    let search = '';
-
-    enum Tab {
-        myWork = 'my-work',
-        toAssign = 'to-assign',
-        manage = 'manage',
+    interface Props {
+        data: PageData;
     }
+
+    let { data }: Props = $props();
+
+    let manageContents = $derived(data.managerDashboard!.manageResourceContent);
+    let toAssignContents = $derived(data.managerDashboard!.toAssignContent);
+    let myWorkContents = $derived(data.managerDashboard!.assignedResourceContent);
+    let userWordCounts = $derived(data.managerDashboard!.assignedUsersWordCount);
+
+    let myWorkProjectNames = $derived.by(() =>
+        Array.from(new Set(filterBoolean(myWorkContents.map((c) => c.projectName)))).sort()
+    );
+    let myWorkLastAssignedUsers = $derived.by(() =>
+        sortByKey('name', filterDuplicatesByKey('id', filterBoolean(myWorkContents.map((c) => c.lastAssignedUser))))
+    );
+
+    let toAssignProjectNames = $derived.by(() =>
+        Array.from(new Set(filterBoolean(toAssignContents.map((c) => c.projectName)))).sort()
+    );
+
+    let manageProjectNames = $derived.by(() =>
+        Array.from(new Set(filterBoolean(manageContents.map((c) => c.projectName)))).sort()
+    );
+    let manageLastAssignedUsers = $derived.by(() =>
+        sortByKey('name', filterDuplicatesByKey('id', filterBoolean(manageContents.map((c) => c.lastAssignedUser))))
+    );
+
+    $effect(() => {
+        maybeResetSearchParams(
+            toAssignProjectNames,
+            manageProjectNames,
+            myWorkProjectNames,
+            manageLastAssignedUsers,
+            myWorkLastAssignedUsers
+        );
+    });
+
+    let search = $state('');
+
+    let isFilteringUnresolved = $state(false);
 
     const sortAssignedData = createManagerDashboardSorter<ResourceAssignedToSelf>();
     const sortManageData = createManagerDashboardSorter<ResourceAssignedToOwnCompany>();
     const sortUserWordCountData = createUserWordCountSorter();
+    const sortAndFilterManageData = (
+        list: ResourceAssignedToOwnCompany[],
+        params: SubscribedSearchParams<typeof searchParams>
+    ) => {
+        if (params.assignedUserId === 0) {
+            return sortManageData(list, params.sort);
+        }
+        return sortManageData(
+            list.filter((r) => r.assignedUser.id === params.assignedUserId),
+            params.sort
+        );
+    };
 
     const searchParams = searchParameters(
         {
@@ -75,44 +95,54 @@
         { runLoadAgainWhenParamsChange: false }
     );
 
-    let userWordCountParams = {
+    let userWordCountParams = $state({
         sort: SortName.User,
-    };
+    });
 
-    let assignToEditorUserId: number | null = null;
-    let assignToReviewerUserId: number | null = null;
-    let isAssignContentModalOpen = false;
-    let isSendToPublisherModalOpen = false;
-    let isErrorModalOpen = false;
-    let customErrorMessage: string | null = null;
-    let isAssigning = false;
+    let assignToEditorUserId: number | null = $state(null);
+    let assignToReviewerUserId: number | null = $state(null);
+    let isAssignContentModalOpen = $state(false);
+    let isSendToPublisherModalOpen = $state(false);
+    let isErrorModalOpen = $state(false);
+    let isAssigning = $state(false);
 
-    $: !isErrorModalOpen && (customErrorMessage = null);
+    let customErrorMessage = $derived.by(() => {
+        if (!isErrorModalOpen) {
+            return null;
+        }
+    });
 
-    let currentProjectNames: string[] = [];
-    let currentLastAssignedUsers: BasicUser[] = [];
-    let currentMyWorkContents: ResourceAssignedToSelf[] = [];
-    let selectedMyWorkContents: ResourceAssignedToSelf[] = [];
+    let currentMyWorkContents: ResourceAssignedToSelf[] = $state([]);
+    let selectedMyWorkContents: ResourceAssignedToSelf[] = $state([]);
 
-    let currentToAssignContents: ResourceAssignedToSelf[] = [];
-    let selectedToAssignContents: ResourceAssignedToSelf[] = [];
+    let currentToAssignContents: ResourceAssignedToSelf[] = $state([]);
+    let selectedToAssignContents: ResourceAssignedToSelf[] = $state([]);
 
-    let currentManageContents: ResourceAssignedToOwnCompany[] = [];
-    let selectedManageContents: ResourceAssignedToOwnCompany[] = [];
+    let currentManageContents: ResourceAssignedToOwnCompany[] = $state([]);
+    let selectedManageContents: ResourceAssignedToOwnCompany[] = $state([]);
+
+    let isSkipEditor = $state(false);
+
+    let sortedCurrentMyWorkContents = $derived(sortAssignedData(currentMyWorkContents, $searchParams.sort));
+    let sortedCurrentToAssignContents = $derived(sortAssignedData(currentToAssignContents, $searchParams.sort));
+    let sortedUserWordCounts = $derived(sortUserWordCountData(userWordCounts, userWordCountParams.sort));
+    let sortedCurrentManageContents = $derived(sortAndFilterManageData(currentManageContents, $searchParams));
 
     const setTabContents = (
         tab: string,
         assignedUserId: number,
         toAssignProjectName: string,
         lastAssignedId: number,
-        search: string
+        search: string,
+        isFilteringUnresolved: boolean
     ) => {
         if (tab === Tab.myWork) {
             currentMyWorkContents = myWorkContents.filter(
                 (x) =>
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
                     (toAssignProjectName === '' || x.projectName === toAssignProjectName) &&
-                    (lastAssignedId === 0 || x.lastAssignedUser?.id === lastAssignedId)
+                    (lastAssignedId === 0 || x.lastAssignedUser?.id === lastAssignedId) &&
+                    (!isFilteringUnresolved || x.hasUnresolvedCommentThreads === true)
             );
         } else if (tab === Tab.toAssign) {
             currentToAssignContents = toAssignContents.filter(
@@ -126,26 +156,33 @@
                     (assignedUserId === 0 || x.assignedUser.id === assignedUserId) &&
                     x.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
                     (toAssignProjectName === '' || x.projectName === toAssignProjectName) &&
-                    (lastAssignedId === 0 || x.lastAssignedUser?.id === lastAssignedId)
+                    (lastAssignedId === 0 || x.lastAssignedUser?.id === lastAssignedId) &&
+                    (!isFilteringUnresolved || x.hasUnresolvedCommentThreads === true)
             );
         }
     };
 
-    $: setTabContents(
-        $searchParams.tab,
-        $searchParams.assignedUserId,
-        $searchParams.project,
-        $searchParams.lastAssignedId,
-        search
+    $effect(() =>
+        setTabContents(
+            $searchParams.tab,
+            $searchParams.assignedUserId,
+            $searchParams.project,
+            $searchParams.lastAssignedId,
+            search,
+            isFilteringUnresolved
+        )
     );
-    $: anyRowSelected =
-        selectedMyWorkContents.length > 0 || selectedToAssignContents.length > 0 || selectedManageContents.length > 0;
-    $: nonCompanyReviewSelected = selectedMyWorkContents.some(
-        (x) =>
-            ![
-                ResourceContentStatusEnum.AquiferizeCompanyReview,
-                ResourceContentStatusEnum.TranslationCompanyReview,
-            ].includes(x.statusValue)
+    let anyRowSelected = $derived(
+        selectedMyWorkContents.length > 0 || selectedToAssignContents.length > 0 || selectedManageContents.length > 0
+    );
+    let nonCompanyReviewSelected = $derived.by(() =>
+        selectedMyWorkContents.some(
+            (x) =>
+                ![
+                    ResourceContentStatusEnum.AquiferizeCompanyReview,
+                    ResourceContentStatusEnum.TranslationCompanyReview,
+                ].includes(x.statusValue)
+        )
     );
 
     function maybeResetSearchParams(
@@ -158,34 +195,50 @@
         // Handle situation where project is set in the searchParams but is no longer valid. E.g. saved bookmark
         // or forced refresh after assign that removed all of them.
         if (
-            ($searchParams.tab === Tab.toAssign && !toAssignProjectNames.includes($searchParams.project)) ||
-            ($searchParams.tab === Tab.manage && !manageProjectNames.includes($searchParams.project)) ||
-            ($searchParams.tab === Tab.myWork && !myWorkProjectNames.includes($searchParams.project))
+            (untrack(() => $searchParams.tab) === Tab.toAssign &&
+                !toAssignProjectNames.includes(untrack(() => $searchParams.project))) ||
+            (untrack(() => $searchParams.tab === Tab.manage) &&
+                !manageProjectNames.includes(untrack(() => $searchParams.project))) ||
+            (untrack(() => $searchParams.tab === Tab.myWork) &&
+                !myWorkProjectNames.includes(untrack(() => $searchParams.project)))
         ) {
-            $searchParams.project = '';
+            untrack(() => ($searchParams.project = ''));
         }
-
         if (
-            ($searchParams.tab === Tab.manage &&
-                manageLastAssignedUsers.filter((u) => u.id === $searchParams.lastAssignedId).length === 0) ||
-            ($searchParams.tab === Tab.myWork &&
-                myWorkLastAssignedUsers.filter((u) => u.id === $searchParams.lastAssignedId).length === 0)
+            (untrack(() => $searchParams.tab === Tab.manage) &&
+                manageLastAssignedUsers.filter((u) => u.id === untrack(() => $searchParams.lastAssignedId)).length ===
+                    0) ||
+            (untrack(() => $searchParams.tab === Tab.myWork) &&
+                myWorkLastAssignedUsers.filter((u) => u.id === untrack(() => $searchParams.lastAssignedId)).length ===
+                    0)
         ) {
-            $searchParams.lastAssignedId = 0;
+            untrack(() => ($searchParams.lastAssignedId = 0));
         }
     }
 
-    const switchProjectAndLastAssignedNames = (tab: string) => {
-        if (tab === Tab.myWork) {
-            currentProjectNames = myWorkProjectNames;
-            currentLastAssignedUsers = myWorkLastAssignedUsers;
-        } else if (tab === Tab.toAssign) {
-            currentProjectNames = toAssignProjectNames;
-        } else if (tab === Tab.manage) {
-            currentProjectNames = manageProjectNames;
-            currentLastAssignedUsers = manageLastAssignedUsers;
+    function toggleSkipEditor() {
+        isSkipEditor = !isSkipEditor;
+    }
+
+    let currentProjectNames = $derived.by(() => {
+        if ($searchParams.tab === Tab.myWork) {
+            return myWorkProjectNames;
+        } else if ($searchParams.tab === Tab.toAssign) {
+            return toAssignProjectNames;
+        } else if ($searchParams.tab === Tab.manage) {
+            return manageProjectNames;
         }
-    };
+        return [];
+    });
+
+    let currentLastAssignedUsers = $derived.by(() => {
+        if ($searchParams.tab === Tab.myWork) {
+            return myWorkLastAssignedUsers;
+        } else if ($searchParams.tab === Tab.manage) {
+            return manageLastAssignedUsers;
+        }
+        return [];
+    });
 
     const switchTabs = (tab: Tab) => {
         if ($searchParams.tab === tab) return;
@@ -204,25 +257,13 @@
         selectedManageContents = [];
     };
 
-    const sortAndFilterManageData = (
-        list: ResourceAssignedToOwnCompany[],
-        params: SubscribedSearchParams<typeof searchParams>
-    ) => {
-        if (params.assignedUserId === 0) {
-            return sortManageData(list, params.sort);
-        }
-        return sortManageData(
-            list.filter((r) => r.assignedUser.id === params.assignedUserId),
-            params.sort
-        );
-    };
-
     const assignEditor = async (contentIds: number[]) => {
         if (contentIds.length > 0) {
             await postToApi<null>('/resources/content/send-for-editor-review', {
-                assignedUserId: assignToEditorUserId,
-                assignedReviewerUserId: assignToReviewerUserId,
+                assignedUserId: isSkipEditor ? assignToReviewerUserId : assignToEditorUserId,
+                assignedReviewerUserId: isSkipEditor ? null : assignToReviewerUserId,
                 contentIds: contentIds,
+                skipEditorStep: isSkipEditor,
             });
         }
     };
@@ -258,14 +299,22 @@
         }
     }
 
-    let table: Table<ResourceAssignedToSelf> | Table<ResourceAssignedToOwnCompany> | undefined;
-    let userWordCountTable: Table<UserWordCount> | undefined;
+    let table: Table<ResourceAssignedToSelf> | Table<ResourceAssignedToOwnCompany> | undefined = $state(undefined);
+    let userWordCountTable: Table<UserWordCount> | undefined = $state(undefined);
 
-    $: userWordCountParams.sort && userWordCountTable?.resetScroll();
-    $: $searchParams.sort && $searchParams.tab && table?.resetScroll();
+    $effect(() => {
+        if (userWordCountParams.sort && userWordCountTable) {
+            untrack(() => userWordCountTable?.resetScroll());
+        }
+    });
+    $effect(() => {
+        if ($searchParams.sort && $searchParams.tab && table) {
+            untrack(() => table?.resetScroll());
+        }
+    });
 
-    let selectedCount = 0;
-    let selectedWordCount = 0;
+    let selectedCount = $state(0);
+    let selectedWordCount = $state(0);
 
     function calculateSelectedCounts(
         selectedMyWorkContents: ResourceAssignedToSelf[],
@@ -284,8 +333,7 @@
         }
     }
 
-    $: calculateSelectedCounts(selectedMyWorkContents, selectedToAssignContents, selectedManageContents);
-    $: switchProjectAndLastAssignedNames($searchParams.tab);
+    $effect(() => calculateSelectedCounts(selectedMyWorkContents, selectedToAssignContents, selectedManageContents));
 </script>
 
 <div class="flex flex-col overflow-y-hidden px-4">
@@ -293,18 +341,18 @@
     <div class="flex flex-row items-center pt-4">
         <div role="tablist" class="tabs tabs-bordered w-fit">
             <button
-                on:click={() => switchTabs(Tab.myWork)}
+                onclick={() => switchTabs(Tab.myWork)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.myWork && 'tab-active'}">My Work ({myWorkContents.length})</button
             >
             <button
-                on:click={() => switchTabs(Tab.toAssign)}
+                onclick={() => switchTabs(Tab.toAssign)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.toAssign && 'tab-active'}"
                 >To Assign ({toAssignContents.length})</button
             >
             <button
-                on:click={() => switchTabs(Tab.manage)}
+                onclick={() => switchTabs(Tab.manage)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.manage && 'tab-active'}">Manage ({manageContents.length})</button
             >
@@ -344,10 +392,24 @@
             />
         {/if}
 
+        {#if $searchParams.tab === Tab.manage || $searchParams.tab === Tab.myWork}
+            <label class="label cursor-pointer py-0 opacity-70">
+                <input
+                    type="checkbox"
+                    bind:checked={isFilteringUnresolved}
+                    data-app-insights-event-name="manager-dashboard-has-unresolved-comments-toggle-{isFilteringUnresolved
+                        ? 'off'
+                        : 'on'}"
+                    class="checkbox no-animation checkbox-sm me-2"
+                />
+                <span class="label-text text-xs">Has Unresolved Comments</span>
+            </label>
+        {/if}
+
         <button
             data-app-insights-event-name="manager-dashboard-bulk-assign-click"
             class="btn btn-primary"
-            on:click={() => (isAssignContentModalOpen = true)}
+            onclick={() => (isAssignContentModalOpen = true)}
             disabled={selectedMyWorkContents.length === 0 &&
                 selectedToAssignContents.length === 0 &&
                 selectedManageContents.length === 0}>Assign</button
@@ -358,7 +420,7 @@
                 <button
                     data-app-insights-event-name="manager-dashboard-bulk-assign-click"
                     class="btn btn-primary"
-                    on:click={() => (isSendToPublisherModalOpen = true)}
+                    onclick={() => (isSendToPublisherModalOpen = true)}
                     disabled={!anyRowSelected || nonCompanyReviewSelected}>Send to Publisher</button
                 >
             </Tooltip>
@@ -375,7 +437,7 @@
             class="my-4"
             enableSelectAll={true}
             columns={assignedContentsColumns}
-            items={sortAssignedData(currentMyWorkContents, $searchParams.sort)}
+            items={sortedCurrentMyWorkContents}
             itemUrlPrefix="/resources/"
             idColumn="id"
             bind:searchParams={$searchParams}
@@ -383,23 +445,22 @@
             noItemsText="Your work is all done!"
             searchable={true}
             bind:searchText={search}
-            let:item
-            let:href
-            let:itemKey
         >
-            {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-            {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
-                <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
-                    >{item[itemKey] ?? ''}</LinkedTableCell
-                >
-            {:else if itemKey === 'lastAssignedUser'}
-                <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
-            {:else if href !== undefined && itemKey}
-                <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-            {:else if itemKey}
-                <TableCell>{item[itemKey] ?? ''}</TableCell>
-            {/if}
+            {#snippet tableCells(item, href, itemKey)}
+                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                    <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                        >{item[itemKey] ?? ''}</LinkedTableCell
+                    >
+                {:else if itemKey === 'lastAssignedUser'}
+                    <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
+                {:else if href !== undefined && itemKey}
+                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey}
+                    <TableCell>{item[itemKey] ?? ''}</TableCell>
+                {/if}
+            {/snippet}
         </Table>
     {:else if $searchParams.tab === Tab.toAssign}
         <div class="flex h-full flex-[2] grow flex-col gap-4 overflow-y-hidden xl:flex-row">
@@ -408,7 +469,7 @@
                 class="my-4 max-h-[31.25rem] xl:grow"
                 enableSelectAll={true}
                 columns={toAssignContentsColumns}
-                items={sortAssignedData(currentToAssignContents, $searchParams.sort)}
+                items={sortedCurrentToAssignContents}
                 idColumn="id"
                 bind:searchParams={$searchParams}
                 bind:selectedItems={selectedToAssignContents}
@@ -416,28 +477,27 @@
                 noItemsText="Your work is all done!"
                 searchable={true}
                 bind:searchText={search}
-                let:item
-                let:href
-                let:itemKey
             >
-                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
-                    <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
-                        >{item[itemKey] ?? ''}</LinkedTableCell
-                    >
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
-                {/if}
+                {#snippet tableCells(item, href, itemKey)}
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                        <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                            >{item[itemKey] ?? ''}</LinkedTableCell
+                        >
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                {/snippet}
             </Table>
             {#if userWordCounts.length > 0}
                 <Table
                     bind:this={userWordCountTable}
                     class="my-4 w-full xl:max-w-[275px]"
                     columns={userWordCountColumns}
-                    items={sortUserWordCountData(userWordCounts, userWordCountParams.sort)}
+                    items={sortedUserWordCounts}
                     idColumn="userId"
                     noItemsText="No Users Found."
                     bind:searchParams={userWordCountParams}
@@ -451,7 +511,7 @@
                 class="my-4 max-h-[31.25rem] xl:grow"
                 enableSelectAll={true}
                 columns={manageContentsColumns}
-                items={sortAndFilterManageData(currentManageContents, $searchParams)}
+                items={sortedCurrentManageContents}
                 idColumn="id"
                 bind:searchParams={$searchParams}
                 bind:selectedItems={selectedManageContents}
@@ -461,32 +521,31 @@
                     : 'Nothing assigned to this user.'}
                 searchable={true}
                 bind:searchText={search}
-                let:item
-                let:href
-                let:itemKey
             >
-                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                {:else if itemKey === 'assignedUser' && item[itemKey] !== null && item[itemKey]?.name !== null}
-                    <LinkedTableCell {href}>{item[itemKey]?.name}</LinkedTableCell>
-                {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
-                    <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
-                        >{item[itemKey] ?? ''}</LinkedTableCell
-                    >
-                {:else if itemKey === 'lastAssignedUser'}
-                    <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
-                {/if}
+                {#snippet tableCells(item, href, itemKey)}
+                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if (itemKey === 'assignedUser' || itemKey === 'assignedReviewerUser') && item[itemKey] !== null && item[itemKey]?.name !== null}
+                        <LinkedTableCell {href}>{item[itemKey]?.name}</LinkedTableCell>
+                    {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                        <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                            >{item[itemKey] ?? ''}</LinkedTableCell
+                        >
+                    {:else if itemKey === 'lastAssignedUser'}
+                        <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
+                    {:else if href !== undefined && itemKey}
+                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                    {:else if itemKey}
+                        <TableCell>{item[itemKey] ?? ''}</TableCell>
+                    {/if}
+                {/snippet}
             </Table>
             {#if userWordCounts.length > 0}
                 <Table
                     bind:this={userWordCountTable}
                     class="my-4 w-full xl:max-w-[275px]"
                     columns={userWordCountColumns}
-                    items={sortUserWordCountData(userWordCounts, userWordCountParams.sort)}
+                    items={sortedUserWordCounts}
                     idColumn="userId"
                     noItemsText="No Users Found."
                     bind:searchParams={userWordCountParams}
@@ -500,19 +559,40 @@
     isTransacting={isAssigning}
     primaryButtonText={'Assign'}
     primaryButtonOnClick={() => updateContent(assignEditor)}
-    primaryButtonDisabled={!assignToEditorUserId}
+    primaryButtonDisabled={isSkipEditor ? !assignToReviewerUserId : !assignToEditorUserId}
     bind:open={isAssignContentModalOpen}
     header={'Assign Resource(s)'}
 >
-    <h3 class="my-4 text-xl">Editor<span class="text-error">*</span></h3>
+    <h3 class="my-4 text-xl">
+        Editor
+        {#if !isSkipEditor}
+            <span class="text-error">*</span>
+        {/if}
+    </h3>
     <UserSelector
         users={data.users?.filter((u) => u.role !== UserRole.ReportViewer) ?? []}
         defaultLabel="Select Editor"
+        bind:disabled={isSkipEditor}
         bind:selectedUserId={assignToEditorUserId}
     />
 
     {#if $searchParams.tab === Tab.toAssign}
-        <h3 class="my-4 text-xl">Reviewer</h3>
+        <label class="label mt-5 cursor-pointer justify-start">
+            <input
+                type="checkbox"
+                class="checkbox checkbox-sm"
+                onclick={toggleSkipEditor}
+                checked={isSkipEditor}
+                aria-label="Skip Editor Step"
+            />
+            <span class="label-text pl-2 text-xs text-opacity-70">Skip Editor Step</span>
+        </label>
+        <h3 class="my-4 text-xl">
+            Reviewer
+            {#if isSkipEditor}
+                <span class="text-error">*</span>
+            {/if}
+        </h3>
         <UserSelector
             users={data.users?.filter((u) => u.role === UserRole.Reviewer || u.role === UserRole.Manager) ?? []}
             defaultLabel="Select Reviewer"

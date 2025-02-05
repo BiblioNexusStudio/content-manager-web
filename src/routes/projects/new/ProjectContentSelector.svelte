@@ -11,41 +11,50 @@
     import ProjectContentSelectorTable from './ProjectContentSelectorTable.svelte';
     import type { ResourceContentForSelection } from './types';
 
-    export let data: PageData;
-    export let disabled: boolean;
-    export let languageId: number | null;
-    export let finalizedResourceIds: number[];
-    export let isForAquiferization: boolean;
+    interface Props {
+        data: PageData;
+        disabled: boolean;
+        languageId: number | null;
+        finalizedResourceIds: number[];
+        isForAquiferization: boolean;
+    }
+
+    let { data, disabled, languageId, finalizedResourceIds = $bindable(), isForAquiferization }: Props = $props();
 
     const { parentResources } = data;
 
-    $: bibleBooks = data.bibleBooks;
-    let resourceTypeId: string | null = null;
-    let bookCode: string | null = null;
-    let chaptersString = '';
-    let searchQuery = '';
-    let fetchedContentCache: Record<number, ResourceContentForSelection> = {};
-    let allContentIdsOnRight: Set<number> = new Set();
-    let idsSelectedOnLeft: Set<number> = new Set();
-    let idsSelectedOnRight: Set<number> = new Set();
-    let fetchedContentForLeft: ResourceContentForSelection[] | null = null;
-    let allContentOnRight: ResourceContentForSelection[] = [];
-    let isFetching = false;
+    let bibleBooks = data.bibleBooks;
+    let resourceTypeId: string | null = $state(null);
+    let bookCode: string | null = $state(null);
+    let chaptersString = $state('');
+    let searchQuery = $state('');
+    let fetchedContentCache: Record<number, ResourceContentForSelection> = $state({});
+    let allContentIdsOnRight: number[] = $state([]);
+    let idsSelectedOnLeft: number[] = $state([]);
+    let idsSelectedOnRight: number[] = $state([]);
+    let fetchedContentForLeft: ResourceContentForSelection[] | null = $state(null);
+    let allContentOnRight: ResourceContentForSelection[] = $state([]);
+    let isFetching = $state(false);
 
-    let showingAquiferizeEditorReviewModal = false;
+    let showingAquiferizeEditorReviewModal = $state(false);
 
-    $: chapters = parseNumbersListFromString(
-        chaptersString,
-        1,
-        bibleBooks?.find((b) => b.code === bookCode)?.totalChapters ?? 0
+    let chapters = $derived(
+        parseNumbersListFromString(chaptersString, 1, bibleBooks?.find((b) => b.code === bookCode)?.totalChapters ?? 0)
     );
 
-    $: bookCode && (chaptersString = ''); // reset chapters if book code changes
-    $: allContentIdsOnRight = new Set(allContentOnRight.map((c) => c.resourceId));
-    $: finalizedResourceIds = [...allContentIdsOnRight];
-    $: selectedOnLeftBeingAquiferized = [...idsSelectedOnLeft]
-        .map((id) => fetchedContentCache[id]!)
-        .filter((r) => r.isBeingAquiferized);
+    $effect(() => {
+        // reset chapters if book code changes
+        bookCode && (chaptersString = '');
+    });
+    $effect(() => {
+        allContentIdsOnRight = allContentOnRight.map((c) => c.resourceId);
+    });
+    $effect(() => {
+        finalizedResourceIds = [...allContentIdsOnRight];
+    });
+    let selectedOnLeftBeingAquiferized = $derived(
+        [...idsSelectedOnLeft].map((id) => fetchedContentCache[id]!).filter((r) => r.isBeingAquiferized)
+    );
 
     function moveToRight(force: boolean) {
         if (selectedOnLeftBeingAquiferized.length > 0 && !force) {
@@ -55,13 +64,13 @@
                 allContentOnRight.concat([...idsSelectedOnLeft].map((id) => fetchedContentCache[id]!)),
                 ['sortOrder', 'title']
             )!;
-            idsSelectedOnLeft = new Set();
+            idsSelectedOnLeft = [];
         }
     }
 
     function moveToLeft() {
-        allContentOnRight = allContentOnRight.filter((c) => !idsSelectedOnRight.has(c.resourceId));
-        idsSelectedOnRight = new Set();
+        allContentOnRight = allContentOnRight.filter((c) => !idsSelectedOnRight.some((id) => id === c.resourceId));
+        idsSelectedOnRight = [];
     }
 
     async function fetchContent() {
@@ -154,7 +163,7 @@
             <div class="label">
                 <span class="label-text">&nbsp;</span>
             </div>
-            <button disabled={!searchQuery && chapters.length === 0} class="btn btn-primary" on:click={fetchContent}
+            <button disabled={!searchQuery && chapters.length === 0} class="btn btn-primary" onclick={fetchContent}
                 >{#if isFetching}
                     <span class="loading loading-spinner"></span>
                 {:else}
@@ -171,7 +180,9 @@
             <div class="overflow-auto">
                 <ProjectContentSelectorTable
                     hasSearched={fetchedContentForLeft !== null}
-                    allContent={(fetchedContentForLeft ?? []).filter((c) => !allContentIdsOnRight.has(c.resourceId))}
+                    allContent={(fetchedContentForLeft ?? []).filter(
+                        (c) => !allContentIdsOnRight.some((id) => id === c.resourceId)
+                    )}
                     isLoading={isFetching}
                     bind:selectedIds={idsSelectedOnLeft}
                 />
@@ -179,11 +190,11 @@
         </div>
         <div class="flex flex-col space-y-2 pt-6">
             <button
-                disabled={idsSelectedOnLeft.size === 0}
+                disabled={idsSelectedOnLeft.length === 0}
                 class="btn btn-primary btn-sm"
-                on:click={() => moveToRight(false)}><ArrowRightSmall /></button
+                onclick={() => moveToRight(false)}><ArrowRightSmall /></button
             >
-            <button disabled={idsSelectedOnRight.size === 0} class="btn btn-primary btn-sm" on:click={moveToLeft}
+            <button disabled={idsSelectedOnRight.length === 0} class="btn btn-primary btn-sm" onclick={moveToLeft}
                 ><ArrowLeftSmall /></button
             >
         </div>
