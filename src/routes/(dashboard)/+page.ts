@@ -108,7 +108,6 @@ export interface Project {
     name: string;
     language: string;
     company: string;
-    projectPlatform: string;
     days?: number;
     counts: ProjectResourceStatusCounts;
     isStarted: boolean;
@@ -165,6 +164,7 @@ export interface ResourceAssignedToSelfHistory {
 
 export interface ResourceAssignedToOwnCompany extends ResourceAssignedToSelf {
     assignedUser: ResourceUser;
+    assignedReviewerUser: ResourceUser | null;
 }
 
 export interface ResourceUser {
