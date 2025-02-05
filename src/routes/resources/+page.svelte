@@ -9,7 +9,7 @@
     import { enterKeyHandler } from '$lib/utils/enter-key-action';
     import Select from '$lib/components/Select.svelte';
     import { numbersRangeToString, parseStartAndEndFromSingleOrRangeString } from '$lib/utils/number-list-parser';
-    import type { BibleBook } from '$lib/types/base';
+    import { ResourceContentStatusEnum, type BibleBook } from '$lib/types/base';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import ErrorMessage from '$lib/components/ErrorMessage.svelte';
     import { Icon } from 'svelte-awesome';
@@ -209,7 +209,7 @@
                                 <LinkedTableCell {href}>{resource.englishLabel}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
                                 <LinkedTableCell {href}>
-                                    {#if resource.hasAudio}
+                                    {#if resource.hasAudio && resource.status === ResourceContentStatusEnum.Complete}
                                         <Icon data={volumeUp} class="h-4 w-4" />
                                     {/if}
                                 </LinkedTableCell>
