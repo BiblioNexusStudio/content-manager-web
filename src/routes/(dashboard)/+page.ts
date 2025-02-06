@@ -151,6 +151,7 @@ export interface ResourceThatNeedsTranslation {
     id: number;
     englishLabel: string;
     parentResourceName: string;
+    hasAudio: boolean;
     wordCount: number | null;
 }
 
@@ -158,6 +159,7 @@ export interface ResourceAssignedToSelfHistory {
     id: number;
     englishLabel: string;
     parentResourceName: string;
+    hasAudio: boolean;
     lastActionTime: string;
     sourceWords: number | null;
     sortOrder: number;
