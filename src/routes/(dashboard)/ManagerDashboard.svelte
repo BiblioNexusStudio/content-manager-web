@@ -24,6 +24,8 @@
         userWordCountColumns,
     } from './manager-dashboard-columns';
     import { untrack } from 'svelte';
+    import { Icon } from 'svelte-awesome';
+    import volumeUp from 'svelte-awesome/icons/volumeUp';
 
     interface Props {
         data: PageData;
@@ -455,6 +457,12 @@
                     >
                 {:else if itemKey === 'lastAssignedUser'}
                     <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
+                {:else if itemKey === 'hasAudio'}
+                    <TableCell>
+                        {#if item.hasAudio}
+                            <Icon data={volumeUp} class="h-4 w-4" />
+                        {/if}
+                    </TableCell>
                 {:else if href !== undefined && itemKey}
                     <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                 {:else if itemKey}
@@ -485,6 +493,12 @@
                         <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
                             >{item[itemKey] ?? ''}</LinkedTableCell
                         >
+                    {:else if itemKey === 'hasAudio'}
+                        <TableCell>
+                            {#if item.hasAudio}
+                                <Icon data={volumeUp} class="h-4 w-4" />
+                            {/if}
+                        </TableCell>
                     {:else if href !== undefined && itemKey}
                         <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                     {:else if itemKey}
@@ -533,6 +547,12 @@
                         >
                     {:else if itemKey === 'lastAssignedUser'}
                         <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
+                    {:else if itemKey === 'hasAudio'}
+                        <TableCell>
+                            {#if item.hasAudio}
+                                <Icon data={volumeUp} class="h-4 w-4" />
+                            {/if}
+                        </TableCell>
                     {:else if href !== undefined && itemKey}
                         <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                     {:else if itemKey}
