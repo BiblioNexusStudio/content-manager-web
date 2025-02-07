@@ -63,7 +63,7 @@
     let commentThreads: Writable<CommentThreadsResponse | null>;
     let removeAllInlineThreads: Readable<() => void>;
 
-    let errorModalMessage: string | undefined = undefined;
+    let errorModalMessage: string | null = null;
     let isAddTranslationModalOpen = false;
     let isPublishModalOpen = false;
     let isAssignUserModalOpen = false;
@@ -1121,7 +1121,7 @@
             existingTranslations={resourceContent?.contentTranslations ?? []}
             bind:selectedLanguageId={newTranslationLanguageId}
         />
-        <div slot="additional-buttons">
+        {#snippet additionalButtons()}
             {#if englishContentTranslation?.hasDraft}
                 <div>
                     <label class="label cursor-pointer">
@@ -1134,7 +1134,7 @@
                     </label>
                 </div>
             {/if}
-        </div>
+        {/snippet}
     </Modal>
 
     <Modal header="Error" isError={true} bind:description={errorModalMessage} />

@@ -380,7 +380,7 @@
             </label>
         {/if}
     {/await}
-    <svelte:fragment slot="additional-buttons">
+    {#snippet additionalButtons()}
         {#if existingReference}
             <button disabled={isTransactingRemove} class="btn btn-error" on:click={removeLink}>
                 {#if isTransactingRemove}
@@ -390,5 +390,5 @@
                 {/if}
             </button>
         {/if}
-    </svelte:fragment>
+    {/snippet}
 </Modal>
