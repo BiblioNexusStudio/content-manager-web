@@ -31,6 +31,8 @@
     import type { NotApplicableContent } from './+page';
     import { _PublisherTab as Tab } from './+page';
     import { untrack } from 'svelte';
+    import { Icon } from 'svelte-awesome';
+    import volumeUp from 'svelte-awesome/icons/volumeUp';
 
     interface Props {
         data: PageData;
@@ -427,6 +429,12 @@
                 {#snippet tableCells(item, href, itemKey)}
                     {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
                         <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'hasAudio'}
+                        <TableCell>
+                            {#if item.hasAudio}
+                                <Icon data={volumeUp} class="h-4 w-4" />
+                            {/if}
+                        </TableCell>
                     {:else if href !== undefined && itemKey}
                         <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                     {:else if itemKey}
@@ -452,6 +460,12 @@
                 {#snippet tableCells(item, href, itemKey)}
                     {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
                         <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'hasAudio'}
+                        <TableCell>
+                            {#if item.hasAudio}
+                                <Icon data={volumeUp} class="h-4 w-4" />
+                            {/if}
+                        </TableCell>
                     {:else if href !== undefined && itemKey}
                         <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                     {:else if itemKey}
@@ -513,6 +527,12 @@
                 {#snippet tableCells(item, href, itemKey)}
                     {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
                         <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'hasAudio'}
+                        <TableCell>
+                            {#if item.hasAudio}
+                                <Icon data={volumeUp} class="h-4 w-4" />
+                            {/if}
+                        </TableCell>
                     {:else if href !== undefined && itemKey}
                         <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                     {:else if itemKey}

@@ -5,6 +5,7 @@ import type { ResourceAssignedToSelf, ResourceAssignedToOwnCompany, UserWordCoun
 export const assignedContentsColumns: column<ResourceAssignedToSelf>[] = [
     { text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title },
     { text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined },
+    { text: '', itemKey: 'hasAudio', sortKey: undefined },
     { text: 'Language', itemKey: 'languageEnglishDisplay', sortKey: undefined },
     { text: 'Project', itemKey: 'projectName', sortKey: undefined },
     { text: 'Status', itemKey: 'statusDisplayName', sortKey: undefined },
@@ -25,6 +26,7 @@ export const assignedContentsColumns: column<ResourceAssignedToSelf>[] = [
 export const toAssignContentsColumns: column<ResourceAssignedToSelf>[] = [
     { text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title },
     { text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined },
+    { text: '', itemKey: 'hasAudio', sortKey: undefined },
     { text: 'Language', itemKey: 'languageEnglishDisplay', sortKey: undefined },
     { text: 'Project', itemKey: 'projectName', sortKey: undefined },
     {
@@ -42,6 +44,7 @@ export const toAssignContentsColumns: column<ResourceAssignedToSelf>[] = [
 export const manageContentsColumns: column<ResourceAssignedToOwnCompany>[] = [
     { text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title },
     { text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined },
+    { text: '', itemKey: 'hasAudio', sortKey: undefined },
     { text: 'Language', itemKey: 'languageEnglishDisplay', sortKey: undefined },
     { text: 'Project', itemKey: 'projectName', sortKey: undefined },
     { text: 'Status', itemKey: 'statusDisplayName', sortKey: undefined },
