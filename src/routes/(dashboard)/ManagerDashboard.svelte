@@ -66,8 +66,6 @@
 
     let search = $state('');
 
-    let isFilteringUnresolved = $state(false);
-
     const sortAssignedData = createManagerDashboardSorter<ResourceAssignedToSelf>();
     const sortManageData = createManagerDashboardSorter<ResourceAssignedToOwnCompany>();
     const sortUserWordCountData = createUserWordCountSorter();
@@ -91,6 +89,7 @@
             assignedUserId: ssp.number(0),
             project: ssp.string(''),
             lastAssignedId: ssp.number(0),
+            isFilteringUnresolved: ssp.boolean(false),
         },
         { runLoadAgainWhenParamsChange: false }
     );
@@ -169,7 +168,7 @@
             $searchParams.project,
             $searchParams.lastAssignedId,
             search,
-            isFilteringUnresolved
+            $searchParams.isFilteringUnresolved
         )
     );
     let anyRowSelected = $derived(
@@ -396,8 +395,8 @@
             <label class="label cursor-pointer py-0 opacity-70">
                 <input
                     type="checkbox"
-                    bind:checked={isFilteringUnresolved}
-                    data-app-insights-event-name="manager-dashboard-has-unresolved-comments-toggle-{isFilteringUnresolved
+                    bind:checked={$searchParams.isFilteringUnresolved}
+                    data-app-insights-event-name="manager-dashboard-has-unresolved-comments-toggle-{$searchParams.isFilteringUnresolved
                         ? 'off'
                         : 'on'}"
                     class="checkbox no-animation checkbox-sm me-2"
