@@ -10,7 +10,7 @@
     import { formatSimpleDaysAgo, utcDateTimeStringToDateTime } from '$lib/utils/date-time';
     import { type ResourceAssignedToSelf, type ResourceAssignedToSelfHistory, _EditorTab as Tab } from './+page';
     import Table from '$lib/components/Table.svelte';
-    import { myHistoryColumns, myWorkColumns, reviewerMyWorkColumns } from './editor-dashboard-columns';
+    import { myHistoryColumns, myWorkColumns } from './editor-dashboard-columns';
     import TableCell from '$lib/components/TableCell.svelte';
     import { download } from '$lib/utils/csv-download-handler';
     import Select from '$lib/components/Select.svelte';
@@ -36,13 +36,14 @@
     let myHistoryContents = data.editorDashboard!.assignedResourceHistoryContent;
     let isAssignContentModalOpen = $state(false);
     let isSendToPublisherModalOpen = $state(false);
+    let isSendToReviewModalOpen = $state(false);
 
     let selectedMyWorkContents: ResourceAssignedToSelf[] = $state([]);
     let isTransacting = $state(false);
     let assignToUserId: number | null = $state(null);
     let errorModalText: string | undefined = $state(undefined);
     let isReviewer = $derived($userCan(Permission.SendReviewContent));
-    let isAssignButtonDisabled = $derived(() => selectedMyWorkContents.length === 0);
+    let isAssignOrSendToReviewButtonDisabled = $derived(() => selectedMyWorkContents.length === 0);
     let isSendToPublisherButtonDisabled = $derived(
         () =>
             selectedMyWorkContents.length === 0 ||
@@ -110,10 +111,23 @@
         }
     };
 
-    const sendForReview = async (contentIds: number[]) => {
+    const sendForPublisherReview = async (contentIds: number[]) => {
         if (contentIds.length > 0) {
             try {
                 await postToApi<null>('/resources/content/send-for-publisher-review', {
+                    contentIds: contentIds,
+                });
+            } catch (error) {
+                log.exception(error);
+                throw error;
+            }
+        }
+    };
+
+    const sendForCompanyReview = async (contentIds: number[]) => {
+        if (contentIds.length > 0) {
+            try {
+                await postToApi<null>('/resources/content/send-for-company-review', {
                     contentIds: contentIds,
                 });
             } catch (error) {
@@ -208,13 +222,22 @@
                 data-app-insights-event-name="editor-dashboard-bulk-assign-click"
                 class="btn btn-primary"
                 onclick={() => (isAssignContentModalOpen = true)}
-                disabled={isAssignButtonDisabled()}
+                disabled={isAssignOrSendToReviewButtonDisabled()}
                 >Assign
+            </button>
+        {/if}
+        {#if $searchParams.tab === Tab.myWork && !isReviewer}
+            <button
+                data-app-insights-event-name="editor-dashboard-bulk-send-to-review-click"
+                class="btn btn-primary"
+                onclick={() => (isSendToReviewModalOpen = true)}
+                disabled={isAssignOrSendToReviewButtonDisabled()}
+                >Send to Review
             </button>
         {/if}
         {#if $searchParams.tab === Tab.myWork && isReviewer}
             <button
-                data-app-insights-event-name="editor-dashboard-bulk-assign-click"
+                data-app-insights-event-name="editor-dashboard-bulk-send-to-publisher-click"
                 class="btn btn-primary"
                 onclick={() => (isSendToPublisherModalOpen = true)}
                 disabled={isSendToPublisherButtonDisabled()}
@@ -244,7 +267,7 @@
             bind:this={table}
             class="my-4"
             enableSelectAll={true}
-            columns={isReviewer ? reviewerMyWorkColumns : myWorkColumns}
+            columns={myWorkColumns}
             items={sortedMyWorkContents as ResourceAssignedToSelf[]}
             idColumn="id"
             itemUrlPrefix="/resources/"
@@ -307,8 +330,18 @@
 
 <Modal
     {isTransacting}
+    primaryButtonText={'Send to Review'}
+    primaryButtonOnClick={() => updateContent(sendForCompanyReview)}
+    bind:open={isSendToReviewModalOpen}
+    header="Confirm Send to Review"
+>
+    <div class="my-4 text-xl">Have you completed your editing? Your assignment will be removed.</div>
+</Modal>
+
+<Modal
+    {isTransacting}
     primaryButtonText={'Send to Publisher'}
-    primaryButtonOnClick={() => updateContent(sendForReview)}
+    primaryButtonOnClick={() => updateContent(sendForPublisherReview)}
     bind:open={isSendToPublisherModalOpen}
     header={'Confirm Send to Publisher'}
 >
