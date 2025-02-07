@@ -74,8 +74,6 @@
 
     let search = $state('');
 
-    let isFilteringUnresolved = $state(false);
-
     let createNewResourceLanguage: number = $state(1);
     let createNewResourceEnglishLabel: string = $state('');
     let createNewResourceLanguageTitle: string | null = $state(null);
