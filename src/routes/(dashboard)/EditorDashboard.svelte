@@ -22,6 +22,8 @@
     import { userIsInCompany, userCan, Permission } from '$lib/stores/auth';
     import { postToApi } from '$lib/utils/http-service';
     import { log } from '$lib/logger';
+    import { Icon } from 'svelte-awesome';
+    import volumeUp from 'svelte-awesome/icons/volumeUp';
 
     const sortMyWorkData = createEditorDashboardMyWorkSorter();
     const sortMyHistoryData = createEditorDashboardMyHistorySorter();
@@ -77,6 +79,7 @@
             sort: ssp.string(`-${SortName.Days}`),
             tab: ssp.string(Tab.myWork),
             project: ssp.string(''),
+            isFilteringUnresolved: ssp.boolean(false),
         },
         { runLoadAgainWhenParamsChange: false }
     );
@@ -137,7 +140,6 @@
     }
 
     let search = $state('');
-    let isFilteringUnresolved = $state(false);
     let visibleMyWorkContents: ResourceAssignedToSelf[] = $state([]);
     let visibleMyHistoryContents: ResourceAssignedToSelfHistory[] = $state([]);
     let sortedMyWorkContents: ResourceAssignedToSelf[] = $derived(
@@ -155,7 +157,7 @@
     });
 
     $effect(() => {
-        setTabContents($searchParams.tab, search, $searchParams.project, isFilteringUnresolved);
+        setTabContents($searchParams.tab, search, $searchParams.project, $searchParams.isFilteringUnresolved);
     });
 
     function projectNamesForContents(contents: ResourceAssignedToSelf[]) {
@@ -194,8 +196,8 @@
             <label class="label cursor-pointer py-0 opacity-70">
                 <input
                     type="checkbox"
-                    bind:checked={isFilteringUnresolved}
-                    data-app-insights-event-name="editor-dashboard-has-unresolved-comments-toggle-{isFilteringUnresolved
+                    bind:checked={$searchParams.isFilteringUnresolved}
+                    data-app-insights-event-name="editor-dashboard-has-unresolved-comments-toggle-{$searchParams.isFilteringUnresolved
                         ? 'off'
                         : 'on'}"
                     class="checkbox no-animation checkbox-sm me-2"
@@ -258,6 +260,12 @@
             {#snippet tableCells(item, href, itemKey)}
                 {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
                     <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                {:else if itemKey === 'hasAudio'}
+                    <TableCell>
+                        {#if item.hasAudio}
+                            <Icon data={volumeUp} class="h-4 w-4" />
+                        {/if}
+                    </TableCell>
                 {:else if href !== undefined && itemKey}
                     <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                 {:else if itemKey}
@@ -284,6 +292,12 @@
                     <LinkedTableCell {href}
                         >{utcDateTimeStringToDateTime(item[itemKey]).toLocaleDateString()}</LinkedTableCell
                     >
+                {:else if itemKey === 'hasAudio'}
+                    <TableCell>
+                        {#if item.hasAudio}
+                            <Icon data={volumeUp} class="h-4 w-4" />
+                        {/if}
+                    </TableCell>
                 {:else if href !== undefined && itemKey}
                     <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                 {:else if itemKey}
