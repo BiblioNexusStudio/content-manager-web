@@ -31,6 +31,7 @@
     import type { NotApplicableContent } from './+page';
     import { _PublisherTab as Tab } from './+page';
     import { untrack } from 'svelte';
+    import { parseApiValidatorErrorMessage } from '$lib/utils/http-errors';
 
     interface Props {
         data: PageData;
@@ -76,7 +77,8 @@
     let isFilteringUnresolved = $state(false);
 
     let createNewResourceLanguage: number = $state(1);
-    let createNewResourceTitle: string = $state('');
+    let createNewResourceEnglishLabel: string = $state('');
+    let createNewResourceLanguageTitle: string | null = $state(null);
     let parentResourceIdForNewResource: number = $state(0);
 
     const searchParams = searchParameters(
@@ -177,15 +179,35 @@
         isTransacting = true;
 
         try {
-            const resourceId = await postToApi(`/resources/content/create`, {
+            await postToApi<{ resourceContentId: number }>(`/resources/content`, {
                 languageId: createNewResourceLanguage,
-                title: createNewResourceTitle,
+                englishLabel: createNewResourceEnglishLabel,
                 parentResourceId: parentResourceIdForNewResource,
+                languageTitle: createNewResourceLanguageTitle,
             });
             isTransacting = false;
-            window.location.href = `/resources/${resourceId}`;
-        } catch {
-            errorModalText = 'Error while creating resource item.';
+            window.location.reload();
+        } catch (e) {
+            createNewResourceLanguage = 1;
+            createNewResourceEnglishLabel = '';
+            parentResourceIdForNewResource = 0;
+
+            const validatorError = parseApiValidatorErrorMessage(e, [
+                'languageId',
+                'englishLabel',
+                'parentResourceId',
+                'languageTitle',
+            ]);
+
+            if (validatorError && typeof validatorError === 'string') {
+                errorModalText = validatorError;
+            } else if (e instanceof Error) {
+                const match = e.message.match(/Body: "(.*)"/);
+                errorModalText = match ? match[1] : 'An error occurred while creating the resource item.';
+            } else {
+                errorModalText = 'An error occurred while creating the resource item.';
+            }
+
             isTransacting = false;
         }
     }
@@ -313,6 +335,15 @@
         sortPendingData(currentCommunityPendingContents, $searchParams.sort)
     );
     let sortedCurrentAssignedProjects = $derived(sortAssignedProjectData(currentAssignedProjects, $searchParams.sort));
+
+    $effect(() => {
+        if (!isCreateNewResourceItemModalOpen) {
+            createNewResourceLanguage = 1;
+            createNewResourceEnglishLabel = '';
+            createNewResourceLanguageTitle = null;
+            parentResourceIdForNewResource = 0;
+        }
+    });
 </script>
 
 <div class="flex flex-col overflow-y-hidden px-4">
@@ -590,7 +621,10 @@
     bind:open={isCreateNewResourceItemModalOpen}
     primaryButtonText="Create"
     primaryButtonOnClick={createResourceItem}
-    primaryButtonDisabled={!createNewResourceLanguage || !createNewResourceTitle}
+    primaryButtonDisabled={!createNewResourceLanguage ||
+        !createNewResourceEnglishLabel ||
+        !parentResourceIdForNewResource ||
+        (createNewResourceLanguage > 1 && !createNewResourceLanguageTitle)}
     {isTransacting}
 >
     <h3 class="mb-4 text-xl">Language</h3>
@@ -613,9 +647,16 @@
     />
     <input
         type="text"
+        class="input input-bordered mb-4 w-full"
+        placeholder="English Label"
+        bind:value={createNewResourceEnglishLabel}
+    />
+    <input
+        type="text"
         class="input input-bordered mb-6 w-full"
-        placeholder="Title"
-        bind:value={createNewResourceTitle}
+        placeholder="Language Title"
+        disabled={createNewResourceLanguage === 1}
+        bind:value={createNewResourceLanguageTitle}
     />
 </Modal>
 
