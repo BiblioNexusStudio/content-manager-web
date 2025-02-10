@@ -45,11 +45,16 @@
     let assignToUserId: number | null = $state(null);
     let errorModalText: string | undefined = $state(undefined);
     let isReviewer = $derived($userCan(Permission.SendReviewContent));
-    let isAssignOrSendToReviewButtonDisabled = $derived(() => selectedMyWorkContents.length === 0);
+    let isAssignButtonDisabled = $derived(() => selectedMyWorkContents.length === 0);
     let isSendToPublisherButtonDisabled = $derived(
         () =>
             selectedMyWorkContents.length === 0 ||
             !selectedMyWorkContents.every((x) => x.statusValue === ResourceContentStatusEnum.TranslationCompanyReview)
+    );
+    let isSendToCompanyReviewButtonDisabled = $derived(
+        () =>
+            selectedMyWorkContents.length === 0 ||
+            !selectedMyWorkContents.every((x) => x.statusValue === ResourceContentStatusEnum.TranslationEditorReview)
     );
 
     const downloadMyHistoryCsv = () => {
@@ -224,7 +229,7 @@
                 data-app-insights-event-name="editor-dashboard-bulk-assign-click"
                 class="btn btn-primary"
                 onclick={() => (isAssignContentModalOpen = true)}
-                disabled={isAssignOrSendToReviewButtonDisabled()}
+                disabled={isAssignButtonDisabled()}
                 >Assign
             </button>
         {/if}
@@ -233,7 +238,7 @@
                 data-app-insights-event-name="editor-dashboard-bulk-send-to-review-click"
                 class="btn btn-primary"
                 onclick={() => (isSendToReviewModalOpen = true)}
-                disabled={isAssignOrSendToReviewButtonDisabled()}
+                disabled={isSendToCompanyReviewButtonDisabled()}
                 >Send to Review
             </button>
         {/if}
