@@ -54,7 +54,11 @@
     let isSendToCompanyReviewButtonDisabled = $derived(
         () =>
             selectedMyWorkContents.length === 0 ||
-            !selectedMyWorkContents.every((x) => x.statusValue === ResourceContentStatusEnum.TranslationEditorReview)
+            !selectedMyWorkContents.every(
+                (x) =>
+                    x.statusValue === ResourceContentStatusEnum.TranslationEditorReview ||
+                    x.statusValue === ResourceContentStatusEnum.AquiferizeEditorReview
+            )
     );
 
     const downloadMyHistoryCsv = () => {
