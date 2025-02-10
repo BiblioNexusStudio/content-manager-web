@@ -18,6 +18,8 @@
     import { debounce } from '$lib/utils/debounce';
     import { untrack } from 'svelte';
     import { _CommunityReviewerTab as Tab } from './+page';
+    import { Icon } from 'svelte-awesome';
+    import volumeUp from 'svelte-awesome/icons/volumeUp';
 
     const sortMyHistoryData = createEditorDashboardMyHistorySorter();
 
@@ -226,6 +228,12 @@
             {#snippet tableCells(item, href, itemKey)}
                 {#if href !== undefined && itemKey}
                     <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey === 'hasAudio'}
+                    <TableCell>
+                        {#if item.hasAudio}
+                            <Icon data={volumeUp} class="h-4 w-4" />
+                        {/if}
+                    </TableCell>
                 {:else if itemKey}
                     <TableCell>{item[itemKey] ?? ''}</TableCell>
                 {/if}
@@ -247,6 +255,12 @@
                     <LinkedTableCell {href}
                         >{utcDateTimeStringToDateTime(item[itemKey]).toLocaleDateString()}</LinkedTableCell
                     >
+                {:else if itemKey === 'hasAudio'}
+                    <TableCell>
+                        {#if item.hasAudio}
+                            <Icon data={volumeUp} class="h-4 w-4" />
+                        {/if}
+                    </TableCell>
                 {:else if href !== undefined && itemKey}
                     <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                 {:else if itemKey}

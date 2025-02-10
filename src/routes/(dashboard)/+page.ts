@@ -126,6 +126,7 @@ export interface ResourcesSummary {
 export interface ResourceAssignedToSelf {
     id: number;
     englishLabel: string;
+    hasAudio: boolean;
     languageEnglishDisplay: string;
     parentResourceName: string;
     daysSinceAssignment: number;
@@ -150,6 +151,7 @@ export interface ResourceThatNeedsTranslation {
     id: number;
     englishLabel: string;
     parentResourceName: string;
+    hasAudio: boolean;
     wordCount: number | null;
 }
 
@@ -157,6 +159,7 @@ export interface ResourceAssignedToSelfHistory {
     id: number;
     englishLabel: string;
     parentResourceName: string;
+    hasAudio: boolean;
     lastActionTime: string;
     sourceWords: number | null;
     sortOrder: number;
@@ -176,6 +179,7 @@ export interface ResourcePendingReview {
     id: number;
     englishLabel: string;
     parentResourceName: string;
+    hasAudio: boolean;
     languageEnglishDisplay: string;
     projectName: string | null;
     daysSinceStatusChange: number;
@@ -194,6 +198,7 @@ export interface UserWordCount {
 
 export interface NotApplicableContent {
     id: number;
+    hasAudio: boolean;
     language: string;
     parentResourceName: string;
     title: string;

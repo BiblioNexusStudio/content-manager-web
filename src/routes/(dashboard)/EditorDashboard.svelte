@@ -10,7 +10,7 @@
     import { formatSimpleDaysAgo, utcDateTimeStringToDateTime } from '$lib/utils/date-time';
     import { type ResourceAssignedToSelf, type ResourceAssignedToSelfHistory, _EditorTab as Tab } from './+page';
     import Table from '$lib/components/Table.svelte';
-    import { myHistoryColumns, myWorkColumns, reviewerMyWorkColumns } from './editor-dashboard-columns';
+    import { myHistoryColumns, myWorkColumns } from './editor-dashboard-columns';
     import TableCell from '$lib/components/TableCell.svelte';
     import { download } from '$lib/utils/csv-download-handler';
     import Select from '$lib/components/Select.svelte';
@@ -22,6 +22,9 @@
     import { userIsInCompany, userCan, Permission } from '$lib/stores/auth';
     import { postToApi } from '$lib/utils/http-service';
     import { log } from '$lib/logger';
+    import { Icon } from 'svelte-awesome';
+    import volumeUp from 'svelte-awesome/icons/volumeUp';
+    import Tooltip from '$lib/components/Tooltip.svelte';
 
     const sortMyWorkData = createEditorDashboardMyWorkSorter();
     const sortMyHistoryData = createEditorDashboardMyHistorySorter();
@@ -36,6 +39,7 @@
     let myHistoryContents = data.editorDashboard!.assignedResourceHistoryContent;
     let isAssignContentModalOpen = $state(false);
     let isSendToPublisherModalOpen = $state(false);
+    let isSendToReviewModalOpen = $state(false);
 
     let selectedMyWorkContents: ResourceAssignedToSelf[] = $state([]);
     let isTransacting = $state(false);
@@ -47,6 +51,15 @@
         () =>
             selectedMyWorkContents.length === 0 ||
             !selectedMyWorkContents.every((x) => x.statusValue === ResourceContentStatusEnum.TranslationCompanyReview)
+    );
+    let isSendToCompanyReviewButtonDisabled = $derived(
+        () =>
+            selectedMyWorkContents.length === 0 ||
+            !selectedMyWorkContents.every(
+                (x) =>
+                    x.statusValue === ResourceContentStatusEnum.TranslationEditorReview ||
+                    x.statusValue === ResourceContentStatusEnum.AquiferizeEditorReview
+            )
     );
 
     const downloadMyHistoryCsv = () => {
@@ -110,10 +123,23 @@
         }
     };
 
-    const sendForReview = async (contentIds: number[]) => {
+    const sendForPublisherReview = async (contentIds: number[]) => {
         if (contentIds.length > 0) {
             try {
                 await postToApi<null>('/resources/content/send-for-publisher-review', {
+                    contentIds: contentIds,
+                });
+            } catch (error) {
+                log.exception(error);
+                throw error;
+            }
+        }
+    };
+
+    const sendForCompanyReview = async (contentIds: number[]) => {
+        if (contentIds.length > 0) {
+            try {
+                await postToApi<null>('/resources/content/send-for-company-review', {
                     contentIds: contentIds,
                 });
             } catch (error) {
@@ -212,14 +238,37 @@
                 >Assign
             </button>
         {/if}
+        {#if $searchParams.tab === Tab.myWork && !isReviewer}
+            <Tooltip
+                position={{ left: '9rem' }}
+                text={isSendToCompanyReviewButtonDisabled() && selectedMyWorkContents.length > 0
+                    ? 'Editor Review status only'
+                    : null}
+            >
+                <button
+                    data-app-insights-event-name="editor-dashboard-bulk-send-to-review-click"
+                    class="btn btn-primary"
+                    onclick={() => (isSendToReviewModalOpen = true)}
+                    disabled={isSendToCompanyReviewButtonDisabled()}
+                    >Send to Review
+                </button>
+            </Tooltip>
+        {/if}
         {#if $searchParams.tab === Tab.myWork && isReviewer}
-            <button
-                data-app-insights-event-name="editor-dashboard-bulk-assign-click"
-                class="btn btn-primary"
-                onclick={() => (isSendToPublisherModalOpen = true)}
-                disabled={isSendToPublisherButtonDisabled()}
-                >Send to Publisher
-            </button>
+            <Tooltip
+                position={{ left: '10rem' }}
+                text={isSendToPublisherButtonDisabled() && selectedMyWorkContents.length > 0
+                    ? 'Company Review status only'
+                    : null}
+            >
+                <button
+                    data-app-insights-event-name="editor-dashboard-bulk-send-to-publisher-click"
+                    class="btn btn-primary"
+                    onclick={() => (isSendToPublisherModalOpen = true)}
+                    disabled={isSendToPublisherButtonDisabled()}
+                    >Send to Publisher
+                </button>
+            </Tooltip>
         {/if}
         {#if $searchParams.tab === Tab.myWork}
             <div class="my-1 ml-auto flex flex-col items-end justify-center">
@@ -244,7 +293,7 @@
             bind:this={table}
             class="my-4"
             enableSelectAll={true}
-            columns={isReviewer ? reviewerMyWorkColumns : myWorkColumns}
+            columns={myWorkColumns}
             items={sortedMyWorkContents as ResourceAssignedToSelf[]}
             idColumn="id"
             itemUrlPrefix="/resources/"
@@ -258,6 +307,12 @@
             {#snippet tableCells(item, href, itemKey)}
                 {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
                     <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                {:else if itemKey === 'hasAudio'}
+                    <TableCell>
+                        {#if item.hasAudio}
+                            <Icon data={volumeUp} class="h-4 w-4" />
+                        {/if}
+                    </TableCell>
                 {:else if href !== undefined && itemKey}
                     <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                 {:else if itemKey}
@@ -284,6 +339,12 @@
                     <LinkedTableCell {href}
                         >{utcDateTimeStringToDateTime(item[itemKey]).toLocaleDateString()}</LinkedTableCell
                     >
+                {:else if itemKey === 'hasAudio'}
+                    <TableCell>
+                        {#if item.hasAudio}
+                            <Icon data={volumeUp} class="h-4 w-4" />
+                        {/if}
+                    </TableCell>
                 {:else if href !== undefined && itemKey}
                     <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                 {:else if itemKey}
@@ -307,8 +368,18 @@
 
 <Modal
     {isTransacting}
+    primaryButtonText={'Send to Review'}
+    primaryButtonOnClick={() => updateContent(sendForCompanyReview)}
+    bind:open={isSendToReviewModalOpen}
+    header="Confirm Send to Review"
+>
+    <div class="my-4 text-xl">Have you completed your editing? Your assignment will be removed.</div>
+</Modal>
+
+<Modal
+    {isTransacting}
     primaryButtonText={'Send to Publisher'}
-    primaryButtonOnClick={() => updateContent(sendForReview)}
+    primaryButtonOnClick={() => updateContent(sendForPublisherReview)}
     bind:open={isSendToPublisherModalOpen}
     header={'Confirm Send to Publisher'}
 >
