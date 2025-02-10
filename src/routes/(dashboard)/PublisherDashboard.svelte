@@ -78,7 +78,7 @@
 
     let createNewResourceLanguage: number = $state(1);
     let createNewResourceEnglishLabel: string = $state('');
-    let createNewResourceLanguageTitle: string | null = $state(null);
+    let createNewResourceLanguageTitle: string = $state('');
     let parentResourceIdForNewResource: number = $state(0);
 
     const searchParams = searchParameters(
@@ -184,7 +184,10 @@
                 languageId: createNewResourceLanguage,
                 englishLabel: createNewResourceEnglishLabel,
                 parentResourceId: parentResourceIdForNewResource,
-                languageTitle: createNewResourceLanguageTitle,
+                languageTitle:
+                    createNewResourceLanguageTitle.length > 0
+                        ? createNewResourceLanguageTitle
+                        : createNewResourceEnglishLabel,
             });
             isTransacting = false;
             window.location.reload();
@@ -347,7 +350,7 @@
         if (!isCreateNewResourceItemModalOpen) {
             createNewResourceLanguage = 1;
             createNewResourceEnglishLabel = '';
-            createNewResourceLanguageTitle = null;
+            createNewResourceLanguageTitle = '';
             parentResourceIdForNewResource = 0;
         }
     });
