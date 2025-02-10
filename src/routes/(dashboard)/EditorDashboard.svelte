@@ -24,6 +24,7 @@
     import { log } from '$lib/logger';
     import { Icon } from 'svelte-awesome';
     import volumeUp from 'svelte-awesome/icons/volumeUp';
+    import Tooltip from '$lib/components/Tooltip.svelte';
 
     const sortMyWorkData = createEditorDashboardMyWorkSorter();
     const sortMyHistoryData = createEditorDashboardMyHistorySorter();
@@ -238,22 +239,36 @@
             </button>
         {/if}
         {#if $searchParams.tab === Tab.myWork && !isReviewer}
-            <button
-                data-app-insights-event-name="editor-dashboard-bulk-send-to-review-click"
-                class="btn btn-primary"
-                onclick={() => (isSendToReviewModalOpen = true)}
-                disabled={isSendToCompanyReviewButtonDisabled()}
-                >Send to Review
-            </button>
+            <Tooltip
+                position={{ left: '9rem' }}
+                text={isSendToCompanyReviewButtonDisabled() && selectedMyWorkContents.length > 0
+                    ? 'Editor Review status only'
+                    : null}
+            >
+                <button
+                    data-app-insights-event-name="editor-dashboard-bulk-send-to-review-click"
+                    class="btn btn-primary"
+                    onclick={() => (isSendToReviewModalOpen = true)}
+                    disabled={isSendToCompanyReviewButtonDisabled()}
+                    >Send to Review
+                </button>
+            </Tooltip>
         {/if}
         {#if $searchParams.tab === Tab.myWork && isReviewer}
-            <button
-                data-app-insights-event-name="editor-dashboard-bulk-send-to-publisher-click"
-                class="btn btn-primary"
-                onclick={() => (isSendToPublisherModalOpen = true)}
-                disabled={isSendToPublisherButtonDisabled()}
-                >Send to Publisher
-            </button>
+            <Tooltip
+                position={{ left: '10rem' }}
+                text={isSendToPublisherButtonDisabled() && selectedMyWorkContents.length > 0
+                    ? 'Company Review status only'
+                    : null}
+            >
+                <button
+                    data-app-insights-event-name="editor-dashboard-bulk-send-to-publisher-click"
+                    class="btn btn-primary"
+                    onclick={() => (isSendToPublisherModalOpen = true)}
+                    disabled={isSendToPublisherButtonDisabled()}
+                    >Send to Publisher
+                </button>
+            </Tooltip>
         {/if}
         {#if $searchParams.tab === Tab.myWork}
             <div class="my-1 ml-auto flex flex-col items-end justify-center">
