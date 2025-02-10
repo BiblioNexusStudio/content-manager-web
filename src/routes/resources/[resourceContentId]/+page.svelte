@@ -219,7 +219,7 @@
         canUnpublish = $userCan(Permission.PublishContent) && resourceContent.hasPublishedVersion;
 
         _canCreateTranslation = $userCan(Permission.PublishContent);
-        if (!('url' in resourceContent.content)) {
+        if (!('url' in resourceContent.content) && Array.isArray(resourceContent.content)) {
             editableContentStore.setOriginalAndCurrent(resourceContent.content);
         }
         editableDisplayNameStore.setOriginalAndCurrent(resourceContent.displayName);
