@@ -130,11 +130,6 @@ export interface BibleBook {
     chapters: { number: number; totalVerses: number }[];
 }
 
-export interface ProjectPlatform {
-    id: number;
-    name: string;
-}
-
 export interface Company {
     id: number;
     name: string;

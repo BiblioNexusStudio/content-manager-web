@@ -31,6 +31,8 @@
     import type { NotApplicableContent } from './+page';
     import { _PublisherTab as Tab } from './+page';
     import { untrack } from 'svelte';
+    import { Icon } from 'svelte-awesome';
+    import volumeUp from 'svelte-awesome/icons/volumeUp';
 
     interface Props {
         data: PageData;
@@ -72,14 +74,13 @@
 
     let search = $state('');
 
-    let isFilteringUnresolved = $state(false);
-
     const searchParams = searchParameters(
         {
             sort: ssp.string('-' + SortName.Days),
             tab: ssp.string(Tab.myWork),
             project: ssp.string(''),
             status: ssp.string(''),
+            isFilteringUnresolved: ssp.boolean(false),
         },
         { runLoadAgainWhenParamsChange: false }
     );
@@ -280,7 +281,13 @@
     };
 
     $effect(() => {
-        setTabContents($searchParams.tab, search, $searchParams.status, $searchParams.project, isFilteringUnresolved);
+        setTabContents(
+            $searchParams.tab,
+            search,
+            $searchParams.status,
+            $searchParams.project,
+            $searchParams.isFilteringUnresolved
+        );
     });
 
     let sortedCurrentAssignedContents = $derived(sortAssignedResourceData(currentAssignedContents, $searchParams.sort));
@@ -362,8 +369,8 @@
                 <label class="label cursor-pointer py-0 opacity-70">
                     <input
                         type="checkbox"
-                        bind:checked={isFilteringUnresolved}
-                        data-app-insights-event-name="publisher-dashboard-has-unresolved-comments-toggle-{isFilteringUnresolved
+                        bind:checked={$searchParams.isFilteringUnresolved}
+                        data-app-insights-event-name="publisher-dashboard-has-unresolved-comments-toggle-{$searchParams.isFilteringUnresolved
                             ? 'off'
                             : 'on'}"
                         class="checkbox no-animation checkbox-sm me-2"
@@ -422,6 +429,12 @@
                 {#snippet tableCells(item, href, itemKey)}
                     {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
                         <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'hasAudio'}
+                        <TableCell>
+                            {#if item.hasAudio}
+                                <Icon data={volumeUp} class="h-4 w-4" />
+                            {/if}
+                        </TableCell>
                     {:else if href !== undefined && itemKey}
                         <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                     {:else if itemKey}
@@ -447,6 +460,12 @@
                 {#snippet tableCells(item, href, itemKey)}
                     {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
                         <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'hasAudio'}
+                        <TableCell>
+                            {#if item.hasAudio}
+                                <Icon data={volumeUp} class="h-4 w-4" />
+                            {/if}
+                        </TableCell>
                     {:else if href !== undefined && itemKey}
                         <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                     {:else if itemKey}
@@ -508,6 +527,12 @@
                 {#snippet tableCells(item, href, itemKey)}
                     {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
                         <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'hasAudio'}
+                        <TableCell>
+                            {#if item.hasAudio}
+                                <Icon data={volumeUp} class="h-4 w-4" />
+                            {/if}
+                        </TableCell>
                     {:else if href !== undefined && itemKey}
                         <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                     {:else if itemKey}

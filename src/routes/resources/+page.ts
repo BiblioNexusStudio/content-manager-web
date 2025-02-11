@@ -93,4 +93,5 @@ export interface ResourceContentItem {
     parentResourceName: string;
     status: ResourceContentStatusEnum;
     isPublished: boolean;
+    hasAudio: boolean;
 }

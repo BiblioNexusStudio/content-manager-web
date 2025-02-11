@@ -5,15 +5,7 @@ import type { ResourceAssignedToSelf, ResourceAssignedToSelfHistory } from './+p
 export const myWorkColumns: column<ResourceAssignedToSelf>[] = [
     { text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title },
     { text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined },
-    { text: 'Project', itemKey: 'projectName', sortKey: undefined },
-    { text: 'Last Edit (Days)', itemKey: 'daysSinceContentUpdated', sortKey: undefined },
-    { text: 'Days Assigned', itemKey: 'daysSinceAssignment', sortKey: SortName.Days },
-    { text: 'Source Words', itemKey: 'wordCount', sortKey: SortName.WordCount },
-];
-
-export const reviewerMyWorkColumns: column<ResourceAssignedToSelf>[] = [
-    { text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title },
-    { text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined },
+    { text: '', itemKey: 'hasAudio', sortKey: undefined },
     { text: 'Project', itemKey: 'projectName', sortKey: undefined },
     { text: 'Status', itemKey: 'statusDisplayName', sortKey: undefined },
     { text: 'Last Edit (Days)', itemKey: 'daysSinceContentUpdated', sortKey: undefined },
@@ -24,6 +16,7 @@ export const reviewerMyWorkColumns: column<ResourceAssignedToSelf>[] = [
 export const myHistoryColumns: column<ResourceAssignedToSelfHistory>[] = [
     { text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title },
     { text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined },
+    { text: '', itemKey: 'hasAudio', sortKey: undefined },
     { text: 'My Last Action', itemKey: 'lastActionTime', sortKey: SortName.Days },
     { text: 'Source Words', itemKey: 'sourceWords', sortKey: undefined },
 ];
