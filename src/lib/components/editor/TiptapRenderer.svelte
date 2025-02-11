@@ -71,6 +71,7 @@
                 },
             },
             content: tiptapJson?.tiptap,
+            autofocus: true,
             onUpdate: ({ editor }) => {
                 onChange?.(
                     editor.getJSON(),

@@ -227,7 +227,7 @@
         canUnpublish = $userCan(Permission.PublishContent) && resourceContent.hasPublishedVersion;
 
         canCreateTranslation = $userCan(Permission.PublishContent);
-        if (!('url' in resourceContent.content)) {
+        if (!('url' in resourceContent.content) && Array.isArray(resourceContent.content)) {
             editableContentStore.setOriginalAndCurrent(resourceContent.content);
         }
         editableDisplayNameStore.setOriginalAndCurrent(resourceContent.displayName);
@@ -852,6 +852,7 @@
             onToggleHistoryPane={sidebarContentStore.toggleViewing}
             resourceContentStatuses={data.resourceContentStatuses}
             {commentStores}
+            {selectedStepNumber}
             bind:openedSupplementalSideBar
         />
 

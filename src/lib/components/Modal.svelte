@@ -5,7 +5,7 @@
 
     export let open: boolean | undefined = undefined;
     export let description: string | undefined = undefined;
-    export let header: string;
+    export let header = '';
     export let primaryButtonText: string | undefined | null = undefined;
     export let primaryButtonOnClick: (() => Promise<void>) | (() => void) | undefined = undefined;
     export let primaryButtonDisabled = false;
