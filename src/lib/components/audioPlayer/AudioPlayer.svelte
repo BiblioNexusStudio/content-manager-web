@@ -143,7 +143,6 @@
 
     onMount(() => {
         selectAudioType();
-        playlist.element = audioElement;
     });
 
     $effect(() => {
@@ -153,6 +152,13 @@
                 await populatePlaylist();
             }
         })();
+    });
+
+    $effect(() => {
+        if (!playlist || !audioElement) return;
+        if (audioElement !== playlist.element) {
+            playlist.element = audioElement;
+        }
     });
 </script>
 
