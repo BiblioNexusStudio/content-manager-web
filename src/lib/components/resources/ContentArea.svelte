@@ -13,6 +13,7 @@
     import type { CommentStores } from '$lib/stores/comments';
     import { onMount } from 'svelte';
     import PersonLinesIcon from '$lib/icons/PersonLinesIcon.svelte';
+    import AudioPlayerModal from '../audioPlayer/AudioPlayerModal.svelte';
 
     export let resourceContent: ResourceContent;
     export let sidebarHistoryAvailable: boolean;
@@ -21,8 +22,12 @@
     export let commentStores: CommentStores;
     export let openedSupplementalSideBar: OpenedSupplementalSideBar;
     export let resourceContentStatuses: ResourceContentStatus[];
+    export let selectedStepNumber: number | undefined;
 
     const commentThreads = commentStores.commentThreads;
+    const audioIsAvailable = !!(
+        resourceContent.hasAudio && resourceContent.status === ResourceContentStatusEnum.Complete
+    );
 
     onMount(() => {
         if (sidebarHistoryAvailable && resourceContent.mediaType === MediaTypeEnum.text) {
@@ -71,6 +76,10 @@
                     >
                         <Icon data={ban} style="height: 18px; width: auto; color: #485467;" />
                     </Tooltip>
+                {/if}
+
+                {#if audioIsAvailable}
+                    <AudioPlayerModal resources={resourceContent.audioResources} {selectedStepNumber} />
                 {/if}
             </div>
         </div>
