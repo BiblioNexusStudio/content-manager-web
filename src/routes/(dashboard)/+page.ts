@@ -6,6 +6,7 @@ import type { BibleBook, ResourceContentStatusEnum } from '$lib/types/base';
 import { redirect } from '@sveltejs/kit';
 import type { ProjectResourceStatusCounts } from '$lib/types/projects';
 import type { ResourceContentVersionReviewLevel } from '$lib/types/resources';
+import type { HelpDocumentResponse } from '$lib/types/helpDocuments';
 
 export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
@@ -45,13 +46,21 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             },
         };
     } else if (get(userCan)(Permission.CreateCommunityContent)) {
-        const [assignedResourceContent, assignedResourceHistoryContent, bibleBooks] = await Promise.all([
+        const [assignedResourceContent, assignedResourceHistoryContent, bibleBooks, helpDocs] = await Promise.all([
             fetchAssignedResourceContent(fetch),
             getFromApi<ResourceAssignedToSelfHistory[]>('/resources/content/assigned-to-self/history', fetch),
             getFromApi<BibleBook[]>('/bibles/1/books', fetch),
+            getFromApi<HelpDocumentResponse>('/help/aquifer-cms/documents', fetch),
         ]);
 
-        return { communityReviewerDashboard: { assignedResourceContent, assignedResourceHistoryContent, bibleBooks } };
+        return {
+            communityReviewerDashboard: {
+                assignedResourceContent,
+                assignedResourceHistoryContent,
+                bibleBooks,
+                helpDocs,
+            },
+        };
     } else if (get(userCan)(Permission.EditContent)) {
         const [assignedResourceContent, assignedResourceHistoryContent] = await Promise.all([
             fetchAssignedResourceContent(fetch),
@@ -73,6 +82,7 @@ function fetchAssignedResourceContent(injectedFetch: typeof window.fetch) {
 export enum _CommunityReviewerTab {
     resources = 'resources',
     myHistory = 'my-history',
+    help = 'help',
 }
 
 export enum _PublisherTab {
