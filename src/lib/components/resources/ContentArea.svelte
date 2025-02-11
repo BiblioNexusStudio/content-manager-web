@@ -22,8 +22,12 @@
     export let commentStores: CommentStores;
     export let openedSupplementalSideBar: OpenedSupplementalSideBar;
     export let resourceContentStatuses: ResourceContentStatus[];
+    export let selectedStepNumber: number | undefined;
 
     const commentThreads = commentStores.commentThreads;
+    const audioIsAvaiable = !!(
+        resourceContent.hasAudio && resourceContent.status === ResourceContentStatusEnum.Complete
+    );
 
     onMount(() => {
         if (sidebarHistoryAvailable && resourceContent.mediaType === MediaTypeEnum.text) {
@@ -74,14 +78,9 @@
                     </Tooltip>
                 {/if}
 
-                <!-- todo : if has audio -->
-                <Tooltip
-                    position={{ left: '2.5rem', top: '-0.25rem' }}
-                    class="border-primary text-primary"
-                    text="Click to play audio"
-                >
-                    <AudioPlayerModal />
-                </Tooltip>
+                {#if audioIsAvaiable}
+                    <AudioPlayerModal resources={resourceContent.audioResources} {selectedStepNumber} />
+                {/if}
             </div>
         </div>
     </div>

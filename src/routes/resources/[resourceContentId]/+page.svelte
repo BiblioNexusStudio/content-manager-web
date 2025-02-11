@@ -848,6 +848,7 @@
             onToggleHistoryPane={sidebarContentStore.toggleViewing}
             resourceContentStatuses={data.resourceContentStatuses}
             {commentStores}
+            {selectedStepNumber}
             bind:openedSupplementalSideBar
         />
 
