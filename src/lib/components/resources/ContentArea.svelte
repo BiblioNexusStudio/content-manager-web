@@ -25,7 +25,7 @@
     export let selectedStepNumber: number | undefined;
 
     const commentThreads = commentStores.commentThreads;
-    const audioIsAvaiable = !!(
+    const audioIsAvailable = !!(
         resourceContent.hasAudio && resourceContent.status === ResourceContentStatusEnum.Complete
     );
 
@@ -78,7 +78,7 @@
                     </Tooltip>
                 {/if}
 
-                {#if audioIsAvaiable}
+                {#if audioIsAvailable}
                     <AudioPlayerModal resources={resourceContent.audioResources} {selectedStepNumber} />
                 {/if}
             </div>
