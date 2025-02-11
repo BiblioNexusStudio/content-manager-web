@@ -12,7 +12,7 @@
         isAudioContentItem,
         getAudioPlaylistContext,
     } from './context.svelte';
-    import PlayBackSpeedPopover from './PlayBackSpeedPopover.svelte';
+    import PlaybackSpeedPopover from './PlaybackSpeedPopover.svelte';
     import { onMount } from 'svelte';
     import type { AudioContentItem, ResourceContent } from '$lib/types/resources';
 
@@ -234,7 +234,7 @@
                     <ArrowForward10Icon />
                 </button>
 
-                <PlayBackSpeedPopover />
+                <PlaybackSpeedPopover />
             {/if}
         </div>
     {/if}
