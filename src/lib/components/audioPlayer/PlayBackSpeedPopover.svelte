@@ -3,8 +3,9 @@
     import PlayMediaSpeedIcon from './icons/PlayMediaSpeedIcon.svelte';
     import chevronDown from 'svelte-awesome/icons/chevronDown';
     import chevronUp from 'svelte-awesome/icons/chevronUp';
+    import { AudioPlaylist, getAudioPlaylistContext } from './context.svelte';
 
-    let { playbackRate = $bindable() } = $props();
+    let playlist: AudioPlaylist = getAudioPlaylistContext();
 
     const playbackRates = [
         { value: 2, label: '2x' },
@@ -16,15 +17,16 @@
         { value: 0.5, label: '0.5' },
     ];
 
-    let playbackRateElement: HTMLDetailsElement;
+    let playbackRate = $derived(playlist.playbackRate);
+    let isOpen: boolean = $state(false);
 
     function selectPlaybackRate(rate: number) {
-        playbackRate = rate;
-        playbackRateElement.open = false;
+        playlist.setPlaybackRate(rate);
+        isOpen = false;
     }
 </script>
 
-<details data-popover="right" bind:this={playbackRateElement}>
+<details data-popover="right" bind:open={isOpen}>
     <summary class="relative">
         {#if playbackRate > 1}
             <Icon data={chevronUp} class="absolute right-0 top-0 h-2 w-2 text-primary" />
@@ -40,6 +42,7 @@
                 class="px-2 py-1 hover:bg-gray-100"
                 class:text-primary={playbackRate === rate.value}
                 onclick={() => selectPlaybackRate(rate.value)}
+                data-app-insights-event-name="audio-player-playback-speed-{rate.label}-button-clicked"
             >
                 {rate.label}
             </button>

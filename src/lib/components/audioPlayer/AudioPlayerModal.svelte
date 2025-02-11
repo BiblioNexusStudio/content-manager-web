@@ -1,74 +1,62 @@
 <script lang="ts">
     import AudioPlayer from '$lib/components/audioPlayer/AudioPlayer.svelte';
-    import { setAudioPlaylistContext, type AudioPlaylist } from '$lib/components/audioPlayer/context.svelte';
+    import { createAudioPlaylistContext, type AudioPlaylist } from '$lib/components/audioPlayer/context.svelte';
     import { Icon } from 'svelte-awesome';
     import Modal from '../Modal.svelte';
     import volumeUp from 'svelte-awesome/icons/volumeUp';
-    // TODO accept audio info for the audio player
-    // this will be the wraper to handle playlist management for a resource,
-    // it will also handle FIA content steps and state management
-    // When 'selectedStep' changes, grab snapshot of audio player state ( track and current time )
+    import type { AudioContentResponse, ResourceContent } from '$lib/types/resources';
+    import { onMount, untrack } from 'svelte';
+    import { getFromApi } from '$lib/utils/http-service';
+    import Tooltip from '../Tooltip.svelte';
 
-    // have to prep playlist wher you want to use the audio player
-    // preferred media types like webm should be listed first and the fall back last
-    let playlist: AudioPlaylist = $state({
-        currentTrack: 0,
-        paused: true,
-        tracks: [
-            [
-                {
-                    url: 'https://cdn.aquifer.bible/aquifer-content/scripture/ENG/BSB/audio/webm/ENG_BSB_42_001.webm',
-                    type: 'webm',
-                    currentTime: 0,
-                },
-                {
-                    url: 'https://cdn.aquifer.bible/aquifer-content/scripture/ENG/BSB/audio/webm/ENG_BSB_42_001.mp3',
-                    type: 'mp3',
-                    currentTime: 0,
-                },
-            ],
-            [
-                {
-                    url: 'https://cdn.aquifer.bible/aquifer-content/scripture/ENG/BSB/audio/webm/ENG_BSB_42_002.webm',
-                    type: 'webm',
-                    currentTime: 0,
-                },
-                {
-                    url: 'https://cdn.aquifer.bible/aquifer-content/scripture/ENG/BSB/audio/webm/ENG_BSB_42_002.mp3',
-                    type: 'mp3',
-                    currentTime: 0,
-                },
-            ],
-            [
-                {
-                    url: 'https://cdn.aquifer.bible/aquifer-content/scripture/ENG/BSB/audio/webm/ENG_BSB_42_003.webm',
-                    type: 'webm',
-                    currentTime: 0,
-                },
-                {
-                    url: 'https://cdn.aquifer.bible/aquifer-content/scripture/ENG/BSB/audio/webm/ENG_BSB_42_003.mp3',
-                    type: 'mp3',
-                    currentTime: 0,
-                },
-            ],
-        ],
+    interface AudioModalProps {
+        resources: AudioContentResponse[];
+        selectedStepNumber: number | undefined;
+    }
+
+    let { resources, selectedStepNumber }: AudioModalProps = $props();
+
+    let isAudioPlayerModalOpen: boolean = $state(false);
+    let audioContents: ResourceContent[] | null = $state(null);
+    let playlist: AudioPlaylist = createAudioPlaylistContext();
+
+    onMount(async () => {
+        if (resources.length > 0) {
+            const fetchContentPromises: Promise<ResourceContent>[] = resources.map((resource) =>
+                getFromApi<ResourceContent>(`/resources/content/${resource.contentId}`, fetch)
+            );
+
+            audioContents = await Promise.all(fetchContentPromises);
+        }
     });
 
-    setAudioPlaylistContext(playlist);
-
-    let isAudioPlayerModalOpen = $state(false);
+    function updateCurrentTrack() {
+        if (selectedStepNumber! > playlist.currentTrackIndex + 1) {
+            playlist.nextTrack();
+        } else if (selectedStepNumber! < playlist.currentTrackIndex + 1) {
+            playlist.prevTrack();
+        }
+    }
 
     $effect(() => {
+        if (untrack(() => !playlist) || !selectedStepNumber) return;
+        updateCurrentTrack();
+    });
+
+    $effect(() => {
+        if (!playlist) return;
         if (isAudioPlayerModalOpen === false) {
             playlist.paused = true;
         }
     });
 </script>
 
-<button class="ml-4 flex" onclick={() => (isAudioPlayerModalOpen = !isAudioPlayerModalOpen)}>
-    <Icon class="grow-0 text-primary hover:brightness-110" style="height: 18px; width: auto;" data={volumeUp} />
-</button>
+<Tooltip position={{ left: '2.5rem', top: '-0.25rem' }} class="border-primary text-primary" text="Click to play audio">
+    <button class="ml-4 flex" onclick={() => (isAudioPlayerModalOpen = !isAudioPlayerModalOpen)}>
+        <Icon class="grow-0 text-primary hover:brightness-110" style="height: 18px; width: auto;" data={volumeUp} />
+    </button>
+</Tooltip>
 
 <Modal bind:open={isAudioPlayerModalOpen}>
-    <AudioPlayer />
+    <AudioPlayer {audioContents} />
 </Modal>
