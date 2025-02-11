@@ -5,27 +5,37 @@
     import PauseMediaIcon from './icons/PauseMediaIcon.svelte';
     import PlayMediaIcon from './icons/PlayMediaIcon.svelte';
     import ArrowForward10Icon from './icons/ArrowForward10Icon.svelte';
-    import { getAudioPlaylistContext, type AudioPlaylist } from './context.svelte';
+    import {
+        AudioPlaylist,
+        type AudioType,
+        fetchFiaAudioFromZip,
+        isAudioContentItem,
+        getAudioPlaylistContext,
+    } from './context.svelte';
     import PlayBackSpeedPopover from './PlayBackSpeedPopover.svelte';
+    import { onMount } from 'svelte';
+    import type { AudioContentItem, ResourceContent } from '$lib/types/resources';
 
-    let playlist: AudioPlaylist = getAudioPlaylistContext() ?? { tracks: [], currentTrack: 0 };
+    interface AudioPlayerProps {
+        audioContents: ResourceContent[] | null;
+    }
 
+    let { audioContents }: AudioPlayerProps = $props();
+
+    let playlist: AudioPlaylist = getAudioPlaylistContext();
+
+    let audioElement: HTMLAudioElement | undefined = $state(undefined);
+    let isReadyToPlay: boolean = $state(false);
     let duration: number = $state(0);
-    let currentTime: number = $state(0);
-    let volume: number = $state(0.5);
-    let muted: boolean = $state(false);
-    let playbackRate: number = $state(1);
 
-    let isReadyToPlay: boolean = $state(true);
-    let currentTrack: number = $state(0);
-    let currentTrackSrc: string = $state('');
+    let supportedAudioTypes: AudioType[] = $state.raw(checkSupportedAudioTypes());
+    let deviceCannotPlayAudio = $derived(supportedAudioTypes.length === 0);
+    let currentTrackSrc: string = $derived(playlist.currentTrackSrc());
     let rangeValue: number = $derived.by(() => {
         if (!duration) return 0;
 
-        return 100 * (currentTime / duration);
+        return 100 * (playlist.currentTrackTimeElapsed / duration);
     });
-
-    // todo: track state for each track in playlist
 
     function formatTime(time: number) {
         if (isNaN(time)) return '--:--';
@@ -38,7 +48,7 @@
 
     function seek(event: Event) {
         const target = event.target as HTMLInputElement;
-        currentTime = (duration * target.valueAsNumber) / 100;
+        playlist.currentTrackTimeElapsed = (duration * target.valueAsNumber) / 100;
     }
 
     function playOrPause() {
@@ -46,119 +56,188 @@
     }
 
     function skipAhead() {
-        let timeRemaining = duration - currentTime;
+        let timeRemaining = duration - playlist.currentTrackTimeElapsed;
         if (timeRemaining < 10) return endOfTrack();
 
-        currentTime += 10;
+        playlist.currentTrackTimeElapsed += 10;
     }
 
     function goBack() {
-        if (currentTime < 10) return beginningOfTrack();
+        if (playlist.currentTrackTimeElapsed < 10) return beginningOfTrack();
 
-        currentTime -= 10;
+        playlist.currentTrackTimeElapsed -= 10;
     }
 
     function beginningOfTrack() {
-        currentTime = 0;
+        playlist.currentTrackTimeElapsed = 0;
     }
 
     function endOfTrack() {
-        currentTime = duration;
+        playlist.currentTrackTimeElapsed = duration;
     }
 
-    function selectAudioSource() {
-        const audioElement = document.createElement('audio');
+    function setPlaybackRate() {
+        if (playlist.playbackRate !== audioElement?.playbackRate) {
+            audioElement!.playbackRate = playlist.playbackRate;
+        }
+    }
 
-        if (!playlist.tracks || !playlist.tracks[currentTrack]) {
-            currentTrackSrc = '';
+    async function handlePlayerError(errorEvent: Event) {
+        const target = errorEvent?.target as HTMLAudioElement;
+
+        if (!target?.error) return;
+        if (target.error.message === 'MEDIA_ELEMENT_ERROR: Empty src attribute') {
             return;
         }
 
-        for (let source of playlist.tracks[currentTrack]) {
-            if (audioElement.canPlayType(`audio/${source.type}`)) {
-                currentTrackSrc = source.url;
-                break;
-            }
+        if (target?.error?.code > 2) {
+            // This means that the device does not support the attempted media type.
+            // Remove the first element from the supportedAudioTypes array
+            // and try to play the next supported audio type.
+            supportedAudioTypes = supportedAudioTypes.slice(1);
+            selectAudioType();
+            await populatePlaylist();
         }
     }
 
-    selectAudioSource();
+    function checkSupportedAudioTypes() {
+        const supportedTypes: AudioType[] = [];
+        const audioElement = document.createElement('audio');
+
+        if (audioElement.canPlayType(`audio/webm`) !== '') {
+            supportedTypes.push('webm');
+        }
+
+        if (audioElement.canPlayType(`audio/mpeg`) !== '') {
+            supportedTypes.push('mp3');
+        }
+
+        return supportedTypes;
+    }
+
+    function selectAudioType() {
+        if (!supportedAudioTypes.length) return;
+        playlist.currentAudioType = supportedAudioTypes[0] || 'webm';
+    }
+
+    async function populatePlaylist() {
+        if (!audioContents || supportedAudioTypes.length === 0) return;
+
+        if (!isAudioContentItem(audioContents[0]!.content)) return;
+
+        const audioHasSteps = !!audioContents[0]!.content.mp3?.steps?.length;
+
+        if (audioHasSteps) {
+            playlist.tracks = await fetchFiaAudioFromZip(audioContents, playlist.currentAudioType);
+        } else {
+            playlist.tracks = audioContents?.map((audioContent) => {
+                const content = audioContent.content as AudioContentItem;
+
+                return {
+                    url: content[playlist.currentAudioType].url,
+                    currentTime: 0,
+                };
+            });
+        }
+    }
+
+    onMount(() => {
+        selectAudioType();
+        playlist.element = audioElement;
+    });
+
+    $effect(() => {
+        (async () => {
+            if (!audioContents) return;
+            if (audioContents.length > 0) {
+                await populatePlaylist();
+            }
+        })();
+    });
 </script>
 
 <div class="audio-player items-center rounded-xl border border-base-300 bg-base-200">
-    <audio
-        bind:duration
-        bind:currentTime
-        bind:paused={playlist.paused}
-        bind:volume
-        bind:muted
-        bind:playbackRate
-        onended={() => (currentTime = 0)}
-        src={currentTrackSrc}
-    >
-        <!-- Safari will not load track until 'play' is pressed when has multile sources -->
-        <!-- {#each playlist[currentTrack] as source}
-            <source src="{source.url}" type="audio/{source.type}" />
-        {/each} -->
-    </audio>
+    {#if deviceCannotPlayAudio}
+        <div class="flex h-full w-full flex-col items-center justify-center">
+            <h1 class="text-xl">Your device does not support the avaiable audio types.</h1>
+        </div>
+    {:else if playlist.currentTrackSrc() === ''}
+        <div class="flex h-full w-full flex-col items-center justify-center">
+            <h1 class="text-xl">This step does not have an audio file.</h1>
+        </div>
+    {:else}
+        <audio
+            bind:this={audioElement}
+            bind:duration
+            bind:currentTime={playlist.currentTrackTimeElapsed}
+            bind:paused={playlist.paused}
+            onloadstart={setPlaybackRate}
+            onended={() => (playlist.currentTrackTimeElapsed = 0)}
+            onwaiting={() => (isReadyToPlay = false)}
+            oncanplaythrough={() => (isReadyToPlay = true)}
+            onerror={handlePlayerError}
+            src={currentTrackSrc}
+        ></audio>
 
-    <!-- progress bar -->
-    <div class="grid w-full grid-cols-[2fr,1fr] items-center justify-items-center gap-4">
-        <input
-            type="range"
-            class="range-audio range range-primary"
-            step="any"
-            min="0"
-            max="100"
-            value={rangeValue}
-            oninput={seek}
-            data-app-insights-event-name="audio-player-range-area-clicked"
-        />
-        <span class="text-sm font-medium text-neutral"
-            >{formatTime(currentTime)} / {duration ? formatTime(duration) : '--:--'}
-        </span>
-    </div>
+        <!-- progress bar -->
+        <div class="grid w-full grid-cols-[2fr,1fr] items-center justify-items-center gap-4">
+            <input
+                type="range"
+                class="range-audio range range-primary"
+                step="any"
+                min="0"
+                max="100"
+                value={rangeValue}
+                oninput={seek}
+                data-app-insights-event-name="audio-player-range-area-clicked"
+            />
+            <span class="text-sm font-medium text-neutral"
+                >{formatTime(playlist.currentTrackTimeElapsed)} / {duration ? formatTime(duration) : '--:--'}
+            </span>
+        </div>
 
-    <!-- controls -->
-    <div class="flex items-center justify-center gap-4">
-        {#if !isReadyToPlay}
-            <Icon class="h-[35px] w-[35px] grow-0 text-primary" data={refresh} spin />
-        {:else}
-            <button
-                class="audio-control-btn"
-                title="Go back 10 seconds"
-                aria-label="Go back 10 seconds"
-                onclick={goBack}
-            >
-                <ArrowBack10Icon />
-            </button>
+        <!-- controls -->
+        <div class="flex items-center justify-center gap-4">
+            {#if !isReadyToPlay}
+                <Icon class="h-[35px] w-[35px] grow-0 text-primary" data={refresh} spin />
+            {:else}
+                <button
+                    class="audio-control-btn"
+                    title="Go back 10 seconds"
+                    aria-label="Go back 10 seconds"
+                    data-app-insights-event-name="audio-player-go-back-10-button-clicked"
+                    onclick={goBack}
+                >
+                    <ArrowBack10Icon />
+                </button>
 
-            <button
-                onclick={playOrPause}
-                class="audio-control-btn"
-                aria-label={playlist.paused ? 'play' : 'pause'}
-                data-app-insights-event-name="audio-player-play-or-pause-button-clicked"
-            >
-                {#if !playlist.paused}
-                    <PauseMediaIcon />
-                {:else}
-                    <PlayMediaIcon />
-                {/if}
-            </button>
+                <button
+                    onclick={playOrPause}
+                    class="audio-control-btn"
+                    aria-label={playlist.paused ? 'play' : 'pause'}
+                    data-app-insights-event-name="audio-player-play-or-pause-button-clicked"
+                >
+                    {#if !playlist.paused}
+                        <PauseMediaIcon />
+                    {:else}
+                        <PlayMediaIcon />
+                    {/if}
+                </button>
 
-            <button
-                onclick={skipAhead}
-                class="audio-control-btn"
-                title="Skip ahead 10 seconds"
-                aria-label="Skip ahead 10 seconds"
-                data-app-insights-event-name="audio-player-play-or-pause-button-clicked"
-            >
-                <ArrowForward10Icon />
-            </button>
+                <button
+                    onclick={skipAhead}
+                    class="audio-control-btn"
+                    title="Skip ahead 10 seconds"
+                    aria-label="Skip ahead 10 seconds"
+                    data-app-insights-event-name="audio-player-skip-ahead-10-button-clicked"
+                >
+                    <ArrowForward10Icon />
+                </button>
 
-            <PlayBackSpeedPopover bind:playbackRate />
-        {/if}
-    </div>
+                <PlayBackSpeedPopover />
+            {/if}
+        </div>
+    {/if}
 </div>
 
 <style>
