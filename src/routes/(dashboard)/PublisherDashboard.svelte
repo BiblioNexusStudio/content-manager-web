@@ -650,9 +650,9 @@
     primaryButtonText="Create"
     primaryButtonOnClick={createResourceItem}
     primaryButtonDisabled={!createNewResourceLanguage ||
-        !createNewResourceEnglishLabel ||
+        createNewResourceEnglishLabel.length < 2 ||
         !parentResourceIdForNewResource ||
-        (createNewResourceLanguage > 1 && !createNewResourceLanguageTitle)}
+        (createNewResourceLanguage > 1 && createNewResourceLanguageTitle.length < 2)}
     {isTransacting}
 >
     <h3 class="mb-4 text-xl">Language</h3>
