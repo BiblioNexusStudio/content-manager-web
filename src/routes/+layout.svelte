@@ -205,16 +205,18 @@
                 </ul>
             </div>
             <div class="m-2 w-16"><a href="/"><img src={AquiferLogo} alt="Aquifer" /></a></div>
-            <div class="ml-auto">
-                <Tooltip position={{ right: '3rem', top: '0.25rem' }} class="ml-auto" text="Help">
-                    <a
-                        href="/help"
-                        class="btn btn-neutral btn-xs m-1 border border-neutral-300 hover:border-primary hover:text-primary"
-                    >
-                        <QuestionMarkIcon />
-                    </a>
-                </Tooltip>
-            </div>
+            {#if !$userCan(Permission.CreateCommunityContent)}
+                <div class="ml-auto">
+                    <Tooltip position={{ right: '3rem', top: '0.25rem' }} class="ml-auto" text="Help">
+                        <a
+                            href="/help"
+                            class="btn btn-neutral btn-xs m-1 border border-neutral-300 hover:border-primary hover:text-primary"
+                        >
+                            <QuestionMarkIcon />
+                        </a>
+                    </Tooltip>
+                </div>
+            {/if}
         </div>
 
         {#if $navigating && !isCustomTransitionNavigation($navigating)}

@@ -17,7 +17,7 @@
 </script>
 
 <a href={document.url} target="_blank" class="overflow flex w-40 flex-col items-center hover:text-primary">
-    <span class="w-16">
+    <span class="h-20 w-16">
         {#if document.thumbnailUrl}
             <img src={document.thumbnailUrl} alt={document.title} class="h-full w-full object-contain" />
         {:else if document.type === HelpDocumentType.HowTo}
