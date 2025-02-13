@@ -35,7 +35,9 @@
     }: Props = $props();
 
     let editor: Readable<Editor> | undefined = $state(undefined);
-    let tiptapJson = $editableContentStore[itemIndex];
+    let tiptapJson: TiptapContentItem | undefined = (resourceContent.content as { [key: number]: TiptapContentItem })[
+        itemIndex
+    ];
     let isLoading = $state(false);
 
     const isPageTransacting = getIsPageTransactingContext();

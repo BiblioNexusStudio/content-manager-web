@@ -288,6 +288,7 @@
         resetSaveState();
 
         $isPageTransacting = false;
+        selectedStepNumber = 1;
 
         // this ensures that the `content` is the type TiptapContentItem[]
         if (!('url' in resourceContent.content) && Array.isArray(resourceContent.content)) {
