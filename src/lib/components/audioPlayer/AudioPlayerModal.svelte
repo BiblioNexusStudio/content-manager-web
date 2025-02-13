@@ -57,6 +57,6 @@
     </button>
 </Tooltip>
 
-<Modal bind:open={isAudioPlayerModalOpen}>
+<Modal bind:open={isAudioPlayerModalOpen} closeWhenClickOutside={true}>
     <AudioPlayer {audioContents} />
 </Modal>
