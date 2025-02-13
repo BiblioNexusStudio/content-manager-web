@@ -13,24 +13,39 @@
     } from '$lib/types/resources';
     import type { ChangeTrackingStore } from '$lib/utils/change-tracking-store';
     import type { CommentStores } from '$lib/stores/comments';
-    import type { MachineTranslationStore } from '$lib/stores/machineTranslation';
 
-    export let editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
-    export let resourceContent: ResourceContent;
-    export let canEdit = false;
-    export let canComment = false;
-    export let wordCountsByStep: number[] | undefined = undefined;
-    export let characterCountsByStep: number[] = [];
-    export let snapshotOrVersion: Snapshot | Version | undefined = undefined;
-    export let selectedStepNumber: number | undefined;
-    export let sidebarIsOpen = false;
-    export let commentStores: CommentStores;
-    export let machineTranslationStore: MachineTranslationStore;
-    export let blurOnPendingAiTranslate = false;
-    export let isSourceContentArea = false;
+    interface ContentProps {
+        editableContentStore: ChangeTrackingStore<TiptapContentItem[]>;
+        resourceContent: ResourceContent;
+        canEdit?: boolean;
+        canComment?: boolean;
+        wordCountsByStep?: number[] | undefined;
+        characterCountsByStep?: number[];
+        snapshotOrVersion?: Snapshot | Version | undefined;
+        selectedStepNumber: number | undefined;
+        sidebarIsOpen?: boolean;
+        commentStores: CommentStores;
+        blurOnPendingAiTranslate?: boolean;
+        isSourceContentArea?: boolean;
+    }
 
-    $: imageContent = (snapshotOrVersion?.content ?? resourceContent.content) as ImageContentItem;
-    $: videoContent = (snapshotOrVersion?.content ?? resourceContent.content) as VideoContentItem;
+    let {
+        editableContentStore,
+        resourceContent,
+        canEdit = false,
+        canComment = false,
+        wordCountsByStep = $bindable(undefined),
+        characterCountsByStep = $bindable([]),
+        snapshotOrVersion = undefined,
+        selectedStepNumber = $bindable(),
+        sidebarIsOpen = false,
+        commentStores,
+        blurOnPendingAiTranslate = false,
+        isSourceContentArea = false,
+    }: ContentProps = $props();
+
+    let imageContent = $derived((snapshotOrVersion?.content ?? resourceContent.content) as ImageContentItem);
+    let videoContent = $derived((snapshotOrVersion?.content ?? resourceContent.content) as VideoContentItem);
 </script>
 
 {#if resourceContent.mediaType === MediaTypeEnum.image}
@@ -49,7 +64,6 @@
         {canEdit}
         {canComment}
         {commentStores}
-        {machineTranslationStore}
         {blurOnPendingAiTranslate}
         {isSourceContentArea}
     />
