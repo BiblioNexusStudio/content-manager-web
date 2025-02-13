@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
     // Must pass either `open` or `description` as a binding
     // If you pass `open`, then it will be used as the trigger for opening and closing
     // If you pass `description`, then it will be used as the trigger. `undefined` hides the modal and a string shows it.
@@ -11,6 +11,7 @@
     export let primaryButtonDisabled = false;
     export let isError = false;
     export let isTransacting = false;
+    export let closeWhenClickOutside = false;
 
     let dialog: HTMLDialogElement;
 
@@ -45,7 +46,18 @@
     }
 </script>
 
-<dialog bind:this={dialog} class="modal" on:close={close}>
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+<dialog
+    bind:this={dialog}
+    class="modal"
+    on:close={close}
+    on:keyup={(e) => e.key === 'Escape' && close()}
+    on:click={(e) => {
+        if (closeWhenClickOutside && e.target === dialog) {
+            close();
+        }
+    }}
+>
     <div class="modal-box">
         <form method="dialog">
             <button
