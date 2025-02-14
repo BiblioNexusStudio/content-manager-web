@@ -28,6 +28,7 @@
     let companies = $derived(data.companies);
     let roles = $derived(data.roles);
     const roleOptions = [UserRole.Editor, UserRole.Reviewer];
+    const userCanUpdate = $userCan(Permission.UpdateUser) || $userCan(Permission.UpdateUsersInCompany);
 
     const filterUsers = (users: User[], search: string | null, companyId: number | null) => {
         return users.filter(
@@ -131,7 +132,7 @@
                         <tr class="text-xs">
                             <td class="px-5">{user.name}</td>
                             <td class="px-5">{user.email}</td>
-                            {#if roleOptions.includes(user.role)}
+                            {#if roleOptions.includes(user.role) && userCanUpdate}
                                 <td>
                                     <Select
                                         class="select select-bordered select-sm"

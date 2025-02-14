@@ -9,8 +9,10 @@ export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
 
     if (
-        (get(userCan)(Permission.CreateUser) && get(userCan)(Permission.UpdateUser)) ||
-        (get(userCan)(Permission.CreateUserInCompany) && get(userCan)(Permission.UpdateUsersInCompany))
+        get(userCan)(Permission.CreateUser) ||
+        get(userCan)(Permission.UpdateUser) ||
+        get(userCan)(Permission.CreateUserInCompany) ||
+        get(userCan)(Permission.UpdateUsersInCompany)
     ) {
         const [users, companies] = await Promise.all([
             getFromApi<User[]>(`/users`, fetch),
