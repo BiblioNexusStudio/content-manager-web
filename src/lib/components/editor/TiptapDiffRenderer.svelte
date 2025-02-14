@@ -10,28 +10,40 @@
     import type { ScriptDirection } from '$lib/types/base';
     import { scrollSync } from '$lib/stores/scrollSync.svelte.ts';
 
-    export let tiptapJson: TiptapContentItem | undefined;
-    export let currentTiptapJsonForDiffing: TiptapContentItem | undefined;
-    export let languageScriptDirection: ScriptDirection | undefined;
+    interface TipTapDiffRendererProps {
+        tiptapJson: TiptapContentItem | undefined;
+        currentTiptapJsonForDiffing: TiptapContentItem | undefined;
+        languageScriptDirection: ScriptDirection | undefined;
+    }
 
-    $: calculateBaseHtmlWithTextDirection(tiptapJson);
-    $: debouncedGenerateDiffHtml(currentTiptapJsonForDiffing, baseHtmlWithTextDirection);
+    let { tiptapJson, currentTiptapJsonForDiffing, languageScriptDirection }: TipTapDiffRendererProps = $props();
 
     let diffWorker: Worker | null = null;
-    let diffedHtml: string | undefined;
+    let diffedHtml: string | undefined = $state();
     let currentTiptapJsonString: string | undefined;
     let previousBaseHtmlWithTextDirection: string | undefined;
-    let baseHtmlWithTextDirection: string | undefined;
+    let baseHtmlWithTextDirection: string | undefined = $state();
+    let lastProcessedTiptapJson: TiptapContentItem | undefined;
 
-    function calculateBaseHtmlWithTextDirection(tiptapJson: TiptapContentItem | undefined) {
+    $effect(() => {
+        // Skip if we've already processed this exact tiptapJson
+        if (tiptapJson === lastProcessedTiptapJson) return;
+
+        lastProcessedTiptapJson = tiptapJson;
+
         if (tiptapJson) {
-            const original = baseHtmlWithTextDirection;
-            baseHtmlWithTextDirection = generateHTMLIncludingTextDirection(tiptapJson, languageScriptDirection);
-            if (original !== baseHtmlWithTextDirection) {
+            const newBaseHtml = generateHTMLIncludingTextDirection(tiptapJson, languageScriptDirection);
+            if (newBaseHtml !== baseHtmlWithTextDirection) {
+                baseHtmlWithTextDirection = newBaseHtml;
                 diffedHtml = undefined;
+                debouncedGenerateDiffHtml(currentTiptapJsonForDiffing, newBaseHtml);
             }
         }
-    }
+    });
+
+    $effect(() => {
+        debouncedGenerateDiffHtml(currentTiptapJsonForDiffing, baseHtmlWithTextDirection);
+    });
 
     function generateHTMLIncludingTextDirection(
         tiptapJson: TiptapContentItem,

@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
     import type { Snippet } from 'svelte';
 
     // Must pass either `open` or `description` as a binding
@@ -16,6 +16,7 @@
         isTransacting?: boolean;
         children?: Snippet;
         additionalButtons?: Snippet;
+        closeWhenClickOutside?: boolean;
     }
 
     let {
@@ -27,6 +28,7 @@
         primaryButtonDisabled = false,
         isError = false,
         isTransacting = false,
+        closeWhenClickOutside = false,
         children,
         additionalButtons,
     }: Props = $props();
@@ -64,7 +66,18 @@
     }
 </script>
 
-<dialog bind:this={dialog} class="modal" onclose={close}>
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+<dialog
+    bind:this={dialog}
+    class="modal"
+    onclose={close}
+    onkeyup={(e) => e.key === 'Escape' && close()}
+    onclick={(e) => {
+        if (closeWhenClickOutside && e.target === dialog) {
+            close();
+        }
+    }}
+>
     <div class="modal-box">
         <form method="dialog">
             <button

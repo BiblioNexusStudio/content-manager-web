@@ -6,36 +6,62 @@
     import type { CommentStores } from '$lib/stores/comments';
     import { scrollSync } from '$lib/stores/scrollSync.svelte.ts';
     import type { Language } from '$lib/types/base';
+    import { createEditor } from './createEditor';
+    import type { Readable } from 'svelte/store';
 
-    export let language: Language;
-    export let tiptapJson: TiptapContentItem | undefined;
-    export let onChange: ((tiptapJson: object, wordCount: number, charCount: number) => void) | undefined = undefined;
-    export let onCreate: ((tiptapJson: object, wordCount: number, charCount: number) => void) | undefined = undefined;
-    export let editor: Editor | undefined = undefined;
-    export let canEdit: boolean;
-    export let canComment: boolean;
-    export let isLoading = false;
-    export let commentStores: CommentStores;
-    export let blurOnPendingAiTranslate = false;
-    export let isSourceContentArea = false;
+    interface TipTapRenderProps {
+        language: Language;
+        tiptapJson: TiptapContentItem | undefined;
+        onChange?: ((tiptapJson: object, wordCount: number, charCount: number) => void) | undefined;
+        onCreate?: ((tiptapJson: object, wordCount: number, charCount: number) => void) | undefined;
+        editor?: Readable<Editor> | undefined;
+        canEdit: boolean;
+        canComment: boolean;
+        isLoading?: boolean;
+        commentStores: CommentStores;
+        blurOnPendingAiTranslate?: boolean;
+        isSourceContentArea?: boolean;
+    }
 
-    let element: HTMLDivElement | undefined;
+    let {
+        language,
+        tiptapJson,
+        onChange = undefined,
+        onCreate = undefined,
+        editor = $bindable(),
+        canEdit,
+        canComment,
+        isLoading = $bindable(false),
+        commentStores,
+        blurOnPendingAiTranslate = false,
+        isSourceContentArea = false,
+    }: TipTapRenderProps = $props();
 
-    $: updateEditor(tiptapJson);
-    $: enableOrDisableEditing(canEdit);
+    let element: HTMLDivElement;
+    let lastProcessedTiptapJson: TiptapContentItem | undefined;
 
     function updateEditor(tiptapJson: TiptapContentItem | undefined) {
-        if (tiptapJson && editor) {
-            editor.commands.setContent(tiptapJson.tiptap);
+        if (tiptapJson && $editor) {
+            if (lastProcessedTiptapJson && tiptapJson.tiptap === lastProcessedTiptapJson.tiptap) return;
+
+            $editor?.commands.setContent(tiptapJson.tiptap);
+            lastProcessedTiptapJson = tiptapJson;
         }
     }
 
     function enableOrDisableEditing(canEdit: boolean) {
-        editor?.setEditable(canEdit);
+        $editor?.setEditable(canEdit);
     }
 
+    $effect(() => {
+        updateEditor(tiptapJson);
+    });
+    $effect(() => {
+        enableOrDisableEditing(canEdit);
+    });
+
     onMount(() => {
-        editor = new Editor({
+        editor = createEditor({
             element,
             editable: canEdit,
             extensions: extensions(canComment, commentStores, true, language.scriptDirection, isSourceContentArea),
@@ -46,18 +72,6 @@
             },
             content: tiptapJson?.tiptap,
             autofocus: true,
-            onTransaction: () => {
-                // force re-render so `editor.isActive` works as expected
-                editor = editor;
-
-                if (editor) {
-                    onChange?.(
-                        editor.getJSON(),
-                        editor.storage.characterCount.words(),
-                        editor.storage.characterCount.characters()
-                    );
-                }
-            },
             onUpdate: ({ editor }) => {
                 onChange?.(
                     editor.getJSON(),
@@ -78,7 +92,7 @@
     });
 
     onDestroy(() => {
-        editor?.destroy();
+        $editor?.destroy();
     });
 </script>
 

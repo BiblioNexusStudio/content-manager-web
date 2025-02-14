@@ -4,15 +4,29 @@
     import type { CommentStores } from '$lib/stores/comments';
     import type { Language } from '$lib/types/base';
 
-    export let language: Language;
-    export let wordCountsByStep: number[] = [];
-    export let characterCountsByStep: number[] = [];
-    export let itemIndex: number;
-    export let canEdit: boolean;
-    export let canComment: boolean;
-    export let commentStores: CommentStores;
-    export let tiptapJson: TiptapContentItem | undefined;
-    export let isSourceContentArea = false;
+    interface Props {
+        language: Language;
+        wordCountsByStep?: number[];
+        characterCountsByStep?: number[];
+        itemIndex: number;
+        canEdit: boolean;
+        canComment: boolean;
+        commentStores: CommentStores;
+        tiptapJson: TiptapContentItem | undefined;
+        isSourceContentArea?: boolean;
+    }
+
+    let {
+        language,
+        wordCountsByStep = $bindable([]),
+        characterCountsByStep = $bindable([]),
+        itemIndex,
+        canEdit,
+        canComment,
+        commentStores,
+        tiptapJson,
+        isSourceContentArea = false,
+    }: Props = $props();
 
     function onChange(tiptapJson: object, wordCount: number, charCount: number) {
         wordCountsByStep[itemIndex] = wordCount;
