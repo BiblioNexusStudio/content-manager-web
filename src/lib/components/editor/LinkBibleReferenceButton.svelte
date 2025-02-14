@@ -8,65 +8,75 @@
     import Select from '../Select.svelte';
     import CenteredSpinner from '../CenteredSpinner.svelte';
     import type { BibleBook } from '$lib/types/base';
-    import { onMount } from 'svelte';
+    import { onMount, untrack } from 'svelte';
     import { deleteToApi, postToApi, getFromApi } from '$lib/utils/http-service';
     import { parseBibleReferences } from '../tiptap/extensions/bible-reference';
     import type { ResourceContent } from '$lib/types/resources';
     import { BibleReference, ResourceReference } from 'aquifer-tiptap';
 
     const isPageTransacting = getIsPageTransactingContext();
-    let bibleBooksPromise: Promise<BibleBook[] | null> | null = null;
-    let bibleBooks: BibleBook[] | null = null;
 
-    $: {
-        if (!isModalOpen) {
-            bookId = 0;
-            startChapter = 0;
-            startVerse = 0;
-            endChapter = 0;
-            endVerse = 0;
-            isRange = false;
-            existingReference = false;
-            updateAssociation = false;
-            isTransactingAdd = false;
-            isTransactingRemove = false;
-            isError = false;
-        }
+    interface Props {
+        editor: Editor;
+        resourceContent: ResourceContent;
+        languageId: number;
     }
 
-    export let resourceContent: ResourceContent;
-    export let editor: Editor;
-    export let languageId: number;
+    $effect(() => {
+        if (!isModalOpen) {
+            untrack(() => {
+                bookId = 0;
+                startChapter = 0;
+                startVerse = 0;
+                endChapter = 0;
+                endVerse = 0;
+                isRange = false;
+                existingReference = false;
+                updateAssociation = false;
+                isTransactingAdd = false;
+                isTransactingRemove = false;
+                isError = false;
+            });
+        }
+    });
 
-    let isTransactingAdd = false;
-    let isTransactingRemove = false;
-    let isModalOpen = false;
-    let existingReference = false;
-    let isRange = false;
-    let bookId = 0;
-    let startChapter = 0;
-    let startVerse = 0;
-    let endChapter = 0;
-    let endVerse = 0;
-    let isError = false;
-    let updateAssociation = false;
+    let { editor, resourceContent, languageId }: Props = $props();
 
-    $: disabled =
+    let bibleBooksPromise: Promise<BibleBook[] | null> | null = $state(null);
+    let bibleBooks: BibleBook[] | null = $state(null);
+
+    let isTransactingAdd = $state(false);
+    let isTransactingRemove = $state(false);
+    let isModalOpen = $state(false);
+    let existingReference = $state(false);
+    let isRange = $state(false);
+    let bookId = $state(0);
+    let startChapter = $state(0);
+    let startVerse = $state(0);
+    let endChapter = $state(0);
+    let endVerse = $state(0);
+    let isError = $state(false);
+    let updateAssociation = $state(false);
+
+    let disabled = $derived(
         $isPageTransacting ||
-        getMarkAttributes(editor.state, ResourceReference.name)?.resourceId ||
-        (editor.state.selection.empty && !getMarkAttributes(editor.state, BibleReference.name)?.verses);
-
-    $: selectedBook = bibleBooks?.find((b) => b.number === bookId);
-    $: selectedStartChapter = selectedBook?.chapters.find((c) => c.number === startChapter);
-    $: selectedEndChapter = selectedBook?.chapters.find((c) => c.number === endChapter);
-
-    $: startVerseInvalid = bookId === 0 || startChapter === 0 || startVerse === 0;
-    $: endVerseInvalid = isRange && (endChapter === 0 || endVerse === 0);
+            getMarkAttributes(editor.state, ResourceReference.name)?.resourceId ||
+            (editor.state.selection.empty && !getMarkAttributes(editor.state, BibleReference.name)?.verses)
+    );
 
     onMount(async () => {
         bibleBooksPromise = getFromApi<BibleBook[]>('/bibles/1/books', fetch);
         bibleBooks = await bibleBooksPromise;
     });
+
+    let selectedBook = $derived.by(() => bibleBooks?.find((b) => b.number === bookId));
+    let selectedStartChapter = $derived.by(() => selectedBook?.chapters.find((c) => c.number === startChapter));
+    let selectedEndChapter = $derived.by(() => selectedBook?.chapters.find((c) => c.number === endChapter));
+
+    let startVerseInvalid = $derived(bookId === 0 || startChapter === 0 || startVerse === 0);
+    let endVerseInvalid = $derived(isRange && (endChapter === 0 || endVerse === 0));
+
+    $inspect(selectedEndChapter);
 
     async function removeLink() {
         isTransactingRemove = true;
@@ -239,7 +249,7 @@
         data-app-insights-event-name="editor-toolbar-bible-reference-click"
         class="btn btn-xs px-1 {disabled && '!bg-base-200'} btn-link hover:bg-[#e6f7fc]"
         {disabled}
-        on:click={openModal}
+        onclick={openModal}
     >
         <div class="mt-[-1px] scale-[85%]">
             <BookIcon />
@@ -319,7 +329,7 @@
                 />
             </div>
             <label class="flex items-center">
-                <input type="checkbox" class="mr-2" checked={isRange} on:change={toggleVerseRange} />
+                <input type="checkbox" class="mr-2" checked={isRange} onchange={toggleVerseRange} />
                 <span>Verse range</span>
             </label>
         </div>
@@ -341,6 +351,9 @@
                         bind:value={endChapter}
                         onChange={() => {
                             endVerse = 0;
+                            if (startVerse === 0) {
+                                startVerse = 1;
+                            }
                         }}
                     />
                     <Select
@@ -352,7 +365,7 @@
                                 ? Array.from(
                                       {
                                           length:
-                                              endChapter === startChapter
+                                              endChapter === startChapter && startVerse
                                                   ? selectedEndChapter.totalVerses - startVerse + 1
                                                   : selectedEndChapter.totalVerses,
                                       },
@@ -380,9 +393,9 @@
             </label>
         {/if}
     {/await}
-    <svelte:fragment slot="additional-buttons">
+    {#snippet additionalButtons()}
         {#if existingReference}
-            <button disabled={isTransactingRemove} class="btn btn-error" on:click={removeLink}>
+            <button disabled={isTransactingRemove} class="btn btn-error" onclick={removeLink}>
                 {#if isTransactingRemove}
                     <span class="loading loading-spinner"></span>
                 {:else}
@@ -390,5 +403,5 @@
                 {/if}
             </button>
         {/if}
-    </svelte:fragment>
+    {/snippet}
 </Modal>

@@ -37,7 +37,7 @@
     let newKey = $state('');
     let newValue = $state('');
     let currentDeleteTranslationPairId = 0;
-    let errorMessage = $state('');
+    let errorMessage: string | null = $state(null);
     let openErrorModal = $state(false);
     let table: Table<TranslationPair> | undefined = $state(undefined);
 
