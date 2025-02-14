@@ -8,7 +8,7 @@
     interface Props {
         open?: boolean;
         description?: string | null;
-        header: string;
+        header?: string;
         primaryButtonText?: string | null;
         primaryButtonOnClick?: (() => Promise<void>) | (() => void);
         primaryButtonDisabled?: boolean;
@@ -73,7 +73,11 @@
                 onclick={close}>✕</button
             >
         </form>
-        <h3 class="w-full pb-4 text-center text-xl font-bold {isError && 'text-error'}">{header}</h3>
+        {#if header}
+            <h3 class="w-full pb-4 text-center text-xl font-bold {isError && 'text-error'}">{header}</h3>
+        {:else}
+            <div class="w-full pb-4"></div>
+        {/if}
 
         {#if description}
             <p class="py-4 text-lg {isError && 'text-error'}">
