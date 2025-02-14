@@ -9,7 +9,7 @@
         isOpen?: boolean;
     }
 
-    let { bibleTextsReferences, collapsible = false, isOpen = $bindable(true) }: Props = $props();
+    let { bibleTextsReferences, collapsible = false, isOpen = true }: Props = $props();
 
     let titleDiv: HTMLDivElement | null = $state(null);
 
