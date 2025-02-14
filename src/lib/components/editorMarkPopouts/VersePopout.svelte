@@ -6,15 +6,19 @@
     import { type BibleTextsReference, fetchAndFormat } from '$lib/components/references/bibleTextReferenceFetcher';
     import type { Language } from '$lib/types/base';
 
-    export let language: Language;
-    export let languages: Language[];
+    interface Props {
+        language: Language;
+        languages: Language[];
+    }
 
-    let markSpan: HTMLElement | null;
-    let show = false;
-    let container: HTMLDivElement | undefined;
+    let { language, languages }: Props = $props();
+
+    let markSpan: HTMLElement | null = $state(null);
+    let show = $state(false);
+    let container: HTMLDivElement | undefined = $state();
     let bubblingClick = false;
-    let bibleTextsReferences: BibleTextsReference[] | null;
-    let failedFetch = false;
+    let bibleTextsReferences: BibleTextsReference[] | null = $state(null);
+    let failedFetch = $state(false);
 
     onMount(() => {
         window.onBibleReferenceClick = async (spanId, verses, isSourceContentArea) => {
@@ -67,7 +71,7 @@
     };
 </script>
 
-<svelte:window on:click={onAnyClick} />
+<svelte:window onclick={onAnyClick} />
 
 {#if bibleTextsReferences?.length}
     <MarkPopout bind:show bind:markSpan bind:container>
