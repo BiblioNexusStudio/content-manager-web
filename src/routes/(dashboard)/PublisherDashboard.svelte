@@ -31,6 +31,9 @@
     import type { NotApplicableContent } from './+page';
     import { _PublisherTab as Tab } from './+page';
     import { untrack } from 'svelte';
+    import { parseApiValidatorErrorMessage } from '$lib/utils/http-errors';
+    import { Icon } from 'svelte-awesome';
+    import volumeUp from 'svelte-awesome/icons/volumeUp';
 
     interface Props {
         data: PageData;
@@ -48,6 +51,7 @@
     let assignToUserId: number | null = $state(null);
     let isAssignContentModalOpen = $state(false);
     let isConfirmPublishModalOpen = $state(false);
+    let isCreateNewResourceItemModalOpen = $state(false);
     let errorModalText: string | null = $state(null);
     let isTransacting = $state(false);
 
@@ -71,6 +75,11 @@
     });
 
     let search = $state('');
+
+    let createNewResourceLanguage: number = $state(1);
+    let createNewResourceEnglishLabel: string = $state('');
+    let createNewResourceLanguageTitle: string = $state('');
+    let parentResourceIdForNewResource: number = $state(0);
 
     const searchParams = searchParameters(
         {
@@ -163,6 +172,46 @@
             window.location.reload();
         } catch {
             errorModalText = 'Error while publishing content.';
+            isTransacting = false;
+        }
+    }
+
+    async function createResourceItem() {
+        isTransacting = true;
+
+        try {
+            await postToApi<{ resourceContentId: number }>(`/resources/content`, {
+                languageId: createNewResourceLanguage,
+                englishLabel: createNewResourceEnglishLabel,
+                parentResourceId: parentResourceIdForNewResource,
+                languageTitle:
+                    createNewResourceLanguageTitle.length > 0
+                        ? createNewResourceLanguageTitle
+                        : createNewResourceEnglishLabel,
+            });
+            isTransacting = false;
+            window.location.reload();
+        } catch (e) {
+            createNewResourceLanguage = 1;
+            createNewResourceEnglishLabel = '';
+            parentResourceIdForNewResource = 0;
+
+            const validatorError = parseApiValidatorErrorMessage(e, [
+                'languageId',
+                'englishLabel',
+                'parentResourceId',
+                'languageTitle',
+            ]);
+
+            if (validatorError && typeof validatorError === 'string') {
+                errorModalText = validatorError;
+            } else if (e instanceof Error) {
+                const match = e.message.match(/Body: "(.*)"/);
+                errorModalText = match ? (match[1] ?? null) : 'An error occurred while creating the resource item.';
+            } else {
+                errorModalText = 'An error occurred while creating the resource item.';
+            }
+
             isTransacting = false;
         }
     }
@@ -296,6 +345,15 @@
         sortPendingData(currentCommunityPendingContents, $searchParams.sort)
     );
     let sortedCurrentAssignedProjects = $derived(sortAssignedProjectData(currentAssignedProjects, $searchParams.sort));
+
+    $effect(() => {
+        if (!isCreateNewResourceItemModalOpen) {
+            createNewResourceLanguage = 1;
+            createNewResourceEnglishLabel = '';
+            createNewResourceLanguageTitle = '';
+            parentResourceIdForNewResource = 0;
+        }
+    });
 </script>
 
 <div class="flex flex-col overflow-y-hidden px-4">
@@ -400,6 +458,15 @@
                     </button>
                 </Tooltip>
             {/if}
+            {#if $searchParams.tab === Tab.myWork}
+                <button
+                    data-app-insights-event-name="publisher-dashboard-create-resource-item-click"
+                    class="btn btn-outline btn-primary ms-4"
+                    onclick={() => (isCreateNewResourceItemModalOpen = true)}
+                    disabled={false}
+                    >Create Resource Item
+                </button>
+            {/if}
         </div>
     {/if}
     {#if $searchParams.tab === Tab.myProjects}
@@ -427,6 +494,12 @@
                 {#snippet tableCells(item, href, itemKey)}
                     {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
                         <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'hasAudio'}
+                        <TableCell>
+                            {#if item.hasAudio}
+                                <Icon data={volumeUp} class="h-4 w-4" />
+                            {/if}
+                        </TableCell>
                     {:else if href !== undefined && itemKey}
                         <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                     {:else if itemKey}
@@ -452,6 +525,12 @@
                 {#snippet tableCells(item, href, itemKey)}
                     {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
                         <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'hasAudio'}
+                        <TableCell>
+                            {#if item.hasAudio}
+                                <Icon data={volumeUp} class="h-4 w-4" />
+                            {/if}
+                        </TableCell>
                     {:else if href !== undefined && itemKey}
                         <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                     {:else if itemKey}
@@ -513,6 +592,12 @@
                 {#snippet tableCells(item, href, itemKey)}
                     {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
                         <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                    {:else if itemKey === 'hasAudio'}
+                        <TableCell>
+                            {#if item.hasAudio}
+                                <Icon data={volumeUp} class="h-4 w-4" />
+                            {/if}
+                        </TableCell>
                     {:else if href !== undefined && itemKey}
                         <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                     {:else if itemKey}
@@ -558,5 +643,49 @@
     description="The {selectedMyWorkTableItems.length} selected resource items will be published immediately."
     {isTransacting}
 />
+
+<Modal
+    header="Create Resource Item"
+    bind:open={isCreateNewResourceItemModalOpen}
+    primaryButtonText="Create"
+    primaryButtonOnClick={createResourceItem}
+    primaryButtonDisabled={!createNewResourceLanguage ||
+        createNewResourceEnglishLabel.length < 2 ||
+        !parentResourceIdForNewResource ||
+        (createNewResourceLanguage > 1 && createNewResourceLanguageTitle.length < 2)}
+    {isTransacting}
+>
+    <h3 class="mb-4 text-xl">Language</h3>
+    <Select
+        class="select select-bordered mb-4 min-w-[14rem] flex-grow"
+        bind:value={createNewResourceLanguage}
+        isNumber={true}
+        options={[...data.languages.map((l) => ({ value: l.id, label: l.englishDisplay }))]}
+    />
+    <h3 class="my-4 text-xl">Resource Information</h3>
+    <Select
+        appInsightsEventName="resources-resources-filter-selection"
+        bind:value={parentResourceIdForNewResource}
+        isNumber={true}
+        class="select select-bordered mb-4 min-w-[14rem] flex-grow"
+        options={[
+            { value: 0, label: 'All Resources' },
+            ...data.parentResources.map((t) => ({ value: t.id, label: t.displayName })),
+        ]}
+    />
+    <input
+        type="text"
+        class="input input-bordered mb-4 w-full"
+        placeholder="English Label"
+        bind:value={createNewResourceEnglishLabel}
+    />
+    <input
+        type="text"
+        class="input input-bordered mb-6 w-full"
+        placeholder="Language Title"
+        disabled={createNewResourceLanguage === 1}
+        bind:value={createNewResourceLanguageTitle}
+    />
+</Modal>
 
 <Modal header="Error" bind:description={errorModalText} isError={true} />

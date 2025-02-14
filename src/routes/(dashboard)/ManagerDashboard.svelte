@@ -24,6 +24,8 @@
         userWordCountColumns,
     } from './manager-dashboard-columns';
     import { untrack } from 'svelte';
+    import { Icon } from 'svelte-awesome';
+    import volumeUp from 'svelte-awesome/icons/volumeUp';
 
     interface Props {
         data: PageData;
@@ -66,8 +68,6 @@
 
     let search = $state('');
 
-    let isFilteringUnresolved = $state(false);
-
     const sortAssignedData = createManagerDashboardSorter<ResourceAssignedToSelf>();
     const sortManageData = createManagerDashboardSorter<ResourceAssignedToOwnCompany>();
     const sortUserWordCountData = createUserWordCountSorter();
@@ -91,6 +91,7 @@
             assignedUserId: ssp.number(0),
             project: ssp.string(''),
             lastAssignedId: ssp.number(0),
+            isFilteringUnresolved: ssp.boolean(false),
         },
         { runLoadAgainWhenParamsChange: false }
     );
@@ -169,7 +170,7 @@
             $searchParams.project,
             $searchParams.lastAssignedId,
             search,
-            isFilteringUnresolved
+            $searchParams.isFilteringUnresolved
         )
     );
     let anyRowSelected = $derived(
@@ -396,8 +397,8 @@
             <label class="label cursor-pointer py-0 opacity-70">
                 <input
                     type="checkbox"
-                    bind:checked={isFilteringUnresolved}
-                    data-app-insights-event-name="manager-dashboard-has-unresolved-comments-toggle-{isFilteringUnresolved
+                    bind:checked={$searchParams.isFilteringUnresolved}
+                    data-app-insights-event-name="manager-dashboard-has-unresolved-comments-toggle-{$searchParams.isFilteringUnresolved
                         ? 'off'
                         : 'on'}"
                     class="checkbox no-animation checkbox-sm me-2"
@@ -455,6 +456,12 @@
                     >
                 {:else if itemKey === 'lastAssignedUser'}
                     <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
+                {:else if itemKey === 'hasAudio'}
+                    <TableCell>
+                        {#if item.hasAudio}
+                            <Icon data={volumeUp} class="h-4 w-4" />
+                        {/if}
+                    </TableCell>
                 {:else if href !== undefined && itemKey}
                     <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                 {:else if itemKey}
@@ -485,6 +492,12 @@
                         <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
                             >{item[itemKey] ?? ''}</LinkedTableCell
                         >
+                    {:else if itemKey === 'hasAudio'}
+                        <TableCell>
+                            {#if item.hasAudio}
+                                <Icon data={volumeUp} class="h-4 w-4" />
+                            {/if}
+                        </TableCell>
                     {:else if href !== undefined && itemKey}
                         <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                     {:else if itemKey}
@@ -533,6 +546,12 @@
                         >
                     {:else if itemKey === 'lastAssignedUser'}
                         <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
+                    {:else if itemKey === 'hasAudio'}
+                        <TableCell>
+                            {#if item.hasAudio}
+                                <Icon data={volumeUp} class="h-4 w-4" />
+                            {/if}
+                        </TableCell>
                     {:else if href !== undefined && itemKey}
                         <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                     {:else if itemKey}

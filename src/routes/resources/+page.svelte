@@ -9,9 +9,11 @@
     import { enterKeyHandler } from '$lib/utils/enter-key-action';
     import Select from '$lib/components/Select.svelte';
     import { numbersRangeToString, parseStartAndEndFromSingleOrRangeString } from '$lib/utils/number-list-parser';
-    import type { BibleBook } from '$lib/types/base';
+    import { type BibleBook } from '$lib/types/base';
     import LinkedTableCell from '$lib/components/LinkedTableCell.svelte';
     import ErrorMessage from '$lib/components/ErrorMessage.svelte';
+    import { Icon } from 'svelte-awesome';
+    import { volumeUp } from 'svelte-awesome/icons';
 
     export let data: PageData;
 
@@ -193,7 +195,8 @@
                     <tr class="bg-gray-100">
                         <th class="w-[30%]">{$translate('page.resources.table.nameHeader.value')}</th>
                         <th class="w-[20%]">{$translate('page.resources.table.typeHeader.value')}</th>
-                        <th class="w-[20%]">{$translate('page.resources.table.languageHeader.value')}</th>
+                        <th class="w-[5%]"></th>
+                        <th class="w-[15%]">{$translate('page.resources.table.languageHeader.value')}</th>
                         <th class="w-[20%]">{$translate('page.resources.table.statusHeader.value')}</th>
                         <th class="w-[10%]">{$translate('page.resources.table.publishedHeader.value')}</th>
                     </tr>
@@ -205,6 +208,11 @@
                             <tr class="hover">
                                 <LinkedTableCell {href}>{resource.englishLabel}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.parentResourceName}</LinkedTableCell>
+                                <LinkedTableCell {href}>
+                                    {#if resource.hasAudio}
+                                        <Icon data={volumeUp} class="h-4 w-4" />
+                                    {/if}
+                                </LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.languageEnglishDisplay}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.status}</LinkedTableCell>
                                 <LinkedTableCell {href}>{resource.isPublished ? 'Yes' : 'No'}</LinkedTableCell>

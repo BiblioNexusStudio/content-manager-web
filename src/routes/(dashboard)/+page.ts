@@ -6,6 +6,7 @@ import type { BibleBook, ResourceContentStatusEnum } from '$lib/types/base';
 import { redirect } from '@sveltejs/kit';
 import type { ProjectResourceStatusCounts } from '$lib/types/projects';
 import type { ResourceContentVersionReviewLevel } from '$lib/types/resources';
+import type { HelpDocumentResponse } from '$lib/types/helpDocuments';
 
 export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
@@ -45,13 +46,21 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             },
         };
     } else if (get(userCan)(Permission.CreateCommunityContent)) {
-        const [assignedResourceContent, assignedResourceHistoryContent, bibleBooks] = await Promise.all([
+        const [assignedResourceContent, assignedResourceHistoryContent, bibleBooks, helpDocs] = await Promise.all([
             fetchAssignedResourceContent(fetch),
             getFromApi<ResourceAssignedToSelfHistory[]>('/resources/content/assigned-to-self/history', fetch),
             getFromApi<BibleBook[]>('/bibles/1/books', fetch),
+            getFromApi<HelpDocumentResponse>('/help/aquifer-cms/documents', fetch),
         ]);
 
-        return { communityReviewerDashboard: { assignedResourceContent, assignedResourceHistoryContent, bibleBooks } };
+        return {
+            communityReviewerDashboard: {
+                assignedResourceContent,
+                assignedResourceHistoryContent,
+                bibleBooks,
+                helpDocs,
+            },
+        };
     } else if (get(userCan)(Permission.EditContent)) {
         const [assignedResourceContent, assignedResourceHistoryContent] = await Promise.all([
             fetchAssignedResourceContent(fetch),
@@ -73,6 +82,7 @@ function fetchAssignedResourceContent(injectedFetch: typeof window.fetch) {
 export enum _CommunityReviewerTab {
     resources = 'resources',
     myHistory = 'my-history',
+    help = 'help',
 }
 
 export enum _PublisherTab {
@@ -126,6 +136,7 @@ export interface ResourcesSummary {
 export interface ResourceAssignedToSelf {
     id: number;
     englishLabel: string;
+    hasAudio: boolean;
     languageEnglishDisplay: string;
     parentResourceName: string;
     daysSinceAssignment: number;
@@ -150,6 +161,7 @@ export interface ResourceThatNeedsTranslation {
     id: number;
     englishLabel: string;
     parentResourceName: string;
+    hasAudio: boolean;
     wordCount: number | null;
 }
 
@@ -157,6 +169,7 @@ export interface ResourceAssignedToSelfHistory {
     id: number;
     englishLabel: string;
     parentResourceName: string;
+    hasAudio: boolean;
     lastActionTime: string;
     sourceWords: number | null;
     sortOrder: number;
@@ -176,6 +189,7 @@ export interface ResourcePendingReview {
     id: number;
     englishLabel: string;
     parentResourceName: string;
+    hasAudio: boolean;
     languageEnglishDisplay: string;
     projectName: string | null;
     daysSinceStatusChange: number;
@@ -194,6 +208,7 @@ export interface UserWordCount {
 
 export interface NotApplicableContent {
     id: number;
+    hasAudio: boolean;
     language: string;
     parentResourceName: string;
     title: string;

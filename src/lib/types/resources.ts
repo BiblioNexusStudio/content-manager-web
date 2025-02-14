@@ -50,7 +50,23 @@ export interface ImageContentItem {
     displayName: string;
 }
 
-export type Content = ImageContentItem | VideoContentItem | TiptapContentItem[];
+export interface AudioContentItem {
+    mp3: AudioContentItemDetails;
+    webm: AudioContentItemDetails;
+}
+
+export interface AudioContentItemDetails {
+    size: number;
+    steps?: AudioContentStepItem[];
+    url: string;
+}
+
+export interface AudioContentStepItem {
+    file: string;
+    stepNumber: number;
+}
+
+export type Content = ImageContentItem | VideoContentItem | AudioContentItem | TiptapContentItem[];
 
 export interface AssociatedResource {
     contentId: number | null;
@@ -102,6 +118,8 @@ export interface ResourceContent {
     commentThreads: CommentThreadsResponse;
     machineTranslations: MachineTranslation[];
     reviewLevel: ResourceContentVersionReviewLevel;
+    hasAudio: boolean;
+    audioResources: AudioContentResponse[];
 }
 
 export interface ResourceContentNextUpInfo {
@@ -194,4 +212,8 @@ export interface Assignment {
 export enum ResourceContentVersionReviewLevel {
     community = 'Community',
     professional = 'Professional',
+}
+
+export interface AudioContentResponse {
+    contentId: number;
 }

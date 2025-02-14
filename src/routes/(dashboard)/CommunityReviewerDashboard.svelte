@@ -16,8 +16,11 @@
     import type { BibleBook } from '$lib/types/base';
     import { parseStartAndEndFromSingleOrRangeString } from '$lib/utils/number-list-parser';
     import { debounce } from '$lib/utils/debounce';
-    import { untrack } from 'svelte';
+    import { onMount, untrack } from 'svelte';
     import { _CommunityReviewerTab as Tab } from './+page';
+    import { Icon } from 'svelte-awesome';
+    import volumeUp from 'svelte-awesome/icons/volumeUp';
+    import Document from '$lib/components/help/Document.svelte';
 
     const sortMyHistoryData = createEditorDashboardMyHistorySorter();
 
@@ -31,6 +34,11 @@
     let myAssignedContents = $derived(data.communityReviewerDashboard!.assignedResourceContent);
     let myHistoryContents = $derived(data.communityReviewerDashboard!.assignedResourceHistoryContent);
     let currentlyReviewingItem = $derived(myAssignedContents[0]);
+    let helpDocs = $derived.by(() => {
+        return data.communityReviewerDashboard!.helpDocs?.howTos.filter((item) => {
+            return item.title === 'Commenting' || item.title === 'Versions and Bible Panes';
+        });
+    });
 
     const switchTabs = (tab: Tab) => {
         if ($searchParams.tab !== tab) {
@@ -135,6 +143,12 @@
     function calculateMaxChapter(bibleBooks: BibleBook[]) {
         return bibleBooks.find((b) => b.code === bookCode)?.totalChapters ?? 0;
     }
+
+    onMount(() => {
+        const viewedHelpTab = localStorage.getItem('communityReviewerHasViewedHelpTab');
+        $searchParams.tab = viewedHelpTab === 'true' ? Tab.resources : Tab.help;
+        localStorage.setItem('communityReviewerHasViewedHelpTab', 'true');
+    });
 </script>
 
 <div class="flex h-full flex-col space-y-4 overflow-y-hidden px-4">
@@ -159,6 +173,11 @@
                 role="tab"
                 class="tab {$searchParams.tab === Tab.myHistory && 'tab-active'}"
                 >My History ({myHistoryContents.length})</button
+            >
+            <button
+                onclick={() => switchTabs(Tab.help)}
+                role="tab"
+                class="tab {$searchParams.tab === Tab.help && 'tab-active'}">Help</button
             >
         </div>
     </div>
@@ -226,6 +245,12 @@
             {#snippet tableCells(item, href, itemKey)}
                 {#if href !== undefined && itemKey}
                     <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                {:else if itemKey === 'hasAudio'}
+                    <TableCell>
+                        {#if item.hasAudio}
+                            <Icon data={volumeUp} class="h-4 w-4" />
+                        {/if}
+                    </TableCell>
                 {:else if itemKey}
                     <TableCell>{item[itemKey] ?? ''}</TableCell>
                 {/if}
@@ -247,6 +272,12 @@
                     <LinkedTableCell {href}
                         >{utcDateTimeStringToDateTime(item[itemKey]).toLocaleDateString()}</LinkedTableCell
                     >
+                {:else if itemKey === 'hasAudio'}
+                    <TableCell>
+                        {#if item.hasAudio}
+                            <Icon data={volumeUp} class="h-4 w-4" />
+                        {/if}
+                    </TableCell>
                 {:else if href !== undefined && itemKey}
                     <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
                 {:else if itemKey}
@@ -254,5 +285,11 @@
                 {/if}
             {/snippet}
         </Table>
+    {:else if $searchParams.tab === Tab.help}
+        <div class="flex">
+            {#each helpDocs as document (document.title)}
+                <Document {document} />
+            {/each}
+        </div>
     {/if}
 </div>
