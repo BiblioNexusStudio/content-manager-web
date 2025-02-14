@@ -2,14 +2,25 @@
     import Select from '$lib/components/Select.svelte';
     import type { BasicUser } from '$lib/types/base';
 
-    export let users: BasicUser[] | null;
-    export let selectedUserId: number | null;
-    export let disabled = false;
-    export let defaultLabel: string;
-    export let hideUser: BasicUser | null = null;
+    interface Props {
+        users: BasicUser[] | null;
+        selectedUserId: number | null;
+        disabled?: boolean;
+        defaultLabel: string;
+        hideUser?: BasicUser | null;
+    }
 
-    $: filteredUserOptions =
-        users?.filter((u) => u.id !== hideUser?.id).map((u) => ({ value: u.id, label: u.name })) ?? [];
+    let {
+        users,
+        selectedUserId = $bindable(),
+        disabled = $bindable(false),
+        defaultLabel,
+        hideUser = null,
+    }: Props = $props();
+
+    let filteredUserOptions = $derived(
+        users?.filter((u) => u.id !== hideUser?.id).map((u) => ({ value: u.id, label: u.name })) ?? []
+    );
 </script>
 
 <Select

@@ -1,14 +1,19 @@
 ﻿<script lang="ts">
-    export let markSpan: HTMLElement | null;
-    export let container: HTMLDivElement | undefined = undefined;
-    export let show = false;
+    interface Props {
+        markSpan: HTMLElement | null;
+        container?: HTMLDivElement | undefined;
+        show?: boolean;
+        children?: import('svelte').Snippet;
+    }
 
-    let windowInnerWidth = 0;
-    let windowInnerHeight = 0;
+    let { markSpan = $bindable(null), container = $bindable(), show = $bindable(false), children }: Props = $props();
 
-    $: spanRect = (windowInnerWidth || windowInnerHeight) && markSpan?.getBoundingClientRect();
-    $: heightAtBottom = (spanRect && windowInnerHeight - spanRect.bottom - 10) ?? 0;
-    $: parentHeight = container?.getBoundingClientRect()?.height ?? 0;
+    let windowInnerWidth = $state(0);
+    let windowInnerHeight = $state(0);
+
+    let spanRect = $derived((windowInnerWidth || windowInnerHeight) && markSpan?.getBoundingClientRect());
+    let heightAtBottom = $derived((spanRect && windowInnerHeight - spanRect.bottom - 10) ?? 0);
+    let parentHeight = $derived(container?.getBoundingClientRect()?.height ?? 0);
 </script>
 
 <svelte:window bind:innerWidth={windowInnerWidth} bind:innerHeight={windowInnerHeight} />
@@ -23,7 +28,7 @@
                 ? `top:${spanRect.top - parentHeight - 5}px; max-height:400px;`
                 : `top:${spanRect.bottom}px; max-height:${heightAtBottom}px;`}"
         >
-            <slot />
+            {@render children?.()}
         </div>
     {/key}
 {/if}

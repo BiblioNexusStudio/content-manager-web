@@ -154,7 +154,7 @@
     {/if}
 </svelte:head>
 
-<svelte:window on:error={onError} on:unhandledrejection={onRejection} on:click={onInteraction} />
+<svelte:window onerror={onError} onunhandledrejection={onRejection} onclick={onInteraction} />
 
 {#if $sideBarHiddenOnPage}
     {@render children()}

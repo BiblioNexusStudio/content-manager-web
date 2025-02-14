@@ -61,7 +61,7 @@
     };
 </script>
 
-<svelte:window on:click={onAnyClick} />
+<svelte:window onclick={onAnyClick} />
 
 <MarkPopout bind:show bind:container bind:markSpan>
     <CommentThread
