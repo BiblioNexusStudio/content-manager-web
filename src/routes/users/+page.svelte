@@ -61,7 +61,7 @@
     const onChangeRole = async (role: UserRole, userId: number) => {
         try {
             $isPageTransacting = true;
-            await patchToApi(`/users/${userId}`, { role });
+            await patchToApi(`/users/${userId}`, { role: role, userId: userId });
         } catch (e) {
             isShowingErrorModal = true;
         } finally {
