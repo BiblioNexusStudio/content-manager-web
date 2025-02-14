@@ -98,7 +98,7 @@
     const promptForMachineTranslationRating = machineTranslationStore.promptForRating;
 
     // --- modal states ---
-    let errorModalMessage: string | undefined = $state(undefined);
+    let errorModalMessage: string | null = $state(null);
     let isAddTranslationModalOpen = $state(false);
     let isPublishModalOpen = $state(false);
     let isAssignUserModalOpen = $state(false);
@@ -1133,7 +1133,7 @@
             existingTranslations={resourceContent?.contentTranslations ?? []}
             bind:selectedLanguageId={newTranslationLanguageId}
         />
-        <div slot="additional-buttons">
+        {#snippet additionalButtons()}
             {#if englishContentTranslation?.hasDraft}
                 <div>
                     <label class="label cursor-pointer">
@@ -1146,7 +1146,7 @@
                     </label>
                 </div>
             {/if}
-        </div>
+        {/snippet}
     </Modal>
 
     <Modal header="Error" isError={true} bind:description={errorModalMessage} />

@@ -293,7 +293,7 @@
             {/if}
         </div>
     {/if}
-    <svelte:fragment slot="additional-buttons">
+    {#snippet additionalButtons()}
         {#if existingReference && !isLoading}
             <div class="grow"></div>
             <button disabled={isTransactingRemove} class="btn btn-error" on:click={removeLink}>
@@ -304,5 +304,5 @@
                 {/if}
             </button>
         {/if}
-    </svelte:fragment>
+    {/snippet}
 </Modal>

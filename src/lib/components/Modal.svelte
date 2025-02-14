@@ -1,36 +1,56 @@
 <script lang="ts">
+    import type { Snippet } from 'svelte';
+
     // Must pass either `open` or `description` as a binding
     // If you pass `open`, then it will be used as the trigger for opening and closing
-    // If you pass `description`, then it will be used as the trigger. `undefined` hides the modal and a string shows it.
+    // If you pass `description`, then it will be used as the trigger. `null` hides the modal and a string shows it.
 
-    export let open: boolean | undefined = undefined;
-    export let description: string | undefined = undefined;
-    export let header = '';
-    export let primaryButtonText: string | undefined | null = undefined;
-    export let primaryButtonOnClick: (() => Promise<void>) | (() => void) | undefined = undefined;
-    export let primaryButtonDisabled = false;
-    export let isError = false;
-    export let isTransacting = false;
-    export let closeWhenClickOutside = false;
+    interface Props {
+        open?: boolean;
+        description?: string | null;
+        header?: string;
+        primaryButtonText?: string | null;
+        primaryButtonOnClick?: (() => Promise<void>) | (() => void);
+        primaryButtonDisabled?: boolean;
+        isError?: boolean;
+        isTransacting?: boolean;
+        children?: Snippet;
+        additionalButtons?: Snippet;
+        closeWhenClickOutside?: boolean;
+    }
+
+    let {
+        open = $bindable(undefined),
+        description = $bindable(null),
+        header,
+        primaryButtonText = undefined,
+        primaryButtonOnClick = undefined,
+        primaryButtonDisabled = false,
+        isError = false,
+        isTransacting = false,
+        closeWhenClickOutside = false,
+        children,
+        additionalButtons,
+    }: Props = $props();
 
     let dialog: HTMLDialogElement;
 
     const usesDescriptionForShowAndClose = open === undefined;
 
-    $: {
+    $effect(() => {
         if (dialog) {
-            const shouldShow = usesDescriptionForShowAndClose ? description !== undefined : open;
+            const shouldShow = usesDescriptionForShowAndClose ? description !== null : open;
             if (shouldShow) {
                 dialog.showModal();
             } else {
                 dialog.close();
             }
         }
-    }
+    });
 
     function close() {
         if (usesDescriptionForShowAndClose) {
-            description = undefined;
+            description = null;
         } else {
             open = false;
         }
@@ -50,9 +70,9 @@
 <dialog
     bind:this={dialog}
     class="modal"
-    on:close={close}
-    on:keyup={(e) => e.key === 'Escape' && close()}
-    on:click={(e) => {
+    onclose={close}
+    onkeyup={(e) => e.key === 'Escape' && close()}
+    onclick={(e) => {
         if (closeWhenClickOutside && e.target === dialog) {
             close();
         }
@@ -63,26 +83,34 @@
             <button
                 class="btn btn-circle btn-ghost btn-sm absolute right-2 top-2"
                 disabled={isTransacting}
-                on:click={close}>✕</button
+                onclick={close}>✕</button
             >
         </form>
-        <h3 class="w-full pb-4 text-center text-xl font-bold {isError && 'text-error'}">{header}</h3>
+        {#if header}
+            <h3 class="w-full pb-4 text-center text-xl font-bold {isError && 'text-error'}">{header}</h3>
+        {:else}
+            <div class="w-full pb-4"></div>
+        {/if}
 
         {#if description}
             <p class="py-4 text-lg {isError && 'text-error'}">
                 {@html description.replaceAll('\n', '<br />')}
             </p>
         {/if}
-        <div class="flex flex-col">
-            <slot />
-        </div>
+        {#if children !== undefined}
+            <div class="flex flex-col">
+                {@render children?.()}
+            </div>
+        {/if}
         {#if primaryButtonText}
             <div class="flex w-full flex-row space-x-2 pt-4">
-                <slot name="additional-buttons" />
+                {#if additionalButtons !== undefined}
+                    {@render additionalButtons?.()}
+                {/if}
                 <div class="flex-grow"></div>
                 <button
                     class="btn btn-primary"
-                    on:click={handlePrimaryClick}
+                    onclick={handlePrimaryClick}
                     disabled={primaryButtonDisabled || isTransacting}
                 >
                     {#if isTransacting}
@@ -91,11 +119,13 @@
                         {primaryButtonText}
                     {/if}
                 </button>
-                <button class="btn btn-outline btn-primary" disabled={isTransacting} on:click={close}>Cancel</button>
+                <button class="btn btn-outline btn-primary" disabled={isTransacting} onclick={close}>Cancel</button>
             </div>
         {:else}
             <div class="flex w-full flex-row space-x-2 pt-4">
-                <slot name="additional-buttons" />
+                {#if additionalButtons !== undefined}
+                    {@render additionalButtons?.()}
+                {/if}
             </div>
         {/if}
     </div>

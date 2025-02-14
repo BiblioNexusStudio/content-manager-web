@@ -3,11 +3,15 @@
     import ChevronDownIcon from '$lib/icons/ChevronDownIcon.svelte';
     import ChevronUpIcon from '$lib/icons/ChevronUpIcon.svelte';
 
-    export let bibleTextsReferences: BibleTextsReference[];
-    export let collapsible = false;
-    export let isOpen = true;
+    interface Props {
+        bibleTextsReferences: BibleTextsReference[];
+        collapsible?: boolean;
+        isOpen?: boolean;
+    }
 
-    let titleDiv: HTMLDivElement | null;
+    let { bibleTextsReferences, collapsible = false, isOpen = true }: Props = $props();
+
+    let titleDiv: HTMLDivElement | null = $state(null);
 
     const open = () => {
         if (collapsible) {
@@ -20,12 +24,12 @@
 </script>
 
 {#each bibleTextsReferences as bibleTextsReference, i (i)}
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
         bind:this={titleDiv}
         class="mb-2 {collapsible ? 'cursor-pointer' : ''} flex place-items-end font-semibold"
-        on:click={open}
+        onclick={open}
     >
         {#if collapsible}
             {#if isOpen}

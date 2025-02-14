@@ -26,7 +26,7 @@
     let selectedResourceIds: number[] = $state([]);
     let isSaving = $state(false);
     let isShowingErrorModal = $state(false);
-    let errorMessage = $state('');
+    let errorMessage: string | null = $state(null);
 
     $effect(() => {
         !isShowingErrorModal && (errorMessage = '');
