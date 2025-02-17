@@ -17,9 +17,17 @@
         languageId: number | null;
         finalizedResourceIds: number[];
         isForAquiferization: boolean;
+        isAlreadyTranslated: boolean;
     }
 
-    let { data, disabled, languageId, finalizedResourceIds = $bindable(), isForAquiferization }: Props = $props();
+    let {
+        data,
+        disabled,
+        languageId,
+        finalizedResourceIds = $bindable(),
+        isForAquiferization,
+        isAlreadyTranslated,
+    }: Props = $props();
 
     const { parentResources } = data;
 
@@ -89,6 +97,12 @@
                 fetchedContentForLeft =
                     (await getFromApi<ResourceContentForSelection[]>(
                         `/resources/unaquiferized?${searchParams.toString()}`
+                    )) ?? [];
+            } else if (isAlreadyTranslated) {
+                !!languageId && searchParams.set('languageId', languageId.toString());
+                fetchedContentForLeft =
+                    (await getFromApi<ResourceContentForSelection[]>(
+                        `/resources/translated?${searchParams.toString()}`
                     )) ?? [];
             } else {
                 !!languageId && searchParams.set('languageId', languageId.toString());
@@ -175,7 +189,11 @@
     <div class="mb-16 flex flex-row space-x-2 overflow-hidden pt-2">
         <div class="flex flex-1 flex-col">
             <div class="text-md font-semibold">
-                {isForAquiferization ? 'Unaquiferized Content' : 'Untranslated Content'}
+                {isForAquiferization
+                    ? 'Unaquiferized Content'
+                    : isAlreadyTranslated
+                      ? 'Translated Content'
+                      : 'Untranslated Content'}
             </div>
             <div class="overflow-auto">
                 <ProjectContentSelectorTable
