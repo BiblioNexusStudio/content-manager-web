@@ -56,7 +56,7 @@
     let isAssignContentModalOpen = $state(false);
     let isConfirmPublishModalOpen = $state(false);
     let isCreateNewResourceItemModalOpen = $state(false);
-    let errorModalText: string | undefined = $state(undefined);
+    let errorModalText: string | null = $state(null);
     let isTransacting = $state(false);
 
     const sortAssignedResourceData = createPublisherDashboardMyWorkSorter();
@@ -214,7 +214,7 @@
                 errorModalText = validatorError;
             } else if (e instanceof Error) {
                 const match = e.message.match(/Body: "(.*)"/);
-                errorModalText = match ? match[1] : 'An error occurred while creating the resource item.';
+                errorModalText = match ? (match[1] ?? null) : 'An error occurred while creating the resource item.';
             } else {
                 errorModalText = 'An error occurred while creating the resource item.';
             }

@@ -5,13 +5,13 @@
     import { getFromApi } from '$lib/utils/http-service';
     import type { ParentResource } from '$lib/types/base';
 
-    let markSpan: HTMLElement | null;
-    let show = false;
-    let container: HTMLDivElement | undefined;
+    let markSpan: HTMLElement | null = $state(null);
+    let show = $state(false);
+    let container: HTMLDivElement | undefined = $state();
     let bubblingClick = false;
-    let resourceReference: ResourceReference | null = null;
-    let parentResource: ParentResource | null = null;
-    let errorMessage: string | null = null;
+    let resourceReference: ResourceReference | null = $state(null);
+    let parentResource: ParentResource | null = $state(null);
+    let errorMessage: string | null = $state(null);
 
     interface ResourceReference {
         resourceId: number;
@@ -55,7 +55,7 @@
     };
 </script>
 
-<svelte:window on:click={onAnyClick} />
+<svelte:window onclick={onAnyClick} />
 
 {#if resourceReference}
     <MarkPopout bind:show bind:markSpan bind:container>
