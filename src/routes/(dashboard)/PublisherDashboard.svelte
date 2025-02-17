@@ -3,7 +3,7 @@
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
     import type { Project, ResourceAssignedToSelf, ResourcePendingReview } from './+page';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
-    import { postToApi } from '$lib/utils/http-service';
+    import { postToApi, patchToApi } from '$lib/utils/http-service';
     import Select from '$lib/components/Select.svelte';
     import Modal from '$lib/components/Modal.svelte';
     import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
@@ -29,11 +29,13 @@
     import { filterBoolean } from '$lib/utils/array';
     import { ResourceContentVersionReviewLevel } from '$lib/types/resources';
     import type { NotApplicableContent } from './+page';
-    import { _PublisherTab as Tab } from './+page';
+    import { _PublisherTab as Tab, _NotificationKind as NotificationKind } from './+page';
     import { untrack } from 'svelte';
     import { parseApiValidatorErrorMessage } from '$lib/utils/http-errors';
     import { Icon } from 'svelte-awesome';
     import volumeUp from 'svelte-awesome/icons/volumeUp';
+    import { notificationsContentsColumns } from './notifications-columns';
+    import type { FlattenedNotificationContent } from './proxy+page';
 
     interface Props {
         data: PageData;
@@ -45,9 +47,11 @@
     let currentReviewPendingContents: ResourcePendingReview[] = $state([]);
     let currentAssignedProjects: Project[] = $state([]);
     let currentCommunityPendingContents: ResourcePendingReview[] = $state([]);
+    let currentNotificationsTableItems: FlattenedNotificationContent[] = $state([]);
     let selectedMyWorkTableItems: ResourceAssignedToSelf[] = $state([]);
     let selectedReviewPendingTableItems: ResourcePendingReview[] = $state([]);
     let selectedCommunityPendingTableItems: ResourcePendingReview[] = $state([]);
+    let selectedNotificationsTableItems: FlattenedNotificationContent[] = $state([]);
     let assignToUserId: number | null = $state(null);
     let isAssignContentModalOpen = $state(false);
     let isConfirmPublishModalOpen = $state(false);
@@ -63,6 +67,7 @@
     let allReviewPendingContents = $derived(data.publisherDashboard!.reviewPendingResourceContent);
     let assignedProjects = data.publisherDashboard!.assignedProjects;
     let notApplicableContent = data.publisherDashboard!.notApplicableContent;
+    let flattenedNotificationContent = data.publisherDashboard!.flattenedNotificationContent;
     let communityPendingContents = $derived.by(() => {
         return allReviewPendingContents.filter((item) => {
             return item.reviewLevel === ResourceContentVersionReviewLevel.community;
@@ -88,6 +93,7 @@
             project: ssp.string(''),
             status: ssp.string(''),
             isFilteringUnresolved: ssp.boolean(false),
+            isShowingOnlyUnread: ssp.boolean(false),
         },
         { runLoadAgainWhenParamsChange: false }
     );
@@ -102,6 +108,7 @@
         selectedMyWorkTableItems = [];
         selectedReviewPendingTableItems = [];
         selectedCommunityPendingTableItems = [];
+        selectedNotificationsTableItems = [];
     }
 
     function shouldAssignAsEditorReview(status: ResourceContentStatusEnum | null) {
@@ -243,6 +250,7 @@
         | Table<Project>
         | Table<ResourcePendingReview>
         | Table<NotApplicableContent>
+        | Table<FlattenedNotificationContent>
         | undefined = $state(undefined);
 
     $effect(() => {
@@ -293,12 +301,32 @@
         };
     }
 
+    const markAsReadAndGoToResourcePage = async (notification: FlattenedNotificationContent) => {
+        if (!notification.isRead) {
+            await patchToApi(`/notifications/${notification.kind}/${notification.id}`, { isRead: true });
+        }
+
+        window.location.href = `/resources/${notification.resourceContentId}`;
+    };
+
+    const markAllAsRead = async () => {
+        await Promise.all(
+            selectedNotificationsTableItems.map(async (notification) => {
+                if (!notification.isRead) {
+                    await patchToApi(`/notifications/${notification.kind}/${notification.id}`, { isRead: true });
+                }
+            })
+        );
+        window.location.reload();
+    };
+
     const setTabContents = (
         tab: string,
         search: string,
         status: string,
         project: string,
-        isFilteringUnresolved: boolean
+        isFilteringUnresolved: boolean,
+        isShowingOnlyUnread: boolean
     ) => {
         if (tab === Tab.myWork) {
             currentAssignedContents = assignedContents.filter(
@@ -324,6 +352,14 @@
                     crpc.englishLabel.toLowerCase().includes(search.toLowerCase()) &&
                     (!isFilteringUnresolved || crpc.hasUnresolvedCommentThreads === true)
             );
+        } else if (tab === Tab.notifications) {
+            currentNotificationsTableItems = flattenedNotificationContent.filter((n) => {
+                if (isShowingOnlyUnread) {
+                    return !n.isRead;
+                } else {
+                    return true;
+                }
+            });
         }
     };
 
@@ -333,7 +369,8 @@
             search,
             $searchParams.status,
             $searchParams.project,
-            $searchParams.isFilteringUnresolved
+            $searchParams.isFilteringUnresolved,
+            $searchParams.isShowingOnlyUnread
         );
     });
 
@@ -392,6 +429,12 @@
             >
                 Not Applicable ({notApplicableContent.length})
             </button>
+            <button
+                onclick={selectTab(Tab.notifications)}
+                role="tab"
+                class="tab {$searchParams.tab === Tab.notifications && 'tab-active'}"
+                >Notifications ({flattenedNotificationContent.length})</button
+            >
         </div>
     </div>
     {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending || $searchParams.tab === Tab.community}
@@ -467,6 +510,27 @@
                     >Create Resource Item
                 </button>
             {/if}
+        </div>
+    {/if}
+    {#if $searchParams.tab === Tab.notifications}
+        <div class="mt-4 flex space-x-4">
+            <button
+                data-app-insights-event-name="publisher-dashboard-mark-read-click"
+                class="btn btn-primary"
+                onclick={markAllAsRead}
+                disabled={selectedNotificationsTableItems.length === 0 ||
+                    selectedNotificationsTableItems.every((n) => n.isRead)}
+                >Mark Read
+            </button>
+            <label class="label cursor-pointer py-0 opacity-70">
+                <input
+                    type="checkbox"
+                    bind:checked={$searchParams.isShowingOnlyUnread}
+                    data-app-insights-event-name="publisher-dashboard-show-only-unread-toggle"
+                    class="checkbox no-animation checkbox-sm me-2"
+                />
+                <span class="label-text text-xs">Show Only Unread</span>
+            </label>
         </div>
     {/if}
     {#if $searchParams.tab === Tab.myProjects}
@@ -616,6 +680,40 @@
                 itemUrlPrefix="/resources/"
                 noItemsText="No items pending review."
             />
+        {:else if $searchParams.tab === Tab.notifications}
+            <Table
+                bind:this={table}
+                class="my-4"
+                idColumn="id"
+                enableSelectAll={true}
+                columns={notificationsContentsColumns}
+                items={currentNotificationsTableItems}
+                noItemsText="No notifications."
+                bind:selectedItems={selectedNotificationsTableItems}
+            >
+                {#snippet customTbody(rowItems, selectedItems, onSelectItem)}
+                    <tbody>
+                        {#each rowItems as notificationItem (notificationItem.id)}
+                            <tr
+                                class={notificationItem.isRead ? 'cursor-pointer' : 'cursor-pointer font-bold'}
+                                onclick={() => markAsReadAndGoToResourcePage(notificationItem)}
+                            >
+                                <TableCell class="w-4" stopPropagation={true}>
+                                    <input
+                                        type="checkbox"
+                                        class="checkbox checkbox-sm"
+                                        onchange={() => onSelectItem(notificationItem)}
+                                        checked={selectedItems?.includes(notificationItem)}
+                                    />
+                                </TableCell>
+                                <TableCell>{notificationItem['time']}</TableCell>
+                                <TableCell>{notificationItem['name']}</TableCell>
+                                <TableCell>{notificationItem['notification']}</TableCell>
+                            </tr>
+                        {/each}
+                    </tbody>
+                {/snippet}
+            </Table>
         {/if}
     </div>
 </div>
