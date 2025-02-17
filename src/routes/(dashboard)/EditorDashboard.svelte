@@ -44,7 +44,7 @@
     let selectedMyWorkContents: ResourceAssignedToSelf[] = $state([]);
     let isTransacting = $state(false);
     let assignToUserId: number | null = $state(null);
-    let errorModalText: string | undefined = $state(undefined);
+    let errorModalText: string | null = $state(null);
     let isReviewer = $derived($userCan(Permission.SendReviewContent));
     let isAssignButtonDisabled = $derived(() => selectedMyWorkContents.length === 0);
     let isSendToPublisherButtonDisabled = $derived(

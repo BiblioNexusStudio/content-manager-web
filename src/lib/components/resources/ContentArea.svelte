@@ -15,14 +15,27 @@
     import PersonLinesIcon from '$lib/icons/PersonLinesIcon.svelte';
     import AudioPlayerModal from '../audioPlayer/AudioPlayerModal.svelte';
 
-    export let resourceContent: ResourceContent;
-    export let sidebarHistoryAvailable: boolean;
-    export let historySidebarOpen: boolean;
-    export let onToggleHistoryPane: (animateOpen?: boolean) => void;
-    export let commentStores: CommentStores;
-    export let openedSupplementalSideBar: OpenedSupplementalSideBar;
-    export let resourceContentStatuses: ResourceContentStatus[];
-    export let selectedStepNumber: number | undefined;
+    interface Props {
+        resourceContent: ResourceContent;
+        sidebarHistoryAvailable: boolean;
+        historySidebarOpen: boolean;
+        onToggleHistoryPane: (animateOpen?: boolean) => void;
+        commentStores: CommentStores;
+        openedSupplementalSideBar: OpenedSupplementalSideBar;
+        resourceContentStatuses: ResourceContentStatus[];
+        selectedStepNumber: number | undefined;
+    }
+
+    let {
+        resourceContent,
+        sidebarHistoryAvailable,
+        historySidebarOpen,
+        onToggleHistoryPane,
+        commentStores,
+        openedSupplementalSideBar = $bindable(),
+        resourceContentStatuses,
+        selectedStepNumber,
+    }: Props = $props();
 
     const commentThreads = commentStores.commentThreads;
     const audioIsAvailable = !!(
@@ -102,7 +115,7 @@
                     <button
                         data-app-insights-event-name="toggle-history-pane-click"
                         class="btn btn-ghost btn-sm {historySidebarOpen && 'bg-[#e6f7fc]'}"
-                        on:click={() => onToggleHistoryPane()}
+                        onclick={() => onToggleHistoryPane()}
                     >
                         <HistoryIcon />
                     </button>
@@ -118,7 +131,7 @@
                     <button
                         data-app-insights-event-name="toggle-comments-pane-click"
                         class="btn btn-ghost btn-sm {active && 'bg-[#e6f7fc]'}"
-                        on:click={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.Comments)}
+                        onclick={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.Comments)}
                     >
                         <CommentSidebarIcon />
                     </button>
@@ -135,7 +148,7 @@
                     data-app-insights-event-name="toggle-comments-pane-click"
                     class="btn btn-ghost btn-sm {openedSupplementalSideBar ===
                         OpenedSupplementalSideBar.BibleReferences && 'bg-[#e6f7fc]'}"
-                    on:click={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.BibleReferences)}
+                    onclick={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.BibleReferences)}
                 >
                     <BookSidebarIcon />
                 </button>
@@ -151,7 +164,7 @@
                     data-app-insights-event-name="toggle-status-history-pane-click"
                     class="btn btn-ghost btn-sm {openedSupplementalSideBar ===
                         OpenedSupplementalSideBar.VersionStatusHistory && 'bg-[#e6f7fc]'}"
-                    on:click={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.VersionStatusHistory)}
+                    onclick={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.VersionStatusHistory)}
                 >
                     <PersonLinesIcon />
                 </button>

@@ -46,7 +46,7 @@
     import type { CommentThreadsResponse } from '$lib/types/comments';
     import { createSidebarContentStore } from './sidebar-content-store';
     import CommentsSidebar from '$lib/components/comments/CommentsSidebar.svelte';
-    import { createMachineTranslationStore } from '$lib/stores/machineTranslation';
+    import { createMachineTranslationStore, setMachineTranslationContext } from '$lib/stores/machineTranslation';
     import MachineTranslationRating from '$lib/components/MachineTranslationRating.svelte';
     import { fly } from 'svelte/transition';
     import BibleReferencesSidebar from './BibleReferencesSidebar.svelte';
@@ -58,96 +58,103 @@
     import ContentEditorSwapButton from '$lib/components/editor/ContentEditorSwapButton.svelte';
     import VersionStatusHistorySidebar from './VersionStatusHistorySidebar.svelte';
     import ResourcePopout from '$lib/components/editorMarkPopouts/ResourcePopout.svelte';
+    import type { User } from '@auth0/auth0-spa-js';
 
-    let commentStores: CommentStores;
-    let commentThreads: Writable<CommentThreadsResponse | null>;
-    let removeAllInlineThreads: Readable<() => void>;
+    interface PageProps {
+        data: PageData;
+    }
 
-    let errorModalMessage: string | undefined = undefined;
-    let isAddTranslationModalOpen = false;
-    let isPublishModalOpen = false;
-    let isAssignUserModalOpen = false;
-    let isAquiferizeModalOpen = false;
+    let { data }: PageProps = $props();
 
-    let assignToUserId: number | null = null;
-    let newTranslationLanguageId: number | null = null;
-    let currentUserIsAssigned = false;
-    let canMakeContentEdits = false;
-    let canAquiferize = false;
-    let canSendForEditorReview = false;
-    let inPublisherReviewAndCanSendBack = false;
-    let canPublish = false;
-    let canUnpublish = false;
-    let canSendForCompanyReview = false;
-    let canPullBackToCompanyReview = false;
-    let canSendForPublisherReview = false;
-    let canAssignPublisherForReview = false;
-    let _canCreateTranslation = false;
-    let isAssignReviewModalOpen = false;
-    let isInReview = false;
-    let createDraft = false;
-    let englishContentTranslation: ContentTranslation | undefined;
-    let createTranslationFromDraft = false;
-    let isInTranslationWorkflow = false;
-    let mediaType: MediaTypeEnum | undefined;
-    let selectedStepNumber: number | undefined;
-    let openedSupplementalSideBar = OpenedSupplementalSideBar.None;
-    let shouldTransition = false;
-    let canCommunityTranslate = false;
-    let canCommunitySendToPublisher = false;
-    let canSetStatusTransitionNotApplicable = false;
-    let canSetStatusCompleteNotApplicable = false;
-    let isStatusInAwaitingAiDraft = false;
+    const isPageTransacting = createIsPageTransactingContext();
 
-    export let data: PageData;
-
+    // --- setup content stores ---
     const { save, resetSaveState, isSaving, showSavingFailed } = createAutosaveStore(patchData);
 
     let editableContentStore = createChangeTrackingStore<TiptapContentItem[]>([], {
         onChange: save,
         debounceDelay: 3000,
     });
+
     let editableDisplayNameStore = createChangeTrackingStore<string>('', { onChange: save, debounceDelay: 3000 });
-    let draftWordCountsByStep: number[] = [];
-    let referenceWordCountsByStep: number[] = [];
-    let draftCharacterCountsByStep: number[] = [];
-    let referenceCharacterCountsByStep: number[] = [];
-    let sidebarContentStore: ReturnType<typeof createSidebarContentStore>;
 
-    $: isShowingSupplementalSidebar = openedSupplementalSideBar !== OpenedSupplementalSideBar.None;
-    $: resourceContent = data.resourceContent;
-    $: handleFetchedResource(resourceContent);
-    $: hasUnresolvedThreads = $commentThreads?.threads.some((x) => !x.resolved && x.id !== -1) || false;
+    let resourceContent = $derived(data.resourceContent);
 
+    // --- declare reactive content states ---
+    let shouldTransition = $state(false);
+    let assignToUserId: number | null = $state(null);
+    let selectedStepNumber: number | undefined = $state();
+    let newTranslationLanguageId: number | null = $state(null); // only community users, only when they click 'translate'
+
+    // --- comments ---
+    let commentStores: CommentStores = $state(createCommentStores());
+    let commentThreads: Writable<CommentThreadsResponse | null> = commentStores.commentThreads;
+    let removeAllInlineThreads: Readable<() => void> = commentStores.removeAllInlineThreads;
+    let hasUnresolvedThreads = $derived($commentThreads?.threads.some((x) => !x.resolved && x.id !== -1) || false);
+
+    // --- machine translation ---
     const machineTranslationStore = createMachineTranslationStore();
+    setMachineTranslationContext(machineTranslationStore);
     const promptForMachineTranslationRating = machineTranslationStore.promptForRating;
 
-    function handleFetchedResource(resourceContent: ResourceContent) {
-        resetSaveState();
+    // --- modal states ---
+    let errorModalMessage: string | null = $state(null);
+    let isAddTranslationModalOpen = $state(false);
+    let isPublishModalOpen = $state(false);
+    let isAssignUserModalOpen = $state(false);
+    let isAquiferizeModalOpen = $state(false);
+    let isAssignReviewModalOpen = $state(false);
+    let createDraft = $state(false); // checkbox flag
+    let createTranslationFromDraft = $state(false); // checkbox flag
 
-        $isPageTransacting = false;
+    // --- word and character counts ---
+    let draftWordCountsByStep: number[] = $state([]);
+    let referenceWordCountsByStep: number[] = $state([]);
+    let draftCharacterCountsByStep: number[] = $state([]);
+    let referenceCharacterCountsByStep: number[] = $state([]);
 
-        mediaType = resourceContent.mediaType;
-        sidebarContentStore = createSidebarContentStore(resourceContent);
+    // --- side bar ---
+    let openedSupplementalSideBar = $state(OpenedSupplementalSideBar.None);
+    let isShowingSupplementalSidebar = $derived(openedSupplementalSideBar !== OpenedSupplementalSideBar.None);
+    let sidebarContentStore: ReturnType<typeof createSidebarContentStore> = $derived(
+        createSidebarContentStore(resourceContent)
+    );
 
-        englishContentTranslation = resourceContent.contentTranslations.find((x) => x.languageId === 1);
+    // --- derived resource content values ----
+    let mediaType: MediaTypeEnum | undefined = $derived(resourceContent.mediaType); // ? might need a default value here
+    let currentUserIsAssigned = $derived($userIsEqual(resourceContent.assignedUser?.id));
+    let assignedUserIsInCompany = $derived($userIsInCompany(resourceContent.assignedUser?.companyId));
+    let englishContentTranslation: ContentTranslation | undefined = $derived(
+        resourceContent.contentTranslations.find((x) => x.languageId === 1)
+    );
 
-        currentUserIsAssigned = $userIsEqual(resourceContent.assignedUser?.id);
-        const assignedUserIsInCompany = $userIsInCompany(resourceContent.assignedUser?.companyId);
+    // --- derived permissions and resource content states ---
+    let isInReview = $derived(
+        resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
+            resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview
+    );
 
-        isInReview =
-            resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
-            resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview;
-
-        isInTranslationWorkflow =
-            resourceContent.status === ResourceContentStatusEnum.TranslationAwaitingAiDraft ||
+    let isInTranslationWorkflow = $derived(
+        resourceContent.status === ResourceContentStatusEnum.TranslationAwaitingAiDraft ||
             resourceContent.status === ResourceContentStatusEnum.TranslationAiDraftComplete ||
             resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
             resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
-            resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending;
+            resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending
+    );
 
-        canMakeContentEdits =
-            $userCan(Permission.EditContent) &&
+    let isStatusInAwaitingAiDraft = $derived(
+        resourceContent.status === ResourceContentStatusEnum.TranslationAwaitingAiDraft ||
+            resourceContent.status === ResourceContentStatusEnum.AquiferizeAwaitingAiDraft
+    );
+
+    let hasResourceAssignmentPermission = $derived(
+        ($userCan(Permission.AssignOverride) &&
+            ($userCan(Permission.AssignOutsideCompany) || assignedUserIsInCompany)) ||
+            ($userCan(Permission.AssignContent) && currentUserIsAssigned)
+    );
+
+    let canMakeContentEdits = $derived(
+        $userCan(Permission.EditContent) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
@@ -155,21 +162,18 @@
                 resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizeCompanyReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview) &&
-            currentUserIsAssigned;
+            currentUserIsAssigned
+    );
 
-        const hasResourceAssignmentPermission =
-            ($userCan(Permission.AssignOverride) &&
-                ($userCan(Permission.AssignOutsideCompany) || assignedUserIsInCompany)) ||
-            ($userCan(Permission.AssignContent) && currentUserIsAssigned);
-
-        canAquiferize =
-            $userCan(Permission.CreateContent) &&
+    let canAquiferize = $derived(
+        $userCan(Permission.CreateContent) &&
             !resourceContent.isDraft &&
             (resourceContent.status === ResourceContentStatusEnum.New ||
-                resourceContent.status === ResourceContentStatusEnum.Complete);
+                resourceContent.status === ResourceContentStatusEnum.Complete)
+    );
 
-        canSendForEditorReview =
-            hasResourceAssignmentPermission &&
+    let canSendForEditorReview = $derived(
+        hasResourceAssignmentPermission &&
             // note: the New and isDraft combo should not exist, but this ensures that the resource
             // isn't stuck if it's in a bad state
             ((resourceContent.status === ResourceContentStatusEnum.New && resourceContent.isDraft) ||
@@ -178,114 +182,80 @@
                 resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizeCompanyReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview);
+                resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview)
+    );
 
-        inPublisherReviewAndCanSendBack =
-            ($userCan(Permission.AssignContent) &&
-                currentUserIsAssigned &&
-                (resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
-                    resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview) &&
-                resourceContent.reviewLevel !== ResourceContentVersionReviewLevel.community) ||
+    let inPublisherReviewAndCanSendBack = $derived(
+        ($userCan(Permission.AssignContent) &&
+            currentUserIsAssigned &&
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview) &&
+            resourceContent.reviewLevel !== ResourceContentVersionReviewLevel.community) ||
             ($userCan(Permission.SetStatusCompleteNotApplicable) &&
-                resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable);
+                resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable)
+    );
 
-        canSendForCompanyReview =
-            $userCan(Permission.AssignContent) &&
+    let canPublish = $derived(
+        $userCan(Permission.PublishContent) &&
+            ((resourceContent.status === ResourceContentStatusEnum.New && !resourceContent.hasPublishedVersion) ||
+                resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview)
+    );
+
+    let canUnpublish = $derived($userCan(Permission.PublishContent) && resourceContent.hasPublishedVersion);
+
+    let canSendForCompanyReview = $derived(
+        $userCan(Permission.AssignContent) &&
             currentUserIsAssigned &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview);
+                resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview)
+    );
 
-        canPullBackToCompanyReview = resourceContent.canPullBackToCompanyReview; // current status would be ReviewPending
+    let canPullBackToCompanyReview = $derived(resourceContent.canPullBackToCompanyReview); // current status would be ReviewPending
 
-        canSendForPublisherReview =
-            $userCan(Permission.SendReviewContent) &&
+    let canSendForPublisherReview = $derived(
+        $userCan(Permission.SendReviewContent) &&
             currentUserIsAssigned &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeCompanyReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview);
+                resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview)
+    );
 
-        canAssignPublisherForReview =
-            $userCan(Permission.ReviewContent) &&
+    let canAssignPublisherForReview = $derived(
+        $userCan(Permission.ReviewContent) &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeReviewPending ||
                 resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending);
+                resourceContent.status === ResourceContentStatusEnum.TranslationReviewPending)
+    );
 
-        canPublish =
-            $userCan(Permission.PublishContent) &&
-            ((resourceContent.status === ResourceContentStatusEnum.New && !resourceContent.hasPublishedVersion) ||
-                resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationPublisherReview);
+    let canCreateTranslation = $derived($userCan(Permission.PublishContent));
 
-        canUnpublish = $userCan(Permission.PublishContent) && resourceContent.hasPublishedVersion;
-
-        _canCreateTranslation = $userCan(Permission.PublishContent);
-        if (!('url' in resourceContent.content) && Array.isArray(resourceContent.content)) {
-            editableContentStore.setOriginalAndCurrent(resourceContent.content);
-        }
-        editableDisplayNameStore.setOriginalAndCurrent(resourceContent.displayName);
-
-        machineTranslationStore.resetStore();
-        machineTranslationStore.machineTranslations.set(
-            new Map(resourceContent.machineTranslations.map((mt) => [mt.contentIndex, mt]))
-        );
-        promptForMachineTranslationRating.set(
-            resourceContent.machineTranslations.some(
-                (mt) =>
-                    !mt.userRating &&
-                    currentUserIsAssigned &&
-                    resourceContent?.status === ResourceContentStatusEnum.TranslationEditorReview
-            )
-        );
-
-        commentStores = createCommentStores();
-        commentThreads = commentStores.commentThreads;
-        removeAllInlineThreads = commentStores.removeAllInlineThreads;
-
-        if (resourceContent.commentThreads) {
-            // Add a dummy thread for a new comment span to live on. If a comment is added, then create the thread
-            // with the new threadId from the server.
-            resourceContent.commentThreads.threads.push({
-                id: -1,
-                resolved: false,
-                comments: [],
-            });
-            $commentThreads = resourceContent.commentThreads;
-        } else {
-            $commentThreads = null;
-        }
-
-        canCommunityTranslate =
-            $userCan(Permission.CreateCommunityContent) &&
+    let canCommunityTranslate = $derived(
+        $userCan(Permission.CreateCommunityContent) &&
             !resourceContent.contentTranslations.find((x) => x.languageId === $currentUser?.languageId) &&
             resourceContent.hasPublishedVersion === true &&
-            $currentUser?.canBeAssignedContent === true;
+            $currentUser?.canBeAssignedContent === true
+    );
 
-        canCommunitySendToPublisher =
-            $userCan(Permission.SendReviewCommunityContent) &&
+    let canCommunitySendToPublisher = $derived(
+        $userCan(Permission.SendReviewCommunityContent) &&
             resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview &&
-            currentUserIsAssigned;
+            currentUserIsAssigned
+    );
 
-        canSetStatusTransitionNotApplicable =
-            $userCan(Permission.SetStatusTranslationNotApplicable) &&
+    let canSetStatusTransitionNotApplicable = $derived(
+        $userCan(Permission.SetStatusTranslationNotApplicable) &&
             currentUserIsAssigned &&
             resourceContent.isDraft &&
             (resourceContent.status === ResourceContentStatusEnum.TranslationAiDraftComplete ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview ||
-                resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview);
-        canSetStatusCompleteNotApplicable =
-            $userCan(Permission.SetStatusCompleteNotApplicable) &&
-            resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable;
+                resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview)
+    );
 
-        isStatusInAwaitingAiDraft =
-            resourceContent.status === ResourceContentStatusEnum.TranslationAwaitingAiDraft ||
-            resourceContent.status === ResourceContentStatusEnum.AquiferizeAwaitingAiDraft;
-
-        if (isStatusInAwaitingAiDraft) {
-            startPollingForAiTranslateComplete();
-        }
-    }
-
-    const isPageTransacting = createIsPageTransactingContext();
+    let canSetStatusCompleteNotApplicable = $derived(
+        $userCan(Permission.SetStatusCompleteNotApplicable) &&
+            resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable
+    );
 
     beforeNavigate(async ({ to, cancel }) => {
         // beforeNavigate runs synchronously, but we can work around the limitation by always canceling the
@@ -311,6 +281,51 @@
     });
 
     onDestroy(resetSaveState);
+
+    $effect(() => handleFetchedResource(resourceContent));
+
+    function handleFetchedResource(resourceContent: ResourceContent) {
+        resetSaveState();
+
+        $isPageTransacting = false;
+        selectedStepNumber = 1;
+
+        // this ensures that the `content` is the type TiptapContentItem[]
+        if (!('url' in resourceContent.content) && Array.isArray(resourceContent.content)) {
+            editableContentStore.setOriginalAndCurrent(resourceContent.content);
+        }
+        editableDisplayNameStore.setOriginalAndCurrent(resourceContent.displayName);
+
+        machineTranslationStore.resetStore();
+        machineTranslationStore.machineTranslations.set(
+            new Map(resourceContent.machineTranslations.map((mt) => [mt.contentIndex, mt]))
+        );
+        promptForMachineTranslationRating.set(
+            resourceContent.machineTranslations.some(
+                (mt) =>
+                    !mt.userRating &&
+                    currentUserIsAssigned &&
+                    resourceContent?.status === ResourceContentStatusEnum.TranslationEditorReview
+            )
+        );
+
+        if (resourceContent.commentThreads) {
+            // Add a dummy thread for a new comment span to live on. If a comment is added, then create the thread
+            // with the new threadId from the server.
+            resourceContent.commentThreads.threads.push({
+                id: -1,
+                resolved: false,
+                comments: [],
+            });
+            $commentThreads = resourceContent.commentThreads;
+        } else {
+            $commentThreads = null;
+        }
+
+        if (isStatusInAwaitingAiDraft) {
+            startPollingForAiTranslateComplete();
+        }
+    }
 
     function openAquiferizeModal() {
         assignToUserId = null;
@@ -381,7 +396,9 @@
             $isPageTransacting = false;
             if (isApiErrorWithMessage(error, 'User can only create one translation at a time')) {
                 errorModalMessage = 'You can only create one translation at a time.';
-                canCommunityTranslate = false;
+                if ($currentUser) {
+                    $currentUser.canBeAssignedContent = false;
+                }
             } else {
                 errorModalMessage = 'An error occurred while saving. Please try again.';
                 throw error;
@@ -597,15 +614,15 @@
     }
 
     function usersThatCanBeAssigned() {
-        let users = data.users?.filter((u) => u.role !== UserRole.ReportViewer) ?? null;
+        let users = data.users?.filter((u: User) => u.role !== UserRole.ReportViewer) ?? null;
         if (resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable) {
-            users = users?.filter((u) => u.role === UserRole.Manager || u.role === UserRole.Reviewer) ?? null;
+            users = users?.filter((u: User) => u.role === UserRole.Manager || u.role === UserRole.Reviewer) ?? null;
         }
 
         if ($userCan(Permission.AssignOutsideCompany)) {
             return users;
         }
-        return users?.filter((u) => $userIsInCompany(u.company.id)) ?? null;
+        return users?.filter((u: User) => $userIsInCompany(u.company.id)) ?? null;
     }
 
     async function handleCommunityTranslate() {
@@ -699,7 +716,7 @@
 <!-- It also makes the transition on the div work correctly. -->
 {#key resourceContent.resourceContentId}
     <div
-        on:introend={() => (shouldTransition = false)}
+        onintroend={() => (shouldTransition = false)}
         in:fly={{ x: '100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 350 : 0 }}
         out:fly={{ x: '-100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 250 : 0 }}
         class="px-8 pt-1"
@@ -713,7 +730,7 @@
                     translations={resourceContent.contentTranslations}
                     project={resourceContent.project}
                     englishTranslation={englishContentTranslation}
-                    canCreateTranslation={_canCreateTranslation}
+                    {canCreateTranslation}
                     openModal={openAddTranslationModal}
                 />
                 <Related relatedContent={resourceContent.associatedResources} />
@@ -735,7 +752,7 @@
                                 <button
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
-                                    on:click={handleNotApplicable}
+                                    onclick={handleNotApplicable}
                                 >
                                     Not Applicable
                                 </button>
@@ -744,7 +761,7 @@
                                 <button
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
-                                    on:click={handleConfirmNotApplicable}
+                                    onclick={handleConfirmNotApplicable}
                                 >
                                     Confirm
                                 </button>
@@ -753,7 +770,7 @@
                                 <button
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
-                                    on:click={openAssignUserModal}
+                                    onclick={openAssignUserModal}
                                 >
                                     {#if canSendForEditorReview}
                                         Assign User
@@ -766,7 +783,7 @@
                                 <button
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
-                                    on:click={pullBackToCompanyReview}
+                                    onclick={pullBackToCompanyReview}
                                 >
                                     Pull Back to Company Review
                                 </button>
@@ -775,7 +792,7 @@
                                 <button
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
-                                    on:click={openAssignReviewModal}
+                                    onclick={openAssignReviewModal}
                                     >{isInReview ? 'Assign' : 'Review'}
                                 </button>
                             {/if}
@@ -783,7 +800,7 @@
                                 <button
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
-                                    on:click={() => publishOrOpenModal(resourceContent.status)}
+                                    onclick={() => publishOrOpenModal(resourceContent.status)}
                                     >Publish
                                 </button>
                             {/if}
@@ -792,7 +809,7 @@
                                     data-app-insights-event-name="resource-unpublish-click"
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
-                                    on:click={unpublish}
+                                    onclick={unpublish}
                                     >Unpublish
                                 </button>
                             {/if}
@@ -800,7 +817,7 @@
                                 <button
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
-                                    on:click={sendForCompanyReview}
+                                    onclick={sendForCompanyReview}
                                     >Send to Review
                                 </button>
                             {/if}
@@ -808,7 +825,7 @@
                                 <button
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
-                                    on:click={sendForPublisherReview}
+                                    onclick={sendForPublisherReview}
                                     >Send to Publisher
                                 </button>
                             {/if}
@@ -816,14 +833,14 @@
                                 <button
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
-                                    on:click={openAquiferizeModal}>Create Draft</button
+                                    onclick={openAquiferizeModal}>Create Draft</button
                                 >
                             {/if}
                             {#if canCommunityTranslate}
                                 <button
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
-                                    on:click={handleCommunityTranslate}
+                                    onclick={handleCommunityTranslate}
                                     >Translate
                                 </button>
                             {/if}
@@ -831,7 +848,7 @@
                                 <button
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
-                                    on:click={handleCommunitySendToPublisher}
+                                    onclick={handleCommunitySendToPublisher}
                                     >Send to Publisher
                                 </button>
                             {/if}
@@ -891,7 +908,6 @@
                                 canComment={resourceContent.isDraft}
                                 {resourceContent}
                                 {commentStores}
-                                {machineTranslationStore}
                                 blurOnPendingAiTranslate={isStatusInAwaitingAiDraft}
                                 isSourceContentArea={false}
                             />
@@ -948,7 +964,6 @@
                                     snapshotOrVersion={$sidebarContentStore.selected}
                                     {resourceContent}
                                     {commentStores}
-                                    {machineTranslationStore}
                                     isSourceContentArea={true}
                                 />
                                 {#if mediaType === MediaTypeEnum.text}
@@ -1029,7 +1044,7 @@
         header="Choose a Reviewer"
     >
         <UserSelector
-            users={data.users?.filter((u) => u.role === UserRole.Publisher) ?? []}
+            users={data.users?.filter((u: User) => u.role === UserRole.Publisher) ?? []}
             hideUser={resourceContent?.assignedUser}
             defaultLabel="Select User"
             bind:selectedUserId={assignToUserId}
@@ -1061,11 +1076,7 @@
             <div class="mb-8 flex flex-col justify-start gap-4">
                 <div class="font-semibold text-error">Please rate the AI translation before reassigning.</div>
                 <div>
-                    <MachineTranslationRating
-                        {machineTranslationStore}
-                        showingInPrompt={true}
-                        improvementHorizontalPositionPx={0}
-                    />
+                    <MachineTranslationRating showingInPrompt={true} improvementHorizontalPositionPx={0} />
                 </div>
             </div>
         {/if}
@@ -1122,7 +1133,7 @@
             existingTranslations={resourceContent?.contentTranslations ?? []}
             bind:selectedLanguageId={newTranslationLanguageId}
         />
-        <div slot="additional-buttons">
+        {#snippet additionalButtons()}
             {#if englishContentTranslation?.hasDraft}
                 <div>
                     <label class="label cursor-pointer">
@@ -1135,7 +1146,7 @@
                     </label>
                 </div>
             {/if}
-        </div>
+        {/snippet}
     </Modal>
 
     <Modal header="Error" isError={true} bind:description={errorModalMessage} />

@@ -15,32 +15,37 @@
     import { Icon } from 'svelte-awesome';
     import { volumeUp } from 'svelte-awesome/icons';
 
-    export let data: PageData;
+    interface PageProps {
+        data: PageData;
+    }
+
+    let { data }: PageProps = $props();
 
     const searchParams = searchParameters(_searchParamsConfig, { runLoadAgainWhenParamsChange: true });
 
-    $: resourceContentDataPromise =
-        data.resourceContentData === null ? Promise.resolve(null) : data.resourceContentData.promise;
+    let resourceContentDataPromise = $derived(
+        data.resourceContentData === null ? Promise.resolve(null) : data.resourceContentData.promise
+    );
 
-    $: bibleBooks = data.bibleBooks;
+    let bibleBooks = $derived(data.bibleBooks);
 
-    let searchInputValue = $searchParams.query;
-    let languageId = $searchParams.languageId;
-    let parentResourceId = $searchParams.resourceId;
-    let bookCode = $searchParams.bookCode === '' ? null : $searchParams.bookCode;
-    let isPublished = $searchParams.isPublished === '' ? null : $searchParams.isPublished;
-    let publishedChecked = isPublished === null || isPublished === 'true';
-    let unpublishedChecked = isPublished === null || isPublished === 'false';
+    let searchInputValue = $state($searchParams.query);
+    let languageId = $state($searchParams.languageId);
+    let parentResourceId = $state($searchParams.resourceId);
+    let bookCode = $state($searchParams.bookCode === '' ? null : $searchParams.bookCode);
+    let isPublished = $state($searchParams.isPublished === '' ? null : $searchParams.isPublished);
+    let publishedChecked = $state(isPublished === null || isPublished === 'true');
+    let unpublishedChecked = $state(isPublished === null || isPublished === 'false');
 
-    let chapterRange = '';
-    $: calculateChapterRange(bibleBooks);
+    let chapterRange = $state('');
+    $effect(() => calculateChapterRange(bibleBooks));
 
-    $: parsedRange = parseStartAndEndFromSingleOrRangeString(chapterRange, 1, calculateMaxChapter(bibleBooks));
-    $: invalidChapterRange = !!chapterRange && parsedRange.start === 0 && parsedRange.end === 0;
+    let parsedRange = $derived(
+        parseStartAndEndFromSingleOrRangeString(chapterRange, 1, calculateMaxChapter(bibleBooks))
+    );
+    let invalidChapterRange = $derived(!!chapterRange && parsedRange.start === 0 && parsedRange.end === 0);
 
-    let isInitialResourcePerPage = true;
-
-    $: canApplyFilters =
+    let canApplyFilters = $derived(
         (!!searchInputValue ||
             languageId > 0 ||
             parentResourceId > 0 ||
@@ -48,20 +53,8 @@
             !!chapterRange ||
             !publishedChecked ||
             !unpublishedChecked) &&
-        !invalidChapterRange;
-
-    $: {
-        // track whether resourcesPerPage has changed
-        const _deps = [$resourcesPerPage];
-        if (isInitialResourcePerPage) {
-            isInitialResourcePerPage = false;
-        } else {
-            invalidateAll();
-            resourceContentDataPromise = new Promise<null>(() => {
-                // do nothing, and wait for resourceContentDataPromise to be refetched.
-            });
-        }
-    }
+            !invalidChapterRange
+    );
 
     function applyFilters() {
         if (canApplyFilters) {
@@ -180,7 +173,7 @@
             class="input input-bordered input-md min-w-[8rem] flex-grow"
             placeholder={$translate('page.resources.searchBox.value')}
         />
-        <button class="btn btn-primary" disabled={!canApplyFilters} on:click={applyFilters}>Apply</button>
+        <button class="btn btn-primary" disabled={!canApplyFilters} onclick={applyFilters}>Apply</button>
     </div>
 
     {#await resourceContentDataPromise}
@@ -235,7 +228,7 @@
                 <button
                     class="btn btn-outline self-center justify-self-start"
                     class:btn-disabled={$searchParams.page === 1}
-                    on:click={() => ($searchParams.page -= 1)}
+                    onclick={() => ($searchParams.page -= 1)}
                     >{$translate('page.resources.table.navigation.previous.value')}</button
                 >
                 <div class="grid place-self-center">
@@ -247,7 +240,11 @@
                             },
                         })}
                     </div>
-                    <select bind:value={$resourcesPerPage} class="select select-bordered select-ghost select-xs">
+                    <select
+                        bind:value={$resourcesPerPage}
+                        onchange={() => invalidateAll()}
+                        class="select select-bordered select-ghost select-xs"
+                    >
                         {#each [10, 50, 100] as count, i (i)}
                             <option value={count} selected={i === 0}>
                                 {`${count} ${$translate('page.resources.table.navigation.perPage.value')}`}
@@ -258,7 +255,7 @@
                 <button
                     class="btn btn-outline self-center justify-self-end"
                     class:btn-disabled={$searchParams.page === calculateTotalPages(resourceContentsOrNull.total)}
-                    on:click={() => ($searchParams.page += 1)}
+                    onclick={() => ($searchParams.page += 1)}
                     >{$translate('page.resources.table.navigation.next.value')}</button
                 >
             </div>
