@@ -11,7 +11,7 @@
     import type { BasicUser } from '$lib/types/base';
     import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
     import Modal from '$lib/components/Modal.svelte';
-    import { postToApi } from '$lib/utils/http-service';
+    import { postToApi, patchToApi } from '$lib/utils/http-service';
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
     import { log } from '$lib/logger';
     import Tooltip from '$lib/components/Tooltip.svelte';
@@ -26,6 +26,8 @@
     import { untrack } from 'svelte';
     import { Icon } from 'svelte-awesome';
     import volumeUp from 'svelte-awesome/icons/volumeUp';
+    import { notificationsContentsColumns } from './notifications-columns';
+    import type { FlattenedNotificationContent } from './proxy+page';
 
     interface Props {
         data: PageData;
@@ -36,6 +38,7 @@
     let manageContents = $derived(data.managerDashboard!.manageResourceContent);
     let toAssignContents = $derived(data.managerDashboard!.toAssignContent);
     let myWorkContents = $derived(data.managerDashboard!.assignedResourceContent);
+    let flattenedNotificationContents = $derived(data.managerDashboard!.flattenedNotificationContent);
     let userWordCounts = $derived(data.managerDashboard!.assignedUsersWordCount);
 
     let myWorkProjectNames = $derived.by(() =>
@@ -92,6 +95,7 @@
             project: ssp.string(''),
             lastAssignedId: ssp.number(0),
             isFilteringUnresolved: ssp.boolean(false),
+            isShowingOnlyUnread: ssp.boolean(false),
         },
         { runLoadAgainWhenParamsChange: false }
     );
@@ -122,6 +126,9 @@
     let currentManageContents: ResourceAssignedToOwnCompany[] = $state([]);
     let selectedManageContents: ResourceAssignedToOwnCompany[] = $state([]);
 
+    let currentNotifications: FlattenedNotificationContent[] = $state([]);
+    let selectedNotifications: FlattenedNotificationContent[] = $state([]);
+
     let isSkipEditor = $state(false);
 
     let sortedCurrentMyWorkContents = $derived(sortAssignedData(currentMyWorkContents, $searchParams.sort));
@@ -135,7 +142,8 @@
         toAssignProjectName: string,
         lastAssignedId: number,
         search: string,
-        isFilteringUnresolved: boolean
+        isFilteringUnresolved: boolean,
+        isShowingOnlyUnread: boolean
     ) => {
         if (tab === Tab.myWork) {
             currentMyWorkContents = myWorkContents.filter(
@@ -160,6 +168,14 @@
                     (lastAssignedId === 0 || x.lastAssignedUser?.id === lastAssignedId) &&
                     (!isFilteringUnresolved || x.hasUnresolvedCommentThreads === true)
             );
+        } else if (tab === Tab.notifications) {
+            currentNotifications = flattenedNotificationContents.filter((n) => {
+                if (isShowingOnlyUnread) {
+                    return !n.isRead;
+                } else {
+                    return true;
+                }
+            });
         }
     };
 
@@ -170,7 +186,8 @@
             $searchParams.project,
             $searchParams.lastAssignedId,
             search,
-            $searchParams.isFilteringUnresolved
+            $searchParams.isFilteringUnresolved,
+            $searchParams.isShowingOnlyUnread
         )
     );
     let anyRowSelected = $derived(
@@ -300,7 +317,30 @@
         }
     }
 
-    let table: Table<ResourceAssignedToSelf> | Table<ResourceAssignedToOwnCompany> | undefined = $state(undefined);
+    const markAsReadAndGoToResourcePage = async (notification: FlattenedNotificationContent) => {
+        if (!notification.isRead) {
+            await patchToApi(`/notifications/${notification.kind}/${notification.id}`, { isRead: true });
+        }
+
+        window.location.href = `/resources/${notification.resourceContentId}`;
+    };
+
+    const markAllAsRead = async () => {
+        await Promise.all(
+            selectedNotifications.map(async (notification) => {
+                if (!notification.isRead) {
+                    await patchToApi(`/notifications/${notification.kind}/${notification.id}`, { isRead: true });
+                }
+            })
+        );
+        window.location.reload();
+    };
+
+    let table:
+        | Table<ResourceAssignedToSelf>
+        | Table<ResourceAssignedToOwnCompany>
+        | Table<FlattenedNotificationContent>
+        | undefined = $state(undefined);
     let userWordCountTable: Table<UserWordCount> | undefined = $state(undefined);
 
     $effect(() => {
@@ -357,79 +397,107 @@
                 role="tab"
                 class="tab {$searchParams.tab === Tab.manage && 'tab-active'}">Manage ({manageContents.length})</button
             >
+            <button
+                onclick={() => switchTabs(Tab.notifications)}
+                role="tab"
+                class="tab {$searchParams.tab === Tab.notifications && 'tab-active'}"
+                >Notifications ({flattenedNotificationContents.length})</button
+            >
         </div>
     </div>
     <div class="mt-4 flex gap-4">
-        <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
-        <Select
-            class="select select-bordered max-w-[14rem] flex-grow"
-            bind:value={$searchParams.project}
-            onChange={resetSelections}
-            isNumber={false}
-            options={[{ value: '', label: 'Project' }, ...currentProjectNames.map((p) => ({ value: p, label: p }))]}
-        />
-        {#if $searchParams.tab === Tab.manage || $searchParams.tab === Tab.myWork}
+        {#if $searchParams.tab !== Tab.notifications}
+            <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
             <Select
                 class="select select-bordered max-w-[14rem] flex-grow"
-                bind:value={$searchParams.lastAssignedId}
+                bind:value={$searchParams.project}
                 onChange={resetSelections}
-                isNumber={true}
-                options={[
-                    { value: 0, label: 'Last Assigned' },
-                    ...currentLastAssignedUsers.map((n) => ({ value: n.id, label: n.name })),
-                ]}
+                isNumber={false}
+                options={[{ value: '', label: 'Project' }, ...currentProjectNames.map((p) => ({ value: p, label: p }))]}
             />
-        {/if}
-        {#if $searchParams.tab === Tab.manage}
-            <Select
-                class="select select-bordered max-w-[14rem] flex-grow"
-                bind:value={$searchParams.assignedUserId}
-                onChange={resetSelections}
-                isNumber={true}
-                options={[
-                    { value: 0, label: 'Assigned' },
-                    ...(data.users || []).map((u) => ({ value: u.id, label: u.name })),
-                ]}
-            />
-        {/if}
+            {#if $searchParams.tab === Tab.manage || $searchParams.tab === Tab.myWork}
+                <Select
+                    class="select select-bordered max-w-[14rem] flex-grow"
+                    bind:value={$searchParams.lastAssignedId}
+                    onChange={resetSelections}
+                    isNumber={true}
+                    options={[
+                        { value: 0, label: 'Last Assigned' },
+                        ...currentLastAssignedUsers.map((n) => ({ value: n.id, label: n.name })),
+                    ]}
+                />
+            {/if}
+            {#if $searchParams.tab === Tab.manage}
+                <Select
+                    class="select select-bordered max-w-[14rem] flex-grow"
+                    bind:value={$searchParams.assignedUserId}
+                    onChange={resetSelections}
+                    isNumber={true}
+                    options={[
+                        { value: 0, label: 'Assigned' },
+                        ...(data.users || []).map((u) => ({ value: u.id, label: u.name })),
+                    ]}
+                />
+            {/if}
 
-        {#if $searchParams.tab === Tab.manage || $searchParams.tab === Tab.myWork}
+            {#if $searchParams.tab === Tab.manage || $searchParams.tab === Tab.myWork}
+                <label class="label cursor-pointer py-0 opacity-70">
+                    <input
+                        type="checkbox"
+                        bind:checked={$searchParams.isFilteringUnresolved}
+                        data-app-insights-event-name="manager-dashboard-has-unresolved-comments-toggle-{$searchParams.isFilteringUnresolved
+                            ? 'off'
+                            : 'on'}"
+                        class="checkbox no-animation checkbox-sm me-2"
+                    />
+                    <span class="label-text text-xs">Has Unresolved Comments</span>
+                </label>
+            {/if}
+
+            <button
+                data-app-insights-event-name="manager-dashboard-bulk-assign-click"
+                class="btn btn-primary"
+                onclick={() => (isAssignContentModalOpen = true)}
+                disabled={selectedMyWorkContents.length === 0 &&
+                    selectedToAssignContents.length === 0 &&
+                    selectedManageContents.length === 0}>Assign</button
+            >
+
+            {#if $searchParams.tab === Tab.myWork}
+                <Tooltip
+                    position={{ left: '10rem' }}
+                    text={nonCompanyReviewSelected ? 'Company Review status only' : null}
+                >
+                    <button
+                        data-app-insights-event-name="manager-dashboard-bulk-assign-click"
+                        class="btn btn-primary"
+                        onclick={() => (isSendToPublisherModalOpen = true)}
+                        disabled={!anyRowSelected || nonCompanyReviewSelected}>Send to Publisher</button
+                    >
+                </Tooltip>
+            {/if}
+            <div class="my-1 ml-auto flex flex-col items-end justify-center">
+                <div class="text-sm text-gray-500">Selected Items: {selectedCount ?? 0}</div>
+                <div class="text-sm text-gray-500">Selected Word Count: {selectedWordCount ?? 0}</div>
+            </div>
+        {:else}
+            <button
+                data-app-insights-event-name="manager-dashboard-mark-read-click"
+                class="btn btn-primary"
+                onclick={markAllAsRead}
+                disabled={selectedNotifications.length === 0 || selectedNotifications.every((n) => n.isRead)}
+                >Mark Read
+            </button>
             <label class="label cursor-pointer py-0 opacity-70">
                 <input
                     type="checkbox"
-                    bind:checked={$searchParams.isFilteringUnresolved}
-                    data-app-insights-event-name="manager-dashboard-has-unresolved-comments-toggle-{$searchParams.isFilteringUnresolved
-                        ? 'off'
-                        : 'on'}"
+                    bind:checked={$searchParams.isShowingOnlyUnread}
+                    data-app-insights-event-name="manager-dashboard-show-only-unread-toggle"
                     class="checkbox no-animation checkbox-sm me-2"
                 />
-                <span class="label-text text-xs">Has Unresolved Comments</span>
+                <span class="label-text text-xs">Show Only Unread</span>
             </label>
         {/if}
-
-        <button
-            data-app-insights-event-name="manager-dashboard-bulk-assign-click"
-            class="btn btn-primary"
-            onclick={() => (isAssignContentModalOpen = true)}
-            disabled={selectedMyWorkContents.length === 0 &&
-                selectedToAssignContents.length === 0 &&
-                selectedManageContents.length === 0}>Assign</button
-        >
-
-        {#if $searchParams.tab === Tab.myWork}
-            <Tooltip position={{ left: '10rem' }} text={nonCompanyReviewSelected ? 'Company Review status only' : null}>
-                <button
-                    data-app-insights-event-name="manager-dashboard-bulk-assign-click"
-                    class="btn btn-primary"
-                    onclick={() => (isSendToPublisherModalOpen = true)}
-                    disabled={!anyRowSelected || nonCompanyReviewSelected}>Send to Publisher</button
-                >
-            </Tooltip>
-        {/if}
-        <div class="my-1 ml-auto flex flex-col items-end justify-center">
-            <div class="text-sm text-gray-500">Selected Items: {selectedCount ?? 0}</div>
-            <div class="text-sm text-gray-500">Selected Word Count: {selectedWordCount ?? 0}</div>
-        </div>
     </div>
 
     {#if $searchParams.tab === Tab.myWork}
@@ -571,6 +639,40 @@
                 ></Table>
             {/if}
         </div>
+    {:else if $searchParams.tab === Tab.notifications}
+        <Table
+            bind:this={table}
+            class="my-4"
+            idColumn="id"
+            enableSelectAll={true}
+            columns={notificationsContentsColumns}
+            items={currentNotifications}
+            noItemsText="No notifications."
+            bind:selectedItems={selectedNotifications}
+        >
+            {#snippet customTbody(rowItems, selectedItems, onSelectItem)}
+                <tbody>
+                    {#each rowItems as notificationItem (notificationItem.id)}
+                        <tr
+                            class={notificationItem.isRead ? 'cursor-pointer' : 'cursor-pointer font-bold'}
+                            onclick={() => markAsReadAndGoToResourcePage(notificationItem)}
+                        >
+                            <TableCell class="w-4" stopPropagation={true}>
+                                <input
+                                    type="checkbox"
+                                    class="checkbox checkbox-sm"
+                                    onchange={() => onSelectItem(notificationItem)}
+                                    checked={selectedItems?.includes(notificationItem)}
+                                />
+                            </TableCell>
+                            <TableCell>{notificationItem['time']}</TableCell>
+                            <TableCell>{notificationItem['name']}</TableCell>
+                            <TableCell>{notificationItem['notification']}</TableCell>
+                        </tr>
+                    {/each}
+                </tbody>
+            {/snippet}
+        </Table>
     {/if}
 </div>
 
