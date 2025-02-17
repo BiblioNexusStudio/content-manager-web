@@ -29,7 +29,7 @@
     import { filterBoolean } from '$lib/utils/array';
     import { ResourceContentVersionReviewLevel } from '$lib/types/resources';
     import type { NotApplicableContent } from './+page';
-    import { _PublisherTab as Tab, _NotificationKind as NotificationKind } from './+page';
+    import { _PublisherTab as Tab } from './+page';
     import { untrack } from 'svelte';
     import { parseApiValidatorErrorMessage } from '$lib/utils/http-errors';
     import { Icon } from 'svelte-awesome';
