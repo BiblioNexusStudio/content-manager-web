@@ -11,7 +11,7 @@
     import type { BasicUser } from '$lib/types/base';
     import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
     import Modal from '$lib/components/Modal.svelte';
-    import { postToApi, patchToApi } from '$lib/utils/http-service';
+    import { postToApi } from '$lib/utils/http-service';
     import { formatSimpleDaysAgo } from '$lib/utils/date-time';
     import { log } from '$lib/logger';
     import Tooltip from '$lib/components/Tooltip.svelte';
@@ -26,7 +26,11 @@
     import { untrack } from 'svelte';
     import { Icon } from 'svelte-awesome';
     import volumeUp from 'svelte-awesome/icons/volumeUp';
-    import { notificationsContentsColumns } from './notifications-columns';
+    import {
+        notificationsContentsColumns,
+        markNotificationAsReadAndGoToResourcePage,
+        markAllSelectedNotificationsAsRead,
+    } from './notifications-helpers';
     import type { FlattenedNotificationContent } from './proxy+page';
 
     interface Props {
@@ -317,25 +321,6 @@
         }
     }
 
-    const markAsReadAndGoToResourcePage = async (notification: FlattenedNotificationContent) => {
-        if (!notification.isRead) {
-            await patchToApi(`/notifications/${notification.kind}/${notification.id}`, { isRead: true });
-        }
-
-        window.location.href = `/resources/${notification.resourceContentId}`;
-    };
-
-    const markAllAsRead = async () => {
-        await Promise.all(
-            selectedNotifications.map(async (notification) => {
-                if (!notification.isRead) {
-                    await patchToApi(`/notifications/${notification.kind}/${notification.id}`, { isRead: true });
-                }
-            })
-        );
-        window.location.reload();
-    };
-
     let table:
         | Table<ResourceAssignedToSelf>
         | Table<ResourceAssignedToOwnCompany>
@@ -401,7 +386,7 @@
                 onclick={() => switchTabs(Tab.notifications)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.notifications && 'tab-active'}"
-                >Notifications ({flattenedNotificationContents.length})</button
+                >Notifications ({flattenedNotificationContents.filter((n) => !n.isRead).length})</button
             >
         </div>
     </div>
@@ -484,7 +469,7 @@
             <button
                 data-app-insights-event-name="manager-dashboard-mark-read-click"
                 class="btn btn-primary"
-                onclick={markAllAsRead}
+                onclick={() => markAllSelectedNotificationsAsRead(selectedNotifications)}
                 disabled={selectedNotifications.length === 0 || selectedNotifications.every((n) => n.isRead)}
                 >Mark Read
             </button>
@@ -655,7 +640,7 @@
                     {#each rowItems as notificationItem (notificationItem.id)}
                         <tr
                             class={notificationItem.isRead ? 'cursor-pointer' : 'cursor-pointer font-bold'}
-                            onclick={() => markAsReadAndGoToResourcePage(notificationItem)}
+                            onclick={() => markNotificationAsReadAndGoToResourcePage(notificationItem)}
                         >
                             <TableCell class="w-4" stopPropagation={true}>
                                 <input

@@ -7,26 +7,10 @@ import { redirect } from '@sveltejs/kit';
 import type { ProjectResourceStatusCounts } from '$lib/types/projects';
 import type { ResourceContentVersionReviewLevel } from '$lib/types/resources';
 import type { HelpDocumentResponse } from '$lib/types/helpDocuments';
-import { formatNotificationsDateString } from '$lib/utils/date-time';
+import { flattenNotificationContent } from './notifications-helpers';
 
 export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
-
-    const flattenNotificationContent = (
-        notificationsContent: NotificationsContent[]
-    ): FlattenedNotificationContent[] => {
-        return notificationsContent.map((notification) => {
-            return {
-                id: notification.comment?.id,
-                name: notification.comment?.user.name,
-                time: formatNotificationsDateString(notification.comment?.created ?? ''),
-                notification: notification.comment?.text,
-                isRead: notification.isRead,
-                resourceContentId: notification.comment?.resourceContentId,
-                kind: notification.kind,
-            };
-        });
-    };
 
     if (get(userCan)(Permission.ReviewContent) || get(userCan)(Permission.PublishContent)) {
         const [
@@ -81,12 +65,16 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             },
         };
     } else if (get(userCan)(Permission.CreateCommunityContent)) {
-        const [assignedResourceContent, assignedResourceHistoryContent, bibleBooks, helpDocs] = await Promise.all([
-            fetchAssignedResourceContent(fetch),
-            getFromApi<ResourceAssignedToSelfHistory[]>('/resources/content/assigned-to-self/history', fetch),
-            getFromApi<BibleBook[]>('/bibles/1/books', fetch),
-            getFromApi<HelpDocumentResponse>('/help/aquifer-cms/documents', fetch),
-        ]);
+        const [assignedResourceContent, assignedResourceHistoryContent, bibleBooks, helpDocs, notificationsContent] =
+            await Promise.all([
+                fetchAssignedResourceContent(fetch),
+                getFromApi<ResourceAssignedToSelfHistory[]>('/resources/content/assigned-to-self/history', fetch),
+                getFromApi<BibleBook[]>('/bibles/1/books', fetch),
+                getFromApi<HelpDocumentResponse>('/help/aquifer-cms/documents', fetch),
+                getFromApi<NotificationsContent[]>('/notifications', fetch),
+            ]);
+
+        const flattenedNotificationContent = flattenNotificationContent(notificationsContent);
 
         return {
             communityReviewerDashboard: {
@@ -94,6 +82,7 @@ export const load: PageLoad = async ({ parent, fetch }) => {
                 assignedResourceHistoryContent,
                 bibleBooks,
                 helpDocs,
+                flattenedNotificationContent,
             },
         };
     } else if (get(userCan)(Permission.EditContent)) {
@@ -123,6 +112,7 @@ export enum _CommunityReviewerTab {
     resources = 'resources',
     myHistory = 'my-history',
     help = 'help',
+    notifications = 'notifications',
 }
 
 export enum _PublisherTab {

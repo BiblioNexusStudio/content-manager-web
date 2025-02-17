@@ -3,7 +3,7 @@
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
     import type { Project, ResourceAssignedToSelf, ResourcePendingReview } from './+page';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
-    import { postToApi, patchToApi } from '$lib/utils/http-service';
+    import { postToApi } from '$lib/utils/http-service';
     import Select from '$lib/components/Select.svelte';
     import Modal from '$lib/components/Modal.svelte';
     import UserSelector from '../resources/[resourceContentId]/UserSelector.svelte';
@@ -34,7 +34,11 @@
     import { parseApiValidatorErrorMessage } from '$lib/utils/http-errors';
     import { Icon } from 'svelte-awesome';
     import volumeUp from 'svelte-awesome/icons/volumeUp';
-    import { notificationsContentsColumns } from './notifications-columns';
+    import {
+        notificationsContentsColumns,
+        markAllSelectedNotificationsAsRead,
+        markNotificationAsReadAndGoToResourcePage,
+    } from './notifications-helpers';
     import type { FlattenedNotificationContent } from './proxy+page';
 
     interface Props {
@@ -301,25 +305,6 @@
         };
     }
 
-    const markAsReadAndGoToResourcePage = async (notification: FlattenedNotificationContent) => {
-        if (!notification.isRead) {
-            await patchToApi(`/notifications/${notification.kind}/${notification.id}`, { isRead: true });
-        }
-
-        window.location.href = `/resources/${notification.resourceContentId}`;
-    };
-
-    const markAllAsRead = async () => {
-        await Promise.all(
-            selectedNotificationsTableItems.map(async (notification) => {
-                if (!notification.isRead) {
-                    await patchToApi(`/notifications/${notification.kind}/${notification.id}`, { isRead: true });
-                }
-            })
-        );
-        window.location.reload();
-    };
-
     const setTabContents = (
         tab: string,
         search: string,
@@ -433,7 +418,7 @@
                 onclick={selectTab(Tab.notifications)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.notifications && 'tab-active'}"
-                >Notifications ({flattenedNotificationContent.length})</button
+                >Notifications ({flattenedNotificationContent.filter((n) => !n.isRead).length})</button
             >
         </div>
     </div>
@@ -517,7 +502,7 @@
             <button
                 data-app-insights-event-name="publisher-dashboard-mark-read-click"
                 class="btn btn-primary"
-                onclick={markAllAsRead}
+                onclick={() => markAllSelectedNotificationsAsRead(selectedNotificationsTableItems)}
                 disabled={selectedNotificationsTableItems.length === 0 ||
                     selectedNotificationsTableItems.every((n) => n.isRead)}
                 >Mark Read
@@ -696,7 +681,7 @@
                         {#each rowItems as notificationItem (notificationItem.id)}
                             <tr
                                 class={notificationItem.isRead ? 'cursor-pointer' : 'cursor-pointer font-bold'}
-                                onclick={() => markAsReadAndGoToResourcePage(notificationItem)}
+                                onclick={() => markNotificationAsReadAndGoToResourcePage(notificationItem)}
                             >
                                 <TableCell class="w-4" stopPropagation={true}>
                                     <input
