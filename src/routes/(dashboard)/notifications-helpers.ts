@@ -1,17 +1,17 @@
 import type { column } from '$lib/types/table';
-import type { FlattenedNotificationContent, NotificationsContent } from './+page';
+import type { FlattenedNotificationsContent, NotificationsContent } from './+page';
 import { formatNotificationsDateString } from '$lib/utils/date-time';
-import { patchToApi } from '$lib/utils/http-service';
+import { patchToApi, postToApi } from '$lib/utils/http-service';
 
-export const notificationsContentsColumns: column<FlattenedNotificationContent>[] = [
+export const notificationsContentColumns: column<FlattenedNotificationsContent>[] = [
     { text: 'Time', itemKey: 'time', sortKey: undefined },
     { text: 'User', itemKey: 'name', sortKey: undefined },
     { text: 'Notification', itemKey: 'notification', sortKey: undefined },
 ];
 
-export const flattenNotificationContent = (
+export const flattenNotificationsContent = (
     notificationsContent: NotificationsContent[]
-): FlattenedNotificationContent[] => {
+): FlattenedNotificationsContent[] => {
     return notificationsContent.map((notification) => {
         return {
             id: notification.comment?.id,
@@ -25,7 +25,7 @@ export const flattenNotificationContent = (
     });
 };
 
-export const markNotificationAsReadAndGoToResourcePage = async (notification: FlattenedNotificationContent) => {
+export const markNotificationAsReadAndGoToResourcePage = async (notification: FlattenedNotificationsContent) => {
     if (!notification.isRead) {
         await patchToApi(`/notifications/${notification.kind}/${notification.id}`, { isRead: true });
     }
@@ -33,13 +33,16 @@ export const markNotificationAsReadAndGoToResourcePage = async (notification: Fl
     window.location.href = `/resources/${notification.resourceContentId}`;
 };
 
-export const markAllSelectedNotificationsAsRead = async (notifications: FlattenedNotificationContent[]) => {
-    await Promise.all(
-        notifications.map(async (notification) => {
-            if (!notification.isRead) {
-                await patchToApi(`/notifications/${notification.kind}/${notification.id}`, { isRead: true });
-            }
-        })
-    );
+export const markAllSelectedNotificationsAsRead = async (notifications: FlattenedNotificationsContent[]) => {
+    const bulkNotificationUpdatePayload = notifications.map((notification) => {
+        return {
+            notificationKind: notification.kind,
+            notificationKindId: notification.id,
+            isRead: true,
+        };
+    });
+
+    await postToApi('/notifications/update', { updates: bulkNotificationUpdatePayload });
+
     window.location.reload();
 };

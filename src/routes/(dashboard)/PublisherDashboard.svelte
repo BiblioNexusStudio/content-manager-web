@@ -35,11 +35,11 @@
     import { Icon } from 'svelte-awesome';
     import volumeUp from 'svelte-awesome/icons/volumeUp';
     import {
-        notificationsContentsColumns,
+        notificationsContentColumns,
         markAllSelectedNotificationsAsRead,
         markNotificationAsReadAndGoToResourcePage,
     } from './notifications-helpers';
-    import type { FlattenedNotificationContent } from './proxy+page';
+    import type { FlattenedNotificationsContent } from './proxy+page';
 
     interface Props {
         data: PageData;
@@ -51,11 +51,11 @@
     let currentReviewPendingContents: ResourcePendingReview[] = $state([]);
     let currentAssignedProjects: Project[] = $state([]);
     let currentCommunityPendingContents: ResourcePendingReview[] = $state([]);
-    let currentNotificationsTableItems: FlattenedNotificationContent[] = $state([]);
+    let currentNotifications: FlattenedNotificationsContent[] = $state([]);
     let selectedMyWorkTableItems: ResourceAssignedToSelf[] = $state([]);
     let selectedReviewPendingTableItems: ResourcePendingReview[] = $state([]);
     let selectedCommunityPendingTableItems: ResourcePendingReview[] = $state([]);
-    let selectedNotificationsTableItems: FlattenedNotificationContent[] = $state([]);
+    let selectedNotifications: FlattenedNotificationsContent[] = $state([]);
     let assignToUserId: number | null = $state(null);
     let isAssignContentModalOpen = $state(false);
     let isConfirmPublishModalOpen = $state(false);
@@ -71,7 +71,7 @@
     let allReviewPendingContents = $derived(data.publisherDashboard!.reviewPendingResourceContent);
     let assignedProjects = data.publisherDashboard!.assignedProjects;
     let notApplicableContent = data.publisherDashboard!.notApplicableContent;
-    let flattenedNotificationContent = data.publisherDashboard!.flattenedNotificationContent;
+    let flattenedNotificationContent = data.publisherDashboard!.flattenedNotificationsContent;
     let communityPendingContents = $derived.by(() => {
         return allReviewPendingContents.filter((item) => {
             return item.reviewLevel === ResourceContentVersionReviewLevel.community;
@@ -112,7 +112,7 @@
         selectedMyWorkTableItems = [];
         selectedReviewPendingTableItems = [];
         selectedCommunityPendingTableItems = [];
-        selectedNotificationsTableItems = [];
+        selectedNotifications = [];
     }
 
     function shouldAssignAsEditorReview(status: ResourceContentStatusEnum | null) {
@@ -254,7 +254,7 @@
         | Table<Project>
         | Table<ResourcePendingReview>
         | Table<NotApplicableContent>
-        | Table<FlattenedNotificationContent>
+        | Table<FlattenedNotificationsContent>
         | undefined = $state(undefined);
 
     $effect(() => {
@@ -338,7 +338,7 @@
                     (!isFilteringUnresolved || crpc.hasUnresolvedCommentThreads === true)
             );
         } else if (tab === Tab.notifications) {
-            currentNotificationsTableItems = flattenedNotificationContent.filter((n) => {
+            currentNotifications = flattenedNotificationContent.filter((n) => {
                 if (isShowingOnlyUnread) {
                     return !n.isRead;
                 } else {
@@ -502,9 +502,8 @@
             <button
                 data-app-insights-event-name="publisher-dashboard-mark-read-click"
                 class="btn btn-primary"
-                onclick={() => markAllSelectedNotificationsAsRead(selectedNotificationsTableItems)}
-                disabled={selectedNotificationsTableItems.length === 0 ||
-                    selectedNotificationsTableItems.every((n) => n.isRead)}
+                onclick={() => markAllSelectedNotificationsAsRead(selectedNotifications)}
+                disabled={selectedNotifications.length === 0 || selectedNotifications.every((n) => n.isRead)}
                 >Mark Read
             </button>
             <label class="label cursor-pointer py-0 opacity-70">
@@ -671,10 +670,10 @@
                 class="my-4"
                 idColumn="id"
                 enableSelectAll={true}
-                columns={notificationsContentsColumns}
-                items={currentNotificationsTableItems}
+                columns={notificationsContentColumns}
+                items={currentNotifications}
                 noItemsText="No notifications."
-                bind:selectedItems={selectedNotificationsTableItems}
+                bind:selectedItems={selectedNotifications}
             >
                 {#snippet customTbody(rowItems, selectedItems, onSelectItem)}
                     <tbody>
@@ -696,6 +695,11 @@
                                 <TableCell>{notificationItem['notification']}</TableCell>
                             </tr>
                         {/each}
+                        {#if rowItems.length === 0}
+                            <tr>
+                                <td colspan="99" class="text-center"> No notifications. </td>
+                            </tr>
+                        {/if}
                     </tbody>
                 {/snippet}
             </Table>

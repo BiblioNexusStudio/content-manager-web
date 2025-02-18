@@ -25,9 +25,9 @@
     import { Icon } from 'svelte-awesome';
     import volumeUp from 'svelte-awesome/icons/volumeUp';
     import Tooltip from '$lib/components/Tooltip.svelte';
-    import type { FlattenedNotificationContent } from './proxy+page';
+    import type { FlattenedNotificationsContent } from './proxy+page';
     import {
-        notificationsContentsColumns,
+        notificationsContentColumns,
         markNotificationAsReadAndGoToResourcePage,
         markAllSelectedNotificationsAsRead,
     } from './notifications-helpers';
@@ -43,13 +43,13 @@
 
     let myWorkContents = data.editorDashboard!.assignedResourceContent;
     let myHistoryContents = data.editorDashboard!.assignedResourceHistoryContent;
-    let flattenedNotificationContents = data.editorDashboard!.flattenedNotificationContent;
+    let flattenedNotificationsContent = data.editorDashboard!.flattenedNotificationsContent;
     let isAssignContentModalOpen = $state(false);
     let isSendToPublisherModalOpen = $state(false);
     let isSendToReviewModalOpen = $state(false);
 
     let selectedMyWorkContents: ResourceAssignedToSelf[] = $state([]);
-    let selectedNotifications: FlattenedNotificationContent[] = $state([]);
+    let selectedNotifications: FlattenedNotificationsContent[] = $state([]);
     let isTransacting = $state(false);
     let assignToUserId: number | null = $state(null);
     let errorModalText: string | null = $state(null);
@@ -123,7 +123,7 @@
                 x.englishLabel.toLowerCase().includes(search.toLowerCase())
             );
         } else if (tab === Tab.notifications) {
-            visibleNotificationContents = flattenedNotificationContents.filter((n) => {
+            visibleNotificationContents = flattenedNotificationsContent.filter((n) => {
                 if (isShowingOnlyUnread) {
                     return !n.isRead;
                 } else {
@@ -189,7 +189,7 @@
     let search = $state('');
     let visibleMyWorkContents: ResourceAssignedToSelf[] = $state([]);
     let visibleMyHistoryContents: ResourceAssignedToSelfHistory[] = $state([]);
-    let visibleNotificationContents: FlattenedNotificationContent[] = $state([]);
+    let visibleNotificationContents: FlattenedNotificationsContent[] = $state([]);
     let sortedMyWorkContents: ResourceAssignedToSelf[] = $derived(
         sortMyWorkData(visibleMyWorkContents, $searchParams.sort)
     );
@@ -199,7 +199,7 @@
     let table:
         | Table<ResourceAssignedToSelfHistory>
         | Table<ResourceAssignedToSelf>
-        | Table<FlattenedNotificationContent>
+        | Table<FlattenedNotificationsContent>
         | undefined = $state(undefined);
 
     $effect(() => {
@@ -242,7 +242,7 @@
                 onclick={() => switchTabs(Tab.notifications)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.notifications && 'tab-active'}"
-                >Notifications ({flattenedNotificationContents.filter((n) => !n.isRead).length})</button
+                >Notifications ({flattenedNotificationsContent.filter((n) => !n.isRead).length})</button
             >
         </div>
     </div>
@@ -331,7 +331,7 @@
         {/if}
         {#if $searchParams.tab === Tab.notifications}
             <button
-                data-app-insights-event-name="manager-dashboard-mark-read-click"
+                data-app-insights-event-name="editor-dashboard-mark-read-click"
                 class="btn btn-primary"
                 onclick={() => markAllSelectedNotificationsAsRead(selectedNotifications)}
                 disabled={selectedNotifications.length === 0 || selectedNotifications.every((n) => n.isRead)}
@@ -341,7 +341,7 @@
                 <input
                     type="checkbox"
                     bind:checked={$searchParams.isShowingOnlyUnread}
-                    data-app-insights-event-name="manager-dashboard-show-only-unread-toggle"
+                    data-app-insights-event-name="editor-dashboard-show-only-unread-toggle"
                     class="checkbox no-animation checkbox-sm me-2"
                 />
                 <span class="label-text text-xs">Show Only Unread</span>
@@ -418,7 +418,7 @@
             class="my-4"
             idColumn="id"
             enableSelectAll={true}
-            columns={notificationsContentsColumns}
+            columns={notificationsContentColumns}
             items={visibleNotificationContents}
             noItemsText="No notifications."
             bind:selectedItems={selectedNotifications}
@@ -443,6 +443,11 @@
                             <TableCell>{notificationItem['notification']}</TableCell>
                         </tr>
                     {/each}
+                    {#if rowItems.length === 0}
+                        <tr>
+                            <td colspan="99" class="text-center"> No notifications. </td>
+                        </tr>
+                    {/if}
                 </tbody>
             {/snippet}
         </Table>

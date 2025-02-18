@@ -27,11 +27,11 @@
     import { Icon } from 'svelte-awesome';
     import volumeUp from 'svelte-awesome/icons/volumeUp';
     import {
-        notificationsContentsColumns,
+        notificationsContentColumns,
         markNotificationAsReadAndGoToResourcePage,
         markAllSelectedNotificationsAsRead,
     } from './notifications-helpers';
-    import type { FlattenedNotificationContent } from './proxy+page';
+    import type { FlattenedNotificationsContent } from './proxy+page';
 
     interface Props {
         data: PageData;
@@ -42,7 +42,7 @@
     let manageContents = $derived(data.managerDashboard!.manageResourceContent);
     let toAssignContents = $derived(data.managerDashboard!.toAssignContent);
     let myWorkContents = $derived(data.managerDashboard!.assignedResourceContent);
-    let flattenedNotificationContents = $derived(data.managerDashboard!.flattenedNotificationContent);
+    let flattenedNotificationContents = $derived(data.managerDashboard!.flattenedNotificationsContent);
     let userWordCounts = $derived(data.managerDashboard!.assignedUsersWordCount);
 
     let myWorkProjectNames = $derived.by(() =>
@@ -130,8 +130,8 @@
     let currentManageContents: ResourceAssignedToOwnCompany[] = $state([]);
     let selectedManageContents: ResourceAssignedToOwnCompany[] = $state([]);
 
-    let currentNotifications: FlattenedNotificationContent[] = $state([]);
-    let selectedNotifications: FlattenedNotificationContent[] = $state([]);
+    let currentNotifications: FlattenedNotificationsContent[] = $state([]);
+    let selectedNotifications: FlattenedNotificationsContent[] = $state([]);
 
     let isSkipEditor = $state(false);
 
@@ -324,7 +324,7 @@
     let table:
         | Table<ResourceAssignedToSelf>
         | Table<ResourceAssignedToOwnCompany>
-        | Table<FlattenedNotificationContent>
+        | Table<FlattenedNotificationsContent>
         | undefined = $state(undefined);
     let userWordCountTable: Table<UserWordCount> | undefined = $state(undefined);
 
@@ -630,7 +630,7 @@
             class="my-4"
             idColumn="id"
             enableSelectAll={true}
-            columns={notificationsContentsColumns}
+            columns={notificationsContentColumns}
             items={currentNotifications}
             noItemsText="No notifications."
             bind:selectedItems={selectedNotifications}
@@ -655,6 +655,11 @@
                             <TableCell>{notificationItem['notification']}</TableCell>
                         </tr>
                     {/each}
+                    {#if rowItems.length === 0}
+                        <tr>
+                            <td colspan="99" class="text-center"> No notifications. </td>
+                        </tr>
+                    {/if}
                 </tbody>
             {/snippet}
         </Table>

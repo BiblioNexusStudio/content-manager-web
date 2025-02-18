@@ -7,7 +7,7 @@ import { redirect } from '@sveltejs/kit';
 import type { ProjectResourceStatusCounts } from '$lib/types/projects';
 import type { ResourceContentVersionReviewLevel } from '$lib/types/resources';
 import type { HelpDocumentResponse } from '$lib/types/helpDocuments';
-import { flattenNotificationContent } from './notifications-helpers';
+import { flattenNotificationsContent } from './notifications-helpers';
 
 export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
@@ -27,7 +27,7 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             getFromApi<NotificationsContent[]>('/notifications', fetch),
         ]);
 
-        const flattenedNotificationContent = flattenNotificationContent(notificationsContent);
+        const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent);
 
         return {
             publisherDashboard: {
@@ -35,7 +35,7 @@ export const load: PageLoad = async ({ parent, fetch }) => {
                 reviewPendingResourceContent,
                 assignedProjects,
                 notApplicableContent,
-                flattenedNotificationContent,
+                flattenedNotificationsContent,
             },
         };
     } else if (get(userCan)(Permission.ReadCompanyContentAssignments)) {
@@ -53,7 +53,7 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             getFromApi<NotificationsContent[]>('/notifications', fetch),
         ]);
 
-        const flattenedNotificationContent = flattenNotificationContent(notificationsContent);
+        const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent);
 
         return {
             managerDashboard: {
@@ -61,7 +61,7 @@ export const load: PageLoad = async ({ parent, fetch }) => {
                 toAssignContent,
                 manageResourceContent,
                 assignedUsersWordCount,
-                flattenedNotificationContent,
+                flattenedNotificationsContent,
             },
         };
     } else if (get(userCan)(Permission.CreateCommunityContent)) {
@@ -74,7 +74,7 @@ export const load: PageLoad = async ({ parent, fetch }) => {
                 getFromApi<NotificationsContent[]>('/notifications', fetch),
             ]);
 
-        const flattenedNotificationContent = flattenNotificationContent(notificationsContent);
+        const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent);
 
         return {
             communityReviewerDashboard: {
@@ -82,7 +82,7 @@ export const load: PageLoad = async ({ parent, fetch }) => {
                 assignedResourceHistoryContent,
                 bibleBooks,
                 helpDocs,
-                flattenedNotificationContent,
+                flattenedNotificationsContent,
             },
         };
     } else if (get(userCan)(Permission.EditContent)) {
@@ -92,10 +92,10 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             getFromApi<NotificationsContent[]>('/notifications', fetch),
         ]);
 
-        const flattenedNotificationContent = flattenNotificationContent(notificationsContent);
+        const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent);
 
         return {
-            editorDashboard: { assignedResourceContent, assignedResourceHistoryContent, flattenedNotificationContent },
+            editorDashboard: { assignedResourceContent, assignedResourceHistoryContent, flattenedNotificationsContent },
         };
     } else if (get(userCan)(Permission.ReadReports)) {
         redirect(302, '/reporting');
@@ -273,7 +273,7 @@ export interface CommentNotification {
     parentResourceDisplayName: string;
 }
 
-export interface FlattenedNotificationContent {
+export interface FlattenedNotificationsContent {
     id?: number;
     name?: string;
     time?: string;

@@ -21,6 +21,12 @@
     import { Icon } from 'svelte-awesome';
     import volumeUp from 'svelte-awesome/icons/volumeUp';
     import Document from '$lib/components/help/Document.svelte';
+    import {
+        notificationsContentColumns,
+        markNotificationAsReadAndGoToResourcePage,
+        markAllSelectedNotificationsAsRead,
+    } from './notifications-helpers';
+    import type { FlattenedNotificationsContent } from './proxy+page';
 
     const sortMyHistoryData = createEditorDashboardMyHistorySorter();
 
@@ -33,7 +39,10 @@
     let bibleBooks = $derived(data.communityReviewerDashboard!.bibleBooks);
     let myAssignedContents = $derived(data.communityReviewerDashboard!.assignedResourceContent);
     let myHistoryContents = $derived(data.communityReviewerDashboard!.assignedResourceHistoryContent);
+    let flattenedNotificationsContent = $derived(data.communityReviewerDashboard!.flattenedNotificationsContent);
     let currentlyReviewingItem = $derived(myAssignedContents[0]);
+    let currentNotifications: FlattenedNotificationsContent[] = $state([]);
+    let selectedNotifications: FlattenedNotificationsContent[] = $state([]);
     let helpDocs = $derived.by(() => {
         return data.communityReviewerDashboard!.helpDocs?.howTos.filter((item) => {
             return item.title === 'Commenting' || item.title === 'Versions and Bible Panes';
@@ -51,13 +60,17 @@
         {
             sort: ssp.string(`-${SortName.Days}`),
             tab: ssp.string(Tab.resources),
+            isShowingOnlyUnread: ssp.boolean(false),
         },
         { runLoadAgainWhenParamsChange: false }
     );
 
     let myHistorySearchQuery = $state('');
-    let table: Table<ResourceThatNeedsTranslation> | Table<ResourceAssignedToSelfHistory> | undefined =
-        $state(undefined);
+    let table:
+        | Table<ResourceThatNeedsTranslation>
+        | Table<ResourceAssignedToSelfHistory>
+        | Table<FlattenedNotificationsContent>
+        | undefined = $state(undefined);
 
     $effect(() => {
         if ($searchParams.sort && table) {
@@ -144,6 +157,20 @@
         return bibleBooks.find((b) => b.code === bookCode)?.totalChapters ?? 0;
     }
 
+    function filterNotifications(isShowingOnlyUnread: boolean) {
+        currentNotifications = flattenedNotificationsContent.filter((n) => {
+            if (isShowingOnlyUnread) {
+                return !n.isRead;
+            } else {
+                return true;
+            }
+        });
+    }
+
+    $effect(() => {
+        filterNotifications($searchParams.isShowingOnlyUnread);
+    });
+
     onMount(() => {
         const viewedHelpTab = localStorage.getItem('communityReviewerHasViewedHelpTab');
         $searchParams.tab = viewedHelpTab === 'true' ? Tab.resources : Tab.help;
@@ -178,6 +205,12 @@
                 onclick={() => switchTabs(Tab.help)}
                 role="tab"
                 class="tab {$searchParams.tab === Tab.help && 'tab-active'}">Help</button
+            >
+            <button
+                onclick={() => switchTabs(Tab.notifications)}
+                role="tab"
+                class="tab {$searchParams.tab === Tab.notifications && 'tab-active'}"
+                >Notifications ({flattenedNotificationsContent.filter((n) => !n.isRead).length})</button
             >
         </div>
     </div>
@@ -225,6 +258,24 @@
                 placeholder="Chapter (e.g. 2, 1-5)"
             />
             <button class="btn btn-primary" disabled={!canApplyFilters} onclick={() => fetchResources()}>Apply</button>
+        {/if}
+        {#if $searchParams.tab === Tab.notifications}
+            <button
+                data-app-insights-event-name="manager-dashboard-mark-read-click"
+                class="btn btn-primary"
+                onclick={() => markAllSelectedNotificationsAsRead(selectedNotifications)}
+                disabled={selectedNotifications.length === 0 || selectedNotifications.every((n) => n.isRead)}
+                >Mark Read
+            </button>
+            <label class="label cursor-pointer py-0 opacity-70">
+                <input
+                    type="checkbox"
+                    bind:checked={$searchParams.isShowingOnlyUnread}
+                    data-app-insights-event-name="manager-dashboard-show-only-unread-toggle"
+                    class="checkbox no-animation checkbox-sm me-2"
+                />
+                <span class="label-text text-xs">Show Only Unread</span>
+            </label>
         {/if}
     </div>
     {#if $searchParams.tab === Tab.resources}
@@ -291,5 +342,44 @@
                 <Document {document} />
             {/each}
         </div>
+    {:else if $searchParams.tab === Tab.notifications}
+        <Table
+            bind:this={table}
+            class="my-4"
+            idColumn="id"
+            enableSelectAll={true}
+            columns={notificationsContentColumns}
+            items={currentNotifications}
+            noItemsText="No notifications."
+            bind:selectedItems={selectedNotifications}
+        >
+            {#snippet customTbody(rowItems, selectedItems, onSelectItem)}
+                <tbody>
+                    {#each rowItems as notificationItem (notificationItem.id)}
+                        <tr
+                            class={notificationItem.isRead ? 'cursor-pointer' : 'cursor-pointer font-bold'}
+                            onclick={() => markNotificationAsReadAndGoToResourcePage(notificationItem)}
+                        >
+                            <TableCell class="w-4" stopPropagation={true}>
+                                <input
+                                    type="checkbox"
+                                    class="checkbox checkbox-sm"
+                                    onchange={() => onSelectItem(notificationItem)}
+                                    checked={selectedItems?.includes(notificationItem)}
+                                />
+                            </TableCell>
+                            <TableCell>{notificationItem['time']}</TableCell>
+                            <TableCell>{notificationItem['name']}</TableCell>
+                            <TableCell>{notificationItem['notification']}</TableCell>
+                        </tr>
+                    {/each}
+                    {#if rowItems.length === 0}
+                        <tr>
+                            <td colspan="99" class="text-center"> No notifications. </td>
+                        </tr>
+                    {/if}
+                </tbody>
+            {/snippet}
+        </Table>
     {/if}
 </div>
