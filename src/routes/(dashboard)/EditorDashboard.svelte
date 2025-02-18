@@ -25,6 +25,12 @@
     import { Icon } from 'svelte-awesome';
     import volumeUp from 'svelte-awesome/icons/volumeUp';
     import Tooltip from '$lib/components/Tooltip.svelte';
+    import type { FlattenedNotificationContent } from './proxy+page';
+    import {
+        notificationsContentsColumns,
+        markNotificationAsReadAndGoToResourcePage,
+        markAllSelectedNotificationsAsRead,
+    } from './notifications-helpers';
 
     const sortMyWorkData = createEditorDashboardMyWorkSorter();
     const sortMyHistoryData = createEditorDashboardMyHistorySorter();
@@ -37,11 +43,13 @@
 
     let myWorkContents = data.editorDashboard!.assignedResourceContent;
     let myHistoryContents = data.editorDashboard!.assignedResourceHistoryContent;
+    let flattenedNotificationContents = data.editorDashboard!.flattenedNotificationContent;
     let isAssignContentModalOpen = $state(false);
     let isSendToPublisherModalOpen = $state(false);
     let isSendToReviewModalOpen = $state(false);
 
     let selectedMyWorkContents: ResourceAssignedToSelf[] = $state([]);
+    let selectedNotifications: FlattenedNotificationContent[] = $state([]);
     let isTransacting = $state(false);
     let assignToUserId: number | null = $state(null);
     let errorModalText: string | null = $state(null);
@@ -91,11 +99,18 @@
             tab: ssp.string(Tab.myWork),
             project: ssp.string(''),
             isFilteringUnresolved: ssp.boolean(false),
+            isShowingOnlyUnread: ssp.boolean(false),
         },
         { runLoadAgainWhenParamsChange: false }
     );
 
-    const setTabContents = (tab: string, search: string, project: string, isFilteringUnresolved: boolean) => {
+    const setTabContents = (
+        tab: string,
+        search: string,
+        project: string,
+        isFilteringUnresolved: boolean,
+        isShowingOnlyUnread: boolean
+    ) => {
         if (tab === Tab.myWork) {
             visibleMyWorkContents = myWorkContents.filter(
                 (x) =>
@@ -107,6 +122,14 @@
             visibleMyHistoryContents = myHistoryContents.filter((x) =>
                 x.englishLabel.toLowerCase().includes(search.toLowerCase())
             );
+        } else if (tab === Tab.notifications) {
+            visibleNotificationContents = flattenedNotificationContents.filter((n) => {
+                if (isShowingOnlyUnread) {
+                    return !n.isRead;
+                } else {
+                    return true;
+                }
+            });
         }
     };
 
@@ -166,13 +189,18 @@
     let search = $state('');
     let visibleMyWorkContents: ResourceAssignedToSelf[] = $state([]);
     let visibleMyHistoryContents: ResourceAssignedToSelfHistory[] = $state([]);
+    let visibleNotificationContents: FlattenedNotificationContent[] = $state([]);
     let sortedMyWorkContents: ResourceAssignedToSelf[] = $derived(
         sortMyWorkData(visibleMyWorkContents, $searchParams.sort)
     );
     let sortedMyHistoryContents: ResourceAssignedToSelfHistory[] = $derived(
         sortMyHistoryData(visibleMyHistoryContents, $searchParams.sort)
     );
-    let table: Table<ResourceAssignedToSelfHistory> | Table<ResourceAssignedToSelf> | undefined = $state(undefined);
+    let table:
+        | Table<ResourceAssignedToSelfHistory>
+        | Table<ResourceAssignedToSelf>
+        | Table<FlattenedNotificationContent>
+        | undefined = $state(undefined);
 
     $effect(() => {
         if ($searchParams.sort && table !== undefined) {
@@ -181,7 +209,13 @@
     });
 
     $effect(() => {
-        setTabContents($searchParams.tab, search, $searchParams.project, $searchParams.isFilteringUnresolved);
+        setTabContents(
+            $searchParams.tab,
+            search,
+            $searchParams.project,
+            $searchParams.isFilteringUnresolved,
+            $searchParams.isShowingOnlyUnread
+        );
     });
 
     function projectNamesForContents(contents: ResourceAssignedToSelf[]) {
@@ -204,10 +238,18 @@
                 class="tab {$searchParams.tab === Tab.myHistory && 'tab-active'}"
                 >My History ({myHistoryContents.length})</button
             >
+            <button
+                onclick={() => switchTabs(Tab.notifications)}
+                role="tab"
+                class="tab {$searchParams.tab === Tab.notifications && 'tab-active'}"
+                >Notifications ({flattenedNotificationContents.filter((n) => !n.isRead).length})</button
+            >
         </div>
     </div>
     <div class="mt-4 flex gap-4">
-        <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
+        {#if $searchParams.tab !== Tab.notifications}
+            <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
+        {/if}
         {#if $searchParams.tab === Tab.myWork}
             <Select
                 class="select select-bordered max-w-[14rem] flex-grow"
@@ -287,6 +329,24 @@
                 onclick={downloadMyHistoryCsv}>Download Word Counts</button
             >
         {/if}
+        {#if $searchParams.tab === Tab.notifications}
+            <button
+                data-app-insights-event-name="manager-dashboard-mark-read-click"
+                class="btn btn-primary"
+                onclick={() => markAllSelectedNotificationsAsRead(selectedNotifications)}
+                disabled={selectedNotifications.length === 0 || selectedNotifications.every((n) => n.isRead)}
+                >Mark Read
+            </button>
+            <label class="label cursor-pointer py-0 opacity-70">
+                <input
+                    type="checkbox"
+                    bind:checked={$searchParams.isShowingOnlyUnread}
+                    data-app-insights-event-name="manager-dashboard-show-only-unread-toggle"
+                    class="checkbox no-animation checkbox-sm me-2"
+                />
+                <span class="label-text text-xs">Show Only Unread</span>
+            </label>
+        {/if}
     </div>
     {#if $searchParams.tab === Tab.myWork}
         <Table
@@ -350,6 +410,40 @@
                 {:else if itemKey}
                     <TableCell>{item[itemKey] ?? ''}</TableCell>
                 {/if}
+            {/snippet}
+        </Table>
+    {:else if $searchParams.tab === Tab.notifications}
+        <Table
+            bind:this={table}
+            class="my-4"
+            idColumn="id"
+            enableSelectAll={true}
+            columns={notificationsContentsColumns}
+            items={visibleNotificationContents}
+            noItemsText="No notifications."
+            bind:selectedItems={selectedNotifications}
+        >
+            {#snippet customTbody(rowItems, selectedItems, onSelectItem)}
+                <tbody>
+                    {#each rowItems as notificationItem (notificationItem.id)}
+                        <tr
+                            class={notificationItem.isRead ? 'cursor-pointer' : 'cursor-pointer font-bold'}
+                            onclick={() => markNotificationAsReadAndGoToResourcePage(notificationItem)}
+                        >
+                            <TableCell class="w-4" stopPropagation={true}>
+                                <input
+                                    type="checkbox"
+                                    class="checkbox checkbox-sm"
+                                    onchange={() => onSelectItem(notificationItem)}
+                                    checked={selectedItems?.includes(notificationItem)}
+                                />
+                            </TableCell>
+                            <TableCell>{notificationItem['time']}</TableCell>
+                            <TableCell>{notificationItem['name']}</TableCell>
+                            <TableCell>{notificationItem['notification']}</TableCell>
+                        </tr>
+                    {/each}
+                </tbody>
             {/snippet}
         </Table>
     {/if}
