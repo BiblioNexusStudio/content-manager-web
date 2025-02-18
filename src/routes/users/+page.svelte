@@ -21,12 +21,14 @@
     let filterBySearch: string | null = $state(null);
     let filterByCompanyId: number | null = $state(null);
     let isDisableUserModalOpen = $state(false);
-    let isShowingErrorModal = $state(false);
+    let errorModalDescription: string | null = $state(null);
+    let errorModalHeader = $state('');
     let isModalOpen = $state(false);
 
     let users = $state(data.users);
     let companies = $derived(data.companies);
     let roles = $derived(data.roles);
+    let userToDisable: User | undefined = $state(undefined);
     const roleOptions = [UserRole.Editor, UserRole.Reviewer];
     const userCanUpdate = $userCan(Permission.UpdateUser) || $userCan(Permission.UpdateUsersInCompany);
 
@@ -42,6 +44,7 @@
 
     const disableUser = (userId: number) => {
         isDisableUserModalOpen = true;
+        userToDisable = users.find((x) => x.id === userId);
         onConfirmDisableUser = async () => await postDisableUser(userId);
     };
 
@@ -51,7 +54,8 @@
             await patchToApi(`/users/${userId}/disable`);
             users = users.filter((x) => x.id !== userId);
         } catch (e) {
-            isShowingErrorModal = true;
+            errorModalDescription = 'An error occurred disabling the user. Please try again later.';
+            errorModalHeader = 'Error Disabling User';
         } finally {
             // Prevents the disable button from flashing enabled as modal is closing
             setTimeout(() => {
@@ -64,7 +68,8 @@
             $isPageTransacting = true;
             await patchToApi(`/users/${userId}`, { role: role, userId: userId });
         } catch (e) {
-            isShowingErrorModal = true;
+            errorModalDescription = "An error occurred editing the user's role. Please try again later.";
+            errorModalHeader = 'Error Editing User';
         } finally {
             // Prevents the disable button from flashing enabled as modal is closing
             setTimeout(() => {
@@ -169,14 +174,9 @@
 <Modal
     header="Confirm Disable User"
     bind:open={isDisableUserModalOpen}
-    description="This user will be disabled"
+    description="This user will be disabled: {userToDisable?.name}"
     primaryButtonText="Disable User"
     primaryButtonOnClick={onConfirmDisableUser}
     isTransacting={$isPageTransacting}
 />
-<Modal
-    isError={true}
-    header="Error disabling user"
-    description="An error occurred disabling the user. Please try again later."
-    bind:open={isShowingErrorModal}
-/>
+<Modal isError={true} header={errorModalHeader} description={errorModalDescription} />
