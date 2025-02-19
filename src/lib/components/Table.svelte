@@ -29,7 +29,7 @@
         itemsPerPage?: number;
         class?: string;
         tableCells?: Snippet<[T, string, keyof T, string]>;
-        customTbody?: Snippet<[T[]]>;
+        customTbody?: Snippet<[T[], T[] | undefined, (item: T) => void]>;
         children?: Snippet;
     }
 
@@ -211,7 +211,7 @@
                 </tr>
             </thead>
             {#if customTbody}
-                {@render customTbody?.(items)}
+                {@render customTbody?.(items, selectedItems, onSelectItem)}
             {:else}
                 <tbody>
                     {#if isLoading}

@@ -7,18 +7,27 @@ import { redirect } from '@sveltejs/kit';
 import type { ProjectResourceStatusCounts } from '$lib/types/projects';
 import type { ResourceContentVersionReviewLevel } from '$lib/types/resources';
 import type { HelpDocumentResponse } from '$lib/types/helpDocuments';
+import { flattenNotificationsContent } from './notifications-helpers';
 
 export const load: PageLoad = async ({ parent, fetch }) => {
     await parent();
 
     if (get(userCan)(Permission.ReviewContent) || get(userCan)(Permission.PublishContent)) {
-        const [assignedProjects, assignedResourceContent, reviewPendingResourceContent, notApplicableContent] =
-            await Promise.all([
-                getFromApi<Project[]>('/projects/assigned-to-self', fetch),
-                fetchAssignedResourceContent(fetch),
-                getFromApi<ResourcePendingReview[]>('/resources/content/review-pending', fetch),
-                getFromApi<NotApplicableContent[]>('/resources/content/not-applicable', fetch),
-            ]);
+        const [
+            assignedProjects,
+            assignedResourceContent,
+            reviewPendingResourceContent,
+            notApplicableContent,
+            notificationsContent,
+        ] = await Promise.all([
+            getFromApi<Project[]>('/projects/assigned-to-self', fetch),
+            fetchAssignedResourceContent(fetch),
+            getFromApi<ResourcePendingReview[]>('/resources/content/review-pending', fetch),
+            getFromApi<NotApplicableContent[]>('/resources/content/not-applicable', fetch),
+            getFromApi<NotificationsContent[]>('/notifications', fetch),
+        ]);
+
+        const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent);
 
         return {
             publisherDashboard: {
@@ -26,16 +35,25 @@ export const load: PageLoad = async ({ parent, fetch }) => {
                 reviewPendingResourceContent,
                 assignedProjects,
                 notApplicableContent,
+                flattenedNotificationsContent,
             },
         };
     } else if (get(userCan)(Permission.ReadCompanyContentAssignments)) {
-        const [assignedResourceContent, toAssignContent, manageResourceContent, assignedUsersWordCount] =
-            await Promise.all([
-                fetchAssignedResourceContent(fetch),
-                getFromApi<ResourceAssignedToSelf[]>('/resources/content/to-assign', fetch),
-                getFromApi<ResourceAssignedToOwnCompany[]>('/resources/content/assigned-to-own-company', fetch),
-                getFromApi<UserWordCount[]>('/users/assigned-word-count', fetch),
-            ]);
+        const [
+            assignedResourceContent,
+            toAssignContent,
+            manageResourceContent,
+            assignedUsersWordCount,
+            notificationsContent,
+        ] = await Promise.all([
+            fetchAssignedResourceContent(fetch),
+            getFromApi<ResourceAssignedToSelf[]>('/resources/content/to-assign', fetch),
+            getFromApi<ResourceAssignedToOwnCompany[]>('/resources/content/assigned-to-own-company', fetch),
+            getFromApi<UserWordCount[]>('/users/assigned-word-count', fetch),
+            getFromApi<NotificationsContent[]>('/notifications', fetch),
+        ]);
+
+        const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent);
 
         return {
             managerDashboard: {
@@ -43,15 +61,20 @@ export const load: PageLoad = async ({ parent, fetch }) => {
                 toAssignContent,
                 manageResourceContent,
                 assignedUsersWordCount,
+                flattenedNotificationsContent,
             },
         };
     } else if (get(userCan)(Permission.CreateCommunityContent)) {
-        const [assignedResourceContent, assignedResourceHistoryContent, bibleBooks, helpDocs] = await Promise.all([
-            fetchAssignedResourceContent(fetch),
-            getFromApi<ResourceAssignedToSelfHistory[]>('/resources/content/assigned-to-self/history', fetch),
-            getFromApi<BibleBook[]>('/bibles/1/books', fetch),
-            getFromApi<HelpDocumentResponse>('/help/aquifer-cms/documents', fetch),
-        ]);
+        const [assignedResourceContent, assignedResourceHistoryContent, bibleBooks, helpDocs, notificationsContent] =
+            await Promise.all([
+                fetchAssignedResourceContent(fetch),
+                getFromApi<ResourceAssignedToSelfHistory[]>('/resources/content/assigned-to-self/history', fetch),
+                getFromApi<BibleBook[]>('/bibles/1/books', fetch),
+                getFromApi<HelpDocumentResponse>('/help/aquifer-cms/documents', fetch),
+                getFromApi<NotificationsContent[]>('/notifications', fetch),
+            ]);
+
+        const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent);
 
         return {
             communityReviewerDashboard: {
@@ -59,15 +82,21 @@ export const load: PageLoad = async ({ parent, fetch }) => {
                 assignedResourceHistoryContent,
                 bibleBooks,
                 helpDocs,
+                flattenedNotificationsContent,
             },
         };
     } else if (get(userCan)(Permission.EditContent)) {
-        const [assignedResourceContent, assignedResourceHistoryContent] = await Promise.all([
+        const [assignedResourceContent, assignedResourceHistoryContent, notificationsContent] = await Promise.all([
             fetchAssignedResourceContent(fetch),
             getFromApi<ResourceAssignedToSelfHistory[]>('/resources/content/assigned-to-self/history', fetch),
+            getFromApi<NotificationsContent[]>('/notifications', fetch),
         ]);
 
-        return { editorDashboard: { assignedResourceContent, assignedResourceHistoryContent } };
+        const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent);
+
+        return {
+            editorDashboard: { assignedResourceContent, assignedResourceHistoryContent, flattenedNotificationsContent },
+        };
     } else if (get(userCan)(Permission.ReadReports)) {
         redirect(302, '/reporting');
     } else {
@@ -83,6 +112,7 @@ export enum _CommunityReviewerTab {
     resources = 'resources',
     myHistory = 'my-history',
     help = 'help',
+    notifications = 'notifications',
 }
 
 export enum _PublisherTab {
@@ -91,12 +121,14 @@ export enum _PublisherTab {
     myProjects = 'my-projects',
     community = 'community',
     notApplicable = 'not-applicable',
+    notifications = 'notifications',
 }
 
 export enum _ManagerTab {
     myWork = 'my-work',
     toAssign = 'to-assign',
     manage = 'manage',
+    notifications = 'notifications',
 }
 
 export interface ResourcesByParentResource extends TotalsByMonth {
@@ -215,7 +247,58 @@ export interface NotApplicableContent {
     projectName: string | null;
 }
 
+export interface HelpDocumentNotification {
+    id: number;
+    title: string;
+    created: string;
+    type: HelpDocumentType;
+    url: string;
+    thumbnailUrl?: string;
+}
+
+export interface NotificationsContent {
+    kind: _NotificationKind;
+    helpDocument: HelpDocumentNotification | null;
+    isRead: boolean;
+    comment: CommentNotification | null;
+}
+
+export interface CommentNotification {
+    id: number;
+    text: string;
+    created: string;
+    user: { id: number; name: string };
+    resourceContentId: number;
+    resourceEnglishLabel: string;
+    parentResourceDisplayName: string;
+}
+
+export interface FlattenedNotificationsContent {
+    id?: number;
+    name?: string;
+    time?: string;
+    notification?: string;
+    isRead?: boolean;
+    resourceContentId?: number;
+    kind?: _NotificationKind;
+    parentResourceDisplayName?: string;
+    title?: string;
+}
+
+export enum _NotificationKind {
+    none = 'None',
+    comment = 'Comment',
+    helpDocument = 'HelpDocument',
+}
+
+enum HelpDocumentType {
+    None = 0,
+    Release = 1,
+    HowTo = 2,
+}
+
 export enum _EditorTab {
     myWork = 'my-work',
     myHistory = 'my-history',
+    notifications = 'notifications',
 }

@@ -27,3 +27,21 @@ export function formatUtcToLocalTimeAndDate(dateString: string): string {
 export function formatSimpleDaysAgo(daysAgo: number | null) {
     return daysAgo === 0 ? '< 1' : (daysAgo ?? '');
 }
+
+// Output: "Jan 30, 2025, 2:44 PM"
+export function formatNotificationsDateString(dateString: string): string {
+    const date = new Date(dateString);
+
+    const options: Intl.DateTimeFormatOptions = {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true,
+    };
+
+    const formattedDate = new Intl.DateTimeFormat('en-US', options).format(date);
+
+    return formattedDate;
+}
