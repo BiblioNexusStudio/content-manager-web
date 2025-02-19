@@ -97,19 +97,8 @@ export function createSidebarContentStore(resourceContent: ResourceContent) {
                 snapshotOrVersion.isPublished ? ' (Published)' : ''
             }`;
         } else {
-            const isEnglish = resourceContent.language.iso6393Code.toLowerCase() === 'eng';
-
-            const isTranslatedFirstSnapshot =
-                isFirstSnapshot &&
-                snapshotOrVersion?.status === ResourceContentStatusDisplayEnum.AquiferizeEditorReview &&
-                !isEnglish;
-
-            const isEnglishFirstSnapshot = isFirstSnapshot && isEnglish;
-
-            if (isEnglishFirstSnapshot || isTranslatedFirstSnapshot) {
+            if (isFirstSnapshot) {
                 return `${formatDate(snapshotOrVersion.created)} - Source`;
-            } else if (isFirstSnapshot) {
-                return `${formatDate(snapshotOrVersion.created)} English Source`;
             } else if (
                 snapshotOrVersion?.status === ResourceContentStatusDisplayEnum.TranslationAwaitingAiDraft ||
                 snapshotOrVersion?.status === ResourceContentStatusDisplayEnum.AquiferizeAwaitingAiDraft
