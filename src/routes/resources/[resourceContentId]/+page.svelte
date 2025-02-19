@@ -717,9 +717,10 @@
 {#key resourceContent.resourceContentId}
     <div
         onintroend={() => (shouldTransition = false)}
-        in:fly={{ x: '100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 350 : 0 }}
-        out:fly={{ x: '-100%', duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 250 : 0 }}
-        class="px-8 pt-1"
+        in:fly={{ x: 500, duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 350 : 0 }}
+        out:fly={{ x: -500, duration: shouldTransition ? 450 : 0, delay: shouldTransition ? 250 : 0 }}
+        class="w-screen px-8 pt-1"
+        class:absolute={shouldTransition}
     >
         <div class="flex w-full items-center justify-between border-b-[1px]">
             <div class="me-2 flex place-items-center">

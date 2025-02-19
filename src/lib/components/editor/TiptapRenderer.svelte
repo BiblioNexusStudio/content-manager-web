@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
     import { onMount, onDestroy } from 'svelte';
     import { Editor } from 'aquifer-tiptap';
     import type { TiptapContentItem } from '$lib/types/resources';
@@ -92,7 +92,10 @@
     });
 
     onDestroy(() => {
-        $editor?.destroy();
+        if ($editor && !$editor.isDestroyed) {
+            $editor.off('transaction');
+            $editor.destroy();
+        }
     });
 </script>
 
