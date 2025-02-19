@@ -27,12 +27,14 @@
     let isSaving = $state(false);
     let isShowingErrorModal = $state(false);
     let errorMessage: string | null = $state(null);
+    let isTranslatedChecked = $state(false);
 
     $effect(() => {
         !isShowingErrorModal && (errorMessage = '');
     });
 
     let isForAquiferization = $derived((languages || []).find((l) => l.id === languageId)?.iso6393Code === 'eng');
+    let isAlreadyTranslated = $derived(!isForAquiferization && isTranslatedChecked);
 
     let canSave = $derived(
         !!title &&
@@ -53,6 +55,7 @@
                 companyId,
                 companyLeadUserId,
                 resourceIds: selectedResourceIds,
+                isAlreadyTranslated,
             });
             if (!project) {
                 throw new Error('No project created');
@@ -136,34 +139,47 @@
                     ]}
                 />
             </div>
-            <div class="border-b p-2">
-                <div class="flex flex-row items-center">
-                    <div class="text-md">Company Lead <span class="text-error">*</span></div>
+            <div class="flex flex-row items-center border-b p-2">
+                <div class="text-md">Company Lead <span class="text-error">*</span></div>
+                <div class="flex-grow"></div>
+                <Select
+                    bind:value={companyLeadUserId}
+                    class="select select-bordered select-sm w-full max-w-[50%]"
+                    isNumber={true}
+                    options={[
+                        { value: null, label: 'Select User' },
+                        ...(users || [])
+                            .filter((u) => u.role === UserRole.Manager)
+                            .map((c) => ({ value: c.id, label: c.name })),
+                    ]}
+                />
+            </div>
+            <div class="flex flex-row items-center border-b p-2">
+                {#if !isForAquiferization}
+                    <div class="text-md">Create project from already translated items</div>
                     <div class="flex-grow"></div>
-                    <Select
-                        bind:value={companyLeadUserId}
-                        class="select select-bordered select-sm w-full max-w-[50%]"
-                        isNumber={true}
-                        options={[
-                            { value: null, label: 'Select User' },
-                            ...(users || [])
-                                .filter((u) => u.role === UserRole.Manager)
-                                .map((c) => ({ value: c.id, label: c.name })),
-                        ]}
-                    />
-                </div>
+                    <label class="flex items-center">
+                        <input
+                            type="checkbox"
+                            class="toggle me-0.5"
+                            bind:checked={isTranslatedChecked}
+                            disabled={isForAquiferization || selectedResourceIds.length > 0}
+                        />
+                    </label>
+                {/if}
             </div>
         </div>
     </div>
     <div class="flex flex-col overflow-hidden short:h-[30rem]">
         <div class="text-lg font-bold">Add Content</div>
         <!-- the key ensures we reset the project content selection when language changes -->
-        {#key languageId}
+        {#key languageId?.toString() + isAlreadyTranslated.toString()}
             <ProjectContentSelector
                 disabled={!languageId}
                 {languageId}
                 {data}
                 {isForAquiferization}
+                {isAlreadyTranslated}
                 bind:finalizedResourceIds={selectedResourceIds}
             />
         {/key}
