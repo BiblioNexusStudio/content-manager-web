@@ -9,6 +9,7 @@
     import PersonDashIcon from '$lib/icons/PersonDashIcon.svelte';
     import { patchToApi } from '$lib/utils/http-service';
     import { createIsPageTransactingContext } from '$lib/context/is-page-transacting-context';
+    import UserRolesTable from './UserRolesTable.svelte';
 
     interface Props {
         data: PageData;
@@ -20,12 +21,16 @@
     let filterBySearch: string | null = $state(null);
     let filterByCompanyId: number | null = $state(null);
     let isDisableUserModalOpen = $state(false);
-    let isShowingErrorModal = $state(false);
+    let errorModalDescription: string | null = $state(null);
+    let errorModalHeader = $state('');
     let isModalOpen = $state(false);
 
     let users = $state(data.users);
     let companies = $derived(data.companies);
     let roles = $derived(data.roles);
+    let userToDisable: User | undefined = $state(undefined);
+    const roleOptions = [UserRole.Editor, UserRole.Reviewer];
+    const userCanUpdate = $userCan(Permission.UpdateUser) || $userCan(Permission.UpdateUsersInCompany);
 
     const filterUsers = (users: User[], search: string | null, companyId: number | null) => {
         return users.filter(
@@ -36,8 +41,10 @@
     };
 
     let onConfirmDisableUser: (() => Promise<void>) | undefined = $state(undefined);
+
     const disableUser = (userId: number) => {
         isDisableUserModalOpen = true;
+        userToDisable = users.find((x) => x.id === userId);
         onConfirmDisableUser = async () => await postDisableUser(userId);
     };
 
@@ -47,7 +54,22 @@
             await patchToApi(`/users/${userId}/disable`);
             users = users.filter((x) => x.id !== userId);
         } catch (e) {
-            isShowingErrorModal = true;
+            errorModalDescription = 'An error occurred disabling the user. Please try again later.';
+            errorModalHeader = 'Error Disabling User';
+        } finally {
+            // Prevents the disable button from flashing enabled as modal is closing
+            setTimeout(() => {
+                $isPageTransacting = false;
+            }, 100);
+        }
+    };
+    const onChangeRole = async (role: UserRole, userId: number) => {
+        try {
+            $isPageTransacting = true;
+            await patchToApi(`/users/${userId}`, { role: role, userId: userId });
+        } catch (e) {
+            errorModalDescription = "An error occurred editing the user's role. Please try again later.";
+            errorModalHeader = 'Error Editing User';
         } finally {
             // Prevents the disable button from flashing enabled as modal is closing
             setTimeout(() => {
@@ -66,31 +88,37 @@
 </svelte:head>
 
 <div class="flex flex-col overflow-y-hidden px-4">
-    <div class="my-4">
-        <div class="text-3xl">{$translate('page.users.header.value')}</div>
-    </div>
-    <div class="flex justify-between">
-        <div class="flex w-1/2 space-x-8">
-            {#if $userCan(Permission.ReadAllUsers)}
-                <Select
-                    class="select select-bordered max-w-xs"
-                    options={[
-                        { value: null, label: 'Select Company' },
-                        ...companies.map((c) => ({ value: c.id, label: c.name })),
-                    ]}
-                    isNumber={true}
-                    bind:value={filterByCompanyId}
-                />
-            {/if}
-            <input
-                bind:value={filterBySearch}
-                type="search"
-                class="min-h-12 w-[320px] rounded-md border-[1px] py-2 ps-5 text-sm text-gray-900 focus:outline-none"
-                placeholder={$translate('page.resources.searchBox.value')}
-            />
-            <button class="btn btn-primary" onclick={openModal}>Add</button>
+    <div class="mt-4 grid grid-cols-5">
+        <div class="col-span-3">
+            <div class="flex h-full flex-col justify-between">
+                <div class="text-3xl">{$translate('page.users.header.value')}</div>
+                <div class="flex items-end justify-between">
+                    <div class="flex w-1/2 space-x-8">
+                        {#if $userCan(Permission.ReadAllUsers)}
+                            <Select
+                                class="select select-bordered max-w-xs"
+                                options={[
+                                    { value: null, label: 'Select Company' },
+                                    ...companies.map((c) => ({ value: c.id, label: c.name })),
+                                ]}
+                                isNumber={true}
+                                bind:value={filterByCompanyId}
+                            />
+                        {/if}
+                        <input
+                            bind:value={filterBySearch}
+                            type="search"
+                            class="max-h-12 min-h-12 w-[320px] rounded-md border-[1px] py-2 ps-5 text-sm text-gray-900 focus:outline-none"
+                            placeholder={$translate('page.resources.searchBox.value')}
+                        />
+                        <button class="btn btn-primary" onclick={openModal}>Add</button>
+                    </div>
+                </div>
+            </div>
         </div>
+        <div class="col-span-2 mr-4 mt-4"><UserRolesTable /></div>
     </div>
+
     <div class="flex flex-row space-x-4 overflow-y-hidden">
         <div class="my-4 max-h-full flex-[2] overflow-y-auto rounded border-2">
             <table class="table table-pin-rows">
@@ -109,7 +137,20 @@
                         <tr class="text-xs">
                             <td class="px-5">{user.name}</td>
                             <td class="px-5">{user.email}</td>
-                            <td class="px-5">{user.role}</td>
+                            {#if roleOptions.includes(user.role) && userCanUpdate}
+                                <td>
+                                    <Select
+                                        class="select select-bordered select-sm"
+                                        options={[...roleOptions.map((r) => ({ value: r, label: r }))]}
+                                        isNumber={false}
+                                        bind:value={user.role}
+                                        onChange={() => onChangeRole(user.role, user.id)}
+                                    />
+                                </td>
+                            {:else}
+                                <td class="px-5">{user.role}</td>
+                            {/if}
+
                             <td class="px-5">{user.company.name}</td>
                             <td class="px-5">{user.isEmailVerified ? 'Verified' : 'Invited'}</td>
                             <td class="px-5 text-primary">
@@ -133,14 +174,9 @@
 <Modal
     header="Confirm Disable User"
     bind:open={isDisableUserModalOpen}
-    description="This user will be disabled"
+    description="This user will be disabled: {userToDisable?.name}"
     primaryButtonText="Disable User"
     primaryButtonOnClick={onConfirmDisableUser}
     isTransacting={$isPageTransacting}
 />
-<Modal
-    isError={true}
-    header="Error disabling user"
-    description="An error occurred disabling the user. Please try again later."
-    bind:open={isShowingErrorModal}
-/>
+<Modal isError={true} header={errorModalHeader} description={errorModalDescription} />

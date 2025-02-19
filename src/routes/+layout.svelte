@@ -222,7 +222,7 @@
         {#if $navigating && !isCustomTransitionNavigation($navigating)}
             <CenteredSpinnerFullScreen />
         {:else}
-            <div class="relative flex h-full max-h-[calc(100vh-39px)] w-full flex-col">
+            <div class="relative flex h-full max-h-[calc(100vh-39px)] w-full flex-col overflow-hidden">
                 {@render children()}
             </div>
         {/if}
