@@ -20,6 +20,8 @@ export const flattenNotificationsContent = (
             notification: notification.comment?.text,
             isRead: notification.isRead,
             resourceContentId: notification.comment?.resourceContentId,
+            parentResourceDisplayName: notification.comment?.parentResourceDisplayName,
+            title: notification.comment?.resourceEnglishLabel,
             kind: notification.kind,
         };
     });

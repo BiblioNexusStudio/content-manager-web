@@ -281,6 +281,8 @@ export interface FlattenedNotificationsContent {
     isRead?: boolean;
     resourceContentId?: number;
     kind?: _NotificationKind;
+    parentResourceDisplayName?: string;
+    title?: string;
 }
 
 export enum _NotificationKind {

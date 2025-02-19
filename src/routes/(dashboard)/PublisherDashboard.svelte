@@ -692,7 +692,16 @@
                                 </TableCell>
                                 <TableCell>{notificationItem['time']}</TableCell>
                                 <TableCell>{notificationItem['name']}</TableCell>
-                                <TableCell>{notificationItem['notification']}</TableCell>
+                                <TableCell
+                                    ><div class="flex flex-col">
+                                        <div>
+                                            {notificationItem['title']} - {notificationItem[
+                                                'parentResourceDisplayName'
+                                            ]}
+                                        </div>
+                                        <div>{notificationItem['notification']}</div>
+                                    </div>
+                                </TableCell>
                             </tr>
                         {/each}
                         {#if rowItems.length === 0}
