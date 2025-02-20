@@ -76,8 +76,6 @@
     let startVerseInvalid = $derived(bookId === 0 || startChapter === 0 || startVerse === 0);
     let endVerseInvalid = $derived(isRange && (endChapter === 0 || endVerse === 0));
 
-    $inspect(selectedEndChapter);
-
     async function removeLink() {
         isTransactingRemove = true;
         isError = false;

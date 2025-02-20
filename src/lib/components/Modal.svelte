@@ -17,6 +17,7 @@
         children?: Snippet;
         additionalButtons?: Snippet;
         closeWhenClickOutside?: boolean;
+        primaryButtonId?: string;
     }
 
     let {
@@ -29,6 +30,7 @@
         isError = false,
         isTransacting = false,
         closeWhenClickOutside = false,
+        primaryButtonId = '',
         children,
         additionalButtons,
     }: Props = $props();
@@ -112,6 +114,7 @@
                     class="btn btn-primary"
                     onclick={handlePrimaryClick}
                     disabled={primaryButtonDisabled || isTransacting}
+                    id={primaryButtonId}
                 >
                     {#if isTransacting}
                         <span class="loading loading-spinner"></span>
