@@ -60,6 +60,7 @@
     import ResourcePopout from '$lib/components/editorMarkPopouts/ResourcePopout.svelte';
     import type { User } from '@auth0/auth0-spa-js';
     import { bindKeyCombo } from '@rwh/keystrokes';
+    import Tooltip from '$lib/components/Tooltip.svelte';
 
     interface PageProps {
         data: PageData;
@@ -866,13 +867,19 @@
                     {#if !isStatusInAwaitingAiDraft}
                         <div class="flex flex-wrap justify-end">
                             {#if canSetStatusTransitionNotApplicable}
-                                <button
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={handleNotApplicable}
+                                <Tooltip
+                                    position={{ right: '8.5rem', top: '0.25rem' }}
+                                    class="border-[#485467] text-[#485467]"
+                                    text={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+N)`}
                                 >
-                                    Not Applicable
-                                </button>
+                                    <button
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={handleNotApplicable}
+                                    >
+                                        Not Applicable
+                                    </button>
+                                </Tooltip>
                             {/if}
                             {#if canSetStatusCompleteNotApplicable}
                                 <button
@@ -884,17 +891,26 @@
                                 </button>
                             {/if}
                             {#if canSendForEditorReview || inPublisherReviewAndCanSendBack}
-                                <button
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={openAssignUserModal}
+                                <Tooltip
+                                    position={{
+                                        right: `${canSendForEditorReview ? '7.2rem' : '6.5rem'}`,
+                                        top: '0.25rem',
+                                    }}
+                                    class="border-[#485467] text-[#485467]"
+                                    text={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+A)`}
                                 >
-                                    {#if canSendForEditorReview}
-                                        Assign User
-                                    {:else if inPublisherReviewAndCanSendBack}
-                                        Send Back
-                                    {/if}
-                                </button>
+                                    <button
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={openAssignUserModal}
+                                    >
+                                        {#if canSendForEditorReview}
+                                            Assign User
+                                        {:else if inPublisherReviewAndCanSendBack}
+                                            Send Back
+                                        {/if}
+                                    </button>
+                                </Tooltip>
                             {/if}
                             {#if canPullBackToCompanyReview}
                                 <button
@@ -931,20 +947,32 @@
                                 </button>
                             {/if}
                             {#if canSendForCompanyReview}
-                                <button
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={sendForCompanyReview}
-                                    >Send to Review
-                                </button>
+                                <Tooltip
+                                    position={{ right: '8.5rem', top: '0.25rem' }}
+                                    class="border-[#485467] text-[#485467]"
+                                    text={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+S)`}
+                                >
+                                    <button
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={sendForCompanyReview}
+                                        >Send to Review
+                                    </button>
+                                </Tooltip>
                             {/if}
                             {#if canSendForPublisherReview}
-                                <button
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={sendForPublisherReview}
-                                    >Send to Publisher
-                                </button>
+                                <Tooltip
+                                    position={{ right: '9.5rem', top: '0.25rem' }}
+                                    class="border-[#485467] text-[#485467]"
+                                    text={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+S)`}
+                                >
+                                    <button
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={sendForPublisherReview}
+                                        >Send to Publisher
+                                    </button>
+                                </Tooltip>
                             {/if}
                             {#if canAquiferize}
                                 <button
@@ -983,6 +1011,7 @@
             resourceContentStatuses={data.resourceContentStatuses}
             {commentStores}
             {selectedStepNumber}
+            {isMacOS}
             bind:openedSupplementalSideBar
         />
 
