@@ -30,7 +30,7 @@
     import { Icon } from 'svelte-awesome';
     import TranslationSelector from './TranslationSelector.svelte';
     import { createAutosaveStore } from '$lib/utils/auto-save-store';
-    import { onDestroy, onMount } from 'svelte';
+    import { onDestroy, onMount, tick } from 'svelte';
     import Modal from '$lib/components/Modal.svelte';
     import createChangeTrackingStore from '$lib/utils/change-tracking-store';
     import { get, type Readable, type Writable } from 'svelte/store';
@@ -59,6 +59,7 @@
     import VersionStatusHistorySidebar from './VersionStatusHistorySidebar.svelte';
     import ResourcePopout from '$lib/components/editorMarkPopouts/ResourcePopout.svelte';
     import type { User } from '@auth0/auth0-spa-js';
+    import { bindKeyCombo } from '@rwh/keystrokes';
 
     interface PageProps {
         data: PageData;
@@ -104,6 +105,8 @@
     let isAssignUserModalOpen = $state(false);
     let isAquiferizeModalOpen = $state(false);
     let isAssignReviewModalOpen = $state(false);
+    let isNotApplicableModalOpen = $state(false);
+    let isSendToReviewPublisherManagerModalOpen = $state(false);
     let createDraft = $state(false); // checkbox flag
     let createTranslationFromDraft = $state(false); // checkbox flag
 
@@ -257,6 +260,9 @@
             resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable
     );
 
+    let isMacOS = $state(false);
+    let sendToModalText = $state('');
+
     beforeNavigate(async ({ to, cancel }) => {
         // beforeNavigate runs synchronously, but we can work around the limitation by always canceling the
         // navigation up front, and then conditionally doing a `goto` if the save is successful.
@@ -278,6 +284,103 @@
         if ('scrollRestoration' in history) {
             history.scrollRestoration = 'manual';
         }
+
+        if (typeof navigator !== 'undefined' && navigator.userAgent) {
+            isMacOS = navigator.userAgent.indexOf('Mac') !== -1;
+        }
+
+        if (canSetStatusTransitionNotApplicable) {
+            bindKeyCombo(`Control+${isMacOS ? 'Meta' : 'Alt'}+n`, async () => {
+                isNotApplicableModalOpen = true;
+
+                await tick();
+
+                focusOnButton('not-applicable-yes-button');
+
+                log.trackEvent('keyboard-short-cuts-not-applicable');
+            });
+        }
+
+        if (canSendForCompanyReview || canSendForPublisherReview) {
+            bindKeyCombo(`Control+${isMacOS ? 'Meta' : 'Alt'}+s`, async () => {
+                if (canSendForCompanyReview) {
+                    sendToModalText = 'Send to Review';
+
+                    await tick();
+
+                    openAssignReviewModal();
+
+                    await tick();
+
+                    focusOnButton('send-to-review-yes-button');
+
+                    log.trackEvent('keyboard-short-cuts-send-company-review');
+                } else if (canSendForPublisherReview) {
+                    sendToModalText = 'Send to Publisher';
+
+                    await tick();
+
+                    openAssignReviewModal();
+
+                    await tick();
+
+                    focusOnButton('send-to-review-yes-button');
+
+                    log.trackEvent('keyboard-short-cuts-send-publisher-review');
+                }
+            });
+        }
+
+        if (canSendForEditorReview || inPublisherReviewAndCanSendBack) {
+            bindKeyCombo(`Control+${isMacOS ? 'Meta' : 'Alt'}+a`, () => {
+                isAssignUserModalOpen = true;
+
+                log.trackEvent('keyboard-short-cuts-assign-user');
+            });
+        }
+
+        bindKeyCombo(`Control+${isMacOS ? 'Meta' : 'Alt'}+m`, () => {
+            const commentsAlreadyOpened = openedSupplementalSideBar === OpenedSupplementalSideBar.Comments;
+
+            openedSupplementalSideBar = commentsAlreadyOpened
+                ? OpenedSupplementalSideBar.None
+                : OpenedSupplementalSideBar.Comments;
+
+            const eventName = commentsAlreadyOpened
+                ? 'keyboard-short-cuts-comments-sidebar-close'
+                : 'keyboard-short-cuts-comments-sidebar-open';
+
+            log.trackEvent(eventName);
+        });
+
+        bindKeyCombo(`Control+${isMacOS ? 'Meta' : 'Alt'}+b`, () => {
+            const biblePaneAlreadyOpened = openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences;
+
+            openedSupplementalSideBar = biblePaneAlreadyOpened
+                ? OpenedSupplementalSideBar.None
+                : OpenedSupplementalSideBar.BibleReferences;
+
+            const eventName = biblePaneAlreadyOpened
+                ? 'keyboard-short-cuts-bible-pane-sidebar-close'
+                : 'keyboard-short-cuts-bible-pane-sidebar-open';
+
+            log.trackEvent(eventName);
+        });
+
+        bindKeyCombo(`Control+${isMacOS ? 'Meta' : 'Alt'}+h`, () => {
+            const historyPaneAlreadyOpened =
+                openedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory;
+
+            openedSupplementalSideBar = historyPaneAlreadyOpened
+                ? OpenedSupplementalSideBar.None
+                : OpenedSupplementalSideBar.VersionStatusHistory;
+
+            const eventName = historyPaneAlreadyOpened
+                ? 'keyboard-short-cuts-history-pane-sidebar-close'
+                : 'keyboard-short-cuts-history-pane-sidebar-open';
+
+            log.trackEvent(eventName);
+        });
     });
 
     onDestroy(resetSaveState);
@@ -705,6 +808,19 @@
                 window.location.reload();
             }
         }, 5000);
+    }
+
+    function handleShortCutsSendToReview() {
+        if (canSendForCompanyReview) {
+            sendForCompanyReview();
+        } else if (canSendForPublisherReview) {
+            sendForPublisherReview();
+        }
+    }
+
+    function focusOnButton(buttonId: string) {
+        const primaryButton = document.getElementById(buttonId);
+        primaryButton?.focus();
     }
 </script>
 
@@ -1149,6 +1265,22 @@
             {/if}
         {/snippet}
     </Modal>
+
+    <Modal
+        header={sendToModalText}
+        bind:open={isSendToReviewPublisherManagerModalOpen}
+        primaryButtonText="yes"
+        primaryButtonOnClick={handleShortCutsSendToReview}
+        primaryButtonId="send-to-review-yes-button"
+    />
+
+    <Modal
+        header="Mark as Not Applicable?"
+        bind:open={isNotApplicableModalOpen}
+        primaryButtonText="yes"
+        primaryButtonOnClick={handleNotApplicable}
+        primaryButtonId="not-applicable-yes-button"
+    />
 
     <Modal header="Error" isError={true} bind:description={errorModalMessage} />
 {/key}
