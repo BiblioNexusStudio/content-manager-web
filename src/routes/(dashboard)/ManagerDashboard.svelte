@@ -32,6 +32,7 @@
         markAllSelectedNotificationsAsRead,
     } from './notifications-helpers';
     import type { FlattenedNotificationsContent } from './proxy+page';
+    import { currentUser } from '$lib/stores/auth';
 
     interface Props {
         data: PageData;
@@ -62,6 +63,8 @@
     let manageLastAssignedUsers = $derived.by(() =>
         sortByKey('name', filterDuplicatesByKey('id', filterBoolean(manageContents.map((c) => c.lastAssignedUser))))
     );
+
+    let currentUserCompany = $derived($currentUser!.company.id);
 
     $effect(() => {
         maybeResetSearchParams(
@@ -132,8 +135,6 @@
 
     let currentNotifications: FlattenedNotificationsContent[] = $state([]);
     let selectedNotifications: FlattenedNotificationsContent[] = $state([]);
-
-    let isSkipEditor = $state(false);
 
     let sortedCurrentMyWorkContents = $derived(sortAssignedData(currentMyWorkContents, $searchParams.sort));
     let sortedCurrentToAssignContents = $derived(sortAssignedData(currentToAssignContents, $searchParams.sort));
@@ -238,10 +239,6 @@
         }
     }
 
-    function toggleSkipEditor() {
-        isSkipEditor = !isSkipEditor;
-    }
-
     let currentProjectNames = $derived.by(() => {
         if ($searchParams.tab === Tab.myWork) {
             return myWorkProjectNames;
@@ -280,10 +277,21 @@
     };
 
     const assignEditor = async (contentIds: number[]) => {
+        let isSkipEditor = false;
+        if (assignToEditorUserId) {
+            let editor = data.users?.find((u) => u.id === assignToEditorUserId);
+            if (
+                assignToReviewerUserId === null &&
+                (editor?.role === UserRole.Reviewer || editor?.role === UserRole.Manager)
+            ) {
+                isSkipEditor = true;
+            }
+        }
+
         if (contentIds.length > 0) {
             await postToApi<null>('/resources/content/send-for-editor-review', {
-                assignedUserId: isSkipEditor ? assignToReviewerUserId : assignToEditorUserId,
-                assignedReviewerUserId: isSkipEditor ? null : assignToReviewerUserId,
+                assignedUserId: assignToEditorUserId,
+                assignedReviewerUserId: assignToReviewerUserId,
                 contentIds: contentIds,
                 skipEditorStep: isSkipEditor,
             });
@@ -326,6 +334,7 @@
         | Table<ResourceAssignedToOwnCompany>
         | Table<FlattenedNotificationsContent>
         | undefined = $state(undefined);
+
     let userWordCountTable: Table<UserWordCount> | undefined = $state(undefined);
 
     $effect(() => {
@@ -677,43 +686,25 @@
     isTransacting={isAssigning}
     primaryButtonText={'Assign'}
     primaryButtonOnClick={() => updateContent(assignEditor)}
-    primaryButtonDisabled={isSkipEditor ? !assignToReviewerUserId : !assignToEditorUserId}
+    primaryButtonDisabled={!assignToEditorUserId}
     bind:open={isAssignContentModalOpen}
     header={'Assign Resource(s)'}
 >
     <h3 class="my-4 text-xl">
-        Editor
-        {#if !isSkipEditor}
-            <span class="text-error">*</span>
-        {/if}
+        Reviewer
+        <span class="text-error">*</span>
     </h3>
     <UserSelector
-        users={data.users?.filter((u) => u.role !== UserRole.ReportViewer) ?? []}
-        defaultLabel="Select Editor"
-        bind:disabled={isSkipEditor}
+        users={data.users?.filter((u) => u.role !== UserRole.ReportViewer && u.company.id === currentUserCompany) ?? []}
+        defaultLabel="Select User"
         bind:selectedUserId={assignToEditorUserId}
     />
-
-    {#if $searchParams.tab === Tab.toAssign}
-        <label class="label mt-5 cursor-pointer justify-start">
-            <input
-                type="checkbox"
-                class="checkbox checkbox-sm"
-                onclick={toggleSkipEditor}
-                checked={isSkipEditor}
-                aria-label="Skip Editor Step"
-            />
-            <span class="label-text pl-2 text-xs text-opacity-70">Skip Editor Step</span>
-        </label>
-        <h3 class="my-4 text-xl">
-            Reviewer
-            {#if isSkipEditor}
-                <span class="text-error">*</span>
-            {/if}
-        </h3>
+    {#if $searchParams.tab === Tab.toAssign || ($searchParams.tab === Tab.manage && selectedManageContents.every((c) => c.statusValue === ResourceContentStatusEnum.AquiferizeEditorReview || c.statusValue === ResourceContentStatusEnum.TranslationEditorReview))}
+        <h3 class="my-4 text-xl">Additional Reviewer</h3>
         <UserSelector
-            users={data.users?.filter((u) => u.role === UserRole.Reviewer || u.role === UserRole.Manager) ?? []}
-            defaultLabel="Select Reviewer"
+            users={data.users?.filter((u) => u.company.id === currentUserCompany && u.id !== assignToEditorUserId) ??
+                []}
+            defaultLabel="Select User"
             bind:selectedUserId={assignToReviewerUserId}
         />
     {/if}
