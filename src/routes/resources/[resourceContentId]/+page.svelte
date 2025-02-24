@@ -59,6 +59,7 @@
     import VersionStatusHistorySidebar from './VersionStatusHistorySidebar.svelte';
     import ResourcePopout from '$lib/components/editorMarkPopouts/ResourcePopout.svelte';
     import type { User } from '@auth0/auth0-spa-js';
+    import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
 
     interface PageProps {
         data: PageData;
@@ -257,6 +258,13 @@
             resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable
     );
 
+    const searchParams = searchParameters(
+        {
+            commentId: ssp.string(''),
+        },
+        { runLoadAgainWhenParamsChange: false }
+    );
+
     beforeNavigate(async ({ to, cancel }) => {
         // beforeNavigate runs synchronously, but we can work around the limitation by always canceling the
         // navigation up front, and then conditionally doing a `goto` if the save is successful.
@@ -277,6 +285,10 @@
     onMount(() => {
         if ('scrollRestoration' in history) {
             history.scrollRestoration = 'manual';
+        }
+
+        if ($searchParams.commentId) {
+            openedSupplementalSideBar = OpenedSupplementalSideBar.Comments;
         }
     });
 
