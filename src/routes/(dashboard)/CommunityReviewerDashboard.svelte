@@ -263,7 +263,10 @@
             <button
                 data-app-insights-event-name="manager-dashboard-mark-read-click"
                 class="btn btn-primary"
-                onclick={() => markAllSelectedNotificationsAsRead(selectedNotifications)}
+                onclick={async () => {
+                    await markAllSelectedNotificationsAsRead(selectedNotifications);
+                    selectedNotifications = [];
+                }}
                 disabled={selectedNotifications.length === 0 || selectedNotifications.every((n) => n.isRead)}
                 >Mark Read
             </button>

@@ -46,5 +46,13 @@ export const markAllSelectedNotificationsAsRead = async (notifications: Flattene
 
     await postToApi('/notifications/update', { updates: bulkNotificationUpdatePayload });
 
-    window.location.reload();
+    bulkNotificationUpdatePayload.forEach((notification) => {
+        const notificationIndex = notifications.findIndex(
+            (n) => n.kind === notification.notificationKind && n.id === notification.notificationKindId
+        );
+
+        if (notificationIndex !== -1) {
+            notifications[notificationIndex]!.isRead = true;
+        }
+    });
 };
