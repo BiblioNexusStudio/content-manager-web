@@ -18,6 +18,7 @@ export const flattenNotificationsContent = (
             name: notification.comment?.user.name,
             time: formatNotificationsDateString(notification.comment?.created ?? ''),
             notification: notification.comment?.text,
+            notoficationId: notification.comment?.id,
             isRead: notification.isRead,
             resourceContentId: notification.comment?.resourceContentId,
             parentResourceDisplayName: notification.comment?.parentResourceDisplayName,
@@ -32,7 +33,7 @@ export const markNotificationAsReadAndGoToResourcePage = async (notification: Fl
         await patchToApi(`/notifications/${notification.kind}/${notification.id}`, { isRead: true });
     }
 
-    window.location.href = `/resources/${notification.resourceContentId}`;
+    window.location.href = `/resources/${notification.resourceContentId}?commentId=${notification.notoficationId}`;
 };
 
 export const markAllSelectedNotificationsAsRead = async (notifications: FlattenedNotificationsContent[]) => {
