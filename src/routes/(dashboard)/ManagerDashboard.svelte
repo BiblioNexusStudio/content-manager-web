@@ -329,6 +329,27 @@
         }
     }
 
+    let isAssignButtonDisabled = $derived.by(() => {
+        return (
+            (selectedMyWorkContents.length === 0 &&
+                selectedToAssignContents.length === 0 &&
+                selectedManageContents.length === 0) ||
+            (selectedManageContents.length > 0 &&
+                !(
+                    selectedManageContents.every(
+                        (c) =>
+                            c.statusValue === ResourceContentStatusEnum.AquiferizeEditorReview ||
+                            c.statusValue === ResourceContentStatusEnum.TranslationEditorReview
+                    ) ||
+                    selectedManageContents.every(
+                        (c) =>
+                            c.statusValue === ResourceContentStatusEnum.AquiferizeCompanyReview ||
+                            c.statusValue === ResourceContentStatusEnum.TranslationCompanyReview
+                    )
+                ))
+        );
+    });
+
     let table:
         | Table<ResourceAssignedToSelf>
         | Table<ResourceAssignedToOwnCompany>
@@ -452,9 +473,7 @@
                 data-app-insights-event-name="manager-dashboard-bulk-assign-click"
                 class="btn btn-primary"
                 onclick={() => (isAssignContentModalOpen = true)}
-                disabled={selectedMyWorkContents.length === 0 &&
-                    selectedToAssignContents.length === 0 &&
-                    selectedManageContents.length === 0}>Assign</button
+                disabled={isAssignButtonDisabled}>Assign</button
             >
 
             {#if $searchParams.tab === Tab.myWork}
