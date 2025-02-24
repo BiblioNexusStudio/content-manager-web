@@ -61,7 +61,7 @@
             span?.classList.remove(normalSpanBackgroundColorClass);
 
             if (!fromInlineClick) {
-                span?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                span?.scrollIntoView({ block: 'center' });
             }
         }
     };
