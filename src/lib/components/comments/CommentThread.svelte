@@ -207,6 +207,21 @@
 
             if (parentDiv && parentDiv.querySelector(`#comment-${$searchParams.commentId}`)) {
                 parentDiv?.classList.add('border-primary');
+
+                const commentMark = $commentMarks.find((x) => x.threadId === threadId);
+                if (commentMark) {
+                    const span = document.getElementById(commentMark.spanId);
+                    span?.classList.add(...['bg-primary/50', 'border-2', 'border-primary']);
+                    span?.classList.remove('bg-primary/20');
+
+                    const observer = new MutationObserver(() => {
+                        if (document.body.contains(span)) {
+                            span?.scrollIntoView({ block: 'center' });
+                            observer.disconnect();
+                        }
+                    });
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
             }
         }
     });
