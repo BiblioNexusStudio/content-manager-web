@@ -59,7 +59,7 @@
     import VersionStatusHistorySidebar from './VersionStatusHistorySidebar.svelte';
     import ResourcePopout from '$lib/components/editorMarkPopouts/ResourcePopout.svelte';
     import type { User } from '@auth0/auth0-spa-js';
-    import { bindKeyCombo, bindKey } from '@rwh/keystrokes';
+    import { bindKeyCombo, bindKey, unbindKeyCombo, unbindKey } from '@rwh/keystrokes';
     import Tooltip from '$lib/components/Tooltip.svelte';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
 
@@ -414,7 +414,16 @@
         }
     });
 
-    onDestroy(resetSaveState);
+    onDestroy(() => {
+        resetSaveState();
+        unbindKeyCombo(`Control+${isMacOS ? 'Meta' : 'Alt'}`);
+        unbindKey('n');
+        unbindKey('s');
+        unbindKey('a');
+        unbindKey('m');
+        unbindKey('b');
+        unbindKey('h');
+    });
 
     $effect(() => handleFetchedResource(resourceContent));
 
