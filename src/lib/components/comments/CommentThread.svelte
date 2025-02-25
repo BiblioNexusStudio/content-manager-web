@@ -10,6 +10,8 @@
     import { log } from '$lib/logger';
     import { currentUser } from '$lib/stores/auth';
     import type { CommentStores } from '$lib/stores/comments';
+    import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
+    import { onMount } from 'svelte';
 
     interface Props {
         showParent?: boolean;
@@ -39,6 +41,13 @@
 
     let activeThread = $state($commentThreads?.threads.find((x) => x.id === threadId));
     let isNewThread = $state(threadId === -1);
+
+    const searchParams = searchParameters(
+        {
+            commentId: ssp.string(''),
+        },
+        { runLoadAgainWhenParamsChange: false }
+    );
 
     const onReplyClick = async () => {
         isCommenting = true;
@@ -189,11 +198,38 @@
         editingCommentId = 0;
         $commentThreads = $commentThreads;
     };
+
+    onMount(async () => {
+        const element = document.getElementById(`comment-${$searchParams.commentId}`);
+        if (element) {
+            await tick();
+            element.scrollIntoView({ block: 'center' });
+
+            if (parentDiv && parentDiv.querySelector(`#comment-${$searchParams.commentId}`)) {
+                parentDiv?.classList.add('border-primary');
+
+                const commentMark = $commentMarks.find((x) => x.threadId === threadId);
+                if (commentMark) {
+                    const span = document.getElementById(commentMark.spanId);
+                    span?.classList.add(...['bg-primary/50', 'border-2', 'border-primary']);
+                    span?.classList.remove('bg-primary/20');
+
+                    const observer = new MutationObserver(() => {
+                        if (document.body.contains(span)) {
+                            span?.scrollIntoView({ block: 'center' });
+                            observer.disconnect();
+                        }
+                    });
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            }
+        }
+    });
 </script>
 
 {#if activeThread}
     {#each activeThread.comments as comment, i (comment)}
-        <div class="mx-2 my-2 flex flex-col">
+        <div class="mx-2 my-2 flex flex-col" id={`comment-${comment.id}`}>
             <div class="flex place-items-center justify-between">
                 <div class="flex flex-col">
                     <div class="font-semibold">{comment.user.name}</div>
