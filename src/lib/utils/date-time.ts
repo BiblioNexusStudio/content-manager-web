@@ -30,18 +30,25 @@ export function formatSimpleDaysAgo(daysAgo: number | null) {
 
 // Output: "Jan 30, 2025, 2:44 PM"
 export function formatNotificationsDateString(dateString: string): string {
-    const date = new Date(dateString);
+    if (!dateString) {
+        return '';
+    }
 
-    const options: Intl.DateTimeFormatOptions = {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric',
-        hour12: true,
-    };
+    try {
+        const date = new Date(dateString);
+        const options: Intl.DateTimeFormatOptions = {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+        };
 
-    const formattedDate = new Intl.DateTimeFormat('en-US', options).format(date);
+        const formattedDate = new Intl.DateTimeFormat('en-US', options).format(date);
 
-    return formattedDate;
+        return formattedDate;
+    } catch {
+        return '';
+    }
 }
