@@ -135,6 +135,9 @@
             resourceContent.status === ResourceContentStatusEnum.AquiferizePublisherReview
     );
 
+    // -- interval timer for ai translate polling --
+    let pollingInterval: number | null = $state(null);
+
     let isInTranslationWorkflow = $derived(
         resourceContent.status === ResourceContentStatusEnum.TranslationAwaitingAiDraft ||
             resourceContent.status === ResourceContentStatusEnum.TranslationAiDraftComplete ||
@@ -292,7 +295,13 @@
         }
     });
 
-    onDestroy(resetSaveState);
+    onDestroy(() => {
+        resetSaveState();
+
+        if (pollingInterval) {
+            window.clearInterval(pollingInterval);
+        }
+    });
 
     $effect(() => handleFetchedResource(resourceContent));
 
@@ -704,7 +713,7 @@
     }
 
     function startPollingForAiTranslateComplete() {
-        const interval = setInterval(async () => {
+        pollingInterval = window.setInterval(async () => {
             if (resourceContent?.resourceContentId) {
                 const response = await getFromApi<ResourceContentCurrentStatusId>(
                     `/resources/content/${resourceContent?.resourceContentId}/status`
@@ -714,11 +723,11 @@
                     response?.status !== ResourceContentStatusEnum.TranslationAwaitingAiDraft &&
                     response?.status !== ResourceContentStatusEnum.AquiferizeAwaitingAiDraft
                 ) {
-                    clearInterval(interval);
+                    window.clearInterval(pollingInterval as number);
                     window.location.reload();
                 }
             } else {
-                clearInterval(interval);
+                window.clearInterval(pollingInterval as number);
             }
         }, 5000);
     }
