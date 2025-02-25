@@ -59,7 +59,7 @@
     import VersionStatusHistorySidebar from './VersionStatusHistorySidebar.svelte';
     import ResourcePopout from '$lib/components/editorMarkPopouts/ResourcePopout.svelte';
     import type { User } from '@auth0/auth0-spa-js';
-    import { bindKeyCombo } from '@rwh/keystrokes';
+    import { bindKeyCombo, bindKey } from '@rwh/keystrokes';
     import Tooltip from '$lib/components/Tooltip.svelte';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
 
@@ -263,6 +263,7 @@
     );
 
     let isMacOS = $state(false);
+    let isControlAltPressed = $state(false);
     let sendToModalText = $state('');
 
     const searchParams = searchParameters(
@@ -298,98 +299,116 @@
             isMacOS = navigator.userAgent.indexOf('Mac') !== -1;
         }
 
+        bindKeyCombo(`Control+${isMacOS ? 'Meta' : 'Alt'}`, {
+            onPressed: () => (isControlAltPressed = true),
+            onReleased: () => (isControlAltPressed = false),
+        });
+
         if (canSetStatusTransitionNotApplicable) {
-            bindKeyCombo(`Control+${isMacOS ? 'Meta' : 'Alt'}+n`, async () => {
-                isNotApplicableModalOpen = true;
+            bindKey('n', async () => {
+                if (isControlAltPressed) {
+                    isNotApplicableModalOpen = true;
 
-                await tick();
+                    await tick();
 
-                focusOnButton('not-applicable-yes-button');
+                    focusOnButton('not-applicable-yes-button');
 
-                log.trackEvent('keyboard-short-cuts-not-applicable');
+                    log.trackEvent('keyboard-short-cuts-not-applicable');
+                }
             });
         }
 
         if (canSendForCompanyReview || canSendForPublisherReview) {
-            bindKeyCombo(`Control+${isMacOS ? 'Meta' : 'Alt'}+s`, async () => {
-                if (canSendForCompanyReview) {
-                    sendToModalText = 'Send to Review';
+            bindKey('s', async () => {
+                if (isControlAltPressed) {
+                    if (canSendForCompanyReview) {
+                        sendToModalText = 'Send to Review';
 
-                    await tick();
+                        await tick();
 
-                    openAssignReviewModal();
+                        openAssignReviewModal();
 
-                    await tick();
+                        await tick();
 
-                    focusOnButton('send-to-review-yes-button');
+                        focusOnButton('send-to-review-yes-button');
 
-                    log.trackEvent('keyboard-short-cuts-send-company-review');
-                } else if (canSendForPublisherReview) {
-                    sendToModalText = 'Send to Publisher';
+                        log.trackEvent('keyboard-short-cuts-send-company-review');
+                    } else if (canSendForPublisherReview) {
+                        sendToModalText = 'Send to Publisher';
 
-                    await tick();
+                        await tick();
 
-                    openAssignReviewModal();
+                        openAssignReviewModal();
 
-                    await tick();
+                        await tick();
 
-                    focusOnButton('send-to-review-yes-button');
+                        focusOnButton('send-to-review-yes-button');
 
-                    log.trackEvent('keyboard-short-cuts-send-publisher-review');
+                        log.trackEvent('keyboard-short-cuts-send-publisher-review');
+                    }
                 }
             });
         }
 
         if (canSendForEditorReview || inPublisherReviewAndCanSendBack) {
-            bindKeyCombo(`Control+${isMacOS ? 'Meta' : 'Alt'}+a`, () => {
-                isAssignUserModalOpen = true;
+            bindKey('a', () => {
+                if (isControlAltPressed) {
+                    isAssignUserModalOpen = true;
 
-                log.trackEvent('keyboard-short-cuts-assign-user');
+                    log.trackEvent('keyboard-short-cuts-assign-user');
+                }
             });
         }
 
-        bindKeyCombo(`Control+${isMacOS ? 'Meta' : 'Alt'}+m`, () => {
-            const commentsAlreadyOpened = openedSupplementalSideBar === OpenedSupplementalSideBar.Comments;
+        bindKey('m', () => {
+            if (isControlAltPressed) {
+                const commentsAlreadyOpened = openedSupplementalSideBar === OpenedSupplementalSideBar.Comments;
 
-            openedSupplementalSideBar = commentsAlreadyOpened
-                ? OpenedSupplementalSideBar.None
-                : OpenedSupplementalSideBar.Comments;
+                openedSupplementalSideBar = commentsAlreadyOpened
+                    ? OpenedSupplementalSideBar.None
+                    : OpenedSupplementalSideBar.Comments;
 
-            const eventName = commentsAlreadyOpened
-                ? 'keyboard-short-cuts-comments-sidebar-close'
-                : 'keyboard-short-cuts-comments-sidebar-open';
+                const eventName = commentsAlreadyOpened
+                    ? 'keyboard-short-cuts-comments-sidebar-close'
+                    : 'keyboard-short-cuts-comments-sidebar-open';
 
-            log.trackEvent(eventName);
+                log.trackEvent(eventName);
+            }
         });
 
-        bindKeyCombo(`Control+${isMacOS ? 'Meta' : 'Alt'}+b`, () => {
-            const biblePaneAlreadyOpened = openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences;
+        bindKey('b', () => {
+            if (isControlAltPressed) {
+                const biblePaneAlreadyOpened = openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences;
 
-            openedSupplementalSideBar = biblePaneAlreadyOpened
-                ? OpenedSupplementalSideBar.None
-                : OpenedSupplementalSideBar.BibleReferences;
+                openedSupplementalSideBar = biblePaneAlreadyOpened
+                    ? OpenedSupplementalSideBar.None
+                    : OpenedSupplementalSideBar.BibleReferences;
 
-            const eventName = biblePaneAlreadyOpened
-                ? 'keyboard-short-cuts-bible-pane-sidebar-close'
-                : 'keyboard-short-cuts-bible-pane-sidebar-open';
+                const eventName = biblePaneAlreadyOpened
+                    ? 'keyboard-short-cuts-bible-pane-sidebar-close'
+                    : 'keyboard-short-cuts-bible-pane-sidebar-open';
 
-            log.trackEvent(eventName);
+                log.trackEvent(eventName);
+            }
         });
 
-        bindKeyCombo(`Control+${isMacOS ? 'Meta' : 'Alt'}+h`, () => {
-            const historyPaneAlreadyOpened =
-                openedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory;
+        bindKey('h', () => {
+            if (isControlAltPressed) {
+                const historyPaneAlreadyOpened =
+                    openedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory;
 
-            openedSupplementalSideBar = historyPaneAlreadyOpened
-                ? OpenedSupplementalSideBar.None
-                : OpenedSupplementalSideBar.VersionStatusHistory;
+                openedSupplementalSideBar = historyPaneAlreadyOpened
+                    ? OpenedSupplementalSideBar.None
+                    : OpenedSupplementalSideBar.VersionStatusHistory;
 
-            const eventName = historyPaneAlreadyOpened
-                ? 'keyboard-short-cuts-history-pane-sidebar-close'
-                : 'keyboard-short-cuts-history-pane-sidebar-open';
+                const eventName = historyPaneAlreadyOpened
+                    ? 'keyboard-short-cuts-history-pane-sidebar-close'
+                    : 'keyboard-short-cuts-history-pane-sidebar-open';
 
-            log.trackEvent(eventName);
+                log.trackEvent(eventName);
+            }
         });
+
         if ($searchParams.commentId) {
             openedSupplementalSideBar = OpenedSupplementalSideBar.Comments;
         }
