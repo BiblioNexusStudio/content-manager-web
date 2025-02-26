@@ -506,7 +506,7 @@
         <PaginatedTableWrapper
             bind:pageLimit
             sortedContents={sortedCurrentMyWorkContents}
-            bind:currentPage={toAssignContentsCurrentPage}
+            bind:currentPage={myWorkContentsCurrentPage}
         >
             {#snippet paginatedTable(customItemsPerPage, totalItems, paginatedContents)}
                 <Table

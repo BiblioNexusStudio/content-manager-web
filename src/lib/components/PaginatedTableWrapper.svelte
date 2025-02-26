@@ -22,12 +22,6 @@
     let paginatedContents = $derived.by(() =>
         sortedContents.slice((currentPage - 1) * pageLimit, currentPage * pageLimit)
     );
-
-    $effect(() => {
-        if (pageLimit * currentPage > totalItems) {
-            currentPage = 1;
-        }
-    });
 </script>
 
 {@render paginatedTable?.(customItemsPerPage, totalItems, paginatedContents)}
