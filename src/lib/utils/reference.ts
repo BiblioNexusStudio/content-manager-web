@@ -33,7 +33,10 @@ export function generateVerseFromReference(
     // like Arabic. It makes sure that a reference like Luke 12:17 shows up as 17:12 Luke instead of 12:17 Luke.
     // It inserts tiny spaces into the content that are almost invisible to humans but the RTL browser handling
     // notices it and formats things correctly.
-    const rtlSpace = scriptDirection === ScriptDirection.RTL ? tinySpace : '';
+    const rtlDirection = ScriptDirection.RTL.toString().toUpperCase(); // enum comparison don't work in current version of svelte5
+    const direction = scriptDirection.toString().toUpperCase();
+
+    const rtlSpace = direction === rtlDirection ? tinySpace : '';
 
     let label: string;
     if (instanceOfPassageReference(reference)) {
