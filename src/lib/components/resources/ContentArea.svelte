@@ -24,6 +24,7 @@
         openedSupplementalSideBar: OpenedSupplementalSideBar;
         resourceContentStatuses: ResourceContentStatus[];
         selectedStepNumber: number | undefined;
+        isMacOS?: boolean;
     }
 
     let {
@@ -35,6 +36,7 @@
         openedSupplementalSideBar = $bindable(),
         resourceContentStatuses,
         selectedStepNumber,
+        isMacOS,
     }: Props = $props();
 
     const commentThreads = commentStores.commentThreads;
@@ -124,9 +126,10 @@
             {#if $commentThreads?.threads.length}
                 {@const active = openedSupplementalSideBar === OpenedSupplementalSideBar.Comments}
                 <Tooltip
-                    position={{ right: '3rem', top: '0.25rem' }}
+                    position={{ right: '3rem' }}
                     class="border-[#485467] text-[#485467]"
                     text={active ? 'Hide Comments' : 'Show Comments'}
+                    secondLineText={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+M)`}
                 >
                     <button
                         data-app-insights-event-name="toggle-comments-pane-click"
@@ -138,11 +141,12 @@
                 </Tooltip>
             {/if}
             <Tooltip
-                position={{ right: '3rem', top: '0.25rem' }}
+                position={{ right: '3rem' }}
                 class="border-[#485467] text-[#485467]"
                 text={openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences
                     ? 'Hide Bible References'
                     : 'Show Bible References'}
+                secondLineText={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+B)`}
             >
                 <button
                     data-app-insights-event-name="toggle-comments-pane-click"
@@ -154,11 +158,12 @@
                 </button>
             </Tooltip>
             <Tooltip
-                position={{ right: '3rem', top: '0.25rem' }}
+                position={{ right: '3rem' }}
                 class="border-[#485467] text-[#485467]"
                 text={openedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory
                     ? 'Hide Status History'
                     : 'Show Status History'}
+                secondLineText={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+H)`}
             >
                 <button
                     data-app-insights-event-name="toggle-status-history-pane-click"
