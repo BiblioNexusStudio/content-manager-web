@@ -705,16 +705,20 @@
 
     function startPollingForAiTranslateComplete() {
         const interval = setInterval(async () => {
-            const response = await getFromApi<ResourceContentCurrentStatusId>(
-                `/resources/content/${resourceContent?.resourceContentId}/status`
-            );
-            if (
-                response &&
-                response?.status !== ResourceContentStatusEnum.TranslationAwaitingAiDraft &&
-                response?.status !== ResourceContentStatusEnum.AquiferizeAwaitingAiDraft
-            ) {
+            if (resourceContent?.resourceContentId) {
+                const response = await getFromApi<ResourceContentCurrentStatusId>(
+                    `/resources/content/${resourceContent?.resourceContentId}/status`
+                );
+                if (
+                    response &&
+                    response?.status !== ResourceContentStatusEnum.TranslationAwaitingAiDraft &&
+                    response?.status !== ResourceContentStatusEnum.AquiferizeAwaitingAiDraft
+                ) {
+                    clearInterval(interval);
+                    window.location.reload();
+                }
+            } else {
                 clearInterval(interval);
-                window.location.reload();
             }
         }, 5000);
     }
