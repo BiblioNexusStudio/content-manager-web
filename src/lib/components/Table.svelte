@@ -27,6 +27,7 @@
         currentPage?: number;
         totalItems?: number;
         itemsPerPage?: number;
+        customItemsPerPage?: number[];
         class?: string;
         tableCells?: Snippet<[T, string, keyof T, string]>;
         customTbody?: Snippet<[T[], T[] | undefined, (item: T) => void]>;
@@ -50,6 +51,7 @@
         currentPage = $bindable(),
         totalItems = undefined,
         itemsPerPage = $bindable(),
+        customItemsPerPage = [10, 50, 100],
         class: className = '',
         tableCells,
         customTbody,
@@ -285,7 +287,7 @@
                     })}
                 </div>
                 <select bind:value={itemsPerPage} class="select select-bordered select-ghost select-xs">
-                    {#each [10, 50, 100] as count, i (i)}
+                    {#each customItemsPerPage as count, i (i)}
                         <option value={count} selected={i === 0}>
                             {`${count} ${$translate('page.resources.table.navigation.perPage.value')}`}
                         </option>
