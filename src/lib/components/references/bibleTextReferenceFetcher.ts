@@ -24,6 +24,7 @@ export const fetchAndFormat = async (
     }
 
     let verseDisplayName = '';
+    const passageHasDifferentBase = passageHasDifferentBaseMappings(bookTexts);
     if (
         bookTexts.length === 1 &&
         bookTexts[0]?.chapters.length === 1 &&
@@ -36,7 +37,8 @@ export const fetchAndFormat = async (
                 chapter: bookTexts[0].chapters[0].number,
                 verse: bookTexts[0].chapters[0].verses[0]!.number,
             },
-            language.scriptDirection
+            language.scriptDirection,
+            passageHasDifferentBase
         );
     } else {
         const passageStart = bookTexts[0]!;
@@ -54,7 +56,8 @@ export const fetchAndFormat = async (
                     endChapter: passageEnd.chapters.at(-1)!.number,
                     endVerse: passageEnd.chapters.at(-1)!.verses.at(-1)!.number,
                 },
-                language.scriptDirection
+                language.scriptDirection,
+                passageHasDifferentBase
             );
         } else {
             log.exception(
@@ -65,11 +68,6 @@ export const fetchAndFormat = async (
                 )
             );
         }
-    }
-
-    // if any verses in the range have a baseMapping, add * to the verseName
-    if (passageHasDifferentBaseMappings(bookTexts)) {
-        verseDisplayName += '*';
     }
 
     const isSingleBook = bookTexts.length === 1;
@@ -87,6 +85,6 @@ function bookTextDebugInfo(book: BibleBookTexts | undefined) {
     );
 }
 
-function passageHasDifferentBaseMappings(bookTexts: BibleBookTexts[]) {
-    return bookTexts.some((b) => b.chapters.some((c) => c.verses.some((v) => v.baseMapping)));
+function passageHasDifferentBaseMappings(bookTexts: BibleBookTexts[]): boolean {
+    return !!bookTexts.some((b) => b.chapters.some((c) => c.verses.some((v) => v.baseMapping)));
 }
