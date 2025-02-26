@@ -67,6 +67,11 @@ export const fetchAndFormat = async (
         }
     }
 
+    // if any verses in the range have a baseMapping, add * to the verseName
+    if (passageHasDifferentBaseMappings(bookTexts)) {
+        verseDisplayName += '*';
+    }
+
     const isSingleBook = bookTexts.length === 1;
     return {
         verseDisplayName,
@@ -80,4 +85,8 @@ function bookTextDebugInfo(book: BibleBookTexts | undefined) {
     return JSON.stringify(
         book?.chapters.map((c) => ({ numberAndVerses: `${c.number}-${JSON.stringify(c.verses.map((v) => v.number))}` }))
     );
+}
+
+function passageHasDifferentBaseMappings(bookTexts: BibleBookTexts[]) {
+    return bookTexts.some((b) => b.chapters.some((c) => c.verses.some((v) => v.baseMapping)));
 }

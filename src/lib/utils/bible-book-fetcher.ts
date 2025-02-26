@@ -10,7 +10,7 @@ export interface BibleBookTexts {
 
 interface BibleBookChapters {
     number: number;
-    verses: { number: number; text: string }[];
+    verses: { number: number; text: string; baseMapping: string | null }[];
 }
 
 export async function fetchBibleBookTexts(bibleId: number, bookId: number): Promise<BibleBookTexts | null> {
