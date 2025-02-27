@@ -108,7 +108,6 @@
     let isAquiferizeModalOpen = $state(false);
     let isAssignReviewModalOpen = $state(false);
     let isNotApplicableModalOpen = $state(false);
-    let isSendToReviewPublisherManagerModalOpen = $state(false);
     let createDraft = $state(false); // checkbox flag
     let createTranslationFromDraft = $state(false); // checkbox flag
 
@@ -264,7 +263,6 @@
 
     let isMacOS = $state(false);
     let isControlAltPressed = $state(false);
-    let sendToModalText = $state('');
 
     const searchParams = searchParameters(
         {
@@ -319,32 +317,14 @@
         }
 
         if (canSendForCompanyReview || canSendForPublisherReview) {
-            bindKey('s', async () => {
+            bindKey('s', () => {
                 if (isControlAltPressed) {
                     if (canSendForCompanyReview) {
-                        sendToModalText = 'Send to Review';
-
-                        await tick();
-
-                        openAssignReviewModal();
-
-                        await tick();
-
-                        focusOnButton('send-to-review-yes-button');
-
                         log.trackEvent('keyboard-short-cuts-send-company-review');
+                        sendForCompanyReview();
                     } else if (canSendForPublisherReview) {
-                        sendToModalText = 'Send to Publisher';
-
-                        await tick();
-
-                        openAssignReviewModal();
-
-                        await tick();
-
-                        focusOnButton('send-to-review-yes-button');
-
                         log.trackEvent('keyboard-short-cuts-send-publisher-review');
+                        sendForPublisherReview();
                     }
                 }
             });
@@ -353,7 +333,11 @@
         if (canSendForEditorReview || inPublisherReviewAndCanSendBack) {
             bindKey('a', () => {
                 if (isControlAltPressed) {
-                    isAssignUserModalOpen = true;
+                    if (canSendForEditorReview) {
+                        openAssignUserModal();
+                    } else if (canAssignPublisherForReview && isInReview) {
+                        openAssignReviewModal();
+                    }
 
                     log.trackEvent('keyboard-short-cuts-assign-user');
                 }
@@ -854,14 +838,6 @@
         }, 5000);
     }
 
-    function handleShortCutsSendToReview() {
-        if (canSendForCompanyReview) {
-            sendForCompanyReview();
-        } else if (canSendForPublisherReview) {
-            sendForPublisherReview();
-        }
-    }
-
     function focusOnButton(buttonId: string) {
         const primaryButton = document.getElementById(buttonId);
         primaryButton?.focus();
@@ -913,7 +889,7 @@
                                 <Tooltip
                                     position={{ right: '8.5rem', top: '0.25rem' }}
                                     class="border-[#485467] text-[#485467]"
-                                    text={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+N)`}
+                                    text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+N`}
                                 >
                                     <button
                                         class="btn btn-primary btn-sm ms-2"
@@ -940,7 +916,7 @@
                                         top: '0.25rem',
                                     }}
                                     class="border-[#485467] text-[#485467]"
-                                    text={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+A)`}
+                                    text={canSendForEditorReview ? `CTRL+${isMacOS ? 'CMD' : 'ALT'}+A` : ''}
                                 >
                                     <button
                                         class="btn btn-primary btn-sm ms-2"
@@ -965,12 +941,21 @@
                                 </button>
                             {/if}
                             {#if canAssignPublisherForReview}
-                                <button
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={openAssignReviewModal}
-                                    >{isInReview ? 'Assign' : 'Review'}
-                                </button>
+                                <Tooltip
+                                    position={{
+                                        right: `${canSendForEditorReview ? '7.2rem' : '6.5rem'}`,
+                                        top: '0.25rem',
+                                    }}
+                                    class="border-[#485467] text-[#485467]"
+                                    text={isInReview ? `CTRL+${isMacOS ? 'CMD' : 'ALT'}+A` : ''}
+                                >
+                                    <button
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={openAssignReviewModal}
+                                        >{isInReview ? 'Assign' : 'Review'}
+                                    </button>
+                                </Tooltip>
                             {/if}
                             {#if canPublish}
                                 <button
@@ -993,7 +978,7 @@
                                 <Tooltip
                                     position={{ right: '8.5rem', top: '0.25rem' }}
                                     class="border-[#485467] text-[#485467]"
-                                    text={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+S)`}
+                                    text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+S`}
                                 >
                                     <button
                                         class="btn btn-primary btn-sm ms-2"
@@ -1007,7 +992,7 @@
                                 <Tooltip
                                     position={{ right: '9.5rem', top: '0.25rem' }}
                                     class="border-[#485467] text-[#485467]"
-                                    text={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+S)`}
+                                    text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+S`}
                                 >
                                     <button
                                         class="btn btn-primary btn-sm ms-2"
@@ -1339,17 +1324,9 @@
     </Modal>
 
     <Modal
-        header={sendToModalText}
-        bind:open={isSendToReviewPublisherManagerModalOpen}
-        primaryButtonText="yes"
-        primaryButtonOnClick={handleShortCutsSendToReview}
-        primaryButtonId="send-to-review-yes-button"
-    />
-
-    <Modal
         header="Mark as Not Applicable?"
         bind:open={isNotApplicableModalOpen}
-        primaryButtonText="yes"
+        primaryButtonText="Yes"
         primaryButtonOnClick={handleNotApplicable}
         primaryButtonId="not-applicable-yes-button"
     />
