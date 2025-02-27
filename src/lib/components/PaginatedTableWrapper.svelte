@@ -13,7 +13,7 @@
         pageLimit = $bindable(100),
         sortedContents,
         currentPage = $bindable(),
-        customItemsPerPage = [100, 500, 1000],
+        customItemsPerPage = [100, 500, 1000, Infinity],
         paginatedTable,
     }: Props = $props();
 

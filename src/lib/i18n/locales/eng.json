@@ -84,6 +84,10 @@
                     "perPage": {
                         "value": "per page",
                         "_context": "Number per page, indicates how many records are shown"
+                    },
+                    "all": {
+                        "value": "All",
+                        "_context": "Label for the all button to show all records"
                     }
                 }
             }

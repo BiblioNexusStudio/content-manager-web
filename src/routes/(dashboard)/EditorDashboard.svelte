@@ -199,8 +199,7 @@
     );
 
     // -- Pagination --
-    const itemsPerPage = [100, 500, 1000];
-    let pageLimit = $state(itemsPerPage[0] ?? 100);
+    let pageLimit = $state(100);
 
     // -- My Work Pagination --
     let myWorkContentsCurrentPage = $state(1);

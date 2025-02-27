@@ -142,8 +142,7 @@
     let sortedCurrentManageContents = $derived(sortAndFilterManageData(currentManageContents, $searchParams));
 
     // -- Pagination --
-    const itemsPerPage = [100, 500, 1000];
-    let pageLimit = $state(itemsPerPage[0] ?? 100);
+    let pageLimit = $state(100);
 
     // -- My Work Pagination --
     let myWorkContentsCurrentPage = $state(1);
@@ -616,7 +615,7 @@
             <PaginatedTableWrapper
                 bind:pageLimit
                 sortedContents={sortedCurrentManageContents}
-                bind:currentPage={toAssignContentsCurrentPage}
+                bind:currentPage={manageContentsCurrentPage}
             >
                 {#snippet paginatedTable(customItemsPerPage, totalItems, paginatedContents)}
                     <Table
