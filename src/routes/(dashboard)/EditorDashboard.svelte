@@ -31,6 +31,7 @@
         markNotificationAsReadAndGoToResourcePage,
         markAllSelectedNotificationsAsRead,
     } from './notifications-helpers';
+    import PaginatedTableWrapper from '$lib/components/PaginatedTableWrapper.svelte';
 
     const sortMyWorkData = createEditorDashboardMyWorkSorter();
     const sortMyHistoryData = createEditorDashboardMyHistorySorter();
@@ -196,6 +197,16 @@
     let sortedMyHistoryContents: ResourceAssignedToSelfHistory[] = $derived(
         sortMyHistoryData(visibleMyHistoryContents, $searchParams.sort)
     );
+
+    // -- Pagination --
+    let pageLimit = $state(100);
+
+    // -- My Work Pagination --
+    let myWorkContentsCurrentPage = $state(1);
+
+    // -- To History Pagination --
+    let myHistoryContentsCurrentPage = $state(1);
+
     let table:
         | Table<ResourceAssignedToSelfHistory>
         | Table<ResourceAssignedToSelf>
@@ -352,69 +363,93 @@
         {/if}
     </div>
     {#if $searchParams.tab === Tab.myWork}
-        <Table
-            bind:this={table}
-            class="my-4"
-            enableSelectAll={true}
-            columns={myWorkColumns}
-            items={sortedMyWorkContents as ResourceAssignedToSelf[]}
-            idColumn="id"
-            itemUrlPrefix="/resources/"
-            bind:searchParams={$searchParams}
-            bind:selectedItems={selectedMyWorkContents}
-            noItemsText="Your work is all done!"
-            searchable={true}
-            searchText={search}
-            noItemsAfterSearchText="No items found"
+        <PaginatedTableWrapper
+            bind:pageLimit
+            sortedContents={sortedMyWorkContents}
+            bind:currentPage={myWorkContentsCurrentPage}
         >
-            {#snippet tableCells(item, href, itemKey)}
-                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                {:else if itemKey === 'hasAudio'}
-                    <TableCell>
-                        {#if item.hasAudio}
-                            <Icon data={volumeUp} class="h-4 w-4" />
+            {#snippet paginatedTable(customItemsPerPage, totalItems, paginatedContents)}
+                <Table
+                    bind:this={table}
+                    class="my-4"
+                    enableSelectAll={true}
+                    columns={myWorkColumns}
+                    items={paginatedContents}
+                    idColumn="id"
+                    itemUrlPrefix="/resources/"
+                    bind:searchParams={$searchParams}
+                    bind:selectedItems={selectedMyWorkContents}
+                    noItemsText="Your work is all done!"
+                    searchable={true}
+                    searchText={search}
+                    noItemsAfterSearchText="No items found"
+                    {totalItems}
+                    {customItemsPerPage}
+                    bind:itemsPerPage={pageLimit}
+                    bind:currentPage={myWorkContentsCurrentPage}
+                >
+                    {#snippet tableCells(item, href, itemKey)}
+                        {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                            <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                        {:else if itemKey === 'hasAudio'}
+                            <TableCell>
+                                {#if item.hasAudio}
+                                    <Icon data={volumeUp} class="h-4 w-4" />
+                                {/if}
+                            </TableCell>
+                        {:else if href !== undefined && itemKey}
+                            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                        {:else if itemKey}
+                            <TableCell>{item[itemKey] ?? ''}</TableCell>
                         {/if}
-                    </TableCell>
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
-                {/if}
+                    {/snippet}
+                </Table>
             {/snippet}
-        </Table>
+        </PaginatedTableWrapper>
     {:else if $searchParams.tab === Tab.myHistory}
-        <Table
-            bind:this={table}
-            class="my-4"
-            columns={myHistoryColumns}
-            items={sortedMyHistoryContents as ResourceAssignedToSelfHistory[]}
-            idColumn="id"
-            itemUrlPrefix="/resources/"
-            bind:searchParams={$searchParams}
-            noItemsText="No history items"
-            searchable={true}
-            searchText={search}
-            noItemsAfterSearchText="No items found"
+        <PaginatedTableWrapper
+            bind:pageLimit
+            sortedContents={sortedMyHistoryContents}
+            bind:currentPage={myHistoryContentsCurrentPage}
         >
-            {#snippet tableCells(item, href, itemKey)}
-                {#if itemKey === 'lastActionTime' && item[itemKey] !== null}
-                    <LinkedTableCell {href}
-                        >{utcDateTimeStringToDateTime(item[itemKey]).toLocaleDateString()}</LinkedTableCell
-                    >
-                {:else if itemKey === 'hasAudio'}
-                    <TableCell>
-                        {#if item.hasAudio}
-                            <Icon data={volumeUp} class="h-4 w-4" />
+            {#snippet paginatedTable(customItemsPerPage, totalItems, paginatedContents)}
+                <Table
+                    bind:this={table}
+                    class="my-4"
+                    columns={myHistoryColumns}
+                    items={paginatedContents as ResourceAssignedToSelfHistory[]}
+                    idColumn="id"
+                    itemUrlPrefix="/resources/"
+                    bind:searchParams={$searchParams}
+                    noItemsText="No history items"
+                    searchable={true}
+                    searchText={search}
+                    noItemsAfterSearchText="No items found"
+                    {totalItems}
+                    {customItemsPerPage}
+                    bind:itemsPerPage={pageLimit}
+                    bind:currentPage={myHistoryContentsCurrentPage}
+                >
+                    {#snippet tableCells(item, href, itemKey)}
+                        {#if itemKey === 'lastActionTime' && item[itemKey] !== null}
+                            <LinkedTableCell {href}
+                                >{utcDateTimeStringToDateTime(item[itemKey]).toLocaleDateString()}</LinkedTableCell
+                            >
+                        {:else if itemKey === 'hasAudio'}
+                            <TableCell>
+                                {#if item.hasAudio}
+                                    <Icon data={volumeUp} class="h-4 w-4" />
+                                {/if}
+                            </TableCell>
+                        {:else if href !== undefined && itemKey}
+                            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                        {:else if itemKey}
+                            <TableCell>{item[itemKey] ?? ''}</TableCell>
                         {/if}
-                    </TableCell>
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
-                {/if}
+                    {/snippet}
+                </Table>
             {/snippet}
-        </Table>
+        </PaginatedTableWrapper>
     {:else if $searchParams.tab === Tab.notifications}
         <Table
             bind:this={table}
