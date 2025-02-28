@@ -67,10 +67,6 @@
     let headerRow: HTMLTableRowElement | undefined = $state(undefined);
     let headerRowHeight = $state(0);
 
-    $effect(() => {
-        itemsPerPage && (currentPage = 1);
-    });
-
     let totalPages = $derived(
         totalItems !== undefined && itemsPerPage !== undefined ? Math.ceil(totalItems / itemsPerPage) : undefined
     );
