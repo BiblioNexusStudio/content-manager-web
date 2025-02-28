@@ -29,15 +29,42 @@
     const inCompanyReviewWidth = getWidth(inCompanyReviewCount);
     const inPublisherReviewWidth = getWidth(inPublisherReviewCount);
     const completeWidth = getWidth(completeCount);
+
+    function getTooltipText(width: number) {
+        if (width > 0 && width < 1) {
+            return '< 1%';
+        }
+        return width > 0 ? `${Math.round(width)}%` : '';
+    }
 </script>
 
 <div class="flex w-full flex-col {ClassName}">
     <div class="flex h-4 w-full flex-row border border-black">
-        <div class="bg-neutral" style={`width: ${completeWidth}%`}></div>
-        <div class="bg-primary" style={`width: ${inPublisherReviewWidth}%`}></div>
-        <div class="bg-primary bg-opacity-60" style={`width: ${inCompanyReviewWidth}%`}></div>
-        <div class="bg-primary bg-opacity-25" style={`width: ${editorReviewWidth}%`}></div>
-        <div class="bg-white" style={`width: ${notStartedWidth}%`}></div>
+        <div
+            class="tooltip tooltip-info bg-neutral"
+            data-tip={getTooltipText(completeWidth)}
+            style={`width: ${completeWidth}%`}
+        ></div>
+        <div
+            class="tooltip tooltip-info bg-primary"
+            data-tip={getTooltipText(inPublisherReviewWidth)}
+            style={`width: ${inPublisherReviewWidth}%`}
+        ></div>
+        <div
+            class="tooltip tooltip-info bg-primary bg-opacity-60"
+            data-tip={getTooltipText(inCompanyReviewWidth)}
+            style={`width: ${inCompanyReviewWidth}%`}
+        ></div>
+        <div
+            class="tooltip tooltip-info bg-primary bg-opacity-25"
+            data-tip={getTooltipText(editorReviewWidth)}
+            style={`width: ${editorReviewWidth}%`}
+        ></div>
+        <div
+            class="tooltip tooltip-info bg-white"
+            data-tip={getTooltipText(notStartedWidth)}
+            style={`width: ${notStartedWidth}%`}
+        ></div>
     </div>
 
     {#if showLegend}

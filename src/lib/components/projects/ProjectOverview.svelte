@@ -3,7 +3,8 @@
     import Select from '$lib/components/Select.svelte';
     import { UserRole } from '$lib/types/base';
     import ViewTabSlot from './ViewTabSlot.svelte';
-    import { updateProject } from '$lib/utils/projects';
+    import { formatDate, updateProject } from '$lib/utils/projects';
+    import { dateDifference } from '$lib/utils/date-time';
 
     interface Props {
         canOnlyViewProjectsInCompany: boolean;
@@ -15,6 +16,20 @@
     let projectManagerUserId = $derived(currentProjectManager?.id ?? 0);
     let currentCompanyLead = $derived($users?.find((u) => u.name === $project?.companyLead));
     let companyLeadUserId = $derived(currentCompanyLead?.id ?? 0);
+    let dayDiff = $derived(dateDifference($project?.projectedDeliveryDate ?? ''));
+    let remainingWords = $derived($project?.counts.remaining ?? 0);
+    let projectDeliverDateTitle = $derived.by(() => {
+        var title = '';
+        if ($project?.projectedDeliveryDate && remainingWords > 0) {
+            if (dayDiff > 0) {
+                title = `Overdue by ${dayDiff.toLocaleString()} days. ${remainingWords.toLocaleString()} words remaining`;
+            }
+            if (dayDiff < 0) {
+                title = `Due in ${Math.abs(dayDiff).toLocaleString()} days. ${remainingWords.toLocaleString()} words remaining`;
+            }
+        }
+        return title;
+    });
 
     async function handleProjectManagerSelectChange(value: string | number | null) {
         const selectedUser = $users?.find((u) => u.id === value);
@@ -85,6 +100,13 @@
                     {$project?.companyLead}
                 {/if}
             </ViewTabSlot>
+        {/if}
+        <ViewTabSlot title="Project Due Date">
+            <div>{formatDate($project?.projectedDeliveryDate)}</div>
+        </ViewTabSlot>
+        {#if $project?.projectedDeliveryDate}
+            <ViewTabSlot title={projectDeliverDateTitle} titleClassProps={dayDiff > 0 ? 'text-error' : ''}
+            ></ViewTabSlot>
         {/if}
     </div>
 </div>
