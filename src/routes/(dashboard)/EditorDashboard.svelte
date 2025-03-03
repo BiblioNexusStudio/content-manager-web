@@ -101,6 +101,7 @@
             project: ssp.string(''),
             isFilteringUnresolved: ssp.boolean(false),
             isShowingOnlyUnread: ssp.boolean(false),
+            pageNumber: ssp.number(1),
         },
         { runLoadAgainWhenParamsChange: false }
     );
@@ -200,12 +201,6 @@
 
     // -- Pagination --
     let pageLimit = $state(100);
-
-    // -- My Work Pagination --
-    let myWorkContentsCurrentPage = $state(1);
-
-    // -- To History Pagination --
-    let myHistoryContentsCurrentPage = $state(1);
 
     let table:
         | Table<ResourceAssignedToSelfHistory>
@@ -366,7 +361,7 @@
         <PaginatedTableWrapper
             bind:pageLimit
             sortedContents={sortedMyWorkContents}
-            bind:currentPage={myWorkContentsCurrentPage}
+            bind:currentPage={$searchParams.pageNumber}
         >
             {#snippet paginatedTable(customItemsPerPage, totalItems, paginatedContents)}
                 <Table
@@ -386,7 +381,7 @@
                     {totalItems}
                     {customItemsPerPage}
                     bind:itemsPerPage={pageLimit}
-                    bind:currentPage={myWorkContentsCurrentPage}
+                    bind:currentPage={$searchParams.pageNumber}
                 >
                     {#snippet tableCells(item, href, itemKey)}
                         {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
@@ -410,7 +405,7 @@
         <PaginatedTableWrapper
             bind:pageLimit
             sortedContents={sortedMyHistoryContents}
-            bind:currentPage={myHistoryContentsCurrentPage}
+            bind:currentPage={$searchParams.pageNumber}
         >
             {#snippet paginatedTable(customItemsPerPage, totalItems, paginatedContents)}
                 <Table
@@ -428,7 +423,7 @@
                     {totalItems}
                     {customItemsPerPage}
                     bind:itemsPerPage={pageLimit}
-                    bind:currentPage={myHistoryContentsCurrentPage}
+                    bind:currentPage={$searchParams.pageNumber}
                 >
                     {#snippet tableCells(item, href, itemKey)}
                         {#if itemKey === 'lastActionTime' && item[itemKey] !== null}

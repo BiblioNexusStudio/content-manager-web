@@ -104,6 +104,7 @@
             lastAssignedId: ssp.number(0),
             isFilteringUnresolved: ssp.boolean(false),
             isShowingOnlyUnread: ssp.boolean(false),
+            pageNumber: ssp.number(1),
         },
         { runLoadAgainWhenParamsChange: false }
     );
@@ -144,15 +145,6 @@
 
     // -- Pagination --
     let pageLimit = $state(100);
-
-    // -- My Work Pagination --
-    let myWorkContentsCurrentPage = $state(1);
-
-    // -- To Assign Pagination --
-    let toAssignContentsCurrentPage = $state(1);
-
-    // -- Manage Pagination --
-    let manageContentsCurrentPage = $state(1);
 
     const setTabContents = (
         tab: string,
@@ -278,6 +270,7 @@
         $searchParams.tab = tab;
         $searchParams.assignedUserId = 0;
         $searchParams.lastAssignedId = 0;
+        $searchParams.pageNumber = 1;
 
         $searchParams.project = '';
         resetSelections();
@@ -533,7 +526,7 @@
         <PaginatedTableWrapper
             bind:pageLimit
             sortedContents={sortedCurrentMyWorkContents}
-            bind:currentPage={myWorkContentsCurrentPage}
+            bind:currentPage={$searchParams.pageNumber}
         >
             {#snippet paginatedTable(customItemsPerPage, totalItems, paginatedContents)}
                 <Table
@@ -552,7 +545,7 @@
                     {totalItems}
                     {customItemsPerPage}
                     bind:itemsPerPage={pageLimit}
-                    bind:currentPage={myWorkContentsCurrentPage}
+                    bind:currentPage={$searchParams.pageNumber}
                 >
                     {#snippet tableCells(item, href, itemKey)}
                         {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
@@ -583,7 +576,7 @@
             <PaginatedTableWrapper
                 bind:pageLimit
                 sortedContents={sortedCurrentToAssignContents}
-                bind:currentPage={toAssignContentsCurrentPage}
+                bind:currentPage={$searchParams.pageNumber}
             >
                 {#snippet paginatedTable(customItemsPerPage, totalItems, paginatedContents)}
                     <Table
@@ -602,7 +595,7 @@
                         {totalItems}
                         {customItemsPerPage}
                         bind:itemsPerPage={pageLimit}
-                        bind:currentPage={toAssignContentsCurrentPage}
+                        bind:currentPage={$searchParams.pageNumber}
                     >
                         {#snippet tableCells(item, href, itemKey)}
                             {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
@@ -643,7 +636,7 @@
             <PaginatedTableWrapper
                 bind:pageLimit
                 sortedContents={sortedCurrentManageContents}
-                bind:currentPage={manageContentsCurrentPage}
+                bind:currentPage={$searchParams.pageNumber}
             >
                 {#snippet paginatedTable(customItemsPerPage, totalItems, paginatedContents)}
                     <Table
@@ -664,7 +657,7 @@
                         {totalItems}
                         {customItemsPerPage}
                         bind:itemsPerPage={pageLimit}
-                        bind:currentPage={manageContentsCurrentPage}
+                        bind:currentPage={$searchParams.pageNumber}
                     >
                         {#snippet tableCells(item, href, itemKey)}
                             {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
