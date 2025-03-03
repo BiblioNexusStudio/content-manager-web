@@ -120,6 +120,7 @@ export interface ResourceContent {
     reviewLevel: ResourceContentVersionReviewLevel;
     hasAudio: boolean;
     audioResources: AudioContentResponse[];
+    hasAdditionalReviewer: boolean;
 }
 
 export interface ResourceContentNextUpInfo {
