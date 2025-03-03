@@ -208,11 +208,34 @@
 
     let canUnpublish = $derived($userCan(Permission.PublishContent) && resourceContent.hasPublishedVersion);
 
-    let canSendForCompanyReview = $derived(
-        $userCan(Permission.AssignContent) &&
-            currentUserIsAssigned &&
+    let canSendForCompanyReview = $derived.by(() => {
+        let hasPermissions = currentUserIsAssigned && $userCan(Permission.AssignContent);
+        if (
+            hasPermissions &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview)
+        ) {
+            return true;
+        }
+
+        if (
+            hasPermissions &&
+            currentUserIsEditor &&
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeCompanyReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview)
+        ) {
+            return true;
+        }
+        return false;
+    });
+
+    let currentUserIsEditor = $derived(
+        $userCan(Permission.EditContent) &&
+            !$userCan(Permission.ReviewContent) &&
+            !$userCan(Permission.PublishContent) &&
+            !$userCan(Permission.ReadCompanyContentAssignments) &&
+            !$userCan(Permission.CreateCommunityContent) &&
+            !$userCan(Permission.SendReviewContent)
     );
 
     let canPullBackToCompanyReview = $derived(resourceContent.canPullBackToCompanyReview); // current status would be ReviewPending
@@ -984,7 +1007,12 @@
                                         class="btn btn-primary btn-sm ms-2"
                                         disabled={$isPageTransacting}
                                         onclick={sendForCompanyReview}
-                                        >Send to Review
+                                        >{resourceContent.hasAdditionalReviewer &&
+                                        (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
+                                            resourceContent.status ===
+                                                ResourceContentStatusEnum.TranslationEditorReview)
+                                            ? 'Send to Review'
+                                            : 'Send to Manager'}
                                     </button>
                                 </Tooltip>
                             {/if}
