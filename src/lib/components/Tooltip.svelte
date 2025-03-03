@@ -10,12 +10,13 @@
 
     interface Props {
         text: string | null;
+        secondLineText?: string;
         position: Position;
         class?: string;
         children: Snippet<[]>;
     }
 
-    let { text, position, class: className, children }: Props = $props();
+    let { text, secondLineText, position, class: className, children }: Props = $props();
 </script>
 
 {#if text}
@@ -31,7 +32,14 @@
             class="tooltip absolute z-[99] hidden whitespace-nowrap rounded-xl border-2 bg-white px-2 text-sm font-bold transition peer-hover:flex
         {className ?? ''}"
         >
-            {text}
+            {#if secondLineText}
+                <div class="flex flex-col">
+                    <div>{text}</div>
+                    <div>{secondLineText}</div>
+                </div>
+            {:else}
+                {text}
+            {/if}
         </div>
     </div>
 {:else}

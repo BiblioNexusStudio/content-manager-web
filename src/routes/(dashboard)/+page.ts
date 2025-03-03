@@ -278,6 +278,7 @@ export interface FlattenedNotificationsContent {
     name?: string;
     time?: string;
     notification?: string;
+    notoficationId?: number;
     isRead?: boolean;
     resourceContentId?: number;
     kind?: _NotificationKind;

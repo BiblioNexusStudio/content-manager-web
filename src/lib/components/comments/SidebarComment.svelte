@@ -61,7 +61,7 @@
             span?.classList.remove(normalSpanBackgroundColorClass);
 
             if (!fromInlineClick) {
-                span?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                span?.scrollIntoView({ block: 'center' });
             }
         }
     };
@@ -98,5 +98,5 @@
     class="rounded-md border-2 {thread.resolved && 'bg-gray-100'}"
     onclick={() => focusParent(false)}
 >
-    <CommentThread componentSource="sidebar" {commentStores} threadId={thread.id} bind:isCommenting />
+    <CommentThread componentSource="sidebar" {commentStores} threadId={thread.id} bind:isCommenting {parentDiv} />
 </div>
