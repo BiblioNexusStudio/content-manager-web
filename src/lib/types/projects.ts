@@ -24,11 +24,11 @@ export interface ActiveProjectsPerCompanyResponse {
     itemCount: number;
     largeItemCount: number;
     wordCount: number;
-    notStartedItemCount: number;
-    editorReviewItemCount: number;
-    inCompanyReviewItemCount: number;
-    inPublisherReviewItemCount: number;
-    completedItemCount: number;
+    notStartedWordCount: number;
+    editorReviewWordCount: number;
+    inCompanyReviewWordCount: number;
+    inPublisherReviewWordCount: number;
+    completedWordCount: number;
 }
 
 export interface CompanyAverageDaysInWorkflowResponse {
@@ -59,6 +59,7 @@ export interface ProjectResourceStatusCounts {
     inCompanyReview: number;
     inPublisherReview: number;
     completed: number;
+    remaining: number;
 }
 
 export interface ProjectResource {
