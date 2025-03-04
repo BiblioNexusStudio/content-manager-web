@@ -108,6 +108,8 @@
     let isAquiferizeModalOpen = $state(false);
     let isAssignReviewModalOpen = $state(false);
     let isNotApplicableModalOpen = $state(false);
+    let sendToModalText = $state('');
+    let isSendToReviewPublisherManagerModalOpen = $state(false);
     let createDraft = $state(false); // checkbox flag
     let createTranslationFromDraft = $state(false); // checkbox flag
 
@@ -340,14 +342,28 @@
         }
 
         if (canSendForCompanyReview || canSendForPublisherReview) {
-            bindKey('s', () => {
+            bindKey('s', async () => {
                 if (isControlAltPressed) {
                     if (canSendForCompanyReview) {
+                        sendToModalText = 'Send to Review';
+
+                        isSendToReviewPublisherManagerModalOpen = true;
+
+                        await tick();
+
+                        focusOnButton('send-to-review-yes-button');
+
                         log.trackEvent('keyboard-short-cuts-send-company-review');
-                        sendForCompanyReview();
                     } else if (canSendForPublisherReview) {
+                        sendToModalText = 'Send to Publisher Review';
+
+                        isSendToReviewPublisherManagerModalOpen = true;
+
+                        await tick();
+
+                        focusOnButton('send-to-review-yes-button');
+
                         log.trackEvent('keyboard-short-cuts-send-publisher-review');
-                        sendForPublisherReview();
                     }
                 }
             });
@@ -865,6 +881,14 @@
         const primaryButton = document.getElementById(buttonId);
         primaryButton?.focus();
     }
+
+    function handleShortCutsSendToReview() {
+        if (canSendForCompanyReview) {
+            sendForCompanyReview();
+        } else if (canSendForPublisherReview) {
+            sendForPublisherReview();
+        }
+    }
 </script>
 
 <svelte:head>
@@ -1350,6 +1374,14 @@
             {/if}
         {/snippet}
     </Modal>
+
+    <Modal
+        header={sendToModalText}
+        bind:open={isSendToReviewPublisherManagerModalOpen}
+        primaryButtonText="Yes"
+        primaryButtonOnClick={handleShortCutsSendToReview}
+        primaryButtonId="send-to-review-yes-button"
+    />
 
     <Modal
         header="Mark as Not Applicable?"
