@@ -345,7 +345,7 @@
             bindKey('s', async () => {
                 if (isControlAltPressed) {
                     if (canSendForCompanyReview) {
-                        sendToModalText = 'Send to Company Review';
+                        sendToModalText = 'Send to Review';
 
                         isSendToReviewPublisherManagerModalOpen = true;
 
