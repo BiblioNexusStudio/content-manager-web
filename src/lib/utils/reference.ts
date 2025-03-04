@@ -27,7 +27,8 @@ export function getSortedReferences(resourceContent: ResourceContent) {
 
 export function generateVerseFromReference(
     reference: PassageReference | VerseReference,
-    scriptDirection: ScriptDirection
+    scriptDirection: ScriptDirection,
+    passageHasDifferentBase: boolean
 ): string {
     // This code is necessary to update Tiptap content that contains Bible verse references in RTL languages
     // like Arabic. It makes sure that a reference like Luke 12:17 shows up as 17:12 Luke instead of 12:17 Luke.
@@ -51,6 +52,14 @@ export function generateVerseFromReference(
         }
     } else {
         label = `${reference.book} ${reference.chapter}${rtlSpace}:${rtlSpace}${reference.verse}`;
+    }
+
+    if (passageHasDifferentBase && direction === rtlDirection) {
+        label = `*${rtlSpace}${label}`;
+    }
+
+    if (passageHasDifferentBase && !(direction === rtlDirection)) {
+        label = `${label}*`;
     }
 
     return label;
