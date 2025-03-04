@@ -123,6 +123,12 @@
         scrollingDiv && items && checkScrollable();
     });
 
+    $effect(() => {
+        if (showingPaginator && currentPage && totalPages && currentPage > totalPages) {
+            currentPage = 1;
+        }
+    });
+
     function calculateScrollShadows({
         isRightScrollable,
         isLeftScrollable,
