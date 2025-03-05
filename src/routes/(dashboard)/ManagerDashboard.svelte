@@ -32,6 +32,8 @@
         markAllSelectedNotificationsAsRead,
     } from './notifications-helpers';
     import type { FlattenedNotificationsContent } from './proxy+page';
+    import { currentUser } from '$lib/stores/auth';
+    import PaginatedTableWrapper from '$lib/components/PaginatedTableWrapper.svelte';
 
     interface Props {
         data: PageData;
@@ -62,6 +64,8 @@
     let manageLastAssignedUsers = $derived.by(() =>
         sortByKey('name', filterDuplicatesByKey('id', filterBoolean(manageContents.map((c) => c.lastAssignedUser))))
     );
+
+    let currentUserCompany = $derived($currentUser!.company.id);
 
     $effect(() => {
         maybeResetSearchParams(
@@ -100,6 +104,7 @@
             lastAssignedId: ssp.number(0),
             isFilteringUnresolved: ssp.boolean(false),
             isShowingOnlyUnread: ssp.boolean(false),
+            pageNumber: ssp.number(1),
         },
         { runLoadAgainWhenParamsChange: false }
     );
@@ -133,12 +138,13 @@
     let currentNotifications: FlattenedNotificationsContent[] = $state([]);
     let selectedNotifications: FlattenedNotificationsContent[] = $state([]);
 
-    let isSkipEditor = $state(false);
-
     let sortedCurrentMyWorkContents = $derived(sortAssignedData(currentMyWorkContents, $searchParams.sort));
     let sortedCurrentToAssignContents = $derived(sortAssignedData(currentToAssignContents, $searchParams.sort));
     let sortedUserWordCounts = $derived(sortUserWordCountData(userWordCounts, userWordCountParams.sort));
     let sortedCurrentManageContents = $derived(sortAndFilterManageData(currentManageContents, $searchParams));
+
+    // -- Pagination --
+    let pageLimit = $state(100);
 
     const setTabContents = (
         tab: string,
@@ -238,10 +244,6 @@
         }
     }
 
-    function toggleSkipEditor() {
-        isSkipEditor = !isSkipEditor;
-    }
-
     let currentProjectNames = $derived.by(() => {
         if ($searchParams.tab === Tab.myWork) {
             return myWorkProjectNames;
@@ -268,6 +270,7 @@
         $searchParams.tab = tab;
         $searchParams.assignedUserId = 0;
         $searchParams.lastAssignedId = 0;
+        $searchParams.pageNumber = 1;
 
         $searchParams.project = '';
         resetSelections();
@@ -280,10 +283,21 @@
     };
 
     const assignEditor = async (contentIds: number[]) => {
+        let isSkipEditor = false;
+        if (assignToEditorUserId) {
+            let editor = data.users?.find((u) => u.id === assignToEditorUserId);
+            if (
+                assignToReviewerUserId === null &&
+                (editor?.role === UserRole.Reviewer || editor?.role === UserRole.Manager)
+            ) {
+                isSkipEditor = true;
+            }
+        }
+
         if (contentIds.length > 0) {
             await postToApi<null>('/resources/content/send-for-editor-review', {
-                assignedUserId: isSkipEditor ? assignToReviewerUserId : assignToEditorUserId,
-                assignedReviewerUserId: isSkipEditor ? null : assignToReviewerUserId,
+                assignedUserId: assignToEditorUserId,
+                assignedReviewerUserId: assignToReviewerUserId,
                 contentIds: contentIds,
                 skipEditorStep: isSkipEditor,
             });
@@ -321,11 +335,33 @@
         }
     }
 
+    let isAssignButtonDisabled = $derived.by(() => {
+        return (
+            (selectedMyWorkContents.length === 0 &&
+                selectedToAssignContents.length === 0 &&
+                selectedManageContents.length === 0) ||
+            (selectedManageContents.length > 0 &&
+                !(
+                    selectedManageContents.every(
+                        (c) =>
+                            c.statusValue === ResourceContentStatusEnum.AquiferizeEditorReview ||
+                            c.statusValue === ResourceContentStatusEnum.TranslationEditorReview
+                    ) ||
+                    selectedManageContents.every(
+                        (c) =>
+                            c.statusValue === ResourceContentStatusEnum.AquiferizeCompanyReview ||
+                            c.statusValue === ResourceContentStatusEnum.TranslationCompanyReview
+                    )
+                ))
+        );
+    });
+
     let table:
         | Table<ResourceAssignedToSelf>
         | Table<ResourceAssignedToOwnCompany>
         | Table<FlattenedNotificationsContent>
         | undefined = $state(undefined);
+
     let userWordCountTable: Table<UserWordCount> | undefined = $state(undefined);
 
     $effect(() => {
@@ -443,9 +479,7 @@
                 data-app-insights-event-name="manager-dashboard-bulk-assign-click"
                 class="btn btn-primary"
                 onclick={() => (isAssignContentModalOpen = true)}
-                disabled={selectedMyWorkContents.length === 0 &&
-                    selectedToAssignContents.length === 0 &&
-                    selectedManageContents.length === 0}>Assign</button
+                disabled={isAssignButtonDisabled}>Assign</button
             >
 
             {#if $searchParams.tab === Tab.myWork}
@@ -489,78 +523,102 @@
     </div>
 
     {#if $searchParams.tab === Tab.myWork}
-        <Table
-            bind:this={table}
-            class="my-4"
-            enableSelectAll={true}
-            columns={assignedContentsColumns}
-            items={sortedCurrentMyWorkContents}
-            itemUrlPrefix="/resources/"
-            idColumn="id"
-            bind:searchParams={$searchParams}
-            bind:selectedItems={selectedMyWorkContents}
-            noItemsText="Your work is all done!"
-            searchable={true}
-            bind:searchText={search}
+        <PaginatedTableWrapper
+            bind:pageLimit
+            sortedContents={sortedCurrentMyWorkContents}
+            bind:currentPage={$searchParams.pageNumber}
         >
-            {#snippet tableCells(item, href, itemKey)}
-                {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                    <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
-                    <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
-                        >{item[itemKey] ?? ''}</LinkedTableCell
-                    >
-                {:else if itemKey === 'lastAssignedUser'}
-                    <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
-                {:else if itemKey === 'hasAudio'}
-                    <TableCell>
-                        {#if item.hasAudio}
-                            <Icon data={volumeUp} class="h-4 w-4" />
+            {#snippet paginatedTable(customItemsPerPage, totalItems, paginatedContents)}
+                <Table
+                    bind:this={table}
+                    class="my-4"
+                    enableSelectAll={true}
+                    columns={assignedContentsColumns}
+                    items={paginatedContents}
+                    itemUrlPrefix="/resources/"
+                    idColumn="id"
+                    bind:searchParams={$searchParams}
+                    bind:selectedItems={selectedMyWorkContents}
+                    noItemsText="Your work is all done!"
+                    searchable={true}
+                    bind:searchText={search}
+                    {totalItems}
+                    {customItemsPerPage}
+                    bind:itemsPerPage={pageLimit}
+                    bind:currentPage={$searchParams.pageNumber}
+                >
+                    {#snippet tableCells(item, href, itemKey)}
+                        {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                            <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                        {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                            <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                                >{item[itemKey] ?? ''}</LinkedTableCell
+                            >
+                        {:else if itemKey === 'lastAssignedUser'}
+                            <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
+                        {:else if itemKey === 'hasAudio'}
+                            <TableCell>
+                                {#if item.hasAudio}
+                                    <Icon data={volumeUp} class="h-4 w-4" />
+                                {/if}
+                            </TableCell>
+                        {:else if href !== undefined && itemKey}
+                            <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                        {:else if itemKey}
+                            <TableCell>{item[itemKey] ?? ''}</TableCell>
                         {/if}
-                    </TableCell>
-                {:else if href !== undefined && itemKey}
-                    <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                {:else if itemKey}
-                    <TableCell>{item[itemKey] ?? ''}</TableCell>
-                {/if}
+                    {/snippet}
+                </Table>
             {/snippet}
-        </Table>
+        </PaginatedTableWrapper>
     {:else if $searchParams.tab === Tab.toAssign}
         <div class="flex h-full flex-[2] grow flex-col gap-4 overflow-y-hidden xl:flex-row">
-            <Table
-                bind:this={table}
-                class="my-4 max-h-[31.25rem] xl:grow"
-                enableSelectAll={true}
-                columns={toAssignContentsColumns}
-                items={sortedCurrentToAssignContents}
-                idColumn="id"
-                bind:searchParams={$searchParams}
-                bind:selectedItems={selectedToAssignContents}
-                itemUrlPrefix="/resources/"
-                noItemsText="Your work is all done!"
-                searchable={true}
-                bind:searchText={search}
+            <PaginatedTableWrapper
+                bind:pageLimit
+                sortedContents={sortedCurrentToAssignContents}
+                bind:currentPage={$searchParams.pageNumber}
             >
-                {#snippet tableCells(item, href, itemKey)}
-                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                    {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
-                        <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
-                            >{item[itemKey] ?? ''}</LinkedTableCell
-                        >
-                    {:else if itemKey === 'hasAudio'}
-                        <TableCell>
-                            {#if item.hasAudio}
-                                <Icon data={volumeUp} class="h-4 w-4" />
+                {#snippet paginatedTable(customItemsPerPage, totalItems, paginatedContents)}
+                    <Table
+                        bind:this={table}
+                        class="my-4 max-h-[31.25rem] xl:grow"
+                        enableSelectAll={true}
+                        columns={toAssignContentsColumns}
+                        items={paginatedContents}
+                        idColumn="id"
+                        bind:searchParams={$searchParams}
+                        bind:selectedItems={selectedToAssignContents}
+                        itemUrlPrefix="/resources/"
+                        noItemsText="Your work is all done!"
+                        searchable={true}
+                        bind:searchText={search}
+                        {totalItems}
+                        {customItemsPerPage}
+                        bind:itemsPerPage={pageLimit}
+                        bind:currentPage={$searchParams.pageNumber}
+                    >
+                        {#snippet tableCells(item, href, itemKey)}
+                            {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                                <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                            {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                                <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                                    >{item[itemKey] ?? ''}</LinkedTableCell
+                                >
+                            {:else if itemKey === 'hasAudio'}
+                                <TableCell>
+                                    {#if item.hasAudio}
+                                        <Icon data={volumeUp} class="h-4 w-4" />
+                                    {/if}
+                                </TableCell>
+                            {:else if href !== undefined && itemKey}
+                                <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                            {:else if itemKey}
+                                <TableCell>{item[itemKey] ?? ''}</TableCell>
                             {/if}
-                        </TableCell>
-                    {:else if href !== undefined && itemKey}
-                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                    {:else if itemKey}
-                        <TableCell>{item[itemKey] ?? ''}</TableCell>
-                    {/if}
+                        {/snippet}
+                    </Table>
                 {/snippet}
-            </Table>
+            </PaginatedTableWrapper>
             {#if userWordCounts.length > 0}
                 <Table
                     bind:this={userWordCountTable}
@@ -575,46 +633,58 @@
         </div>
     {:else if $searchParams.tab === Tab.manage}
         <div class="flex h-full flex-[2] grow flex-col gap-4 overflow-y-hidden xl:flex-row">
-            <Table
-                bind:this={table}
-                class="my-4 max-h-[31.25rem] xl:grow"
-                enableSelectAll={true}
-                columns={manageContentsColumns}
-                items={sortedCurrentManageContents}
-                idColumn="id"
-                bind:searchParams={$searchParams}
-                bind:selectedItems={selectedManageContents}
-                itemUrlPrefix="/resources/"
-                noItemsText={$searchParams.assignedUserId === 0
-                    ? 'Your work is all done!'
-                    : 'Nothing assigned to this user.'}
-                searchable={true}
-                bind:searchText={search}
+            <PaginatedTableWrapper
+                bind:pageLimit
+                sortedContents={sortedCurrentManageContents}
+                bind:currentPage={$searchParams.pageNumber}
             >
-                {#snippet tableCells(item, href, itemKey)}
-                    {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
-                        <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
-                    {:else if (itemKey === 'assignedUser' || itemKey === 'assignedReviewerUser') && item[itemKey] !== null && item[itemKey]?.name !== null}
-                        <LinkedTableCell {href}>{item[itemKey]?.name}</LinkedTableCell>
-                    {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
-                        <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
-                            >{item[itemKey] ?? ''}</LinkedTableCell
-                        >
-                    {:else if itemKey === 'lastAssignedUser'}
-                        <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
-                    {:else if itemKey === 'hasAudio'}
-                        <TableCell>
-                            {#if item.hasAudio}
-                                <Icon data={volumeUp} class="h-4 w-4" />
+                {#snippet paginatedTable(customItemsPerPage, totalItems, paginatedContents)}
+                    <Table
+                        bind:this={table}
+                        class="my-4 max-h-[31.25rem] xl:grow"
+                        enableSelectAll={true}
+                        columns={manageContentsColumns}
+                        items={paginatedContents}
+                        idColumn="id"
+                        bind:searchParams={$searchParams}
+                        bind:selectedItems={selectedManageContents}
+                        itemUrlPrefix="/resources/"
+                        noItemsText={$searchParams.assignedUserId === 0
+                            ? 'Your work is all done!'
+                            : 'Nothing assigned to this user.'}
+                        searchable={true}
+                        bind:searchText={search}
+                        {totalItems}
+                        {customItemsPerPage}
+                        bind:itemsPerPage={pageLimit}
+                        bind:currentPage={$searchParams.pageNumber}
+                    >
+                        {#snippet tableCells(item, href, itemKey)}
+                            {#if itemKey === 'daysSinceContentUpdated' && item[itemKey] !== null}
+                                <LinkedTableCell {href}>{formatSimpleDaysAgo(item[itemKey])}</LinkedTableCell>
+                            {:else if (itemKey === 'assignedUser' || itemKey === 'assignedReviewerUser') && item[itemKey] !== null && item[itemKey]?.name !== null}
+                                <LinkedTableCell {href}>{item[itemKey]?.name}</LinkedTableCell>
+                            {:else if itemKey === 'daysUntilProjectDeadline' && item[itemKey] !== null}
+                                <LinkedTableCell {href} class={(item[itemKey] ?? 0) < 0 ? 'text-error' : ''}
+                                    >{item[itemKey] ?? ''}</LinkedTableCell
+                                >
+                            {:else if itemKey === 'lastAssignedUser'}
+                                <LinkedTableCell {href}>{item[itemKey]?.name ?? ''}</LinkedTableCell>
+                            {:else if itemKey === 'hasAudio'}
+                                <TableCell>
+                                    {#if item.hasAudio}
+                                        <Icon data={volumeUp} class="h-4 w-4" />
+                                    {/if}
+                                </TableCell>
+                            {:else if href !== undefined && itemKey}
+                                <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
+                            {:else if itemKey}
+                                <TableCell>{item[itemKey] ?? ''}</TableCell>
                             {/if}
-                        </TableCell>
-                    {:else if href !== undefined && itemKey}
-                        <LinkedTableCell {href}>{item[itemKey] ?? ''}</LinkedTableCell>
-                    {:else if itemKey}
-                        <TableCell>{item[itemKey] ?? ''}</TableCell>
-                    {/if}
+                        {/snippet}
+                    </Table>
                 {/snippet}
-            </Table>
+            </PaginatedTableWrapper>
             {#if userWordCounts.length > 0}
                 <Table
                     bind:this={userWordCountTable}
@@ -680,43 +750,25 @@
     isTransacting={isAssigning}
     primaryButtonText={'Assign'}
     primaryButtonOnClick={() => updateContent(assignEditor)}
-    primaryButtonDisabled={isSkipEditor ? !assignToReviewerUserId : !assignToEditorUserId}
+    primaryButtonDisabled={!assignToEditorUserId}
     bind:open={isAssignContentModalOpen}
     header={'Assign Resource(s)'}
 >
     <h3 class="my-4 text-xl">
-        Editor
-        {#if !isSkipEditor}
-            <span class="text-error">*</span>
-        {/if}
+        Reviewer
+        <span class="text-error">*</span>
     </h3>
     <UserSelector
-        users={data.users?.filter((u) => u.role !== UserRole.ReportViewer) ?? []}
-        defaultLabel="Select Editor"
-        bind:disabled={isSkipEditor}
+        users={data.users?.filter((u) => u.role !== UserRole.ReportViewer && u.company.id === currentUserCompany) ?? []}
+        defaultLabel="Select User"
         bind:selectedUserId={assignToEditorUserId}
     />
-
-    {#if $searchParams.tab === Tab.toAssign}
-        <label class="label mt-5 cursor-pointer justify-start">
-            <input
-                type="checkbox"
-                class="checkbox checkbox-sm"
-                onclick={toggleSkipEditor}
-                checked={isSkipEditor}
-                aria-label="Skip Editor Step"
-            />
-            <span class="label-text pl-2 text-xs text-opacity-70">Skip Editor Step</span>
-        </label>
-        <h3 class="my-4 text-xl">
-            Reviewer
-            {#if isSkipEditor}
-                <span class="text-error">*</span>
-            {/if}
-        </h3>
+    {#if $searchParams.tab === Tab.toAssign || ($searchParams.tab === Tab.manage && selectedManageContents.every((c) => c.statusValue === ResourceContentStatusEnum.AquiferizeEditorReview || c.statusValue === ResourceContentStatusEnum.TranslationEditorReview))}
+        <h3 class="my-4 text-xl">Additional Reviewer</h3>
         <UserSelector
-            users={data.users?.filter((u) => u.role === UserRole.Reviewer || u.role === UserRole.Manager) ?? []}
-            defaultLabel="Select Reviewer"
+            users={data.users?.filter((u) => u.company.id === currentUserCompany && u.id !== assignToEditorUserId) ??
+                []}
+            defaultLabel="Select User"
             bind:selectedUserId={assignToReviewerUserId}
         />
     {/if}

@@ -179,11 +179,11 @@
                         <td>
                             <ProjectProgressBar
                                 class="!w-16"
-                                notStartedCount={item.notStartedItemCount}
-                                editorReviewCount={item.editorReviewItemCount}
-                                inCompanyReviewCount={item.inCompanyReviewItemCount}
-                                inPublisherReviewCount={item.inPublisherReviewItemCount}
-                                completeCount={item.completedItemCount}
+                                notStartedCount={item.notStartedWordCount}
+                                editorReviewCount={item.editorReviewWordCount}
+                                inCompanyReviewCount={item.inCompanyReviewWordCount}
+                                inPublisherReviewCount={item.inPublisherReviewWordCount}
+                                completeCount={item.completedWordCount}
                                 showLegend={false}
                             />
                         </td>

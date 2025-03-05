@@ -30,7 +30,7 @@
     import { Icon } from 'svelte-awesome';
     import TranslationSelector from './TranslationSelector.svelte';
     import { createAutosaveStore } from '$lib/utils/auto-save-store';
-    import { onDestroy, onMount } from 'svelte';
+    import { onDestroy, onMount, tick } from 'svelte';
     import Modal from '$lib/components/Modal.svelte';
     import createChangeTrackingStore from '$lib/utils/change-tracking-store';
     import { get, type Readable, type Writable } from 'svelte/store';
@@ -59,6 +59,8 @@
     import VersionStatusHistorySidebar from './VersionStatusHistorySidebar.svelte';
     import ResourcePopout from '$lib/components/editorMarkPopouts/ResourcePopout.svelte';
     import type { User } from '@auth0/auth0-spa-js';
+    import { bindKeyCombo, bindKey, unbindKeyCombo, unbindKey } from '@rwh/keystrokes';
+    import Tooltip from '$lib/components/Tooltip.svelte';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
 
     interface PageProps {
@@ -105,6 +107,9 @@
     let isAssignUserModalOpen = $state(false);
     let isAquiferizeModalOpen = $state(false);
     let isAssignReviewModalOpen = $state(false);
+    let isNotApplicableModalOpen = $state(false);
+    let sendToModalText = $state('');
+    let isSendToReviewPublisherManagerModalOpen = $state(false);
     let createDraft = $state(false); // checkbox flag
     let createTranslationFromDraft = $state(false); // checkbox flag
 
@@ -205,11 +210,34 @@
 
     let canUnpublish = $derived($userCan(Permission.PublishContent) && resourceContent.hasPublishedVersion);
 
-    let canSendForCompanyReview = $derived(
-        $userCan(Permission.AssignContent) &&
-            currentUserIsAssigned &&
+    let canSendForCompanyReview = $derived.by(() => {
+        let hasPermissions = currentUserIsAssigned && $userCan(Permission.AssignContent);
+        if (
+            hasPermissions &&
             (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
                 resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview)
+        ) {
+            return true;
+        }
+
+        if (
+            hasPermissions &&
+            currentUserIsEditor &&
+            (resourceContent.status === ResourceContentStatusEnum.AquiferizeCompanyReview ||
+                resourceContent.status === ResourceContentStatusEnum.TranslationCompanyReview)
+        ) {
+            return true;
+        }
+        return false;
+    });
+
+    let currentUserIsEditor = $derived(
+        $userCan(Permission.EditContent) &&
+            !$userCan(Permission.ReviewContent) &&
+            !$userCan(Permission.PublishContent) &&
+            !$userCan(Permission.ReadCompanyContentAssignments) &&
+            !$userCan(Permission.CreateCommunityContent) &&
+            !$userCan(Permission.SendReviewContent)
     );
 
     let canPullBackToCompanyReview = $derived(resourceContent.canPullBackToCompanyReview); // current status would be ReviewPending
@@ -258,6 +286,9 @@
             resourceContent.status === ResourceContentStatusEnum.TranslationNotApplicable
     );
 
+    let isMacOS = $state(false);
+    let isControlAltPressed = $state(false);
+
     const searchParams = searchParameters(
         {
             commentId: ssp.string(''),
@@ -287,12 +318,135 @@
             history.scrollRestoration = 'manual';
         }
 
+        if (typeof navigator !== 'undefined' && navigator.userAgent) {
+            isMacOS = navigator.userAgent.indexOf('Mac') !== -1;
+        }
+
+        bindKeyCombo(`Control+${isMacOS ? 'Meta' : 'Alt'}`, {
+            onPressed: () => (isControlAltPressed = true),
+            onReleased: () => (isControlAltPressed = false),
+        });
+
+        if (canSetStatusTransitionNotApplicable) {
+            bindKey('n', async () => {
+                if (isControlAltPressed) {
+                    isNotApplicableModalOpen = true;
+
+                    await tick();
+
+                    focusOnButton('not-applicable-yes-button');
+
+                    log.trackEvent('keyboard-short-cuts-not-applicable');
+                }
+            });
+        }
+
+        if (canSendForCompanyReview || canSendForPublisherReview) {
+            bindKey('s', async () => {
+                if (isControlAltPressed) {
+                    if (canSendForCompanyReview) {
+                        sendToModalText = 'Send to Review';
+
+                        isSendToReviewPublisherManagerModalOpen = true;
+
+                        await tick();
+
+                        focusOnButton('send-to-review-yes-button');
+
+                        log.trackEvent('keyboard-short-cuts-send-company-review');
+                    } else if (canSendForPublisherReview) {
+                        sendToModalText = 'Send to Publisher Review';
+
+                        isSendToReviewPublisherManagerModalOpen = true;
+
+                        await tick();
+
+                        focusOnButton('send-to-review-yes-button');
+
+                        log.trackEvent('keyboard-short-cuts-send-publisher-review');
+                    }
+                }
+            });
+        }
+
+        if (canSendForEditorReview || inPublisherReviewAndCanSendBack) {
+            bindKey('a', () => {
+                if (isControlAltPressed) {
+                    if (canSendForEditorReview) {
+                        openAssignUserModal();
+                    } else if (canAssignPublisherForReview && isInReview) {
+                        openAssignReviewModal();
+                    }
+
+                    log.trackEvent('keyboard-short-cuts-assign-user');
+                }
+            });
+        }
+
+        bindKey('m', () => {
+            if (isControlAltPressed) {
+                const commentsAlreadyOpened = openedSupplementalSideBar === OpenedSupplementalSideBar.Comments;
+
+                openedSupplementalSideBar = commentsAlreadyOpened
+                    ? OpenedSupplementalSideBar.None
+                    : OpenedSupplementalSideBar.Comments;
+
+                const eventName = commentsAlreadyOpened
+                    ? 'keyboard-short-cuts-comments-sidebar-close'
+                    : 'keyboard-short-cuts-comments-sidebar-open';
+
+                log.trackEvent(eventName);
+            }
+        });
+
+        bindKey('b', () => {
+            if (isControlAltPressed) {
+                const biblePaneAlreadyOpened = openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences;
+
+                openedSupplementalSideBar = biblePaneAlreadyOpened
+                    ? OpenedSupplementalSideBar.None
+                    : OpenedSupplementalSideBar.BibleReferences;
+
+                const eventName = biblePaneAlreadyOpened
+                    ? 'keyboard-short-cuts-bible-pane-sidebar-close'
+                    : 'keyboard-short-cuts-bible-pane-sidebar-open';
+
+                log.trackEvent(eventName);
+            }
+        });
+
+        bindKey('h', () => {
+            if (isControlAltPressed) {
+                const historyPaneAlreadyOpened =
+                    openedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory;
+
+                openedSupplementalSideBar = historyPaneAlreadyOpened
+                    ? OpenedSupplementalSideBar.None
+                    : OpenedSupplementalSideBar.VersionStatusHistory;
+
+                const eventName = historyPaneAlreadyOpened
+                    ? 'keyboard-short-cuts-history-pane-sidebar-close'
+                    : 'keyboard-short-cuts-history-pane-sidebar-open';
+
+                log.trackEvent(eventName);
+            }
+        });
+
         if ($searchParams.commentId) {
             openedSupplementalSideBar = OpenedSupplementalSideBar.Comments;
         }
     });
 
-    onDestroy(resetSaveState);
+    onDestroy(() => {
+        resetSaveState();
+        unbindKeyCombo(`Control+${isMacOS ? 'Meta' : 'Alt'}`);
+        unbindKey('n');
+        unbindKey('s');
+        unbindKey('a');
+        unbindKey('m');
+        unbindKey('b');
+        unbindKey('h');
+    });
 
     $effect(() => handleFetchedResource(resourceContent));
 
@@ -722,6 +876,19 @@
             }
         }, 5000);
     }
+
+    function focusOnButton(buttonId: string) {
+        const primaryButton = document.getElementById(buttonId);
+        primaryButton?.focus();
+    }
+
+    function handleShortCutsSendToReview() {
+        if (canSendForCompanyReview) {
+            sendForCompanyReview();
+        } else if (canSendForPublisherReview) {
+            sendForPublisherReview();
+        }
+    }
 </script>
 
 <svelte:head>
@@ -766,13 +933,19 @@
                     {#if !isStatusInAwaitingAiDraft}
                         <div class="flex flex-wrap justify-end">
                             {#if canSetStatusTransitionNotApplicable}
-                                <button
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={handleNotApplicable}
+                                <Tooltip
+                                    position={{ right: '8.5rem', top: '0.25rem' }}
+                                    class="border-[#485467] text-[#485467]"
+                                    text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+N`}
                                 >
-                                    Not Applicable
-                                </button>
+                                    <button
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={handleNotApplicable}
+                                    >
+                                        Not Applicable
+                                    </button>
+                                </Tooltip>
                             {/if}
                             {#if canSetStatusCompleteNotApplicable}
                                 <button
@@ -784,17 +957,26 @@
                                 </button>
                             {/if}
                             {#if canSendForEditorReview || inPublisherReviewAndCanSendBack}
-                                <button
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={openAssignUserModal}
+                                <Tooltip
+                                    position={{
+                                        right: `${canSendForEditorReview ? '7.2rem' : '6.5rem'}`,
+                                        top: '0.25rem',
+                                    }}
+                                    class="border-[#485467] text-[#485467]"
+                                    text={canSendForEditorReview ? `CTRL+${isMacOS ? 'CMD' : 'ALT'}+A` : ''}
                                 >
-                                    {#if canSendForEditorReview}
-                                        Assign User
-                                    {:else if inPublisherReviewAndCanSendBack}
-                                        Send Back
-                                    {/if}
-                                </button>
+                                    <button
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={openAssignUserModal}
+                                    >
+                                        {#if canSendForEditorReview}
+                                            Assign User
+                                        {:else if inPublisherReviewAndCanSendBack}
+                                            Send Back
+                                        {/if}
+                                    </button>
+                                </Tooltip>
                             {/if}
                             {#if canPullBackToCompanyReview}
                                 <button
@@ -806,12 +988,21 @@
                                 </button>
                             {/if}
                             {#if canAssignPublisherForReview}
-                                <button
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={openAssignReviewModal}
-                                    >{isInReview ? 'Assign' : 'Review'}
-                                </button>
+                                <Tooltip
+                                    position={{
+                                        right: `${canSendForEditorReview ? '7.2rem' : '6.5rem'}`,
+                                        top: '0.25rem',
+                                    }}
+                                    class="border-[#485467] text-[#485467]"
+                                    text={isInReview ? `CTRL+${isMacOS ? 'CMD' : 'ALT'}+A` : ''}
+                                >
+                                    <button
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={openAssignReviewModal}
+                                        >{isInReview ? 'Assign' : 'Review'}
+                                    </button>
+                                </Tooltip>
                             {/if}
                             {#if canPublish}
                                 <button
@@ -831,20 +1022,37 @@
                                 </button>
                             {/if}
                             {#if canSendForCompanyReview}
-                                <button
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={sendForCompanyReview}
-                                    >Send to Review
-                                </button>
+                                <Tooltip
+                                    position={{ right: '8.5rem', top: '0.25rem' }}
+                                    class="border-[#485467] text-[#485467]"
+                                    text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+S`}
+                                >
+                                    <button
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={sendForCompanyReview}
+                                        >{resourceContent.hasAdditionalReviewer &&
+                                        (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
+                                            resourceContent.status ===
+                                                ResourceContentStatusEnum.TranslationEditorReview)
+                                            ? 'Send to Review'
+                                            : 'Send to Manager'}
+                                    </button>
+                                </Tooltip>
                             {/if}
                             {#if canSendForPublisherReview}
-                                <button
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={sendForPublisherReview}
-                                    >Send to Publisher
-                                </button>
+                                <Tooltip
+                                    position={{ right: '9.5rem', top: '0.25rem' }}
+                                    class="border-[#485467] text-[#485467]"
+                                    text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+S`}
+                                >
+                                    <button
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={sendForPublisherReview}
+                                        >Send to Publisher
+                                    </button>
+                                </Tooltip>
                             {/if}
                             {#if canAquiferize}
                                 <button
@@ -883,6 +1091,7 @@
             resourceContentStatuses={data.resourceContentStatuses}
             {commentStores}
             {selectedStepNumber}
+            {isMacOS}
             bind:openedSupplementalSideBar
         />
 
@@ -1165,6 +1374,22 @@
             {/if}
         {/snippet}
     </Modal>
+
+    <Modal
+        header={sendToModalText}
+        bind:open={isSendToReviewPublisherManagerModalOpen}
+        primaryButtonText="Yes"
+        primaryButtonOnClick={handleShortCutsSendToReview}
+        primaryButtonId="send-to-review-yes-button"
+    />
+
+    <Modal
+        header="Mark as Not Applicable?"
+        bind:open={isNotApplicableModalOpen}
+        primaryButtonText="Yes"
+        primaryButtonOnClick={handleNotApplicable}
+        primaryButtonId="not-applicable-yes-button"
+    />
 
     <Modal header="Error" isError={true} bind:description={errorModalMessage} />
 {/key}

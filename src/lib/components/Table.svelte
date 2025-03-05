@@ -27,6 +27,7 @@
         currentPage?: number;
         totalItems?: number;
         itemsPerPage?: number;
+        customItemsPerPage?: number[];
         class?: string;
         tableCells?: Snippet<[T, string, keyof T, string]>;
         customTbody?: Snippet<[T[], T[] | undefined, (item: T) => void]>;
@@ -50,6 +51,7 @@
         currentPage = $bindable(),
         totalItems = undefined,
         itemsPerPage = $bindable(),
+        customItemsPerPage = [10, 50, 100],
         class: className = '',
         tableCells,
         customTbody,
@@ -64,10 +66,6 @@
     let internalSort = $state('');
     let headerRow: HTMLTableRowElement | undefined = $state(undefined);
     let headerRowHeight = $state(0);
-
-    $effect(() => {
-        itemsPerPage && (currentPage = 1);
-    });
 
     let totalPages = $derived(
         totalItems !== undefined && itemsPerPage !== undefined ? Math.ceil(totalItems / itemsPerPage) : undefined
@@ -270,7 +268,7 @@
         </table>
     </div>
 
-    {#if showingPaginator}
+    {#if showingPaginator || itemsPerPage === Infinity}
         <div class="grid w-full grid-cols-3 rounded-b-md border bg-base-200 p-2">
             <button
                 class="btn btn-outline self-center justify-self-start"
@@ -281,20 +279,26 @@
             <div class="grid place-self-center">
                 <div class="mb-2">
                     {$translate('page.resources.table.navigation.pageNumber.value', {
-                        values: { currentPage, totalPages },
+                        values: { currentPage, totalPages: `${totalPages === 0 ? 1 : totalPages}` },
                     })}
                 </div>
                 <select bind:value={itemsPerPage} class="select select-bordered select-ghost select-xs">
-                    {#each [10, 50, 100] as count, i (i)}
-                        <option value={count} selected={i === 0}>
-                            {`${count} ${$translate('page.resources.table.navigation.perPage.value')}`}
-                        </option>
+                    {#each customItemsPerPage as count, i (i)}
+                        {#if count === Infinity}
+                            <option value={count} selected={i === 0}>
+                                {$translate('page.resources.table.navigation.all.value')}
+                            </option>
+                        {:else}
+                            <option value={count} selected={i === 0}>
+                                {`${count} ${$translate('page.resources.table.navigation.perPage.value')}`}
+                            </option>
+                        {/if}
                     {/each}
                 </select>
             </div>
             <button
                 class="btn btn-outline self-center justify-self-end"
-                class:btn-disabled={currentPage === totalPages}
+                class:btn-disabled={currentPage === totalPages || itemsPerPage === Infinity}
                 onclick={() => currentPage && currentPage++}
                 >{$translate('page.resources.table.navigation.next.value')}</button
             >
