@@ -86,5 +86,5 @@ function bookTextDebugInfo(book: BibleBookTexts | undefined) {
 }
 
 function passageHasDifferentBaseMappings(bookTexts: BibleBookTexts[]): boolean {
-    return !!bookTexts.some((b) => b.chapters.some((c) => c.verses.some((v) => v.englishBaseVerseMapping)));
+    return !!bookTexts.some((b) => b.chapters.some((c) => c.verses.some((v) => v.sourceTextVerseReference)));
 }

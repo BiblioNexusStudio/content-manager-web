@@ -16,7 +16,7 @@ interface VerseReference {
 
 interface BibleBookChapters {
     number: number;
-    verses: { number: number; text: string; englishBaseVerseMapping: VerseReference | null }[];
+    verses: { number: number; text: string; sourceTextVerseReference: VerseReference | null }[];
 }
 
 export async function fetchBibleBookTexts(bibleId: number, bookId: number): Promise<BibleBookTexts | null> {
