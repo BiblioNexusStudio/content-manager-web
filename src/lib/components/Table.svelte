@@ -123,8 +123,8 @@
         scrollingDiv && items && checkScrollable();
     });
 
-    $effect(() => {
-        if (showingPaginator && currentPage && totalPages && currentPage > totalPages) {
+    $effect.pre(() => {
+        if (itemsPerPage === Infinity || (showingPaginator && currentPage && totalPages && currentPage > totalPages)) {
             currentPage = 1;
         }
     });
