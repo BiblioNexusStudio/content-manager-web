@@ -2,12 +2,14 @@
     import Image from './content-components/Image.svelte';
     import Video from './content-components/Video.svelte';
     import Text from './content-components/Text.svelte';
+    import Audio from './content-components/Audio.svelte';
     import {
         MediaTypeEnum,
         type ImageContentItem,
         type ResourceContent,
         type TiptapContentItem,
         type VideoContentItem,
+        type AudioContentItem,
         type Snapshot,
         type Version,
     } from '$lib/types/resources';
@@ -46,12 +48,15 @@
 
     let imageContent = $derived((snapshotOrVersion?.content ?? resourceContent.content) as ImageContentItem);
     let videoContent = $derived((snapshotOrVersion?.content ?? resourceContent.content) as VideoContentItem);
+    let audioContent = $derived((snapshotOrVersion?.content ?? resourceContent.content) as AudioContentItem);
 </script>
 
 {#if resourceContent.mediaType === MediaTypeEnum.image}
     <Image content={imageContent} />
 {:else if resourceContent.mediaType === MediaTypeEnum.video}
     <Video content={videoContent} />
+{:else if resourceContent.mediaType === MediaTypeEnum.audio}
+    <Audio content={audioContent} />
 {:else if resourceContent.mediaType === MediaTypeEnum.text}
     <Text
         {sidebarIsOpen}

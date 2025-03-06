@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Icon } from 'svelte-awesome';
     import refresh from 'svelte-awesome/icons/refresh';
+    import externalLink from 'svelte-awesome/icons/externalLink';
     import ArrowBack10Icon from './icons/ArrowBack10Icon.svelte';
     import PauseMediaIcon from './icons/PauseMediaIcon.svelte';
     import PlayMediaIcon from './icons/PlayMediaIcon.svelte';
@@ -15,6 +16,7 @@
     import PlaybackSpeedPopover from './PlaybackSpeedPopover.svelte';
     import { onMount } from 'svelte';
     import type { AudioContentItem, ResourceContent } from '$lib/types/resources';
+    import { Permission, userCan } from '$lib/stores/auth';
 
     interface AudioPlayerProps {
         audioContents: ResourceContent[] | null;
@@ -141,6 +143,11 @@
         }
     }
 
+    function goToAudioResourcePage() {
+        const resourceContentId = audioContents && audioContents[0]?.resourceContentId;
+        window.location.href = `/resources/${resourceContentId}`;
+    }
+
     onMount(() => {
         selectAudioType();
     });
@@ -241,6 +248,17 @@
                 </button>
 
                 <PlaybackSpeedPopover />
+                {#if $userCan(Permission.PublishContent)}
+                    <button
+                        onclick={goToAudioResourcePage}
+                        class="audio-control-btn"
+                        title="Go to audio resource page"
+                        aria-label="Go to audio resource page"
+                        data-app-insights-event-name="audio-player-go-to-audio-resource-button-clicked"
+                    >
+                        <Icon class="h-[35px] w-[35px] grow-0 text-primary" data={externalLink} />
+                    </button>
+                {/if}
             {/if}
         </div>
     {/if}
