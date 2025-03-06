@@ -125,14 +125,14 @@
                 <span class="label-text">Resource</span>
             </div>
             <Select
-                disabled={disabled || allContentOnRight.length > 0}
+                bind:value={resourceTypeId}
                 class="select select-bordered"
+                disabled={disabled || allContentOnRight.length > 0}
+                isNumber={true}
                 options={[
                     { value: null, label: 'Select Resource' },
                     ...(parentResources || []).map((r) => ({ value: r.id, label: r.displayName })),
                 ]}
-                isNumber={true}
-                bind:value={resourceTypeId}
             />
         </label>
         <label class="form-control" for="book-select">
@@ -140,13 +140,13 @@
                 <span class="label-text">Book</span>
             </div>
             <Select
-                disabled={!resourceTypeId}
+                bind:value={bookCode}
                 class="select select-bordered"
+                disabled={!resourceTypeId}
                 options={[
                     { value: null, label: 'Select Book' },
                     ...(bibleBooks?.map((b) => ({ value: b.code, label: b.localizedName })) ?? []),
                 ]}
-                bind:value={bookCode}
             />
         </label>
         <label class="form-control">
@@ -154,8 +154,8 @@
                 <span class="label-text">Chapters</span>
             </div>
             <input
-                class="input input-bordered"
                 bind:value={chaptersString}
+                class="input input-bordered"
                 disabled={!bookCode}
                 placeholder="all, or 1-5, or 3,7"
                 use:enterKeyHandler={fetchContent}
@@ -166,8 +166,8 @@
                 <span class="label-text">&nbsp;</span>
             </div>
             <input
-                class="input input-bordered"
                 bind:value={searchQuery}
+                class="input input-bordered"
                 disabled={!resourceTypeId}
                 placeholder="Search"
                 use:enterKeyHandler={fetchContent}
@@ -177,13 +177,13 @@
             <div class="label">
                 <span class="label-text">&nbsp;</span>
             </div>
-            <button disabled={!searchQuery && chapters.length === 0} class="btn btn-primary" onclick={fetchContent}
-                >{#if isFetching}
+            <button class="btn btn-primary" disabled={!searchQuery && chapters.length === 0} onclick={fetchContent}>
+                {#if isFetching}
                     <span class="loading loading-spinner"></span>
                 {:else}
                     Search
-                {/if}</button
-            >
+                {/if}
+            </button>
         </label>
     </div>
     <div class="mb-16 flex flex-row space-x-2 overflow-hidden pt-2">
@@ -197,45 +197,43 @@
             </div>
             <div class="overflow-auto">
                 <ProjectContentSelectorTable
-                    hasSearched={fetchedContentForLeft !== null}
                     allContent={(fetchedContentForLeft ?? []).filter(
                         (c) => !allContentIdsOnRight.some((id) => id === c.resourceId)
                     )}
-                    isLoading={isFetching}
                     bind:selectedIds={idsSelectedOnLeft}
+                    hasSearched={fetchedContentForLeft !== null}
+                    isLoading={isFetching}
                 />
             </div>
         </div>
         <div class="flex flex-col space-y-2 pt-6">
             <button
-                disabled={idsSelectedOnLeft.length === 0}
                 class="btn btn-primary btn-sm"
-                onclick={() => moveToRight(false)}><ArrowRightSmall /></button
+                disabled={idsSelectedOnLeft.length === 0}
+                onclick={() => moveToRight(false)}
             >
-            <button disabled={idsSelectedOnRight.length === 0} class="btn btn-primary btn-sm" onclick={moveToLeft}
-                ><ArrowLeftSmall /></button
-            >
+                <ArrowRightSmall />
+            </button>
+            <button class="btn btn-primary btn-sm" disabled={idsSelectedOnRight.length === 0} onclick={moveToLeft}>
+                <ArrowLeftSmall />
+            </button>
         </div>
         <div class="flex flex-1 flex-col">
             <div class="text-md font-semibold">Project Content</div>
             <div class="overflow-auto">
-                <ProjectContentSelectorTable
-                    showTotalWordCount={true}
-                    allContent={allContentOnRight}
-                    bind:selectedIds={idsSelectedOnRight}
-                />
+                <ProjectContentSelectorTable allContent={allContentOnRight} bind:selectedIds={idsSelectedOnRight} />
             </div>
         </div>
     </div>
 </div>
 
 <Modal
-    header="Not in Complete Status"
     bind:open={showingAquiferizeEditorReviewModal}
-    primaryButtonText="Add Anyway"
-    primaryButtonOnClick={() => moveToRight(true)}
     description={`The following resource items are not in a Complete status:\n\n${selectedOnLeftBeingAquiferized
         .map((r) => r.title)
         .join('\n')}\n\nIf new items are created, the published version will be used and any changes being made will not
 be reflected. Are you sure you want to add them to this project?`}
+    header="Not in Complete Status"
+    primaryButtonOnClick={() => moveToRight(true)}
+    primaryButtonText="Add Anyway"
 />
