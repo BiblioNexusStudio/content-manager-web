@@ -424,10 +424,14 @@
     </div>
     {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending || $searchParams.tab === Tab.community}
         <div class="mt-4 flex space-x-4">
-            <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
+            <input
+                class="input input-bordered max-w-xs focus:outline-hidden"
+                bind:value={search}
+                placeholder="Search"
+            />
             {#if $searchParams.tab === Tab.myWork}
                 <Select
-                    class="select select-bordered max-w-[14rem] flex-grow"
+                    class="select select-bordered max-w-[14rem] grow"
                     bind:value={$searchParams.status}
                     onChange={resetSelection}
                     options={[
@@ -438,7 +442,7 @@
             {/if}
             {#if $searchParams.tab !== Tab.community}
                 <Select
-                    class="select select-bordered max-w-[14rem] flex-grow"
+                    class="select select-bordered max-w-[14rem] grow"
                     bind:value={$searchParams.project}
                     onChange={resetSelection}
                     options={[
@@ -522,7 +526,11 @@
     {/if}
     {#if $searchParams.tab === Tab.myProjects}
         <div class="mt-4 flex flex-row">
-            <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
+            <input
+                class="input input-bordered max-w-xs focus:outline-hidden"
+                bind:value={search}
+                placeholder="Search"
+            />
             <a class="btn btn-primary ms-4" href="/projects/new">Create Project</a>
         </div>
     {/if}
@@ -756,7 +764,7 @@
 >
     <h3 class="mb-4 text-xl">Language</h3>
     <Select
-        class="select select-bordered mb-4 min-w-[14rem] flex-grow"
+        class="select select-bordered mb-4 min-w-[14rem] grow"
         bind:value={createNewResourceLanguage}
         isNumber={true}
         options={[...data.languages.map((l) => ({ value: l.id, label: l.englishDisplay }))]}
@@ -766,7 +774,7 @@
         appInsightsEventName="resources-resources-filter-selection"
         bind:value={parentResourceIdForNewResource}
         isNumber={true}
-        class="select select-bordered mb-4 min-w-[14rem] flex-grow"
+        class="select select-bordered mb-4 min-w-[14rem] grow"
         options={[
             { value: 0, label: 'All Resources' },
             ...data.parentResources.map((t) => ({ value: t.id, label: t.displayName })),

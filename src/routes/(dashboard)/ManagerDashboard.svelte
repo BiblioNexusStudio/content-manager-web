@@ -428,9 +428,13 @@
     </div>
     <div class="mt-4 flex gap-4">
         {#if $searchParams.tab !== Tab.notifications}
-            <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
+            <input
+                class="input input-bordered max-w-xs focus:outline-hidden"
+                bind:value={search}
+                placeholder="Search"
+            />
             <Select
-                class="select select-bordered max-w-[14rem] flex-grow"
+                class="select select-bordered max-w-[14rem] grow"
                 bind:value={$searchParams.project}
                 onChange={resetSelections}
                 isNumber={false}
@@ -438,7 +442,7 @@
             />
             {#if $searchParams.tab === Tab.manage || $searchParams.tab === Tab.myWork}
                 <Select
-                    class="select select-bordered max-w-[14rem] flex-grow"
+                    class="select select-bordered max-w-[14rem] grow"
                     bind:value={$searchParams.lastAssignedId}
                     onChange={resetSelections}
                     isNumber={true}
@@ -450,7 +454,7 @@
             {/if}
             {#if $searchParams.tab === Tab.manage}
                 <Select
-                    class="select select-bordered max-w-[14rem] flex-grow"
+                    class="select select-bordered max-w-[14rem] grow"
                     bind:value={$searchParams.assignedUserId}
                     onChange={resetSelections}
                     isNumber={true}
@@ -572,7 +576,7 @@
             {/snippet}
         </PaginatedTableWrapper>
     {:else if $searchParams.tab === Tab.toAssign}
-        <div class="flex h-full flex-[2] grow flex-col gap-4 overflow-y-hidden xl:flex-row">
+        <div class="flex h-full flex-2 grow flex-col gap-4 overflow-y-hidden xl:flex-row">
             <PaginatedTableWrapper
                 bind:pageLimit
                 sortedContents={sortedCurrentToAssignContents}
@@ -632,7 +636,7 @@
             {/if}
         </div>
     {:else if $searchParams.tab === Tab.manage}
-        <div class="flex h-full flex-[2] grow flex-col gap-4 overflow-y-hidden xl:flex-row">
+        <div class="flex h-full flex-2 grow flex-col gap-4 overflow-y-hidden xl:flex-row">
             <PaginatedTableWrapper
                 bind:pageLimit
                 sortedContents={sortedCurrentManageContents}

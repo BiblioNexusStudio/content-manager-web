@@ -924,7 +924,7 @@
                 <div class="flex w-full justify-end">
                     <div class="me-2 flex items-center">
                         {#if $showSavingFailed}
-                            <span class="font-bold text-error">Auto-save failed</span>
+                            <span class="text-error font-bold">Auto-save failed</span>
                         {/if}
                         {#if $isSaving}
                             <Icon data={spinner} pulse class="text-[#0175a2]" />
@@ -1109,7 +1109,7 @@
                 class:pe-3={!$isEditorPaneOnLeft}
                 class:ps-3={$isEditorPaneOnLeft}
             >
-                <div class="h-full rounded-md bg-base-200 px-4 pb-0.5 pt-4">
+                <div class="bg-base-200 h-full rounded-md px-4 pt-4 pb-0.5">
                     <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
                         <div class="flex flex-row items-center">
                             <input
@@ -1124,7 +1124,7 @@
                                 <div class="me-2 font-semibold text-gray-700">Draft</div>
                             {/if}
                         </div>
-                        <div class="mt-[0.9375rem] w-full flex-grow">
+                        <div class="mt-[0.9375rem] w-full grow">
                             <Content
                                 bind:selectedStepNumber
                                 {editableContentStore}
@@ -1166,7 +1166,7 @@
                 class:ps-3={!$isEditorPaneOnLeft}
                 class:pe-3={$isEditorPaneOnLeft}
             >
-                <div class="flex h-full w-full flex-col rounded-md border border-base-300 px-4 pb-1 pt-4">
+                <div class="border-base-300 flex h-full w-full flex-col rounded-md border px-4 pt-4 pb-1">
                     <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
                         <Select
                             value={$sidebarContentStore.selected?.idForSelection ?? null}
@@ -1223,7 +1223,7 @@
                 {isShowingSupplementalSidebar ? 'w-1/5 ps-3' : 'w-0'}"
             >
                 <div
-                    class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
+                    class="border-base-300 flex h-full w-full flex-col rounded-md border {openedSupplementalSideBar ===
                     OpenedSupplementalSideBar.Comments
                         ? ''
                         : 'hidden'}"
@@ -1231,7 +1231,7 @@
                     <CommentsSidebar {commentStores} />
                 </div>
                 <div
-                    class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
+                    class="border-base-300 flex h-full w-full flex-col rounded-md border {openedSupplementalSideBar ===
                     OpenedSupplementalSideBar.BibleReferences
                         ? ''
                         : 'hidden'}"
@@ -1244,7 +1244,7 @@
                     />
                 </div>
                 <div
-                    class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
+                    class="border-base-300 flex h-full w-full flex-col rounded-md border {openedSupplementalSideBar ===
                     OpenedSupplementalSideBar.VersionStatusHistory
                         ? ''
                         : 'hidden'}"
@@ -1300,7 +1300,7 @@
     >
         {#if $promptForMachineTranslationRating && currentUserIsAssigned}
             <div class="mb-8 flex flex-col justify-start gap-4">
-                <div class="font-semibold text-error">Please rate the AI translation before reassigning.</div>
+                <div class="text-error font-semibold">Please rate the AI translation before reassigning.</div>
                 <div>
                     <MachineTranslationRating showingInPrompt={true} improvementHorizontalPositionPx={0} />
                 </div>
@@ -1324,7 +1324,7 @@
         primaryButtonDisabled={$isPageTransacting}
     >
         {#if hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New}
-            <p class="py-4 text-lg text-warning">This resource has unresolved comments.</p>
+            <p class="text-warning py-4 text-lg">This resource has unresolved comments.</p>
         {/if}
         {#if resourceContent?.status === ResourceContentStatusEnum.New}
             <div class="form-control">

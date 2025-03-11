@@ -177,7 +177,7 @@
         bind:this={scrollingDiv}
         class="overflow-x-auto overflow-y-auto rounded-md border {showingPaginator && 'rounded-b-none border-b-0'}"
     >
-        <table class="table table-pin-rows">
+        <table class="table-pin-rows table">
             <thead>
                 <tr class="bg-base-200" bind:this={headerRow}>
                     {#if enableSelectAll}
@@ -275,7 +275,7 @@
     </div>
 
     {#if showingPaginator || itemsPerPage === Infinity}
-        <div class="grid w-full grid-cols-3 rounded-b-md border bg-base-200 p-2">
+        <div class="bg-base-200 grid w-full grid-cols-3 rounded-b-md border p-2">
             <button
                 class="btn btn-outline self-center justify-self-start"
                 class:btn-disabled={currentPage === 1}

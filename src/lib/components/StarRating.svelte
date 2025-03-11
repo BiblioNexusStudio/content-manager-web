@@ -26,7 +26,7 @@
 </script>
 
 <!-- svelte-ignore a11y_mouse_events_have_key_events -->
-<div class="flex text-primary">
+<div class="text-primary flex">
     {#each { length: 5 } as _, i (i)}
         <button
             class="px-1"

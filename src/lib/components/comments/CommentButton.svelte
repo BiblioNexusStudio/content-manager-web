@@ -11,7 +11,7 @@
 </script>
 
 <button
-    class="btn btn-link no-animation !bg-white text-primary !no-underline"
+    class="btn btn-link no-animation text-primary bg-white! no-underline!"
     {disabled}
     {...buttonProps}
     data-app-insights-event-name={appInsightsEventName}>{@render children()}</button

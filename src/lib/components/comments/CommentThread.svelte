@@ -243,7 +243,7 @@
                     >
                         <button
                             data-app-insights-event-name="{componentSource}-comment-resolve-click"
-                            class="me-1 text-primary"
+                            class="text-primary me-1"
                             onclick={onResolveClick}><CheckLongIcon /></button
                         >
                     </Tooltip>
@@ -252,11 +252,11 @@
             {#if editingCommentId === comment.id}
                 <CommentTextArea disabled={isSendingComment} bind:value={currentCommentValue}></CommentTextArea>
                 {#if wasSavingCommentError}
-                    <div class="me-4 flex justify-end text-error">Error editing comment.</div>
+                    <div class="text-error me-4 flex justify-end">Error editing comment.</div>
                 {/if}
                 <div class="flex justify-end">
                     {#if isSendingComment}
-                        <div class="loading loading-dots my-3 me-4 text-primary"></div>
+                        <div class="loading loading-dots text-primary my-3 me-4"></div>
                     {:else}
                         <CommentButton buttonProps={{ onclick: onCancelClick }}>Cancel</CommentButton>
                         <CommentButton
@@ -311,11 +311,11 @@
                 <CommentTextArea disabled={isSendingComment} bind:value={currentCommentValue}></CommentTextArea>
             </div>
             {#if wasSavingCommentError}
-                <div class="me-4 flex justify-end text-error">Error saving new comment.</div>
+                <div class="text-error me-4 flex justify-end">Error saving new comment.</div>
             {/if}
             <div class="flex justify-end">
                 {#if isSendingComment}
-                    <div class="loading loading-dots my-3 me-4 text-primary"></div>
+                    <div class="loading loading-dots text-primary my-3 me-4"></div>
                 {:else}
                     <CommentButton buttonProps={{ onclick: onCancelClick }}>Cancel</CommentButton>
                     <CommentButton

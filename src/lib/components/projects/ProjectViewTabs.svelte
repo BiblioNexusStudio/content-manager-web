@@ -31,20 +31,20 @@
     }
 </script>
 
-<div class="mt-4 flex ps-4 xl:mb-2 xl:mt-0 xl:ps-0">
+<div class="mt-4 flex ps-4 xl:mt-0 xl:mb-2 xl:ps-0">
     {#each tabs as tab, index (tab.name)}
         {#if !canOnlyViewProjectsInCompany}
             <button
                 data-app-insights-event-name="projects-{tab.name}-tab-click"
                 class="me-4 {canOnlyViewProjectsInCompany ? 'hidden' : ''} py-2 text-lg {tab.current
-                    ? 'border-b-4 border-primary'
+                    ? 'border-primary border-b-4'
                     : ''}"
                 onclick={() => setCurrentTab(index)}
             >
                 {tab.name}
             </button>
         {:else}
-            <div class="hidden border-b-4 border-primary text-lg xl:flex">{tab.name}</div>
+            <div class="border-primary hidden border-b-4 text-lg xl:flex">{tab.name}</div>
         {/if}
     {/each}
 </div>

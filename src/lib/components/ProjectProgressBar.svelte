@@ -70,23 +70,23 @@
     {#if showLegend}
         <div class="mt-2 flex w-fit flex-row justify-between space-x-2 text-xs">
             <div class="flex flex-row space-x-1">
-                <div class="h-4 w-5 border border-black bg-white bg-opacity-30"></div>
+                <div class="bg-opacity-30 h-4 w-5 border border-black bg-white"></div>
                 <div>AI Draft</div>
             </div>
             <div class="flex flex-row space-x-1">
-                <div class="h-4 w-5 border border-black bg-primary bg-opacity-25"></div>
+                <div class="bg-primary bg-opacity-25 h-4 w-5 border border-black"></div>
                 <div>Editor Review</div>
             </div>
             <div class="flex flex-row space-x-1">
-                <div class="h-4 w-5 border border-black bg-primary bg-opacity-60"></div>
+                <div class="bg-primary bg-opacity-60 h-4 w-5 border border-black"></div>
                 <div>Company Review</div>
             </div>
             <div class="flex flex-row space-x-1">
-                <div class="h-4 w-5 border border-black bg-primary"></div>
+                <div class="bg-primary h-4 w-5 border border-black"></div>
                 <div>Publisher Review</div>
             </div>
             <div class="flex flex-row space-x-1">
-                <div class="h-4 w-5 border border-black bg-neutral"></div>
+                <div class="bg-neutral h-4 w-5 border border-black"></div>
                 <div>Complete</div>
             </div>
         </div>

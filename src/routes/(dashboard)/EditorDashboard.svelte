@@ -254,11 +254,15 @@
     </div>
     <div class="mt-4 flex gap-4">
         {#if $searchParams.tab !== Tab.notifications}
-            <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
+            <input
+                class="input input-bordered max-w-xs focus:outline-hidden"
+                bind:value={search}
+                placeholder="Search"
+            />
         {/if}
         {#if $searchParams.tab === Tab.myWork}
             <Select
-                class="select select-bordered max-w-[14rem] flex-grow"
+                class="select select-bordered max-w-[14rem] grow"
                 bind:value={$searchParams.project}
                 options={[
                     { value: '', label: 'Project' },

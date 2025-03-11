@@ -107,7 +107,7 @@
             <Select
                 bind:value={languageId}
                 isNumber={true}
-                class="select select-bordered min-w-[10rem] flex-shrink"
+                class="select select-bordered min-w-[10rem] shrink"
                 options={[
                     { value: 0, label: 'All Languages' },
                     ...data.languages.map((l) => ({ value: l.id, label: l.englishDisplay })),
@@ -118,7 +118,7 @@
             <Select
                 bind:value={parentResourceId}
                 isNumber={true}
-                class="select select-bordered min-w-[10rem] flex-shrink"
+                class="select select-bordered min-w-[10rem] shrink"
                 options={[
                     { value: 0, label: 'All Resources' },
                     ...data.parentResources.map((t) => ({ value: t.id, label: t.displayName })),
@@ -129,7 +129,7 @@
             <Select
                 bind:value={companyId}
                 isNumber={true}
-                class="select select-bordered min-w-[10rem] flex-shrink"
+                class="select select-bordered min-w-[10rem] shrink"
                 options={[
                     { value: 0, label: 'Select Company' },
                     ...(data?.companies
@@ -147,22 +147,22 @@
             </div>
         {/if}
         {#if reportData.acceptsDateRange || reportData.acceptsLanguage || reportData.acceptsParentResource || reportData.acceptsCompany}
-            <button class="btn btn-link !mx-1" onclick={refetch}>
+            <button class="btn btn-link mx-1!" onclick={refetch}>
                 <Icon data={refresh} />
             </button>
         {/if}
     </div>
     {#if reportData.type === DynamicReportType.BarChart}
-        <div class="relative me-10 ms-5 h-full flex-shrink overflow-hidden">
+        <div class="relative ms-5 me-10 h-full shrink overflow-hidden">
             <BarChart report={reportData} />
         </div>
     {:else if reportData.type === DynamicReportType.LineChart}
-        <div class="relative me-10 ms-5 h-full flex-shrink overflow-hidden">
+        <div class="relative ms-5 me-10 h-full shrink overflow-hidden">
             <LineChart report={reportData} />
         </div>
     {:else if reportData.type === DynamicReportType.Table}
         <div>
-            <div class="relative flex-shrink overflow-hidden">
+            <div class="relative shrink overflow-hidden">
                 <ReportTable
                     {searchParams}
                     report={reportData}

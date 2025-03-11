@@ -22,7 +22,7 @@
     {#key spanRect}
         <div
             bind:this={container}
-            class="fixed z-50 flex w-[300px] flex-col overflow-y-auto rounded-lg border-2 bg-white shadow"
+            class="fixed z-50 flex w-[300px] flex-col overflow-y-auto rounded-lg border-2 bg-white shadow-sm"
             style="left: {spanRect.left -
                 (spanRect.left + 300 > windowInnerWidth ? 300 - spanRect.width : 0)}px; {heightAtBottom < 400
                 ? `top:${spanRect.top - parentHeight - 5}px; max-height:400px;`

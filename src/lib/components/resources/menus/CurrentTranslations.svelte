@@ -54,10 +54,10 @@
     <div
         role="button"
         tabindex="0"
-        class="menu dropdown-content z-[1] mt-4 flex w-auto flex-col rounded-box border bg-base-100 px-4 pt-4 shadow"
+        class="menu dropdown-content rounded-box bg-base-100 z-1 mt-4 flex w-auto flex-col border px-4 pt-4 shadow-sm"
     >
         {#if canCreateTranslation && englishTranslation?.hasPublished && languages.length !== translations.length}
-            <div class="mb-4 mt-2 flex flex-col place-items-end border-y px-4 py-3">
+            <div class="mt-2 mb-4 flex flex-col place-items-end border-y px-4 py-3">
                 <button
                     data-app-insights-event-name="translations-new-menu-click"
                     class="flex w-full items-center justify-start rounded-md border border-[#bbe7f7] bg-[#e6f6fc] px-2 py-1 text-lg font-bold"
@@ -70,12 +70,12 @@
         <div class="flex flex-col">
             {#if currentResource}
                 <div class="mb-2 flex items-center justify-between px-4">
-                    <span class="btn-link me-4 whitespace-nowrap text-lg font-bold no-underline"
+                    <span class="btn-link me-4 text-lg font-bold whitespace-nowrap no-underline"
                         ><a href={`/resources/${currentResource.contentId}`}>{currentResource.languageName}</a></span
                     >
                     <div class="ms-8 flex items-center">
                         <StatusColor status={currentResource.resourceContentStatus} /><span
-                            class="whitespace-nowrap text-lg">{currentResource.status}</span
+                            class="text-lg whitespace-nowrap">{currentResource.status}</span
                         >
                     </div>
                 </div>
@@ -99,12 +99,12 @@
                     class="mb-2 flex items-center justify-between px-4"
                     data-app-insights-event-name="translations-language-menu-click"
                 >
-                    <span class="btn-link me-4 whitespace-nowrap text-lg font-bold no-underline"
+                    <span class="btn-link me-4 text-lg font-bold whitespace-nowrap no-underline"
                         ><a href={`/resources/${translation.contentId}`}>{translation.languageName}</a></span
                     >
                     <div class="ms-8 flex items-center">
                         <StatusColor status={translation.resourceContentStatus} /><span
-                            class="whitespace-nowrap text-lg">{translation.status}</span
+                            class="text-lg whitespace-nowrap">{translation.status}</span
                         >
                     </div>
                 </div>
