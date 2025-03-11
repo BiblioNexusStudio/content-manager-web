@@ -56,7 +56,7 @@
 {:else if resourceContent.mediaType === MediaTypeEnum.video}
     <Video content={videoContent} />
 {:else if resourceContent.mediaType === MediaTypeEnum.audio}
-    <Audio content={audioContent} />
+    <Audio content={audioContent} {resourceContent} />
 {:else if resourceContent.mediaType === MediaTypeEnum.text}
     <Text
         {sidebarIsOpen}

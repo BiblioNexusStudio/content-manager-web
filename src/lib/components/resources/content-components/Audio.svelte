@@ -1,83 +1,63 @@
 <script lang="ts">
-    import type { AudioContentItem } from '$lib/types/resources';
+    import { onMount, untrack } from 'svelte';
+    import type { AudioContentItem, ResourceContent } from '$lib/types/resources';
+    import { fetchFiaAudioFromAudioContentItem, type AudioTracklist } from '$lib/components/audioPlayer/context.svelte';
+    import ReplaceAudioButton from '$lib/components/audioPlayer/ReplaceAudioButton.svelte';
+    import AudioPlayer from '$lib/components/audioPlayer/AudioPlayer.svelte';
+    import AudioPlayerModal from '$lib/components/audioPlayer/AudioPlayerModal.svelte';
+    import { createAudioPlaylistContext, type AudioPlaylist } from '$lib/components/audioPlayer/context.svelte';
 
     interface Props {
         content: AudioContentItem;
+        resourceContent: ResourceContent;
     }
 
-    let { content }: Props = $props();
+    let { content, resourceContent }: Props = $props();
 
-    export async function uploadAudioFile(): Promise<void> {
-        try {
-            // Check if showOpenFilePicker is available
-            let file: File | null = null;
-            if ('showOpenFilePicker' in window) {
-                const [fileHandle] = await (window as any).showOpenFilePicker({
-                    types: [
-                        {
-                            description: 'Audio Files',
-                            accept: {
-                                'audio/webm': ['.webm'],
-                                'audio/mpeg': ['.mp3'],
-                            },
-                        },
-                    ],
-                    excludeAcceptAllOption: true,
-                    multiple: false,
-                });
-                file = await fileHandle.getFile();
-            } else {
-                // Fallback to file input
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'audio/webm,audio/mpeg';
-                input.style.display = 'none';
-                document.body.appendChild(input);
+    let zipAudioContent: AudioTracklist | [] = $state([]);
+    let contentIsZipped = $derived(isZipFile(content));
+    let playlist: AudioPlaylist = createAudioPlaylistContext();
+    let selectedStepNumber = $state(1);
 
-                file = await new Promise<File | null>((resolve) => {
-                    input.onchange = () => {
-                        resolve(input.files && input.files.length > 0 ? input.files[0] : null);
-                        document.body.removeChild(input);
-                    };
-                    input.click();
-                });
-            }
+    export function isZipFile(content: AudioContentItem): boolean {
+        return content.webm.url.endsWith('.zip') || content.mp3.url.endsWith('.zip');
+    }
 
-            if (!file) {
-                console.error('No file selected');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const response = await fetch('https://www.thiswillbereplacedlater.com', {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (!response.ok) {
-                console.error('Failed to upload file');
-                return;
-            }
-
-            const { url } = await response.json();
-            console.log('File uploaded successfully:', url);
-        } catch (error) {
-            console.error('Error uploading file:', error);
+    function updateCurrentTrack() {
+        if (selectedStepNumber! > playlist.currentTrackIndex + 1) {
+            playlist.nextTrack();
+        } else if (selectedStepNumber! < playlist.currentTrackIndex + 1) {
+            playlist.prevTrack();
         }
     }
+
+    $effect(() => {
+        if (untrack(() => !playlist) || !selectedStepNumber) return;
+        updateCurrentTrack();
+    });
+
+    onMount(async () => {
+        if (contentIsZipped) {
+            zipAudioContent = await fetchFiaAudioFromAudioContentItem(content);
+        }
+    });
 </script>
 
 <div class="flex flex-col items-start">
-    <div class="mb-4">
-        <audio controls>
-            <source src={content.webm.url} type="audio/webm" />
-            <source src={content.mp3.url} type="audio/mpeg" />
-            Your browser does not support the audio tag.
-        </audio>
-    </div>
-    <div>
-        <button class="btn btn-primary" onclick={uploadAudioFile}>Replace Audio</button>
-    </div>
+    {#if contentIsZipped}
+        <div class="mb-4">
+            {#each zipAudioContent as audioContent}
+                <audio controls>
+                    <source src={audioContent.url} type="audio/webm" />
+                    Your browser does not support the audio tag.
+                </audio>
+            {/each}
+        </div>
+    {:else}
+        <div class="mb-4">
+            <AudioPlayer audioContents={[resourceContent]} />
+        </div>
+    {/if}
+
+    <ReplaceAudioButton />
 </div>

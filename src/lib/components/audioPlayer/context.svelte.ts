@@ -98,6 +98,21 @@ export async function fetchFiaAudioFromZip(
     ).flat();
 }
 
+export async function fetchFiaAudioFromAudioContentItem(
+    audioContentItem: AudioContentItem,
+    audioType: AudioType = 'webm'
+): Promise<AudioTracklist | []> {
+    try {
+        const audioItem = audioContentItem;
+        const audioTypeSteps = audioItem[audioType].steps;
+        if (!audioTypeSteps) return [];
+        return await readFilesIntoObjectUrlsMapping(audioItem[audioType].url, audioTypeSteps);
+    } catch (error) {
+        log.exception(error as Error);
+        return [];
+    }
+}
+
 interface ObjectUrlMapping {
     url?: string | null;
     file: string;
