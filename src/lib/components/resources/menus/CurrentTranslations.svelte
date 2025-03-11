@@ -47,9 +47,9 @@
 <div class="dropdown ms-2">
     <button tabindex="0" class="btn btn-ghost flex flex-nowrap px-1 hover:bg-[#e6f6fc]">
         <span data-app-insights-event-name="translations-menu-click">Translations</span>
-        <span class="flex h-6 w-6 items-center justify-center rounded-full border border-blue-300 bg-blue-50"
-            >{numberOfTranslations}</span
-        >
+        <div class="relative flex h-6 w-6 items-center justify-center rounded-full border border-blue-300 bg-blue-50">
+            <span class="absolute left-[6px]">{numberOfTranslations}</span>
+        </div>
     </button>
     <div
         role="button"

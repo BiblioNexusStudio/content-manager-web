@@ -381,7 +381,7 @@
 <div class="flex flex-col overflow-y-hidden px-4">
     <h1 class="pt-4 text-3xl">Dashboard</h1>
     <div class="flex flex-row items-center pt-4">
-        <div role="tablist" class="tabs tabs-bordered w-fit">
+        <div role="tablist" class="tabs tabs-lift w-fit">
             <button
                 onclick={selectTab(Tab.myWork)}
                 role="tab"
@@ -468,7 +468,7 @@
             {/if}
             <button
                 data-app-insights-event-name="publisher-dashboard-bulk-assign-click"
-                class="btn btn-primary"
+                class="btn btn-primary me-0"
                 onclick={() => (isAssignContentModalOpen = true)}
                 disabled={(selectedReviewPendingTableItems.length === 0 &&
                     selectedMyWorkTableItems.length === 0 &&
@@ -483,7 +483,7 @@
                 >
                     <button
                         data-app-insights-event-name="publisher-dashboard-bulk-publish-click"
-                        class="btn btn-primary ms-4"
+                        class="btn btn-primary ms-4 me-0"
                         onclick={() => (isConfirmPublishModalOpen = true)}
                         disabled={selectedMyWorkTableItems.length === 0 || nonPublisherReviewSelected}
                         >Publish

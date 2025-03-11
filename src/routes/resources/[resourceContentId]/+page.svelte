@@ -905,7 +905,7 @@
         class="w-screen px-8 pt-1"
         class:absolute={shouldTransition}
     >
-        <div class="flex w-full items-center justify-between border-b-[1px]">
+        <div class="flex w-full items-center justify-between border-b-[1px] py-1">
             <div class="me-2 flex place-items-center">
                 <ExitButton defaultPathIfNoHistory="/resources" />
                 <CurrentTranslations
