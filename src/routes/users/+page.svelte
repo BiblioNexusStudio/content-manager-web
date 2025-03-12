@@ -93,7 +93,7 @@
             <div class="flex h-full flex-col justify-between">
                 <div class="text-3xl">{$translate('page.users.header.value')}</div>
                 <div class="flex items-end justify-between">
-                    <div class="flex w-1/2 space-x-8">
+                    <div class="flex w-[90%] space-x-6">
                         {#if $userCan(Permission.ReadAllUsers)}
                             <Select
                                 class="select select-bordered max-w-xs"
@@ -108,7 +108,7 @@
                         <input
                             bind:value={filterBySearch}
                             type="search"
-                            class="max-h-12 min-h-12 w-[320px] rounded-md border-[1px] py-2 ps-5 text-sm text-gray-900 focus:outline-hidden"
+                            class="max-h-10 min-h-10 w-[320px] rounded-md border-[1px] py-2 ps-5 text-sm text-gray-900 focus:outline-hidden"
                             placeholder={$translate('page.resources.searchBox.value')}
                         />
                         <button class="btn btn-primary" onclick={openModal}>Add</button>

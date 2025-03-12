@@ -283,12 +283,12 @@
                 >{$translate('page.resources.table.navigation.previous.value')}</button
             >
             <div class="grid place-self-center">
-                <div class="mb-2">
+                <div class="mx-auto mb-2 flex">
                     {$translate('page.resources.table.navigation.pageNumber.value', {
                         values: { currentPage, totalPages: `${totalPages === 0 ? 1 : totalPages}` },
                     })}
                 </div>
-                <select bind:value={itemsPerPage} class="select select-bordered select-ghost select-xs">
+                <select bind:value={itemsPerPage} class="select select-bordered select-xs">
                     {#each customItemsPerPage as count, i (i)}
                         {#if count === Infinity}
                             <option value={count} selected={i === 0}>

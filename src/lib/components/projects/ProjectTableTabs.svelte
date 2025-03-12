@@ -32,7 +32,7 @@
           ];
 </script>
 
-<div role="tablist" class="tabs tabs-bordered w-fit">
+<div role="tablist" class="tabs tabs-lift w-fit">
     {#each tabs as tab (tab.value)}
         <button
             data-app-insights-event-name="projects-{tab.name}-tab-click"

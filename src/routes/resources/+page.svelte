@@ -143,26 +143,26 @@
             class="input input-bordered input-md w-[11rem]"
             placeholder="Chapter (e.g. 2, 1-5)"
         />
-        <div class="flex flex-col space-y-2">
-            <div class="form-control">
-                <label class="label cursor-pointer py-0">
+        <div class="flex flex-col items-start">
+            <div class="form-control mb-[4px] w-full">
+                <label class="label flex w-full cursor-pointer justify-between py-0">
                     <span class="label-text text-xs">Published</span>
                     <input
                         disabled={!unpublishedChecked}
                         type="checkbox"
                         bind:checked={publishedChecked}
-                        class="checkbox no-animation checkbox-sm ms-2"
+                        class="checkbox no-animation checkbox-sm ms-2 h-[18px] w-[18px]"
                     />
                 </label>
             </div>
-            <div class="form-control">
-                <label class="label cursor-pointer py-0">
+            <div class="form-control w-full">
+                <label class="label flex w-full cursor-pointer justify-between py-0">
                     <span class="label-text text-xs">Unpublished</span>
                     <input
                         disabled={!publishedChecked}
                         type="checkbox"
                         bind:checked={unpublishedChecked}
-                        class="checkbox no-animation checkbox-sm ms-2"
+                        class="checkbox no-animation checkbox-sm ms-2 h-[18px] w-[18px]"
                     />
                 </label>
             </div>
@@ -232,7 +232,7 @@
                     >{$translate('page.resources.table.navigation.previous.value')}</button
                 >
                 <div class="grid place-self-center">
-                    <div class="mb-2">
+                    <div class="mx-auto mb-2 flex">
                         {$translate('page.resources.table.navigation.pageNumber.value', {
                             values: {
                                 currentPage: $searchParams.page,
@@ -243,7 +243,7 @@
                     <select
                         bind:value={$resourcesPerPage}
                         onchange={() => invalidateAll()}
-                        class="select select-bordered select-ghost select-xs"
+                        class="select select-bordered select-xs"
                     >
                         {#each [10, 50, 100] as count, i (i)}
                             <option value={count} selected={i === 0}>

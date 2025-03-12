@@ -261,7 +261,7 @@
         <h1 class="my-auto mb-6 text-2xl">
             Translation Pairs {translationPairsLanguages.length === 1 ? ` - ${currentLanguageDisplayname}` : ''}
         </h1>
-        <div class="mb-4 flex">
+        <div class="mb-4 flex w-[90%]">
             <input
                 type="text"
                 class="input input-bordered me-4 max-w-xs focus:outline-hidden"

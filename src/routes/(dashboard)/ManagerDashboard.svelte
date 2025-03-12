@@ -466,7 +466,7 @@
             {/if}
 
             {#if $searchParams.tab === Tab.manage || $searchParams.tab === Tab.myWork}
-                <label class="label cursor-pointer py-0 opacity-70">
+                <label class="label max-h-[40px] cursor-pointer py-0 opacity-70">
                     <input
                         type="checkbox"
                         bind:checked={$searchParams.isFilteringUnresolved}
@@ -475,7 +475,7 @@
                             : 'on'}"
                         class="checkbox no-animation checkbox-sm me-2"
                     />
-                    <span class="label-text text-xs">Has Unresolved Comments</span>
+                    <span class="label-text text-xs text-wrap">Has Unresolved Comments</span>
                 </label>
             {/if}
 
@@ -500,8 +500,8 @@
                 </Tooltip>
             {/if}
             <div class="my-1 ml-auto flex flex-col items-end justify-center">
-                <div class="text-sm text-gray-500">Selected Items: {selectedCount ?? 0}</div>
-                <div class="text-sm text-gray-500">Selected Word Count: {selectedWordCount ?? 0}</div>
+                <div class="text-end text-sm text-gray-500">Selected Items: {selectedCount ?? 0}</div>
+                <div class="text-end text-sm text-gray-500">Selected Word Count: {selectedWordCount ?? 0}</div>
             </div>
         {:else}
             <button
