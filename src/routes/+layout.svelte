@@ -22,6 +22,8 @@
     import type { LayoutData } from './$types';
     import QuestionMarkIcon from '$lib/icons/QuestionMarkIcon.svelte';
     import Tooltip from '$lib/components/Tooltip.svelte';
+    import { darkMode } from '$lib/stores/app';
+    import LightModeDarkMode from '$lib/components/LightModeDarkMode.svelte';
 
     interface Props {
         data: LayoutData;
@@ -34,6 +36,7 @@
 
     $effect(() => log.pageView($page.route.id ?? ''));
     $effect(() => syncToClarity($page.route.id ?? '', $currentUser));
+    $effect(() => setDarkModeOnRootHtmlElement($darkMode));
     setContext('parentResources', () => data.parentResources);
     let userHasCompanyLanguages = $derived($currentUser !== null && $currentUser.company.languageIds.length > 0);
 
@@ -129,6 +132,14 @@
         }
     }
 
+    function setDarkModeOnRootHtmlElement(darkMode: boolean) {
+        if (darkMode) {
+            document.documentElement.setAttribute('data-theme', 'night');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'corporate');
+        }
+    }
+
     onMount(() => {
         window.dispatchEvent(new Event('svelte-app-loaded')); // tell the app.html to show the page
     });
@@ -205,18 +216,22 @@
                 </ul>
             </div>
             <div class="m-2 w-16"><a href="/"><img src={AquiferLogo} alt="Aquifer" /></a></div>
-            {#if !$userCan(Permission.CreateCommunityContent)}
-                <div class="ml-auto">
-                    <Tooltip position={{ right: '3rem', top: '0.25rem' }} class="ml-auto" text="Help">
+
+            <div class="ml-auto flex items-center">
+                <div class="flex h-full w-auto items-center">
+                    <LightModeDarkMode />
+                </div>
+                {#if !$userCan(Permission.CreateCommunityContent)}
+                    <Tooltip position={{ right: '3rem', top: '0.25rem' }} class="ms-2 ml-auto" text="Help">
                         <a
                             href="/help"
-                            class="btn btn-neutral btn-xs hover:border-primary hover:text-primary m-1 border border-neutral-300"
+                            class="btn btn-neutral btn-xs hover:border-primary hover:text-primary m-1 ms-2 border border-neutral-300"
                         >
                             <QuestionMarkIcon />
                         </a>
                     </Tooltip>
-                </div>
-            {/if}
+                {/if}
+            </div>
         </div>
 
         {#if $navigating && !isCustomTransitionNavigation($navigating)}
