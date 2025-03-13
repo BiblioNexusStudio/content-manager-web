@@ -32,7 +32,7 @@ export const fetchAndFormat = async (
     const passageVerseIds = bookTexts.flatMap((bookText) => generateVerseIdsForBookTexts(bookText));
 
     const mappingVerseIdSet = new Set(
-        versificationMappings?.map((mapping) => mapping.sourceBibleVerse.verseId.toString()) || []
+        versificationMappings?.map((mapping) => mapping.sourceVerse.verseId.toString()) || []
     );
 
     const passageHasDifferentBaseMappings = passageVerseIds.some((verseId) => mappingVerseIdSet.has(verseId));
@@ -84,8 +84,8 @@ export const fetchAndFormat = async (
                 // Find mappings for the requested verses by matching chapter and verse
                 const startVerseMap = versificationMappings.find(
                     (v) =>
-                        v.sourceBibleVerse.chapter === parsedStartVerse.chapter &&
-                        v.sourceBibleVerse.verse === parsedStartVerse.verse
+                        v.sourceVerse.chapter === parsedStartVerse.chapter &&
+                        v.sourceVerse.verse === parsedStartVerse.verse
                 );
 
                 if (!hasMultipleVerses && startVerseMap) {
@@ -93,9 +93,9 @@ export const fetchAndFormat = async (
                     verseDisplayName = generateVerseFromReference(
                         {
                             verseId: 0,
-                            book: startVerseMap.targetBibleVerse.book,
-                            chapter: startVerseMap.targetBibleVerse.chapter,
-                            verse: startVerseMap.targetBibleVerse.verse,
+                            book: startVerseMap.targetVerse.book,
+                            chapter: startVerseMap.targetVerse.chapter,
+                            verse: startVerseMap.targetVerse.verse,
                         },
                         language.scriptDirection,
                         true // If we found a mapping, there is definitely a versification difference
@@ -103,7 +103,7 @@ export const fetchAndFormat = async (
 
                     // Fetch the content for the mapped verse
                     try {
-                        const targetVerseId = startVerseMap.targetBibleVerse.verseId;
+                        const targetVerseId = startVerseMap.targetVerse.verseId;
 
                         const mappedBookTexts = await fetchBiblePassages(
                             targetVerseId,
@@ -125,7 +125,7 @@ export const fetchAndFormat = async (
                         log.exception(
                             new Error(
                                 `Error fetching mapped single verse content - VerseId: ${
-                                    startVerseMap.targetBibleVerse.verseId
+                                    startVerseMap.targetVerse.verseId
                                 } - Error:${error}`
                             )
                         );
@@ -134,21 +134,21 @@ export const fetchAndFormat = async (
                     // Multiple verses case
                     const endVerseMap = versificationMappings.find(
                         (v) =>
-                            v.sourceBibleVerse.chapter === parsedEndVerse.chapter &&
-                            v.sourceBibleVerse.verse === parsedEndVerse.verse
+                            v.sourceVerse.chapter === parsedEndVerse.chapter &&
+                            v.sourceVerse.verse === parsedEndVerse.verse
                     );
 
                     if (startVerseMap && endVerseMap) {
                         verseDisplayName = generateVerseFromReference(
                             {
                                 startVerseId: 0,
-                                startBook: startVerseMap.targetBibleVerse.book,
-                                startChapter: startVerseMap.targetBibleVerse.chapter,
-                                startVerse: startVerseMap.targetBibleVerse.verse,
+                                startBook: startVerseMap.targetVerse.book,
+                                startChapter: startVerseMap.targetVerse.chapter,
+                                startVerse: startVerseMap.targetVerse.verse,
                                 endVerseId: 0,
-                                endBook: endVerseMap.targetBibleVerse.book,
-                                endChapter: endVerseMap.targetBibleVerse.chapter,
-                                endVerse: endVerseMap.targetBibleVerse.verse,
+                                endBook: endVerseMap.targetVerse.book,
+                                endChapter: endVerseMap.targetVerse.chapter,
+                                endVerse: endVerseMap.targetVerse.verse,
                             },
                             language.scriptDirection,
                             true // If we found mappings, there is definitely a versification difference
@@ -156,8 +156,8 @@ export const fetchAndFormat = async (
 
                         // Fetch the content for the mapped verses
                         try {
-                            const targetStartVerseId = startVerseMap.targetBibleVerse.verseId;
-                            const targetEndVerseId = endVerseMap.targetBibleVerse.verseId;
+                            const targetStartVerseId = startVerseMap.targetVerse.verseId;
+                            const targetEndVerseId = endVerseMap.targetVerse.verseId;
 
                             const mappedBookTexts = await fetchBiblePassages(
                                 targetStartVerseId,
@@ -180,8 +180,8 @@ export const fetchAndFormat = async (
                             log.exception(
                                 new Error(
                                     `Error fetching mapped verses content - startVerseId: ${
-                                        startVerseMap.targetBibleVerse.verseId
-                                    } - endVerseId: ${endVerseMap.targetBibleVerse.verseId} - Error: ${error}`
+                                        startVerseMap.targetVerse.verseId
+                                    } - endVerseId: ${endVerseMap.targetVerse.verseId} - Error: ${error}`
                                 )
                             );
                         }

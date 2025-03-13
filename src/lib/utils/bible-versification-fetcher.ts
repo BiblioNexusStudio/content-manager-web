@@ -8,8 +8,8 @@ export interface VersificationResponse {
 }
 
 export interface VerseMapping {
-    sourceBibleVerse: VerseReference;
-    targetBibleVerse: VerseReference;
+    sourceVerse: VerseReference;
+    targetVerse: VerseReference;
 }
 
 export async function fetchBibleVersification(
