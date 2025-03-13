@@ -8,15 +8,9 @@ export interface BibleBookTexts {
     chapters: BibleBookChapters[];
 }
 
-interface VerseReference {
-    BookName: string;
-    Chapter: number;
-    Verse: number;
-}
-
-interface BibleBookChapters {
+export interface BibleBookChapters {
     number: number;
-    verses: { number: number; text: string; sourceTextVerseReference: VerseReference | null }[];
+    verses: { number: number; text: string }[];
 }
 
 export async function fetchBibleBookTexts(bibleId: number, bookId: number): Promise<BibleBookTexts | null> {
