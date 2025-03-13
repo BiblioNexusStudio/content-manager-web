@@ -29,7 +29,9 @@ export async function fetchBibleVersification(
             const response = await getFromApi<VersificationResponse>(`/bibles/${bibleId}/versification?bookId=${i}`);
             if (response.verseMappings && response.verseMappings.length > 0) {
                 for (const mapping of response.verseMappings) {
-                    allMappings.push(mapping);
+                    if (mapping.targetVerse) {
+                        allMappings.push(mapping);
+                    }
                 }
             }
         }
