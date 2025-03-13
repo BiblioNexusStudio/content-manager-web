@@ -3,7 +3,7 @@
 </script>
 
 <label class="swap swap-rotate">
-    <input type="checkbox" bind:checked={$darkMode} />
+    <input type="checkbox" bind:checked={$darkMode} data-app-insights-event-name="light-mode-dark-mode-toggle-click" />
 
     <!-- sun icon -->
     <svg class="swap-off h-7 w-7 fill-current fill-neutral-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">

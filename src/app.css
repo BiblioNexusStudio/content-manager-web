@@ -6,7 +6,7 @@
 @plugin "@tailwindcss/typography";
 @plugin "daisyui" {
     themes:
-        corporate --default,
+        cmyk --default,
         night;
 }
 
