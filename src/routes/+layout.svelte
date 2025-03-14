@@ -224,7 +224,7 @@
             <div class="m-2 w-16"><a href="/"><img src={AquiferLogo} alt="Aquifer" /></a></div>
 
             <div class="ml-auto flex items-center">
-                <div class="flex h-full w-auto items-center">
+                <div class="me-2 flex h-full w-auto items-center">
                     <LightModeDarkMode />
                 </div>
                 {#if !$userCan(Permission.CreateCommunityContent)}
