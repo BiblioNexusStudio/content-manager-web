@@ -51,17 +51,17 @@
             style={`width: ${inPublisherReviewWidth}%`}
         ></div>
         <div
-            class="tooltip tooltip-info bg-primary opacity-60"
+            class="tooltip tooltip-info bg-primary/60"
             data-tip={getTooltipText(inCompanyReviewWidth)}
             style={`width: ${inCompanyReviewWidth}%`}
         ></div>
         <div
-            class="tooltip tooltip-info bg-primary opacity-25"
+            class="tooltip tooltip-info bg-primary/25"
             data-tip={getTooltipText(editorReviewWidth)}
             style={`width: ${editorReviewWidth}%`}
         ></div>
         <div
-            class="tooltip tooltip-info bg-base-100"
+            class="tooltip tooltip-info bg-base-100/30"
             data-tip={getTooltipText(notStartedWidth)}
             style={`width: ${notStartedWidth}%`}
         ></div>
@@ -78,15 +78,15 @@
                 <div>Publisher Review</div>
             </div>
             <div class="flex flex-row space-x-1">
-                <div class="bg-primary border-base-content h-4 w-5 border opacity-60"></div>
+                <div class="bg-primary/60 border-base-content h-4 w-5 border"></div>
                 <div>Company Review</div>
             </div>
             <div class="flex flex-row space-x-1">
-                <div class="bg-primary border-base-content h-4 w-5 border opacity-25"></div>
+                <div class="bg-primary/25 border-base-content h-4 w-5 border"></div>
                 <div>Editor Review</div>
             </div>
             <div class="flex flex-row space-x-1">
-                <div class="bg-base-100 border-base-content h-4 w-5 border opacity-30"></div>
+                <div class="bg-base-100/30 border-base-content h-4 w-5 border"></div>
                 <div>AI Draft</div>
             </div>
         </div>

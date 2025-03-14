@@ -103,13 +103,10 @@
 <div class="relative grow">
     <div
         use:scrollSync
-        class="border-base-300 absolute top-0 right-0 bottom-0 left-0 overflow-y-scroll rounded-md border bg-white"
+        class="border-base-300 bg-base-100 absolute top-0 right-0 bottom-0 left-0 overflow-y-scroll rounded-md border"
     >
         {#if diffedHtml}
-            <div
-                dir={languageScriptDirection}
-                class="prose prose-sm sm:prose-base m-4 max-w-none text-black focus:outline-hidden"
-            >
+            <div dir={languageScriptDirection} class="prose prose-sm sm:prose-base m-4 max-w-none focus:outline-hidden">
                 {@html diffedHtml}
             </div>
         {:else}
