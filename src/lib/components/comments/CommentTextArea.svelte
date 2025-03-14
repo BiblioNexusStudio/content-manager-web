@@ -1,5 +1,6 @@
-﻿<script lang="ts">
+<script lang="ts">
     import { onMount } from 'svelte';
+    import { mentions } from '$lib/components/mentions/mentions.svelte.ts';
 
     onMount(() => {
         // Something steals focus with create comment, so need a slight delay.
@@ -18,5 +19,13 @@
     let element: HTMLTextAreaElement;
 </script>
 
-<textarea bind:this={element} bind:value {disabled} class="textarea textarea-bordered my-2 w-full resize-none shadow"
-></textarea>
+<div class="relative">
+    <textarea
+        bind:this={element}
+        bind:value
+        {disabled}
+        class="textarea textarea-bordered my-2 w-full resize-none shadow"
+        use:mentions
+        placeholder="Type @ to mention a user"
+    ></textarea>
+</div>
