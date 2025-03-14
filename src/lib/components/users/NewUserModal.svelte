@@ -129,7 +129,7 @@
                 >✕</button
             >
         </form>
-        <div class="border-primary bg-primary text-primary bg-opacity-10 mt-0 flex items-center rounded-t border-b p-4">
+        <div class="border-primary bg-primary/10 text-primary mt-0 flex items-center rounded-t border-b p-4">
             <InfoIcon />
             <h3 class="text-primary ml-4 text-xl font-semibold">
                 {header}

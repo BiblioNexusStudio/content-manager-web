@@ -115,7 +115,7 @@
     </div>
     {#if blurOnPendingAiTranslate}
         <div
-            class="text-primary bg-opacity-75 absolute top-0 right-0 bottom-0 left-0 flex flex-col items-center bg-white py-16 text-xl font-semibold"
+            class="text-primary bg-base-100/75 absolute top-0 right-0 bottom-0 left-0 flex flex-col items-center py-16 text-xl font-semibold"
         >
             <h1 class="mb-4">
                 AI {language.iso6393Code.toLowerCase() === 'eng' ? 'Aquiferization' : 'Translation'} in progress.
