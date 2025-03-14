@@ -42,35 +42,125 @@ export const fetchAndFormat = async (
         bookTexts[0]?.chapters.length === 1 &&
         bookTexts[0]?.chapters[0]?.verses.length === 1
     ) {
-        verseDisplayName = generateVerseFromReference(
-            {
-                verseId: 0,
-                book: bookTexts[0].bookName,
-                chapter: bookTexts[0].chapters[0].number,
-                verse: bookTexts[0].chapters[0].verses[0]!.number,
-            },
-            language.scriptDirection,
-            passageHasDifferentBaseMappings
+        const singleVerseId = generateVerseId({
+            bookId: bookTexts[0].bookNumber,
+            chapter: bookTexts[0].chapters[0].number,
+            verse: bookTexts[0].chapters[0].verses[0]!.number,
+        });
+
+        const verseMapping = versificationMappings?.find(
+            (mapping) => mapping.sourceVerse.verseId.toString() === singleVerseId
         );
+
+        if (verseMapping) {
+            verseDisplayName = generateVerseFromReference(
+                {
+                    verseId: 0,
+                    book: verseMapping.targetVerse.book,
+                    chapter: verseMapping.targetVerse.chapter,
+                    verse: verseMapping.targetVerse.verse,
+                },
+                language.scriptDirection,
+                true
+            );
+        } else {
+            verseDisplayName = generateVerseFromReference(
+                {
+                    verseId: 0,
+                    book: bookTexts[0].bookName,
+                    chapter: bookTexts[0].chapters[0].number,
+                    verse: bookTexts[0].chapters[0].verses[0]!.number,
+                },
+                language.scriptDirection,
+                passageHasDifferentBaseMappings
+            );
+        }
     } else {
         const passageStart = bookTexts[0]!;
         const passageEnd = bookTexts.at(-1)!;
 
         if (passageStart.chapters[0]?.verses[0] && passageEnd.chapters.at(-1)!.verses.at(-1)) {
-            verseDisplayName = generateVerseFromReference(
-                {
-                    startVerseId: 0,
-                    startBook: passageStart.bookName,
-                    startChapter: passageStart.chapters[0]!.number,
-                    startVerse: passageStart.chapters[0]!.verses[0]!.number,
-                    endVerseId: 0,
-                    endBook: passageEnd.bookName,
-                    endChapter: passageEnd.chapters.at(-1)!.number,
-                    endVerse: passageEnd.chapters.at(-1)!.verses.at(-1)!.number,
-                },
-                language.scriptDirection,
-                passageHasDifferentBaseMappings
+            const startVerseId = generateVerseId({
+                bookId: passageStart.bookNumber,
+                chapter: passageStart.chapters[0]!.number,
+                verse: passageStart.chapters[0]!.verses[0]!.number,
+            });
+
+            const endVerseId = generateVerseId({
+                bookId: passageEnd.bookNumber,
+                chapter: passageEnd.chapters.at(-1)!.number,
+                verse: passageEnd.chapters.at(-1)!.verses.at(-1)!.number,
+            });
+
+            const startVerseMapping = versificationMappings?.find(
+                (mapping) => mapping.sourceVerse.verseId.toString() === startVerseId
             );
+
+            const endVerseMapping = versificationMappings?.find(
+                (mapping) => mapping.sourceVerse.verseId.toString() === endVerseId
+            );
+
+            if (startVerseMapping && endVerseMapping) {
+                verseDisplayName = generateVerseFromReference(
+                    {
+                        startVerseId: 0,
+                        startBook: startVerseMapping.targetVerse.book,
+                        startChapter: startVerseMapping.targetVerse.chapter,
+                        startVerse: startVerseMapping.targetVerse.verse,
+                        endVerseId: 0,
+                        endBook: endVerseMapping.targetVerse.book,
+                        endChapter: endVerseMapping.targetVerse.chapter,
+                        endVerse: endVerseMapping.targetVerse.verse,
+                    },
+                    language.scriptDirection,
+                    true
+                );
+            } else if (startVerseMapping) {
+                verseDisplayName = generateVerseFromReference(
+                    {
+                        startVerseId: 0,
+                        startBook: startVerseMapping.targetVerse.book,
+                        startChapter: startVerseMapping.targetVerse.chapter,
+                        startVerse: startVerseMapping.targetVerse.verse,
+                        endVerseId: 0,
+                        endBook: passageEnd.bookName,
+                        endChapter: passageEnd.chapters.at(-1)!.number,
+                        endVerse: passageEnd.chapters.at(-1)!.verses.at(-1)!.number,
+                    },
+                    language.scriptDirection,
+                    true
+                );
+            } else if (endVerseMapping) {
+                verseDisplayName = generateVerseFromReference(
+                    {
+                        startVerseId: 0,
+                        startBook: passageStart.bookName,
+                        startChapter: passageStart.chapters[0]!.number,
+                        startVerse: passageStart.chapters[0]!.verses[0]!.number,
+                        endVerseId: 0,
+                        endBook: endVerseMapping.targetVerse.book,
+                        endChapter: endVerseMapping.targetVerse.chapter,
+                        endVerse: endVerseMapping.targetVerse.verse,
+                    },
+                    language.scriptDirection,
+                    true
+                );
+            } else {
+                verseDisplayName = generateVerseFromReference(
+                    {
+                        startVerseId: 0,
+                        startBook: passageStart.bookName,
+                        startChapter: passageStart.chapters[0]!.number,
+                        startVerse: passageStart.chapters[0]!.verses[0]!.number,
+                        endVerseId: 0,
+                        endBook: passageEnd.bookName,
+                        endChapter: passageEnd.chapters.at(-1)!.number,
+                        endVerse: passageEnd.chapters.at(-1)!.verses.at(-1)!.number,
+                    },
+                    language.scriptDirection,
+                    passageHasDifferentBaseMappings
+                );
+            }
         } else {
             // If the passage was not found in bookTexts, check if it exists in versification mappings
             // Example: Jonah 1:17 in LSB doesn't exist in bookTexts but maps to Jonah 2:1
@@ -98,7 +188,7 @@ export const fetchAndFormat = async (
                             verse: startVerseMap.targetVerse.verse,
                         },
                         language.scriptDirection,
-                        true // If we found a mapping, there is definitely a versification difference
+                        true
                     );
 
                     // Fetch the content for the mapped verse
@@ -151,7 +241,7 @@ export const fetchAndFormat = async (
                                 endVerse: endVerseMap.targetVerse.verse,
                             },
                             language.scriptDirection,
-                            true // If we found mappings, there is definitely a versification difference
+                            true
                         );
 
                         // Fetch the content for the mapped verses
