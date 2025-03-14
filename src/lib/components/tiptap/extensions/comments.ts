@@ -57,7 +57,7 @@ export default Comments.extend<CommentsMarkOptions>({
             });
 
             parentRender[1].id = spanId;
-            parentRender[1].class = 'bg-primary/20 rounded inline-comment-span';
+            parentRender[1].class = 'bg-primary/20 rounded-sm inline-comment-span';
             parentRender[1].onClick = `onInlineCommentClick(${threadId}, '${spanId}')`;
 
             return parentRender;

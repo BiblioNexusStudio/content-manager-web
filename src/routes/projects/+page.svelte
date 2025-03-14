@@ -22,8 +22,8 @@
     <title>Projects | Aquifer Admin</title>
 </svelte:head>
 
-<div class="flex h-full flex-col overflow-y-auto overflow-x-hidden px-4">
-    <div class="mb-6 mt-4 flex">
+<div class="flex h-full flex-col overflow-x-hidden overflow-y-auto px-4">
+    <div class="mt-4 mb-6 flex">
         <h1 class="my-auto text-3xl">Projects</h1>
     </div>
 

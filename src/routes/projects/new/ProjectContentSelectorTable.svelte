@@ -37,7 +37,7 @@
     }
 </script>
 
-<table class="table table-pin-rows">
+<table class="table-pin-rows table">
     <thead>
         <tr class="bg-base-200">
             <th class="w-[1px]"

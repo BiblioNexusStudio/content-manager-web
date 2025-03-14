@@ -10,7 +10,7 @@
     let { addPlus = false, reportTitle, reportTotal, monthTotal, monthText = 'This Month' }: Props = $props();
 </script>
 
-<div class="mb-4 flex h-auto flex-col rounded border px-4 py-4 shadow-lg">
+<div class="mb-4 flex h-auto flex-col rounded-sm border px-4 py-4 shadow-lg">
     <h3 class="mb-4 text-sm font-bold">{reportTitle}</h3>
     <div class="flex items-end justify-between">
         <span class="text-xl font-bold">{reportTotal.toLocaleString()}</span>

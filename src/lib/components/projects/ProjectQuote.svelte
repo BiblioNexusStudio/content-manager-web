@@ -34,7 +34,7 @@
                     type="text"
                     onblur={(e) => updateEffectiveWordCount(e)}
                     value={$project?.effectiveWordCount ?? '0'}
-                    class="rounded border py-2 ps-4"
+                    class="rounded-sm border py-2 ps-4"
                 />
             {:else}
                 <div>{formatNumberWithCommas($project?.effectiveWordCount ?? '0')}</div>
@@ -48,7 +48,7 @@
                     type="text"
                     onblur={(e) => updateQuotedCost(e)}
                     value={$project?.quotedCost ?? '0'}
-                    class="rounded border py-2 ps-4"
+                    class="rounded-sm border py-2 ps-4"
                 />
             {:else}
                 <div>{formatCurrency($project?.quotedCost ?? 0)}</div>

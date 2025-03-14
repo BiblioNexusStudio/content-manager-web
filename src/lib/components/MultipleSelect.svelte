@@ -71,8 +71,8 @@
     <div class="relative w-full">
         <button
             class="{expanded &&
-                'border-base-content/20 outline outline-2 outline-offset-2 outline-base-content/20'} select select-bordered flex h-auto w-full flex-row items-center py-2 {disabled &&
-                'select-disabled text-black !text-opacity-70'}"
+                'border-base-content/20 outline-base-content/20 outline outline-2 outline-offset-2'} select select-bordered flex h-auto w-full flex-row items-center py-2 {disabled &&
+                'select-disabled text-opacity-70! text-black'}"
             onclick={toggleExpanded}
             onkeydown={onKeyDown}
             {title}
@@ -90,7 +90,7 @@
         </button>
         {#if expanded}
             <ul
-                class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                class="ring-opacity-5 absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black focus:outline-hidden"
             >
                 {#each options as option, index (option.value)}
                     {@const active = activeIndex === index}
@@ -98,7 +98,7 @@
                     <li>
                         <button
                             type="button"
-                            class="group relative w-full cursor-pointer select-none py-2 pl-4 pr-9 focus:outline-none {active
+                            class="group relative w-full cursor-pointer py-2 pr-9 pl-4 select-none focus:outline-hidden {active
                                 ? 'bg-primary text-white'
                                 : 'text-gray-900'}"
                             onclick={() => onSelect(option)}

@@ -253,7 +253,7 @@
 </script>
 
 <div class="flex h-full flex-col overflow-x-hidden overflow-y-hidden px-4 pb-4">
-    <div class="mb-6 mt-4 flex">
+    <div class="mt-4 mb-6 flex">
         <h1 class="my-auto text-3xl">Settings</h1>
     </div>
 
@@ -261,16 +261,16 @@
         <h1 class="my-auto mb-6 text-2xl">
             Translation Pairs {translationPairsLanguages.length === 1 ? ` - ${currentLanguageDisplayname}` : ''}
         </h1>
-        <div class="mb-4 flex">
+        <div class="mb-4 flex w-[90%]">
             <input
                 type="text"
-                class="input input-bordered me-4 max-w-xs focus:outline-none"
+                class="input input-bordered me-4 max-w-xs focus:outline-hidden"
                 bind:value={search}
                 placeholder="Search"
             />
             {#if translationPairsLanguages.length > 1}
                 <Select
-                    class="select select-bordered max-w-[14rem] flex-grow"
+                    class="select select-bordered max-w-[14rem] grow"
                     bind:value={$searchParams.currentLanguageId}
                     isNumber={true}
                     options={[

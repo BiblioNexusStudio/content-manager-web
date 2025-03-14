@@ -29,14 +29,14 @@
 <details data-popover="right" bind:open={isOpen}>
     <summary class="relative">
         {#if playbackRate > 1}
-            <Icon data={chevronUp} class="absolute right-0 top-0 h-2 w-2 text-primary" />
+            <Icon data={chevronUp} class="text-primary absolute top-0 right-0 h-2 w-2" />
         {/if}
         <PlayMediaSpeedIcon />
         {#if playbackRate < 1}
-            <Icon data={chevronDown} class="absolute bottom-0 right-0 h-2 w-2 text-primary" />
+            <Icon data={chevronDown} class="text-primary absolute right-0 bottom-0 h-2 w-2" />
         {/if}
     </summary>
-    <div class="rounded border-2 bg-white p-2 text-sm">
+    <div class="rounded-sm border-2 bg-white p-2 text-sm">
         {#each playbackRates as rate (rate.value)}
             <button
                 class="px-2 py-1 hover:bg-gray-100"

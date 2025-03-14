@@ -161,7 +161,7 @@
 
 <div class="mb-4 flex h-full flex-col gap-4 {isShowing || 'hidden'}">
     <div class="flex flex-row gap-4 pt-4">
-        <div class="flex max-h-[50vh] max-w-[calc(100%-27rem)] flex-grow flex-col rounded border p-4 pt-2 shadow-lg">
+        <div class="flex max-h-[50vh] max-w-[calc(100%-27rem)] grow flex-col rounded-sm border p-4 pt-2 shadow-lg">
             <div class="pb-2 text-lg font-bold">Active Projects per Company</div>
             <Table
                 class=""
@@ -178,7 +178,7 @@
                     {#if columnText === ''}
                         <td>
                             <ProjectProgressBar
-                                class="!w-16"
+                                class="w-16!"
                                 notStartedCount={item.notStartedWordCount}
                                 editorReviewCount={item.editorReviewWordCount}
                                 inCompanyReviewCount={item.inCompanyReviewWordCount}
@@ -203,7 +203,7 @@
             {/each}
         </div>
     </div>
-    <div class="flex w-full flex-grow flex-col rounded border p-4 pt-2 shadow-lg">
+    <div class="flex w-full grow flex-col rounded-sm border p-4 pt-2 shadow-lg">
         <div class="flex flex-row py-2">
             <Select
                 class="select select-bordered me-4 max-w-xs"
@@ -225,7 +225,7 @@
                 bind:value={companyPerformanceMetricsResourceSize}
             />
         </div>
-        <div class="flex min-h-40 flex-grow flex-row gap-4">
+        <div class="flex min-h-40 grow flex-row gap-4">
             <div class="flex w-full flex-col gap-2">
                 <div class="text-lg font-bold">Total Completed Items</div>
                 <div class="relative flex-1 overflow-x-hidden">

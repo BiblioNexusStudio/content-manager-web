@@ -125,13 +125,13 @@
 <dialog bind:this={dialog} class="modal">
     <div class="modal-box px-0 pt-0">
         <form method="dialog">
-            <button class="text-gray-60 btn btn-circle btn-ghost btn-sm absolute right-2 top-4" onclick={close}
+            <button class="text-gray-60 btn btn-circle btn-ghost btn-sm absolute top-4 right-2" onclick={close}
                 >✕</button
             >
         </form>
-        <div class="mt-0 flex items-center rounded-t border-b border-primary bg-primary bg-opacity-10 p-4 text-primary">
+        <div class="border-primary bg-primary/10 text-primary mt-0 flex items-center rounded-t border-b p-4">
             <InfoIcon />
-            <h3 class="ml-4 text-xl font-semibold text-primary">
+            <h3 class="text-primary ml-4 text-xl font-semibold">
                 {header}
             </h3>
         </div>
@@ -144,7 +144,7 @@
                         <div class="text-error">{firstNameErr}</div>
                     {/if}
                 </div>
-                <div class="flex-grow"></div>
+                <div class="grow"></div>
                 <input
                     class="input input-bordered max-h-[50%] w-full"
                     bind:value={firstName}
@@ -161,7 +161,7 @@
                         <div class="text-error">{lastNameErr}</div>
                     {/if}
                 </div>
-                <div class="flex-grow"></div>
+                <div class="grow"></div>
                 <input
                     class="input input-bordered max-h-[50%] w-full"
                     bind:value={lastName}
@@ -178,7 +178,7 @@
                         <div class="text-error">{emailErr}</div>
                     {/if}
                 </div>
-                <div class="flex-grow"></div>
+                <div class="grow"></div>
                 <input
                     type="email"
                     class="input input-bordered max-h-[50%] w-full"
@@ -210,7 +210,7 @@
         </div>
         <div class="flex w-full flex-row justify-end pr-4">
             {#if errorMessage}
-                <div class="pr-2 pt-2 text-error">{errorMessage}</div>
+                <div class="text-error pt-2 pr-2">{errorMessage}</div>
             {/if}
             <button class="btn btn-primary" onclick={handlePrimaryClick} disabled={!canSave}
                 >{#if isSaving}

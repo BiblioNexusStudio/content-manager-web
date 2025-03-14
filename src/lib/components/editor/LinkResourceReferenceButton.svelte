@@ -206,12 +206,12 @@
 
 <Tooltip
     position={{ left: '2rem', bottom: '0.2rem' }}
-    class="flex border-primary align-middle text-primary"
+    class="border-primary text-primary flex align-middle"
     text="Associate Resource Item"
 >
     <button
         data-app-insights-event-name="editor-toolbar-resource-reference-click"
-        class="btn btn-xs px-1 {disabled && '!bg-base-200'} btn-link hover:bg-[#e6f7fc]"
+        class="btn btn-xs px-1 {disabled && 'bg-base-200!'} btn-link hover:bg-[#e6f7fc]"
         {disabled}
         on:click={openModal}
     >
@@ -230,7 +230,7 @@
     header="Associate Resource Item"
 >
     {#if errorMessage}
-        <span class="w-full pb-2 text-center text-xs text-error">{errorMessage}</span>
+        <span class="text-error w-full pb-2 text-center text-xs">{errorMessage}</span>
     {/if}
     {#if isLoading && existingReference}
         <CenteredSpinner />

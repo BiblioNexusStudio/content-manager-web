@@ -105,12 +105,12 @@
 
 <div class="flex h-full flex-col overflow-hidden pt-0 lg:pt-4">
     <div class="mx-4 text-3xl">{$translate('page.resources.header.value')}</div>
-    <div class="flex flex-shrink-0 flex-row space-x-2 overflow-x-auto px-4 py-2">
+    <div class="flex shrink-0 flex-row space-x-2 overflow-x-auto px-4 py-2">
         <Select
             appInsightsEventName="resources-languages-filter-selection"
             bind:value={languageId}
             isNumber={true}
-            class="select select-bordered min-w-[8rem] flex-grow"
+            class="select select-bordered min-w-[8rem] grow"
             options={[
                 { value: 0, label: $translate('page.resources.dropdowns.allLanguages.value') },
                 ...data.languages.map((l) => ({ value: l.id, label: l.englishDisplay })),
@@ -120,7 +120,7 @@
             appInsightsEventName="resources-resources-filter-selection"
             bind:value={parentResourceId}
             isNumber={true}
-            class="select select-bordered min-w-[10rem] flex-grow"
+            class="select select-bordered min-w-[10rem] grow"
             options={[
                 { value: 0, label: $translate('page.resources.dropdowns.allResources.value') },
                 ...data.parentResources.map((t) => ({ value: t.id, label: t.displayName })),
@@ -128,7 +128,7 @@
         />
         <Select
             appInsightsEventName="resources-book-filter-selection"
-            class="select select-bordered min-w-[9rem] flex-grow"
+            class="select select-bordered min-w-[9rem] grow"
             options={[
                 { value: null, label: 'Select Book' },
                 ...(bibleBooks || []).map((b) => ({ value: b.code, label: b.localizedName })),
@@ -143,26 +143,26 @@
             class="input input-bordered input-md w-[11rem]"
             placeholder="Chapter (e.g. 2, 1-5)"
         />
-        <div class="flex flex-col space-y-2">
-            <div class="form-control">
-                <label class="label cursor-pointer py-0">
+        <div class="flex flex-col items-start">
+            <div class="form-control mb-[4px] w-full">
+                <label class="label flex w-full cursor-pointer justify-between py-0">
                     <span class="label-text text-xs">Published</span>
                     <input
                         disabled={!unpublishedChecked}
                         type="checkbox"
                         bind:checked={publishedChecked}
-                        class="checkbox no-animation checkbox-sm ms-2"
+                        class="checkbox no-animation checkbox-sm ms-2 h-[18px] w-[18px]"
                     />
                 </label>
             </div>
-            <div class="form-control">
-                <label class="label cursor-pointer py-0">
+            <div class="form-control w-full">
+                <label class="label flex w-full cursor-pointer justify-between py-0">
                     <span class="label-text text-xs">Unpublished</span>
                     <input
                         disabled={!publishedChecked}
                         type="checkbox"
                         bind:checked={unpublishedChecked}
-                        class="checkbox no-animation checkbox-sm ms-2"
+                        class="checkbox no-animation checkbox-sm ms-2 h-[18px] w-[18px]"
                     />
                 </label>
             </div>
@@ -170,7 +170,7 @@
         <input
             bind:value={searchInputValue}
             use:enterKeyHandler={applyFilters}
-            class="input input-bordered input-md min-w-[8rem] flex-grow"
+            class="input input-bordered input-md min-w-[8rem] grow"
             placeholder={$translate('page.resources.searchBox.value')}
         />
         <button class="btn btn-primary" disabled={!canApplyFilters} onclick={applyFilters}>Apply</button>
@@ -183,9 +183,9 @@
             class="mx-4 flex-1 overflow-auto rounded-md border-[1px]
                 {resourceContentsOrNull?.resourceContents.length ? 'rounded-b-none' : 'mb-4'}"
         >
-            <table class="table table-pin-rows">
+            <table class="table-pin-rows table">
                 <thead>
-                    <tr class="bg-gray-100">
+                    <tr class="bg-base-200">
                         <th class="w-[30%]">{$translate('page.resources.table.nameHeader.value')}</th>
                         <th class="w-[20%]">{$translate('page.resources.table.typeHeader.value')}</th>
                         <th class="w-[5%]"></th>
@@ -224,7 +224,7 @@
             </table>
         </div>
         {#if resourceContentsOrNull}
-            <div class="mx-4 mb-2 grid grid-cols-3 rounded-md rounded-t-none border-[1px] border-t-0 bg-base-200 p-2">
+            <div class="bg-base-200 mx-4 mb-2 grid grid-cols-3 rounded-md rounded-t-none border-[1px] border-t-0 p-2">
                 <button
                     class="btn btn-outline self-center justify-self-start"
                     class:btn-disabled={$searchParams.page === 1}
@@ -232,7 +232,7 @@
                     >{$translate('page.resources.table.navigation.previous.value')}</button
                 >
                 <div class="grid place-self-center">
-                    <div class="mb-2">
+                    <div class="mx-auto mb-2 flex">
                         {$translate('page.resources.table.navigation.pageNumber.value', {
                             values: {
                                 currentPage: $searchParams.page,
@@ -243,7 +243,7 @@
                     <select
                         bind:value={$resourcesPerPage}
                         onchange={() => invalidateAll()}
-                        class="select select-bordered select-ghost select-xs"
+                        class="select select-bordered select-xs"
                     >
                         {#each [10, 50, 100] as count, i (i)}
                             <option value={count} selected={i === 0}>

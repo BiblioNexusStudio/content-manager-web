@@ -95,7 +95,7 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
     bind:this={parentDiv}
-    class="rounded-md border-2 {thread.resolved && 'bg-gray-100'}"
+    class="rounded-md border-2 {thread.resolved && 'bg-base-200'}"
     onclick={() => focusParent(false)}
 >
     <CommentThread componentSource="sidebar" {commentStores} threadId={thread.id} bind:isCommenting {parentDiv} />
