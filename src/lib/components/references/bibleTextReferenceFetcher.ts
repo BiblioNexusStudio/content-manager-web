@@ -127,6 +127,8 @@ export const fetchAndFormat = async (
                 },
                 true
             );
+
+            bookTexts[0]!.chapters[0]!.verses[0]!.number = verseMapping.targetVerse.verse;
         } else {
             verseDisplayName = generateSingleVerseDisplayName(
                 {
@@ -169,6 +171,14 @@ export const fetchAndFormat = async (
 
             const hasDifferentMapping = !!(startVerseMapping || endVerseMapping) || passageHasDifferentBaseMappings;
             verseDisplayName = generateVerseRangeDisplayName(rangeData, hasDifferentMapping);
+
+            if (startVerseMapping) {
+                passageStart.chapters[0]!.verses[0]!.number = startVerseMapping.targetVerse.verse;
+            }
+
+            if (endVerseMapping) {
+                passageEnd.chapters.at(-1)!.verses.at(-1)!.number = endVerseMapping.targetVerse.verse;
+            }
         } else {
             if (versificationMappings && versificationMappings.length > 0) {
                 const hasMultipleVerses = startVerse !== endVerse;
