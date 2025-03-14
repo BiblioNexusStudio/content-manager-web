@@ -301,7 +301,7 @@
         {/if}
     {/each}
     {#if isCommenting && !editingCommentId}
-        <div class="flex flex-col">
+        <div class="bg-base-100 flex flex-col">
             <div class="mx-2">
                 {#if isNewThread}
                     <div class="my-2">Create comment</div>

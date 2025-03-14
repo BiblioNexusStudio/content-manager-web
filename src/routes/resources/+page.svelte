@@ -185,7 +185,7 @@
         >
             <table class="table-pin-rows table">
                 <thead>
-                    <tr class="bg-gray-100">
+                    <tr class="bg-base-200">
                         <th class="w-[30%]">{$translate('page.resources.table.nameHeader.value')}</th>
                         <th class="w-[20%]">{$translate('page.resources.table.typeHeader.value')}</th>
                         <th class="w-[5%]"></th>

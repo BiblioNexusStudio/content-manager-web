@@ -39,9 +39,9 @@
 </script>
 
 <div class="flex w-full flex-col {ClassName}">
-    <div class="flex h-4 w-full flex-row border border-black">
+    <div class="border-base-content flex h-4 w-full flex-row border">
         <div
-            class="tooltip tooltip-info bg-neutral"
+            class="tooltip tooltip-info bg-base-content"
             data-tip={getTooltipText(completeWidth)}
             style={`width: ${completeWidth}%`}
         ></div>
@@ -51,17 +51,17 @@
             style={`width: ${inPublisherReviewWidth}%`}
         ></div>
         <div
-            class="tooltip tooltip-info bg-primary bg-opacity-60"
+            class="tooltip tooltip-info bg-primary opacity-60"
             data-tip={getTooltipText(inCompanyReviewWidth)}
             style={`width: ${inCompanyReviewWidth}%`}
         ></div>
         <div
-            class="tooltip tooltip-info bg-primary bg-opacity-25"
+            class="tooltip tooltip-info bg-primary opacity-25"
             data-tip={getTooltipText(editorReviewWidth)}
             style={`width: ${editorReviewWidth}%`}
         ></div>
         <div
-            class="tooltip tooltip-info bg-white"
+            class="tooltip tooltip-info bg-base-100"
             data-tip={getTooltipText(notStartedWidth)}
             style={`width: ${notStartedWidth}%`}
         ></div>
@@ -70,24 +70,24 @@
     {#if showLegend}
         <div class="mt-2 flex w-fit flex-row justify-between space-x-2 text-xs">
             <div class="flex flex-row space-x-1">
-                <div class="bg-opacity-30 h-4 w-5 border border-black bg-white"></div>
-                <div>AI Draft</div>
+                <div class="bg-base-content border-base-content h-4 w-5 border"></div>
+                <div>Complete</div>
             </div>
             <div class="flex flex-row space-x-1">
-                <div class="bg-primary bg-opacity-25 h-4 w-5 border border-black"></div>
-                <div>Editor Review</div>
-            </div>
-            <div class="flex flex-row space-x-1">
-                <div class="bg-primary bg-opacity-60 h-4 w-5 border border-black"></div>
-                <div>Company Review</div>
-            </div>
-            <div class="flex flex-row space-x-1">
-                <div class="bg-primary h-4 w-5 border border-black"></div>
+                <div class="bg-primary border-base-content h-4 w-5 border"></div>
                 <div>Publisher Review</div>
             </div>
             <div class="flex flex-row space-x-1">
-                <div class="bg-neutral h-4 w-5 border border-black"></div>
-                <div>Complete</div>
+                <div class="bg-primary border-base-content h-4 w-5 border opacity-60"></div>
+                <div>Company Review</div>
+            </div>
+            <div class="flex flex-row space-x-1">
+                <div class="bg-primary border-base-content h-4 w-5 border opacity-25"></div>
+                <div>Editor Review</div>
+            </div>
+            <div class="flex flex-row space-x-1">
+                <div class="bg-base-100 border-base-content h-4 w-5 border opacity-30"></div>
+                <div>AI Draft</div>
             </div>
         </div>
     {/if}
