@@ -126,7 +126,7 @@
                 class="select select-bordered max-w-[14rem] flex-grow"
                 value=""
                 onChange={(slug) => {
-                    window.open(`/reporting/${slug}`, '_blank');
+                    window.open(`/reporting/reports/${slug}`, '_blank');
                     return false;
                 }}
                 isNumber={false}

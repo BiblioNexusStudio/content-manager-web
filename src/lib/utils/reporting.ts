@@ -11,44 +11,44 @@ export const reportingUiLinks = {
         {
             reportTitle: 'Aquiferization Progress Tracking',
             reportDescription: 'Line chart tracking monthly Aquiferization starts and completions',
-            reportLink: '/reporting/monthly-aquiferizations',
+            reportLink: '/reporting/reports/monthly-aquiferizations',
         },
         {
             reportTitle: 'Daily Resource Item Downloads',
             reportDescription: 'Bar chart showing daily Resource Item downloads',
-            reportLink: '/reporting/daily-resource-item-requests',
+            reportLink: '/reporting/reports/daily-resource-item-requests',
         },
         {
             reportTitle: 'Recently Edited Resource Items',
             reportDescription: 'List of Resource Items edited in the last 30 days',
-            reportLink: '/reporting/edited-last-thirty-days',
+            reportLink: '/reporting/reports/edited-last-thirty-days',
         },
         {
             reportTitle: 'Translation Progress Tracking',
             reportDescription: 'Line chart tracking monthly Translation starts and completions',
-            reportLink: '/reporting/monthly-translations',
+            reportLink: '/reporting/reports/monthly-translations',
         },
         {
             reportTitle: 'Resource Items Downloaded',
             reportDescription: 'List of the most downloaded items for the last 30 days',
-            reportLink: '/reporting/most-requested-resources',
+            reportLink: '/reporting/reports/most-requested-resources',
         },
     ],
     projects: [
         {
             reportTitle: 'Monthly Translation by Company',
             reportDescription: 'Count of translated items & words',
-            reportLink: '/reporting/translated-items-and-words-by-company',
+            reportLink: '/reporting/reports/translated-items-and-words-by-company',
         },
         {
             reportTitle: 'Recently Active Users',
             reportDescription: 'Aquifer Admin Project users active in the last month',
-            reportLink: '/reporting/recently-active-users',
+            reportLink: '/reporting/reports/recently-active-users',
         },
         {
             reportTitle: 'Resource Types Published by Language',
             reportDescription: 'Count of items published in each language',
-            reportLink: '/reporting/published-items-and-words-by-language',
+            reportLink: '/reporting/reports/published-items-and-words-by-language',
         },
     ],
 };
