@@ -39,7 +39,7 @@ export const fetchAndFormat = async (
 ): Promise<BibleTextsReference | null> => {
     const [bookTexts, versificationMappings] = await Promise.all([
         fetchBiblePassages(startVerse, endVerse, language.id, passedBibleId),
-        fetchBibleVersification(startVerse, endVerse, passedBibleId),
+        fetchBibleVersification(startVerse, endVerse, language.id, passedBibleId),
     ]);
 
     if (!bookTexts || bookTexts.length === 0) {
