@@ -13,6 +13,7 @@ export interface VerseMapping {
     targetVerse: VerseReference;
 }
 
+// returns null if an error occurs, [] if no mappings are found (passage perfectly aligned)
 export async function fetchBibleVersification(
     startVerseId: number,
     endVerseId: number,
@@ -38,9 +39,7 @@ export async function fetchBibleVersification(
             const response = await getFromApi<VersificationResponse>(`/bibles/${bibleId}/versification?bookId=${i}`);
             if (response.verseMappings && response.verseMappings.length > 0) {
                 for (const mapping of response.verseMappings) {
-                    if (mapping.targetVerse) {
-                        allMappings.push(mapping);
-                    }
+                    allMappings.push(mapping);
                 }
             }
         }

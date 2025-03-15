@@ -4,7 +4,7 @@ export interface Verse {
     verse: number;
 }
 
-export function parseVerseId(verseId: number) {
+export function parseVerseId(verseId: number): Verse {
     const verseString = verseId.toString();
     return {
         bookId: Number(verseString.substring(1, 4)),
