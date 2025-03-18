@@ -147,19 +147,19 @@
             placeholder="Chapter (e.g. 2, 1-5)"
         />
         <div class="flex flex-col space-y-2">
-            <div class="form-control">
+            <div class="form-control flex justify-between">
                 <label class="label cursor-pointer py-0">
                     <span class="label-text text-xs">Show Only Published</span>
-                    <input type="checkbox" bind:checked={isPublished} class="checkbox no-animation checkbox-sm ms-2" />
+                    <input type="checkbox" bind:checked={isPublished} class="checkbox no-animation checkbox-xs ms-2" />
                 </label>
             </div>
-            <div class="form-control">
-                <label class="label cursor-pointer py-0">
+            <div class="form-control flex w-full justify-between">
+                <label class="label flex w-full cursor-pointer justify-between py-0">
                     <span class="label-text text-xs">Show Only N/A</span>
                     <input
                         type="checkbox"
                         bind:checked={isNotApplicable}
-                        class="checkbox no-animation checkbox-sm ms-2"
+                        class="checkbox no-animation checkbox-xs ms-2"
                     />
                 </label>
             </div>
