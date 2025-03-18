@@ -1,15 +1,15 @@
-import type { PageLoad } from './$types';
-import { getFromApi } from '$lib/utils/http-service';
-import { Permission, userCan } from '$lib/stores/auth';
-import { get } from 'svelte/store';
-import type { BibleBook, ResourceContentStatusEnum } from '$lib/types/base';
-import { redirect } from '@sveltejs/kit';
-import type { ProjectResourceStatusCounts } from '$lib/types/projects';
-import type { ResourceContentVersionReviewLevel } from '$lib/types/resources';
-import type { HelpDocumentResponse } from '$lib/types/helpDocuments';
-import { flattenNotificationsContent } from './notifications-helpers';
+import type {PageLoad} from './$types';
+import {getFromApi} from '$lib/utils/http-service';
+import {Permission, userCan} from '$lib/stores/auth';
+import {get} from 'svelte/store';
+import type {BibleBook, ResourceContentStatusEnum} from '$lib/types/base';
+import {redirect} from '@sveltejs/kit';
+import type {ProjectResourceStatusCounts} from '$lib/types/projects';
+import type {ResourceContentVersionReviewLevel} from '$lib/types/resources';
+import type {HelpDocumentResponse} from '$lib/types/helpDocuments';
+import {flattenNotificationsContent} from './notifications-helpers';
 
-export const load: PageLoad = async ({ parent, fetch }) => {
+export const load: PageLoad = async ({parent, fetch}) => {
     await parent();
 
     if (get(userCan)(Permission.ReviewContent) || get(userCan)(Permission.PublishContent)) {
@@ -95,7 +95,7 @@ export const load: PageLoad = async ({ parent, fetch }) => {
         const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent);
 
         return {
-            editorDashboard: { assignedResourceContent, assignedResourceHistoryContent, flattenedNotificationsContent },
+            editorDashboard: {assignedResourceContent, assignedResourceHistoryContent, flattenedNotificationsContent},
         };
     } else if (get(userCan)(Permission.ReadReports)) {
         redirect(302, '/reporting');
@@ -241,6 +241,7 @@ export interface UserWordCount {
 export interface NotApplicableContent {
     id: number;
     hasAudio: boolean;
+    notApplicableReason: string;
     language: string;
     parentResourceName: string;
     title: string;
