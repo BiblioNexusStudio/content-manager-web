@@ -1,15 +1,15 @@
-import type {column} from '$lib/types/table';
-import {SortName} from './dashboard-table-sorters';
-import type {NotApplicableContent, Project, ResourceAssignedToSelf, ResourcePendingReview} from './+page';
+import type { column } from '$lib/types/table';
+import { SortName } from './dashboard-table-sorters';
+import type { NotApplicableContent, Project, ResourceAssignedToSelf, ResourcePendingReview } from './+page';
 
 export const assignedContentsColumns: column<ResourceAssignedToSelf>[] = [
-    {text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title},
-    {text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined},
-    {text: '', itemKey: 'hasAudio', sortKey: undefined},
-    {text: 'Language', itemKey: 'languageEnglishDisplay', sortKey: SortName.Language},
-    {text: 'Project', itemKey: 'projectName', sortKey: undefined},
-    {text: 'Status', itemKey: 'statusDisplayName', sortKey: undefined},
-    {text: 'Last Edit (Days)', itemKey: 'daysSinceContentUpdated', sortKey: undefined},
+    { text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title },
+    { text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined },
+    { text: '', itemKey: 'hasAudio', sortKey: undefined },
+    { text: 'Language', itemKey: 'languageEnglishDisplay', sortKey: SortName.Language },
+    { text: 'Project', itemKey: 'projectName', sortKey: undefined },
+    { text: 'Status', itemKey: 'statusDisplayName', sortKey: undefined },
+    { text: 'Last Edit (Days)', itemKey: 'daysSinceContentUpdated', sortKey: undefined },
     {
         text: 'Days Assigned',
         itemKey: 'daysSinceAssignment',
@@ -23,12 +23,12 @@ export const assignedContentsColumns: column<ResourceAssignedToSelf>[] = [
 ];
 
 export const reviewPendingContentsColumns: column<ResourcePendingReview>[] = [
-    {text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title},
-    {text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined},
-    {text: '', itemKey: 'hasAudio', sortKey: undefined},
-    {text: 'Language', itemKey: 'languageEnglishDisplay', sortKey: SortName.Language},
-    {text: 'Project', itemKey: 'projectName', sortKey: undefined},
-    {text: 'Last Edit (Days)', itemKey: 'daysSinceContentUpdated', sortKey: undefined},
+    { text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title },
+    { text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined },
+    { text: '', itemKey: 'hasAudio', sortKey: undefined },
+    { text: 'Language', itemKey: 'languageEnglishDisplay', sortKey: SortName.Language },
+    { text: 'Project', itemKey: 'projectName', sortKey: undefined },
+    { text: 'Last Edit (Days)', itemKey: 'daysSinceContentUpdated', sortKey: undefined },
     {
         text: 'Days Pending',
         itemKey: 'daysSinceStatusChange',
@@ -42,19 +42,19 @@ export const reviewPendingContentsColumns: column<ResourcePendingReview>[] = [
 ];
 
 export const projectColumns: column<Project>[] = [
-    {text: 'Title', itemKey: 'name', sortKey: undefined},
-    {text: 'Company', itemKey: 'company', sortKey: undefined},
-    {text: 'Language', itemKey: 'language', sortKey: undefined},
-    {text: 'Days', itemKey: 'days', sortKey: SortName.Days},
-    {text: 'Progress', sortKey: undefined},
+    { text: 'Title', itemKey: 'name', sortKey: undefined },
+    { text: 'Company', itemKey: 'company', sortKey: undefined },
+    { text: 'Language', itemKey: 'language', sortKey: undefined },
+    { text: 'Days', itemKey: 'days', sortKey: SortName.Days },
+    { text: 'Progress', sortKey: undefined },
 ];
 
 export const communityPendingContentsColumns: column<ResourcePendingReview>[] = [
-    {text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title},
-    {text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined},
-    {text: '', itemKey: 'hasAudio', sortKey: undefined},
-    {text: 'Language', itemKey: 'languageEnglishDisplay', sortKey: SortName.Language},
-    {text: 'Last Edit (Days)', itemKey: 'daysSinceContentUpdated', sortKey: undefined},
+    { text: 'Title', itemKey: 'englishLabel', sortKey: SortName.Title },
+    { text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined },
+    { text: '', itemKey: 'hasAudio', sortKey: undefined },
+    { text: 'Language', itemKey: 'languageEnglishDisplay', sortKey: SortName.Language },
+    { text: 'Last Edit (Days)', itemKey: 'daysSinceContentUpdated', sortKey: undefined },
     {
         text: 'Days Pending',
         itemKey: 'daysSinceStatusChange',
@@ -68,10 +68,10 @@ export const communityPendingContentsColumns: column<ResourcePendingReview>[] = 
 ];
 
 export const notApplicableContentsColumns: column<NotApplicableContent>[] = [
-    {text: 'Title', itemKey: 'title', sortKey: undefined},
-    {text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined},
-    {text: '', itemKey: 'hasAudio', sortKey: undefined},
-    {text: 'Language', itemKey: 'language', sortKey: undefined},
-    {text: 'Project', itemKey: 'projectName', sortKey: undefined},
-    {text: 'Reason', itemKey: 'notApplicableReason', sortKey: undefined},
+    { text: 'Title', itemKey: 'title', sortKey: undefined },
+    { text: 'Resource', itemKey: 'parentResourceName', sortKey: undefined },
+    { text: '', itemKey: 'hasAudio', sortKey: undefined },
+    { text: 'Language', itemKey: 'language', sortKey: undefined },
+    { text: 'Project', itemKey: 'projectName', sortKey: undefined },
+    { text: 'Reason', itemKey: 'notApplicableReason', sortKey: undefined },
 ];
