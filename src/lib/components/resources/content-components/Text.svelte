@@ -117,7 +117,7 @@
 
         {#if sidebarIsOpen && snapshotOrVersion !== undefined}
             <div class="flex h-6 w-full flex-row items-center">
-                <div class="overflow-hidden text-ellipsis whitespace-nowrap text-lg">
+                <div class="overflow-hidden text-lg text-ellipsis whitespace-nowrap">
                     {snapshotOrVersion?.displayName}
                 </div>
                 <div class="grow"></div>

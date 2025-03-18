@@ -18,5 +18,5 @@
     let element: HTMLTextAreaElement;
 </script>
 
-<textarea bind:this={element} bind:value {disabled} class="textarea textarea-bordered my-2 w-full resize-none shadow"
+<textarea bind:this={element} bind:value {disabled} class="textarea textarea-bordered my-2 w-full resize-none shadow-sm"
 ></textarea>

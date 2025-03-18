@@ -9,7 +9,7 @@
 
 <Tooltip
     position={{ right: '2rem', top: '0.25rem' }}
-    class="flex border-primary align-middle text-primary"
+    class="border-primary text-primary flex align-middle"
     text="{tooltipStr} Scroll Lock"
 >
     <button onclick={scrollSync.toggle} class="btn mt-1 h-auto min-h-0 p-1" class:btn-primary={scrollSync.isEnabled()}>

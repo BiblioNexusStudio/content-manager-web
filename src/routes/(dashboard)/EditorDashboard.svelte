@@ -232,7 +232,7 @@
 <div class="flex flex-col overflow-y-hidden px-4">
     <h1 class="pt-4 text-3xl">Dashboard</h1>
     <div class="flex flex-row items-center pt-4">
-        <div role="tablist" class="tabs tabs-bordered w-fit">
+        <div role="tablist" class="tabs tabs-lift w-fit">
             <button
                 onclick={() => switchTabs(Tab.myWork)}
                 role="tab"
@@ -254,18 +254,22 @@
     </div>
     <div class="mt-4 flex gap-4">
         {#if $searchParams.tab !== Tab.notifications}
-            <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
+            <input
+                class="input input-bordered max-w-xs focus:outline-hidden"
+                bind:value={search}
+                placeholder="Search"
+            />
         {/if}
         {#if $searchParams.tab === Tab.myWork}
             <Select
-                class="select select-bordered max-w-[14rem] flex-grow"
+                class="select select-bordered max-w-[14rem] grow"
                 bind:value={$searchParams.project}
                 options={[
                     { value: '', label: 'Project' },
                     ...projectNamesForContents(myWorkContents).map((p) => ({ value: p, label: p })),
                 ]}
             />
-            <label class="label cursor-pointer py-0 opacity-70">
+            <label class="label max-h-[40px] cursor-pointer py-0 opacity-70">
                 <input
                     type="checkbox"
                     bind:checked={$searchParams.isFilteringUnresolved}
@@ -274,7 +278,7 @@
                         : 'on'}"
                     class="checkbox no-animation checkbox-sm me-2"
                 />
-                <span class="label-text text-xs">Has Unresolved Comments</span>
+                <span class="label-text text-xs text-wrap">Has Unresolved Comments</span>
             </label>
         {/if}
         {#if $searchParams.tab === Tab.myWork}
@@ -320,8 +324,8 @@
         {/if}
         {#if $searchParams.tab === Tab.myWork}
             <div class="my-1 ml-auto flex flex-col items-end justify-center">
-                <div class="text-sm text-gray-500">Total Items: {visibleMyWorkContents.length}</div>
-                <div class="text-sm text-gray-500">
+                <div class="text-end text-sm text-gray-500">Total Items: {visibleMyWorkContents.length}</div>
+                <div class="text-end text-sm text-gray-500">
                     Total Source Words: {visibleMyWorkContents
                         .reduce((sum, x) => sum + (x?.wordCount ?? 0), 0)
                         .toLocaleString()}

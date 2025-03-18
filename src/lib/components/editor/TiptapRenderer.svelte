@@ -8,6 +8,7 @@
     import type { Language } from '$lib/types/base';
     import { createEditor } from './createEditor';
     import type { Readable } from 'svelte/store';
+    import { darkMode } from '$lib/stores/app';
 
     interface TipTapRenderProps {
         language: Language;
@@ -67,7 +68,7 @@
             extensions: extensions(canComment, commentStores, true, language.scriptDirection, isSourceContentArea),
             editorProps: {
                 attributes: {
-                    class: 'prose prose-sm sm:prose-base focus:outline-none text-black m-4 max-w-none',
+                    class: `prose prose-sm sm:prose-base focus:outline-hidden max-w-none ${$darkMode ? 'text-content p-4' : 'text-black m-4'}`,
                 },
             },
             content: tiptapJson?.tiptap,
@@ -102,19 +103,19 @@
 <div class="relative grow">
     <div
         use:scrollSync
-        class="absolute bottom-0 left-0 right-0 top-0 overflow-y-auto rounded-md border border-base-300 bg-white"
+        class={`border-base-300 absolute top-0 right-0 bottom-0 left-0 overflow-y-auto rounded-md border ${$darkMode ? '' : 'bg-white'}`}
         class:blur-sm={blurOnPendingAiTranslate}
     >
         {#if isLoading}
             <div class="absolute h-full w-full">
-                <div class="loading loading-infinity loading-lg absolute left-1/2 top-1/2 text-primary"></div>
+                <div class="loading loading-infinity loading-lg text-primary absolute top-1/2 left-1/2"></div>
             </div>
         {/if}
         <div dir={language.scriptDirection} bind:this={element} role="presentation" class:blur-sm={isLoading}></div>
     </div>
     {#if blurOnPendingAiTranslate}
         <div
-            class="absolute bottom-0 left-0 right-0 top-0 flex flex-col items-center bg-white bg-opacity-75 py-16 text-xl font-semibold text-primary"
+            class="text-primary bg-base-100/75 absolute top-0 right-0 bottom-0 left-0 flex flex-col items-center py-16 text-xl font-semibold"
         >
             <h1 class="mb-4">
                 AI {language.iso6393Code.toLowerCase() === 'eng' ? 'Aquiferization' : 'Translation'} in progress.

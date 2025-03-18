@@ -22,6 +22,8 @@
     import type { LayoutData } from './$types';
     import QuestionMarkIcon from '$lib/icons/QuestionMarkIcon.svelte';
     import Tooltip from '$lib/components/Tooltip.svelte';
+    import { darkMode } from '$lib/stores/app';
+    import LightModeDarkMode from '$lib/components/LightModeDarkMode.svelte';
 
     interface Props {
         data: LayoutData;
@@ -32,8 +34,15 @@
 
     let userFullName = $derived($profile?.name ?? ' '); // set to avoid flashing undefined
 
+    $effect.pre(() => {
+        let userTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        if (userTheme === 'dark') {
+            $darkMode = true;
+        }
+    });
     $effect(() => log.pageView($page.route.id ?? ''));
     $effect(() => syncToClarity($page.route.id ?? '', $currentUser));
+    $effect(() => setDarkModeOnRootHtmlElement($darkMode));
     setContext('parentResources', () => data.parentResources);
     let userHasCompanyLanguages = $derived($currentUser !== null && $currentUser.company.languageIds.length > 0);
 
@@ -129,6 +138,14 @@
         }
     }
 
+    function setDarkModeOnRootHtmlElement(darkMode: boolean) {
+        if (darkMode) {
+            document.documentElement.setAttribute('data-theme', 'night');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'cmyk');
+        }
+    }
+
     onMount(() => {
         window.dispatchEvent(new Event('svelte-app-loaded')); // tell the app.html to show the page
     });
@@ -160,14 +177,14 @@
     {@render children()}
 {:else}
     <div class="h-full">
-        <div class="flex h-[39px] place-items-center bg-neutral px-4">
+        <div class="bg-neutral flex h-[39px] place-items-center px-4">
             <div class="dropdown-start dropdown dropdown-bottom">
                 <div tabindex="0" role="button" class="btn btn-link btn-xs m-1 text-white"><MenuIcon /></div>
                 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
                 <ul
                     bind:this={menuElement}
                     tabindex="0"
-                    class="dropdown-content z-50 min-w-[250px] space-y-2 rounded-sm bg-neutral p-2 text-neutral-100 shadow"
+                    class="dropdown-content bg-neutral z-50 min-w-[250px] space-y-2 rounded-xs p-2 text-neutral-100 shadow-sm"
                 >
                     {#each sidebarNavigation as navItem (navItem.href)}
                         {#if !navItem.hidden}
@@ -205,18 +222,22 @@
                 </ul>
             </div>
             <div class="m-2 w-16"><a href="/"><img src={AquiferLogo} alt="Aquifer" /></a></div>
-            {#if !$userCan(Permission.CreateCommunityContent)}
-                <div class="ml-auto">
-                    <Tooltip position={{ right: '3rem', top: '0.25rem' }} class="ml-auto" text="Help">
+
+            <div class="ml-auto flex items-center">
+                <div class="me-2 flex h-full w-auto items-center">
+                    <LightModeDarkMode />
+                </div>
+                {#if !$userCan(Permission.CreateCommunityContent)}
+                    <Tooltip position={{ right: '3rem', top: '0.25rem' }} class="ms-2 ml-auto" text="Help">
                         <a
                             href="/help"
-                            class="btn btn-neutral btn-xs m-1 border border-neutral-300 hover:border-primary hover:text-primary"
+                            class="btn btn-neutral btn-xs hover:border-primary hover:text-primary m-1 ms-2 border border-neutral-300"
                         >
                             <QuestionMarkIcon />
                         </a>
                     </Tooltip>
-                </div>
-            {/if}
+                {/if}
+            </div>
         </div>
 
         {#if $navigating && !isCustomTransitionNavigation($navigating)}

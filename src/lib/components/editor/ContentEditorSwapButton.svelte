@@ -6,7 +6,7 @@
 
 <Tooltip
     position={{ right: '2rem', top: '0.25rem' }}
-    class="flex border-primary align-middle text-primary"
+    class="border-primary text-primary flex align-middle"
     text="Swap Editor Panes"
 >
     <button onclick={() => ($isEditorPaneOnLeft = !$isEditorPaneOnLeft)} class="btn mt-1 h-auto min-h-0 p-1">
