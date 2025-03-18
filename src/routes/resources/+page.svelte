@@ -33,9 +33,8 @@
     let languageId = $state($searchParams.languageId);
     let parentResourceId = $state($searchParams.resourceId);
     let bookCode = $state($searchParams.bookCode === '' ? null : $searchParams.bookCode);
-    let isPublished = $state($searchParams.isPublished === '' ? null : $searchParams.isPublished);
-    let publishedChecked = $state(isPublished === null || isPublished === 'true');
-    let unpublishedChecked = $state(isPublished === null || isPublished === 'false');
+    let isNotApplicable = $state($searchParams.isNotApplicable === 'true' ? true : false);
+    let isPublished = $state($searchParams.isPublished === 'true' ? true : false);
 
     let chapterRange = $state('');
     $effect(() => calculateChapterRange(bibleBooks));
@@ -51,15 +50,17 @@
             parentResourceId > 0 ||
             !!bookCode ||
             !!chapterRange ||
-            !publishedChecked ||
-            !unpublishedChecked) &&
+            isNotApplicable ||
+            isPublished) &&
             !invalidChapterRange
     );
 
     function applyFilters() {
         if (canApplyFilters) {
-            const newIsPublished = !publishedChecked ? 'false' : !unpublishedChecked ? 'true' : '';
+            const newIsNotApplicable = isNotApplicable ? 'true' : '';
+            const newIsPublished = isPublished ? 'true' : '';
             const newBookCode = bookCode || '';
+
             if (
                 $searchParams.query !== searchInputValue ||
                 $searchParams.languageId !== languageId ||
@@ -67,6 +68,7 @@
                 $searchParams.bookCode !== newBookCode ||
                 $searchParams.startChapter !== parsedRange.start ||
                 $searchParams.endChapter !== parsedRange.end ||
+                $searchParams.isNotApplicable !== newIsNotApplicable ||
                 $searchParams.isPublished !== newIsPublished
             ) {
                 $searchParams.page = 1;
@@ -76,6 +78,7 @@
                 $searchParams.bookCode = newBookCode;
                 $searchParams.startChapter = parsedRange.start;
                 $searchParams.endChapter = parsedRange.end;
+                $searchParams.isNotApplicable = newIsNotApplicable;
                 $searchParams.isPublished = newIsPublished;
             }
         }
@@ -146,22 +149,16 @@
         <div class="flex flex-col space-y-2">
             <div class="form-control">
                 <label class="label cursor-pointer py-0">
-                    <span class="label-text text-xs">Published</span>
-                    <input
-                        disabled={!unpublishedChecked}
-                        type="checkbox"
-                        bind:checked={publishedChecked}
-                        class="checkbox no-animation checkbox-sm ms-2"
-                    />
+                    <span class="label-text text-xs">Show Only Published</span>
+                    <input type="checkbox" bind:checked={isPublished} class="checkbox no-animation checkbox-sm ms-2" />
                 </label>
             </div>
             <div class="form-control">
                 <label class="label cursor-pointer py-0">
-                    <span class="label-text text-xs">Unpublished</span>
+                    <span class="label-text text-xs">Show Only N/A</span>
                     <input
-                        disabled={!publishedChecked}
                         type="checkbox"
-                        bind:checked={unpublishedChecked}
+                        bind:checked={isNotApplicable}
                         class="checkbox no-animation checkbox-sm ms-2"
                     />
                 </label>
