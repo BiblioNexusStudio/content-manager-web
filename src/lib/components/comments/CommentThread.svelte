@@ -236,11 +236,7 @@
                     <div class="text-xs">{formatUtcToLocalTimeAndDate(comment.dateTime)}</div>
                 </div>
                 {#if i === 0 && !isCommenting && !activeThread.resolved}
-                    <Tooltip
-                        position={{ right: '2rem' }}
-                        class="border-primary text-primary"
-                        text="Mark Resolved and Hide"
-                    >
+                    <Tooltip position={{ right: '2rem' }} text="Mark Resolved and Hide">
                         <button
                             data-app-insights-event-name="{componentSource}-comment-resolve-click"
                             class="text-primary me-1"

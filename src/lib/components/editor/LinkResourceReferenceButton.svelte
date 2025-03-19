@@ -204,11 +204,7 @@
     }
 </script>
 
-<Tooltip
-    position={{ left: '2rem', bottom: '0.2rem' }}
-    class="border-primary text-primary flex align-middle"
-    text="Associate Resource Item"
->
+<Tooltip position={{ left: '2rem', bottom: '0.2rem' }} class="flex align-middle" text="Associate Resource Item">
     <button
         data-app-insights-event-name="editor-toolbar-resource-reference-click"
         class="btn btn-xs px-1 {disabled && 'bg-base-200!'} btn-link hover:bg-[#e6f7fc]"

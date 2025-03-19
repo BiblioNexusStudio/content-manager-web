@@ -934,8 +934,7 @@
                         <div class="flex flex-wrap justify-end">
                             {#if canSetStatusTransitionNotApplicable}
                                 <Tooltip
-                                    position={{ right: '8.5rem', top: '0.25rem' }}
-                                    class="border-[#485467] text-[#485467]"
+                                    position={{ right: '7.5rem', top: '0.25rem' }}
                                     text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+N`}
                                 >
                                     <button
@@ -959,10 +958,9 @@
                             {#if canSendForEditorReview || inPublisherReviewAndCanSendBack}
                                 <Tooltip
                                     position={{
-                                        right: `${canSendForEditorReview ? '7.2rem' : '6.5rem'}`,
+                                        right: `${canSendForEditorReview ? '6.2rem' : '6.5rem'}`,
                                         top: '0.25rem',
                                     }}
-                                    class="border-[#485467] text-[#485467]"
                                     text={canSendForEditorReview ? `CTRL+${isMacOS ? 'CMD' : 'ALT'}+A` : ''}
                                 >
                                     <button
@@ -990,10 +988,9 @@
                             {#if canAssignPublisherForReview}
                                 <Tooltip
                                     position={{
-                                        right: `${canSendForEditorReview ? '7.2rem' : '6.5rem'}`,
+                                        right: `${canSendForEditorReview ? '7.2rem' : '4.5rem'}`,
                                         top: '0.25rem',
                                     }}
-                                    class="border-[#485467] text-[#485467]"
                                     text={isInReview ? `CTRL+${isMacOS ? 'CMD' : 'ALT'}+A` : ''}
                                 >
                                     <button
@@ -1023,8 +1020,7 @@
                             {/if}
                             {#if canSendForCompanyReview}
                                 <Tooltip
-                                    position={{ right: '8.5rem', top: '0.25rem' }}
-                                    class="border-[#485467] text-[#485467]"
+                                    position={{ right: '7.5rem', top: '0.25rem' }}
                                     text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+S`}
                                 >
                                     <button
@@ -1042,8 +1038,7 @@
                             {/if}
                             {#if canSendForPublisherReview}
                                 <Tooltip
-                                    position={{ right: '9.5rem', top: '0.25rem' }}
-                                    class="border-[#485467] text-[#485467]"
+                                    position={{ right: '8.5rem', top: '0.25rem' }}
                                     text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+S`}
                                 >
                                     <button
