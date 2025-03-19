@@ -3,20 +3,21 @@
     import Content from '$lib/components/resources/Content.svelte';
     import { beforeNavigate, goto } from '$app/navigation';
     import {
+        type Assignment,
         type ContentTranslation,
         MediaTypeEnum,
-        type ResourceContent,
-        type TiptapContentItem,
-        type ResourceContentNextUpInfo,
-        type ResourceContentCurrentStatusId,
         OpenedSupplementalSideBar,
-        type Assignment,
+        type ResourceContent,
+        type ResourceContentCurrentStatusId,
+        type ResourceContentNextUpInfo,
         ResourceContentVersionReviewLevel,
+        type TiptapContentItem,
     } from '$lib/types/resources';
     import { getFromApi, patchToApi, postToApi } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import UserSelector from './UserSelector.svelte';
+    import NotApplicableReasonSelector from './NotApplicableReasonSelector.svelte';
     import {
         currentUser,
         isAuthenticatedStore,
@@ -59,7 +60,7 @@
     import VersionStatusHistorySidebar from './VersionStatusHistorySidebar.svelte';
     import ResourcePopout from '$lib/components/editorMarkPopouts/ResourcePopout.svelte';
     import type { User } from '@auth0/auth0-spa-js';
-    import { bindKeyCombo, bindKey, unbindKeyCombo, unbindKey } from '@rwh/keystrokes';
+    import { bindKey, bindKeyCombo, unbindKey, unbindKeyCombo } from '@rwh/keystrokes';
     import Tooltip from '$lib/components/Tooltip.svelte';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
 
@@ -86,6 +87,7 @@
     // --- declare reactive content states ---
     let shouldTransition = $state(false);
     let assignToUserId: number | null = $state(null);
+    let selectedNotApplicableReason: string | null = $state(null);
     let selectedStepNumber: number | undefined = $state();
     let newTranslationLanguageId: number | null = $state(null); // only community users, only when they click 'translate'
 
@@ -835,7 +837,10 @@
         $isPageTransacting = true;
 
         await takeActionAndCallback(
-            async () => await postToApi(`/resources/content/${resourceContent.resourceContentId}/not-applicable`),
+            async () =>
+                await postToApi(
+                    `/resources/content/${resourceContent.resourceContentId}/not-applicable?notApplicableReason=${selectedNotApplicableReason}`
+                ),
             async () => {
                 if (!$userCan(Permission.SetStatusCompleteNotApplicable)) {
                     await goto(`/`);
@@ -941,7 +946,7 @@
                                     <button
                                         class="btn btn-primary btn-sm ms-2"
                                         disabled={$isPageTransacting}
-                                        onclick={handleNotApplicable}
+                                        onclick={() => (isNotApplicableModalOpen = true)}
                                     >
                                         Not Applicable
                                     </button>
@@ -1058,8 +1063,9 @@
                                 <button
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
-                                    onclick={openAquiferizeModal}>Create Draft</button
-                                >
+                                    onclick={openAquiferizeModal}
+                                    >Create Draft
+                                </button>
                             {/if}
                             {#if canCommunityTranslate}
                                 <button
@@ -1386,10 +1392,13 @@
     <Modal
         header="Mark as Not Applicable?"
         bind:open={isNotApplicableModalOpen}
-        primaryButtonText="Yes"
+        primaryButtonText="Submit"
         primaryButtonOnClick={handleNotApplicable}
         primaryButtonId="not-applicable-yes-button"
-    />
+        primaryButtonDisabled={selectedNotApplicableReason === null || $isPageTransacting}
+    >
+        <NotApplicableReasonSelector bind:selectedReason={selectedNotApplicableReason} />
+    </Modal>
 
     <Modal header="Error" isError={true} bind:description={errorModalMessage} />
 {/key}
