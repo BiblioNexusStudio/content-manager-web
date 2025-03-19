@@ -108,7 +108,7 @@
                         <input
                             bind:value={filterBySearch}
                             type="search"
-                            class="max-h-10 min-h-10 w-[320px] rounded-md border-[1px] py-2 ps-5 text-sm text-gray-900 focus:outline-hidden"
+                            class="max-h-10 min-h-10 w-[320px] rounded-md border-[1px] py-2 ps-5 text-sm focus:outline-hidden"
                             placeholder={$translate('page.resources.searchBox.value')}
                         />
                         <button class="btn btn-primary" onclick={openModal}>Add</button>

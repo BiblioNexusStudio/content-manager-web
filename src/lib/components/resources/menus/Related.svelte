@@ -29,7 +29,7 @@
 <div class="dropdown ms-1">
     <button
         tabindex="0"
-        class="btn btn-ghost ms-2 px-1 whitespace-nowrap hover:bg-[#e6f6fc]"
+        class="btn btn-ghost hover:bg-primary hover:text-primary-content ms-2 px-1 whitespace-nowrap"
         data-app-insights-event-name="related-content-menu-click"
     >
         Related Content

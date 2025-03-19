@@ -271,11 +271,7 @@
                     <LinkResourceReferenceButton resourceContentId={resourceContent.resourceContentId} {editor} />
                 {/if}
             {/if}
-            <Tooltip
-                position={{ left: '2rem', bottom: '0.2rem' }}
-                class="border-primary text-primary flex align-middle"
-                text="Add Comment"
-            >
+            <Tooltip position={{ left: '2rem', bottom: '0.2rem' }} class="flex align-middle" text="Add Comment">
                 <button
                     data-app-insights-event-name="editor-toolbar-comment-click"
                     class="btn btn-xs px-1 {commentDisabled && 'bg-base-200!'} {commentOptions.isActive

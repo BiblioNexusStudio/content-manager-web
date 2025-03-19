@@ -29,7 +29,7 @@
             style="top: {position.top ?? 'none'}; left: {position.left ?? 'none'}; bottom: {position.bottom ??
                 'none'}; right:
         {position.right ?? 'none'};"
-            class="tooltip absolute z-99 hidden rounded-xl border-2 bg-white px-2 text-sm font-bold whitespace-nowrap transition peer-hover:flex
+            class="tooltip bg-neutral-content text-neutral border-neutral absolute z-99 hidden rounded-xl border-2 px-2 text-sm font-bold whitespace-nowrap transition peer-hover:flex
         {className ?? ''}"
         >
             {#if secondLineText}

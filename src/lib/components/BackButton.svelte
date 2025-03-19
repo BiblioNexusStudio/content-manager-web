@@ -15,6 +15,6 @@
 
 <button
     data-app-insights-event-name="back-arrow-click"
-    class="btn btn-link btn-sm m-0 me-2 min-h-0 p-0 text-black"
+    class="btn btn-link btn-sm text-base-content m-0 me-2 min-h-0 p-0"
     onclick={goBack}><ArrowLeftSmall /></button
 >
