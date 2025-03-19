@@ -9,7 +9,7 @@ export default ResourceReference.extend({
         if (parentRender && Array.isArray(parentRender) && parentRender[1]) {
             const spanId = `resourceref-${uuid()}`;
             parentRender[1].id = spanId;
-            parentRender[1].style = 'color: blue';
+            parentRender[1].class = 'text-info';
             parentRender[1].onClick = `onResourceReferenceClick('${spanId}', '${parentRender[1]['data-resourceType']}', '${parentRender[1]['data-resourceId']}')`;
             return parentRender;
         }

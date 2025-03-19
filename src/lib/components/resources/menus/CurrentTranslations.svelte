@@ -45,12 +45,10 @@
 </script>
 
 <div class="dropdown ms-2">
-    <button tabindex="0" class="btn btn-ghost flex flex-nowrap px-1 hover:bg-[#e6f6fc]">
+    <button tabindex="0" class="btn btn-ghost hover:bg-primary hover:text-primary-content flex flex-nowrap px-1">
         <span data-app-insights-event-name="translations-menu-click">Translations</span>
-        <div
-            class="border-primary-content bg-primary relative flex h-6 w-6 items-center justify-center rounded-full border"
-        >
-            <span class="text-primary-content absolute left-[6px]">{numberOfTranslations}</span>
+        <div class="border-primary-content bg-primary flex h-6 w-6 items-center justify-center rounded-full border">
+            <span class="text-primary-content">{numberOfTranslations}</span>
         </div>
     </button>
     <div
@@ -62,10 +60,10 @@
             <div class="mt-2 mb-4 flex flex-col place-items-end border-y px-4 py-3">
                 <button
                     data-app-insights-event-name="translations-new-menu-click"
-                    class="flex w-full items-center justify-start rounded-md border border-[#bbe7f7] bg-[#e6f6fc] px-2 py-1 text-lg font-bold"
+                    class="bg-primary text-primary-content flex w-full items-center justify-start rounded-md border border-[#bbe7f7] px-2 py-1 text-lg font-bold"
                     onclick={() => openModal()}
                 >
-                    <span class="me-2 text-[#15abe3]"><Icon data={plus} /></span>Translation
+                    <span class="text-primary-content me-2"><Icon data={plus} /></span>Translation
                 </button>
             </div>
         {/if}

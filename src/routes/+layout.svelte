@@ -34,12 +34,6 @@
 
     let userFullName = $derived($profile?.name ?? ' '); // set to avoid flashing undefined
 
-    $effect.pre(() => {
-        let userTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        if (userTheme === 'dark') {
-            $darkMode = true;
-        }
-    });
     $effect(() => log.pageView($page.route.id ?? ''));
     $effect(() => syncToClarity($page.route.id ?? '', $currentUser));
     $effect(() => setDarkModeOnRootHtmlElement($darkMode));
