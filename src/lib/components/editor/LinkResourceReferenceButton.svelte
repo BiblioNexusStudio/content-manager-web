@@ -207,7 +207,7 @@
 <Tooltip position={{ left: '2rem', bottom: '0.2rem' }} class="flex align-middle" text="Associate Resource Item">
     <button
         data-app-insights-event-name="editor-toolbar-resource-reference-click"
-        class="btn btn-xs px-1 {disabled && 'bg-base-200!'} btn-link hover:bg-[#e6f7fc]"
+        class="btn btn-xs px-1 {disabled && 'bg-base-200!'} btn-ghost"
         {disabled}
         on:click={openModal}
     >
@@ -233,7 +233,7 @@
     {:else}
         <div class="mb-2 flex flex-col gap-2">
             <Select
-                class="select  select-bordered w-full"
+                class="select select-bordered w-full"
                 isNumber={true}
                 options={[
                     { value: 0, label: 'Resource' },
@@ -247,13 +247,14 @@
                 }}
             />
             <label
-                class="label {!parentResourceId && 'input-disabled'} input input-bordered flex items-center gap-2 pe-1"
+                class="label {!parentResourceId &&
+                    'input-disabled'} input input-bordered flex w-full items-center gap-2 pe-1"
             >
                 <input
                     value={referenceResource?.englishLabel ?? searchQuery}
                     on:input={updateSearchQuery}
                     on:keydown={searchIfEnter}
-                    class="grow"
+                    class="text-base-content w-full grow"
                     type="text"
                     disabled={!parentResourceId}
                     readonly={existingReference}
