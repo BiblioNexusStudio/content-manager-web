@@ -234,7 +234,7 @@
                                         data-app-insights-event-name="editor-toolbar-{option.name}-click"
                                         class="btn h-auto min-h-0 px-1 py-0 {disable && 'bg-base-200!'} {option.isActive
                                             ? 'btn-primary'
-                                            : 'btn-link hover:bg-[#e6f7fc]'}"
+                                            : 'btn-ghost'}"
                                         disabled={disable}
                                         onclick={option.onClick}
                                     >
@@ -253,7 +253,7 @@
                             data-app-insights-event-name="editor-toolbar-{option.name}-click"
                             class="btn btn-xs px-1 {disable && 'bg-base-200!'} {option.isActive
                                 ? 'btn-primary'
-                                : 'btn-link hover:bg-[#e6f7fc]'}"
+                                : 'btn-ghost'}"
                             disabled={disable}
                             onclick={option.onClick}
                         >
@@ -276,7 +276,7 @@
                     data-app-insights-event-name="editor-toolbar-comment-click"
                     class="btn btn-xs px-1 {commentDisabled && 'bg-base-200!'} {commentOptions.isActive
                         ? 'btn-primary'
-                        : 'btn-link hover:bg-[#e6f7fc]'}"
+                        : 'btn-ghost'}"
                     disabled={commentDisabled}
                     onclick={commentOptions.onClick}
                 >

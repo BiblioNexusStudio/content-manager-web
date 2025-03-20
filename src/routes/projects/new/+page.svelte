@@ -184,7 +184,7 @@
             />
         {/key}
     </div>
-    <div class="absolute right-0 bottom-0 left-0 z-50 flex flex-row border-t bg-white p-4">
+    <div class="absolute right-0 bottom-0 left-0 z-50 flex flex-row border-t p-4">
         <div class="grow"></div>
         <button class="btn btn-primary" disabled={!canSave} onclick={save}>
             {#if isSaving}
