@@ -43,3 +43,14 @@
 :root .prose .diffmod:not(.ignore-diff) {
     @apply text-warning;
 }
+
+[data-theme='night'] {
+    .border,
+    .border-y,
+    .border-b,
+    .border-2,
+    [class*='border-b-'],
+    hr {
+        border-color: var(--color-neutral);
+    }
+}

@@ -36,7 +36,7 @@
         {#if !canOnlyViewProjectsInCompany}
             <button
                 data-app-insights-event-name="projects-{tab.name}-tab-click"
-                class="me-4 {canOnlyViewProjectsInCompany ? 'hidden' : ''} py-2 text-lg {tab.current
+                class="me-4 cursor-pointer {canOnlyViewProjectsInCompany ? 'hidden' : ''} py-2 text-lg {tab.current
                     ? 'border-primary border-b-4'
                     : ''}"
                 onclick={() => setCurrentTab(index)}
