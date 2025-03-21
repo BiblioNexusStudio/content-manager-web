@@ -764,7 +764,7 @@
 >
     <h3 class="mb-4 text-xl">Language</h3>
     <Select
-        class="select select-bordered mb-4 min-w-[14rem] grow"
+        class="select select-bordered mb-4 w-full min-w-[14rem] grow"
         bind:value={createNewResourceLanguage}
         isNumber={true}
         options={[...data.languages.map((l) => ({ value: l.id, label: l.englishDisplay }))]}
@@ -774,7 +774,7 @@
         appInsightsEventName="resources-resources-filter-selection"
         bind:value={parentResourceIdForNewResource}
         isNumber={true}
-        class="select select-bordered mb-4 min-w-[14rem] grow"
+        class="select select-bordered mb-4 w-full min-w-[14rem] grow"
         options={[
             { value: 0, label: 'All Resources' },
             ...data.parentResources.map((t) => ({ value: t.id, label: t.displayName })),

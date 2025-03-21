@@ -30,6 +30,17 @@
                 display: none;
             }
         </style>
+        <script>
+            const darkModeKey = 'BIBLIO_NEXUS_DARK_MODE';
+            let isDarkMode = localStorage.getItem(darkModeKey);
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const styleSheet = document.styleSheets[0];
+                if (isDarkMode) {
+                    styleSheet.insertRule('body { background-color: #0f172a; }', styleSheet.cssRules.length);
+                }
+            });
+        </script>
         %sveltekit.head%
     </head>
 
@@ -44,6 +55,8 @@
         window.addEventListener('svelte-app-loaded', function () {
             document.getElementById('svelte-loading-spinner').style.display = 'none';
             document.getElementById('svelte-app-div').style.display = 'contents';
+            const styleSheet = document.styleSheets[0];
+            styleSheet.deleteRule(styleSheet.cssRules.length - 1);
         });
     </script>
 </html>

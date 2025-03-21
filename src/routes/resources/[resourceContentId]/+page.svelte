@@ -1328,15 +1328,15 @@
             <p class="text-warning py-4 text-lg">This resource has unresolved comments.</p>
         {/if}
         {#if resourceContent?.status === ResourceContentStatusEnum.New}
-            <div class="form-control">
+            <div class="form-control mb-4">
                 <label class="label cursor-pointer justify-start space-x-2">
                     <input type="checkbox" bind:checked={createDraft} class="checkbox" />
                     <span class="label-text">Aquiferization Needed</span>
                 </label>
             </div>
-            <label class="form-control" for="aquiferization-assignment">
+            <label class="form-control mb-2" for="aquiferization-assignment">
                 <div class="label">
-                    <span class="label-text">Aquiferization Assignment (optional)</span>
+                    <span class="label-text mb-1">Aquiferization Assignment (optional)</span>
                 </div>
                 <UserSelector
                     users={usersThatCanBeAssigned()}

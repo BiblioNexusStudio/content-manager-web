@@ -347,13 +347,13 @@
 >
     <div class="flex flex-col">
         <div class="mb-2 text-lg">English</div>
-        <input type="text" class="input input-bordered mb-4" placeholder="Key" bind:value={newKey} />
+        <input type="text" class="input input-bordered mb-4 w-full" placeholder="Key" bind:value={newKey} />
         <div class="mb-2 text-lg">
             {currentLanguageDisplayname}
         </div>
         <input
             type="text"
-            class="input input-bordered mb-4"
+            class="input input-bordered mb-4 w-full"
             placeholder="Value"
             bind:value={newValue}
             onkeyup={(e) => (e.code === 'Enter' || e.code === 'NumpadEnter') && addTranslationPair()}
