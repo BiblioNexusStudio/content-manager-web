@@ -12,7 +12,7 @@
     let { commentStores, thread }: Props = $props();
 
     const { commentMarks, sidebarParentDivs } = commentStores;
-    const borderClass = 'border-primary';
+    const borderClass = '!border-primary';
     const normalSpanBackgroundColorClass = 'bg-primary/20';
     const selectedSpanBackgroundColorClass = ['bg-primary/50', 'border-2', borderClass];
 
