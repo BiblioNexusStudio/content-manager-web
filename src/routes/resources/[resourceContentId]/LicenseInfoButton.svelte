@@ -37,7 +37,7 @@
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
         <div
             tabindex="0"
-            class="dropdown-content border-base-300 flex w-[30rem] flex-col space-y-2 rounded-md border bg-white
+            class="dropdown-content border-base-300 bg-base-100 flex w-[30rem] flex-col space-y-2 rounded-md border
         p-6"
         >
             <div class="flex flex-row space-x-1">
