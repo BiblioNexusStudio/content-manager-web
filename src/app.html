@@ -32,7 +32,7 @@
         </style>
         <script>
             const darkModeKey = 'BIBLIO_NEXUS_DARK_MODE';
-            let isDarkMode = localStorage.getItem(darkModeKey);
+            const isDarkMode = localStorage.getItem(darkModeKey) === 'true';
 
             document.addEventListener('DOMContentLoaded', () => {
                 const styleSheet = document.styleSheets[0];
