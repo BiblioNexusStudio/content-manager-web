@@ -225,7 +225,7 @@
                     <Tooltip position={{ right: '3rem', top: '0.25rem' }} class="ms-2 ml-auto" text="Help">
                         <a
                             href="/help"
-                            class="btn btn-neutral btn-xs hover:border-primary hover:text-primary m-1 ms-2 border border-neutral-300"
+                            class="btn btn-neutral btn-xs hover:border-primary hover:text-primary m-1 ms-2 border !border-neutral-300"
                         >
                             <QuestionMarkIcon />
                         </a>

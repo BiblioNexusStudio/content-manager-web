@@ -177,7 +177,7 @@
         <CenteredSpinner />
     {:then resourceContentsOrNull}
         <div
-            class="mx-4 flex-1 overflow-auto rounded-md border-[1px]
+            class="mx-4 flex-1 overflow-auto rounded-md border
                 {resourceContentsOrNull?.resourceContents.length ? 'rounded-b-none' : 'mb-4'}"
         >
             <table class="table-pin-rows table">
@@ -221,7 +221,7 @@
             </table>
         </div>
         {#if resourceContentsOrNull}
-            <div class="bg-base-200 mx-4 mb-2 grid grid-cols-3 rounded-md rounded-t-none border-[1px] border-t-0 p-2">
+            <div class="bg-base-200 mx-4 mb-2 grid grid-cols-3 rounded-md rounded-t-none border border-t-0 p-2">
                 <button
                     class="btn btn-outline self-center justify-self-start"
                     class:btn-disabled={$searchParams.page === 1}

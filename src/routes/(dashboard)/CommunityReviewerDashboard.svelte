@@ -189,7 +189,7 @@
         </div>
     {/if}
     <div class="flex shrink-0 flex-row items-center">
-        <div role="tablist" class="tabs tabs-lift w-fit">
+        <div role="tablist" class="tabs tabs-border w-fit">
             <button
                 onclick={() => switchTabs(Tab.resources)}
                 role="tab"

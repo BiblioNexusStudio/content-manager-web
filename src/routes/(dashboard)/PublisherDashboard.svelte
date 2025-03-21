@@ -381,7 +381,7 @@
 <div class="flex flex-col overflow-y-hidden px-4">
     <h1 class="pt-4 text-3xl">Dashboard</h1>
     <div class="flex flex-row items-center pt-4">
-        <div role="tablist" class="tabs tabs-lift w-fit">
+        <div role="tablist" class="tabs tabs-border w-fit">
             <button
                 onclick={selectTab(Tab.myWork)}
                 role="tab"

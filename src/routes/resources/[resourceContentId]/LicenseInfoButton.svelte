@@ -24,20 +24,18 @@
 <svelte:window onclick={handleClick} />
 
 <div bind:this={container} class="dropdown dropdown-top">
-    <div
+    <button
         data-app-insights-event-name="resource-license-info-click"
-        tabindex="0"
-        role="button"
-        class="btn btn-ghost btn-sm text-gray-600 hover:bg-[#e6f7fc]"
-        onmouseup={() => (show = !show)}
+        class="btn btn-ghost btn-sm hover:bg-primary hover:text-primary-content text-gray-500"
+        onclick={() => (show = !show)}
     >
         License Info
-    </div>
+    </button>
     {#if show}
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
         <div
             tabindex="0"
-            class="dropdown-content border-base-300 flex w-[30rem] flex-col space-y-2 rounded-md border bg-white
+            class="dropdown-content border-base-300 bg-base-100 flex w-[30rem] flex-col space-y-2 rounded-md border
         p-6"
         >
             <div class="flex flex-row space-x-1">
