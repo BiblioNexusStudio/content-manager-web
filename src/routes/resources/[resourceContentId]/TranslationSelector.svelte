@@ -15,7 +15,7 @@
     );
 </script>
 
-<select bind:value={selectedLanguageId} class="select select-bordered">
+<select bind:value={selectedLanguageId} class="select select-bordered w-full">
     <option disabled value={null} selected>Select language</option>
     {#each languagesToShow as language (language.id)}
         <option value={language.id}>{language.englishDisplay}</option>

@@ -141,7 +141,7 @@
 {#if showImprovements}
     <div
         bind:this={showImprovementsDiv}
-        class="absolute z-50 -ms-[{improvementHorizontalPositionPx}px] mt-6 h-32 w-64 rounded border bg-white p-2"
+        class="absolute z-50 -ms-[{improvementHorizontalPositionPx}px] mt-6 h-32 w-64 rounded-sm border bg-white p-2"
     >
         <div>What needed improvement?</div>
         <div class="mt-2 flex flex-wrap gap-2">

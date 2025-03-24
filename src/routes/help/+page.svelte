@@ -21,7 +21,7 @@
     <title>Help | Aquifer Admin</title>
 </svelte:head>
 
-<div class="absolute inset-0 bg-white p-8" transition:fly={{ duration: 250 }}>
+<div class="absolute inset-0 p-8" transition:fly={{ duration: 250 }}>
     <div class="flex items-center justify-between">
         <h1 class="mb-4 text-3xl">Help</h1>
     </div>

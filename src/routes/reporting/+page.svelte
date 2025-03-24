@@ -33,9 +33,9 @@
 </svelte:head>
 
 <div class="overflow-y-auto">
-    <div class="mx-4 mb-4 mt-4 text-3xl">Reporting</div>
+    <div class="mx-4 mt-4 mb-4 text-3xl">Reporting</div>
     <div class="mx-4 mb-4 grid grid-cols-3 gap-4">
-        <div class="col-span-2 max-h-[38.375rem] rounded border px-4 py-2 shadow-lg">
+        <div class="col-span-2 max-h-[38.375rem] rounded-sm border px-4 py-2 shadow-lg">
             <Select
                 bind:value={selectedChart}
                 class="select select-bordered me-2 mt-2 w-auto"
@@ -44,7 +44,7 @@
                     { value: 'TranslatedResourcesBarChart', label: 'Translated Resource Items' },
                 ]}
             />
-            <div class="mb-6 mt-4 flex flex-row space-x-2">
+            <div class="mt-4 mb-6 flex flex-row space-x-2">
                 <span>
                     <MultipleSelect
                         label={$translate('page.dashboard.dropdowns.allLanguages.value')}
@@ -64,7 +64,7 @@
                     />
                 </span>
             </div>
-            <div class="me-10 ms-5">
+            <div class="ms-5 me-10">
                 {#if selectedChart === 'TotalResourcesAreaChart'}
                     <TotalResourcesAreaChart
                         {selectedLanguages}
@@ -123,7 +123,7 @@
         <div class="mx-4 mb-4 grid-cols-3">
             <span class="me-2">View Report: </span>
             <Select
-                class="select select-bordered max-w-[14rem] flex-grow"
+                class="select select-bordered max-w-[14rem] grow"
                 value=""
                 onChange={(slug) => {
                     window.open(`/reporting/${slug}`, '_blank');

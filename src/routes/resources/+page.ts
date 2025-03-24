@@ -14,6 +14,7 @@ export const _searchParamsConfig = {
     bookCode: ssp.string(''),
     startChapter: ssp.number(0),
     endChapter: ssp.number(0),
+    isNotApplicable: ssp.string(''),
     isPublished: ssp.string(''),
     query: ssp.string(''),
 };
@@ -41,6 +42,7 @@ export const load: PageLoad = async ({ parent, url, fetch }) => {
                 searchParams.bookCode,
                 searchParams.startChapter,
                 searchParams.endChapter,
+                searchParams.isNotApplicable,
                 searchParams.isPublished,
                 searchParams.query
             ),
@@ -57,6 +59,7 @@ function getResourceContents(
     bookCode: string,
     startChapter: number,
     endChapter: number,
+    isNotApplicable: string,
     isPublished: string,
     query: string
 ) {
@@ -69,6 +72,7 @@ function getResourceContents(
         { key: 'bookCode', value: bookCode, ignoreIfEquals: '' },
         { key: 'startChapter', value: startChapter, ignoreIfEquals: 0 },
         { key: 'endChapter', value: endChapter, ignoreIfEquals: 0 },
+        { key: 'isNotApplicable', value: isNotApplicable, ignoreIfEquals: '' },
         { key: 'isPublished', value: isPublished, ignoreIfEquals: '' },
         { key: 'searchQuery', value: query, ignoreIfEquals: '' },
     ]);

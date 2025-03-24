@@ -183,13 +183,13 @@
     {#if currentlyReviewingItem}
         <div class="text-lg">
             <span>You are currently reviewing this item:</span>
-            <a class="text-lg font-bold text-primary underline" href="/resources/{currentlyReviewingItem.id}"
+            <a class="text-primary text-lg font-bold underline" href="/resources/{currentlyReviewingItem.id}"
                 >{currentlyReviewingItem.englishLabel}</a
             >
         </div>
     {/if}
-    <div class="flex flex-shrink-0 flex-row items-center">
-        <div role="tablist" class="tabs tabs-bordered w-fit">
+    <div class="flex shrink-0 flex-row items-center">
+        <div role="tablist" class="tabs tabs-border w-fit">
             <button
                 onclick={() => switchTabs(Tab.resources)}
                 role="tab"
@@ -214,17 +214,17 @@
             >
         </div>
     </div>
-    <div class="flex flex-shrink-0 gap-4 overflow-x-auto">
+    <div class="flex shrink-0 gap-4 overflow-x-auto">
         {#if $searchParams.tab === Tab.resources}
             <input
-                class="input input-bordered max-w-xs focus:outline-none"
+                class="input input-bordered max-w-xs focus:outline-hidden"
                 bind:value={resourcesSearchQuery}
                 use:enterKeyHandler={fetchResources}
                 placeholder="Search"
             />
         {:else if $searchParams.tab === Tab.myHistory}
             <input
-                class="input input-bordered max-w-xs focus:outline-none"
+                class="input input-bordered max-w-xs focus:outline-hidden"
                 bind:value={myHistorySearchQuery}
                 placeholder="Search"
             />
@@ -254,7 +254,7 @@
                 disabled={!bookCode}
                 bind:value={chapterRange}
                 use:enterKeyHandler={fetchResources}
-                class="input input-bordered input-md w-[11rem] focus:outline-none"
+                class="input input-bordered input-md w-[11rem] focus:outline-hidden"
                 placeholder="Chapter (e.g. 2, 1-5)"
             />
             <button class="btn btn-primary" disabled={!canApplyFilters} onclick={() => fetchResources()}>Apply</button>
@@ -283,7 +283,7 @@
     </div>
     {#if $searchParams.tab === Tab.resources}
         <Table
-            class="!mb-2"
+            class="mb-2!"
             columns={resourcesThatNeedTranslationColumns}
             items={resourcesThatNeedTranslation ?? []}
             idColumn="id"
@@ -313,7 +313,7 @@
     {:else if $searchParams.tab === Tab.myHistory}
         <Table
             bind:this={table}
-            class="!mb-2"
+            class="mb-2!"
             columns={myHistoryColumns}
             items={filterAndSortMyHistoryData(myHistoryContents, $searchParams.sort, myHistorySearchQuery)}
             idColumn="id"

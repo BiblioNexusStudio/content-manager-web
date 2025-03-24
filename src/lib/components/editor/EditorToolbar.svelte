@@ -224,17 +224,17 @@
                         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
                         <ul
                             tabindex="0"
-                            class="dropdown-content menu-horizontal z-50 h-auto min-h-0 items-center space-x-2
-                            rounded-box bg-base-100 p-2 pb-1 pt-3 shadow"
+                            class="dropdown-content menu-horizontal rounded-box bg-base-100 z-50 h-auto min-h-0
+                            items-center space-x-2 p-2 pt-3 pb-1 shadow"
                         >
                             {#each formattingOptions(editor) as option (option.name)}
                                 {@const disable = option.disabled || $isPageTransacting}
                                 <li>
                                     <button
                                         data-app-insights-event-name="editor-toolbar-{option.name}-click"
-                                        class="btn h-auto min-h-0 px-1 py-0 {disable && '!bg-base-200'} {option.isActive
+                                        class="btn h-auto min-h-0 px-1 py-0 {disable && 'bg-base-200!'} {option.isActive
                                             ? 'btn-primary'
-                                            : 'btn-link hover:bg-[#e6f7fc]'}"
+                                            : 'btn-ghost'}"
                                         disabled={disable}
                                         onclick={option.onClick}
                                     >
@@ -251,9 +251,9 @@
                         {@const disable = option.disabled || $isPageTransacting}
                         <button
                             data-app-insights-event-name="editor-toolbar-{option.name}-click"
-                            class="btn btn-xs px-1 {disable && '!bg-base-200'} {option.isActive
+                            class="btn btn-xs px-1 {disable && 'bg-base-200!'} {option.isActive
                                 ? 'btn-primary'
-                                : 'btn-link hover:bg-[#e6f7fc]'}"
+                                : 'btn-ghost'}"
                             disabled={disable}
                             onclick={option.onClick}
                         >
@@ -263,7 +263,7 @@
                         </button>
                     {/each}
                 {/if}
-                <div class="divider divider-horizontal w-0"></div>
+                <div class="divider divider-horizontal mx-0 w-0"></div>
                 {#if canEditBibleReferences}
                     <LinkBibleReferenceButton {resourceContent} languageId={resourceContent.language.id} {editor} />
                 {/if}
@@ -271,16 +271,12 @@
                     <LinkResourceReferenceButton resourceContentId={resourceContent.resourceContentId} {editor} />
                 {/if}
             {/if}
-            <Tooltip
-                position={{ left: '2rem', bottom: '0.2rem' }}
-                class="flex border-primary align-middle text-primary"
-                text="Add Comment"
-            >
+            <Tooltip position={{ left: '2rem', bottom: '0.2rem' }} class="flex align-middle" text="Add Comment">
                 <button
                     data-app-insights-event-name="editor-toolbar-comment-click"
-                    class="btn btn-xs px-1 {commentDisabled && '!bg-base-200'} {commentOptions.isActive
+                    class="btn btn-xs px-1 {commentDisabled && 'bg-base-200!'} {commentOptions.isActive
                         ? 'btn-primary'
-                        : 'btn-link hover:bg-[#e6f7fc]'}"
+                        : 'btn-ghost'}"
                     disabled={commentDisabled}
                     onclick={commentOptions.onClick}
                 >

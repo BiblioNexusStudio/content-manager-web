@@ -120,7 +120,7 @@
 
 <div class="flex flex-col overflow-hidden">
     <div class="flex flex-row space-x-4">
-        <label class="form-control" for="resource-select">
+        <label class="form-control flex flex-col" for="resource-select">
             <div class="label">
                 <span class="label-text">Resource</span>
             </div>
@@ -161,7 +161,7 @@
                 use:enterKeyHandler={fetchContent}
             />
         </label>
-        <label class="form-control">
+        <label class="form-control flex flex-col">
             <div class="label">
                 <span class="label-text">&nbsp;</span>
             </div>
@@ -173,7 +173,7 @@
                 use:enterKeyHandler={fetchContent}
             />
         </label>
-        <label class="form-control">
+        <label class="form-control flex flex-col">
             <div class="label">
                 <span class="label-text">&nbsp;</span>
             </div>
