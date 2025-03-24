@@ -19,6 +19,11 @@ export const fetchAndFormat = async (
     language: Language,
     passedBibleId?: number
 ): Promise<BibleTextsReference | null> => {
+    // ensure we always include verse 0 along with verse 1 if verse 0 exists
+    if (startVerse % 1000 === 1) {
+        startVerse -= 1;
+    }
+
     const [bookTexts, versificationMappings] = await Promise.all([
         fetchBiblePassages(startVerse, endVerse, language.id, passedBibleId),
         fetchBibleVersification(startVerse, endVerse, language.id, passedBibleId),
@@ -120,22 +125,11 @@ export const fetchAndFormat = async (
                 }
             }
 
-            const parsedStartVerse = parseVerseId(passageStartVerseId);
-            const parsedEndVerse = parseVerseId(passageEndVerseId);
-
             // does passage exist in current bookTexts?
             passageBookTexts = getMultiVersePassageContentFromBookTexts(
                 bookTexts,
-                {
-                    bookId: parsedStartVerse.bookId,
-                    chapter: parsedStartVerse.chapter,
-                    verse: parsedStartVerse.verse,
-                },
-                {
-                    bookId: parsedEndVerse.bookId,
-                    chapter: parsedEndVerse.chapter,
-                    verse: parsedEndVerse.verse,
-                }
+                parseVerseId(passageStartVerseId),
+                parseVerseId(passageEndVerseId)
             );
 
             // if not, fetch passage content according to new start and end and set as bookTexts
