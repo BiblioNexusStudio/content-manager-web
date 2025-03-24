@@ -43,39 +43,41 @@ export const fetchAndFormat = async (
     const parsedStartVerse = parseVerseId(startVerse);
     const parsedEndVerse = hasMultipleVerses ? parseVerseId(endVerse) : null;
 
+    // This logic assumes that all returned mappings are an exact range in the target Bible.  This is not necessarily true but is easier to reason about.
+    // In the future we may need to update this logic to handle more complex mappings if real-world scenarios arise where mappings are non-consecutive verses.
     if (passageHasDifferentBaseMappings) {
         if (!hasMultipleVerses) {
             // if passage is single verse and we have base mapping, startVerseMapping will always be defined
             //! startVerseMapping.targetVerse can be null.
-            //! This represents an exclusion = verse does not exist in target bible
+            //! This represents an exclusion = verse does not exist in target Bible
             const startVerseMapping = findMappingByVerseId(startVerse, versificationMappings);
-            if (startVerseMapping!.targetVerse === null) {
+            if (startVerseMapping!.targetVerses === null || startVerseMapping!.targetVerses.length === 0) {
                 // handle exclusion
                 return null;
             }
 
             // does mapping exist in bookTexts?
-            passageBookTexts = getSingleVersePassageContentFromBookTexts(bookTexts, {
-                bookId: parseVerseId(startVerseMapping!.targetVerse.verseId).bookId,
-                chapter: startVerseMapping!.targetVerse.chapter,
-                verse: startVerseMapping!.targetVerse.verse,
-            });
+            passageBookTexts = getMultiVersePassageContentFromBookTexts(
+                bookTexts,
+                parseVerseId(startVerseMapping!.targetVerses[0]!.verseId),
+                parseVerseId(startVerseMapping!.targetVerses.at(-1)!.verseId)
+            );
 
             if (passageBookTexts.length === 0) {
                 //  if not, fetch according to mapping and set as bookTexts
                 try {
                     passageBookTexts = await fetchBiblePassages(
-                        startVerseMapping!.targetVerse.verseId,
-                        startVerseMapping!.targetVerse.verseId,
+                        startVerseMapping!.targetVerses[0]!.verseId,
+                        startVerseMapping!.targetVerses.at(-1)!.verseId,
                         language.id,
                         passedBibleId
                     );
                 } catch (error) {
                     log.exception(
                         new Error(
-                            `Error fetching mapped verses content - VerseId: ${
-                                startVerseMapping!.targetVerse.verseId
-                            } - Error: ${error}`
+                            `Error fetching mapped verses content - StartVerseId: ${
+                                startVerseMapping!.targetVerses[0]!.verseId
+                            } - EndVerseId: ${startVerseMapping!.targetVerses.at(-1)!.verseId} - Error: ${error}`
                         )
                     );
                     return null;
@@ -101,27 +103,27 @@ export const fetchAndFormat = async (
             let passageEndVerseId = endVerse;
 
             if (startVerseMapping) {
-                if (startVerseMapping.targetVerse === null) {
+                if (startVerseMapping.targetVerses === null || startVerseMapping.targetVerses.length === 0) {
                     // exclusion - this passage, or part of it, does not exist in target bible
                     return null;
                 } else {
-                    passageStartVerseId = startVerseMapping.targetVerse.verseId;
+                    passageStartVerseId = startVerseMapping.targetVerses[0]!.verseId;
                 }
             }
 
             if (endVerseMapping) {
-                if (endVerseMapping.targetVerse === null) {
+                if (endVerseMapping.targetVerses === null || endVerseMapping.targetVerses.length === 0) {
                     // exclusion - this passage, or part of it, does not exist in target bible
                     return null;
                 } else {
-                    passageEndVerseId = endVerseMapping.targetVerse.verseId;
+                    passageEndVerseId = endVerseMapping.targetVerses.at(-1)!.verseId;
                 }
             }
 
             const parsedStartVerse = parseVerseId(passageStartVerseId);
             const parsedEndVerse = parseVerseId(passageEndVerseId);
 
-            // does pasage exist in current bookTexts?
+            // does passage exist in current bookTexts?
             passageBookTexts = getMultiVersePassageContentFromBookTexts(
                 bookTexts,
                 {
