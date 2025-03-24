@@ -381,7 +381,7 @@
 <div class="flex flex-col overflow-y-hidden px-4">
     <h1 class="pt-4 text-3xl">Dashboard</h1>
     <div class="flex flex-row items-center pt-4">
-        <div role="tablist" class="tabs tabs-bordered w-fit">
+        <div role="tablist" class="tabs tabs-border w-fit">
             <button
                 onclick={selectTab(Tab.myWork)}
                 role="tab"
@@ -424,10 +424,14 @@
     </div>
     {#if $searchParams.tab === Tab.myWork || $searchParams.tab === Tab.reviewPending || $searchParams.tab === Tab.community}
         <div class="mt-4 flex space-x-4">
-            <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
+            <input
+                class="input input-bordered max-w-xs focus:outline-hidden"
+                bind:value={search}
+                placeholder="Search"
+            />
             {#if $searchParams.tab === Tab.myWork}
                 <Select
-                    class="select select-bordered max-w-[14rem] flex-grow"
+                    class="select select-bordered max-w-[14rem] grow"
                     bind:value={$searchParams.status}
                     onChange={resetSelection}
                     options={[
@@ -438,7 +442,7 @@
             {/if}
             {#if $searchParams.tab !== Tab.community}
                 <Select
-                    class="select select-bordered max-w-[14rem] flex-grow"
+                    class="select select-bordered max-w-[14rem] grow"
                     bind:value={$searchParams.project}
                     onChange={resetSelection}
                     options={[
@@ -464,7 +468,7 @@
             {/if}
             <button
                 data-app-insights-event-name="publisher-dashboard-bulk-assign-click"
-                class="btn btn-primary"
+                class="btn btn-primary me-0"
                 onclick={() => (isAssignContentModalOpen = true)}
                 disabled={(selectedReviewPendingTableItems.length === 0 &&
                     selectedMyWorkTableItems.length === 0 &&
@@ -479,7 +483,7 @@
                 >
                     <button
                         data-app-insights-event-name="publisher-dashboard-bulk-publish-click"
-                        class="btn btn-primary ms-4"
+                        class="btn btn-primary ms-4 me-0"
                         onclick={() => (isConfirmPublishModalOpen = true)}
                         disabled={selectedMyWorkTableItems.length === 0 || nonPublisherReviewSelected}
                         >Publish
@@ -522,7 +526,11 @@
     {/if}
     {#if $searchParams.tab === Tab.myProjects}
         <div class="mt-4 flex flex-row">
-            <input class="input input-bordered max-w-xs focus:outline-none" bind:value={search} placeholder="Search" />
+            <input
+                class="input input-bordered max-w-xs focus:outline-hidden"
+                bind:value={search}
+                placeholder="Search"
+            />
             <a class="btn btn-primary ms-4" href="/projects/new">Create Project</a>
         </div>
     {/if}
@@ -756,7 +764,7 @@
 >
     <h3 class="mb-4 text-xl">Language</h3>
     <Select
-        class="select select-bordered mb-4 min-w-[14rem] flex-grow"
+        class="select select-bordered mb-4 w-full min-w-[14rem] grow"
         bind:value={createNewResourceLanguage}
         isNumber={true}
         options={[...data.languages.map((l) => ({ value: l.id, label: l.englishDisplay }))]}
@@ -766,7 +774,7 @@
         appInsightsEventName="resources-resources-filter-selection"
         bind:value={parentResourceIdForNewResource}
         isNumber={true}
-        class="select select-bordered mb-4 min-w-[14rem] flex-grow"
+        class="select select-bordered mb-4 w-full min-w-[14rem] grow"
         options={[
             { value: 0, label: 'All Resources' },
             ...data.parentResources.map((t) => ({ value: t.id, label: t.displayName })),

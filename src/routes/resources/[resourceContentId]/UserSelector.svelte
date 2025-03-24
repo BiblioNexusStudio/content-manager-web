@@ -34,5 +34,5 @@
         },
         ...filteredUserOptions,
     ]}
-    class="select select-bordered"
+    class="select select-bordered w-full"
 />

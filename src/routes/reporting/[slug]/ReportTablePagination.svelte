@@ -45,21 +45,13 @@
 </script>
 
 <div class="flex h-full w-auto items-center justify-between space-x-2">
-    <button
-        class="btn btn-link btn-secondary disabled:bg-white"
-        onclick={handleLeftClick}
-        disabled={paginationStart === 0}
-    >
+    <button class="btn btn-link disabled:btn-ghost" onclick={handleLeftClick} disabled={paginationStart === 0}>
         <Icon data={chevronLeft} />
     </button>
 
     <span>{paginationStart + 1} - {paginationEnd} of {totalCount}</span>
 
-    <button
-        class="btn btn-link btn-secondary disabled:bg-white"
-        onclick={handleRightClick}
-        disabled={paginationEnd === totalCount}
-    >
+    <button class="btn btn-link disabled:btn-ghost" onclick={handleRightClick} disabled={paginationEnd === totalCount}>
         <Icon data={chevronRight} />
     </button>
 </div>

@@ -169,7 +169,7 @@
     });
 </script>
 
-<div class="audio-player items-center rounded-xl border border-base-300 bg-base-200">
+<div class="audio-player border-base-300 bg-base-200 items-center rounded-xl border">
     {#if deviceCannotPlayAudio}
         <div class="flex h-full w-full flex-col items-center justify-center">
             <h1 class="text-xl">Your device does not support the avaiable audio types.</h1>
@@ -193,7 +193,7 @@
         ></audio>
 
         <!-- progress bar -->
-        <div class="grid w-full grid-cols-[2fr,1fr] items-center justify-items-center gap-4">
+        <div class="grid w-full grid-cols-[2fr_1fr] items-center justify-items-center gap-4">
             <input
                 type="range"
                 class="range-audio range range-primary"
@@ -204,7 +204,7 @@
                 oninput={seek}
                 data-app-insights-event-name="audio-player-range-area-clicked"
             />
-            <span class="text-sm font-medium text-neutral"
+            <span class="text-neutral text-sm font-medium"
                 >{formatTime(playlist.currentTrackTimeElapsed)} / {duration ? formatTime(duration) : '--:--'}
             </span>
         </div>
@@ -212,7 +212,7 @@
         <!-- controls -->
         <div class="flex items-center justify-center gap-4">
             {#if !isReadyToPlay}
-                <Icon class="h-[35px] w-[35px] grow-0 text-primary" data={refresh} spin />
+                <Icon class="text-primary h-[35px] w-[35px] grow-0" data={refresh} spin />
             {:else}
                 <button
                     class="audio-control-btn"
@@ -303,7 +303,7 @@
         height: var(--square-size);
         width: var(--square-size);
         cursor: pointer;
-        flex-grow: 0;
+        grow: 0;
     }
 
     .audio-control-btn:hover {
