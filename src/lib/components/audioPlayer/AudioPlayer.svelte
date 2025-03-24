@@ -20,9 +20,10 @@
 
     interface AudioPlayerProps {
         audioContents: ResourceContent[] | null;
+        fromAudioPlayerModal?: boolean;
     }
 
-    let { audioContents }: AudioPlayerProps = $props();
+    let { audioContents, fromAudioPlayerModal = false }: AudioPlayerProps = $props();
 
     let playlist: AudioPlaylist = getAudioPlaylistContext();
 
@@ -248,7 +249,7 @@
                 </button>
 
                 <PlaybackSpeedPopover />
-                {#if $userCan(Permission.PublishContent)}
+                {#if $userCan(Permission.PublishContent) && fromAudioPlayerModal}
                     <button
                         onclick={goToAudioResourcePage}
                         class="audio-control-btn"
@@ -256,7 +257,7 @@
                         aria-label="Go to audio resource page"
                         data-app-insights-event-name="audio-player-go-to-audio-resource-button-clicked"
                     >
-                        <Icon class="h-[35px] w-[35px] grow-0 text-primary" data={externalLink} />
+                        <Icon class="text-primary h-[35px] w-[35px] grow-0" data={externalLink} />
                     </button>
                 {/if}
             {/if}
