@@ -82,6 +82,7 @@
         {#if hasSteps}
             <div class="mb-2 flex w-[29rem] justify-between">
                 <button
+                    data-app-insights-event-name="audio-resource-item-back-arrow-click"
                     class="btn btn-circle btn-primary text-primary-content"
                     disabled={selectedStepNumber === 1}
                     onclick={() => {
@@ -94,6 +95,7 @@
                     <h1 class="text-lg font-bold">Step {selectedStepNumber}</h1>
                 </div>
                 <button
+                    data-app-insights-event-name="audio-resource-item-forward-arrow-click"
                     class="btn btn-circle btn-primary text-primary-content"
                     disabled={selectedStepNumber === audioContent?.webm?.steps?.length}
                     onclick={() => {

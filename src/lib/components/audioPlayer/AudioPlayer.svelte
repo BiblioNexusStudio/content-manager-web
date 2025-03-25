@@ -6,13 +6,7 @@
     import PauseMediaIcon from './icons/PauseMediaIcon.svelte';
     import PlayMediaIcon from './icons/PlayMediaIcon.svelte';
     import ArrowForward10Icon from './icons/ArrowForward10Icon.svelte';
-    import {
-        AudioPlaylist,
-        type AudioType,
-        fetchFiaAudioFromZip,
-        isAudioContentItem,
-        getAudioPlaylistContext,
-    } from './context.svelte';
+    import { AudioPlaylist, type AudioType, isAudioContentItem, getAudioPlaylistContext } from './context.svelte';
     import PlaybackSpeedPopover from './PlaybackSpeedPopover.svelte';
     import { onMount } from 'svelte';
     import type { AudioContentItem, ResourceContent } from '$lib/types/resources';
@@ -99,7 +93,7 @@
             // and try to play the next supported audio type.
             supportedAudioTypes = supportedAudioTypes.slice(1);
             selectAudioType();
-            await populatePlaylist();
+            populatePlaylist();
         }
     }
 
@@ -123,7 +117,7 @@
         playlist.currentAudioType = supportedAudioTypes[0] || 'webm';
     }
 
-    async function populatePlaylist() {
+    function populatePlaylist() {
         if (!audioContents || supportedAudioTypes.length === 0) return;
 
         if (!isAudioContentItem(audioContents[0]!.content)) return;
@@ -131,7 +125,15 @@
         const audioHasSteps = !!audioContents[0]!.content.mp3?.steps?.length;
 
         if (audioHasSteps) {
-            playlist.tracks = await fetchFiaAudioFromZip(audioContents, playlist.currentAudioType);
+            const content = audioContents[0]!.content as AudioContentItem;
+            const steps = content[playlist.currentAudioType].steps!;
+
+            playlist.tracks = steps.map((step) => {
+                return {
+                    url: step.url,
+                    currentTime: 0,
+                };
+            });
         } else {
             playlist.tracks = audioContents?.map((audioContent) => {
                 const content = audioContent.content as AudioContentItem;
@@ -157,7 +159,7 @@
         (async () => {
             if (!audioContents) return;
             if (audioContents.length > 0) {
-                await populatePlaylist();
+                populatePlaylist();
             }
         })();
     });

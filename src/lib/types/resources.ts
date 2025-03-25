@@ -64,6 +64,7 @@ export interface AudioContentItemDetails {
 export interface AudioContentStepItem {
     file: string;
     stepNumber: number;
+    url: string;
 }
 
 export type Content = ImageContentItem | VideoContentItem | AudioContentItem | TiptapContentItem[];
