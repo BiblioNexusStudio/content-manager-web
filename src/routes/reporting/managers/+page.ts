@@ -13,7 +13,7 @@ export const load: PageLoad = async ({ parent, fetch }) => {
 
     errorGotoPath.set('/reporting');
 
-    if (get(userCan)(Permission.ReadReports)) {
+    if (get(userCan)(Permission.ReadReportsInCompany)) {
         const managerDynamicReportsPromise = getFromApi<BasicDynamicReport[]>(`/reports/dynamic`, fetch);
         const companiesPromise = get(userCan)(Permission.ReadUsers)
             ? getFromApi<Company[]>(`/companies`, fetch)

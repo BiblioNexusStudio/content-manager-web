@@ -61,12 +61,7 @@ export const reportingUiLinks = {
  * @returns Filtered array containing only dynamic reports that aren't statically referenced
  */
 export function filterToOnlyDynamicReports(reports: BasicDynamicReport[]) {
-    const allReportingUiLinksAndApiPaths = Object.values(reportingUiLinks)
-        .flatMap((category) => category)
-        .map((r) => r.reportLink)
-        .concat(Object.values(reportApiPaths));
-
-    return reports.filter((report) => !allReportingUiLinksAndApiPaths.some((path) => path.includes(report.slug)));
+    return reports.filter((report) => report.showInDropdown);
 }
 
 export function convertPascalCaseToHumanReadable(columnName: string): string {

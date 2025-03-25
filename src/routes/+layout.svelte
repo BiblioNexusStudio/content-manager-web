@@ -82,7 +82,7 @@
             name: $translate('sidebar.reporting.value'),
             icon: PieChartIcon,
             href: '/reporting',
-            hidden: !$userCan(Permission.ReadReports),
+            hidden: !($userCan(Permission.ReadReports) || $userCan(Permission.ReadReportsInCompany)),
         },
         {
             name: $translate('sidebar.projects.value'),
