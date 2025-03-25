@@ -1,31 +1,29 @@
 <script lang="ts">
     import { onMount, untrack } from 'svelte';
     import type { AudioContentItem, ResourceContent } from '$lib/types/resources';
-    import { fetchFiaAudioFromAudioContentItem, type AudioTracklist } from '$lib/components/audioPlayer/context.svelte';
     import ReplaceAudioButton from '$lib/components/audioPlayer/ReplaceAudioButton.svelte';
     import AudioPlayer from '$lib/components/audioPlayer/AudioPlayer.svelte';
     import { createAudioPlaylistContext, type AudioPlaylist } from '$lib/components/audioPlayer/context.svelte';
     import Select from '$lib/components/Select.svelte';
     import LicenseInfoButton from '../../../../routes/resources/[resourceContentId]/LicenseInfoButton.svelte';
+    import ArrowLeftSmall from '$lib/icons/ArrowLeftSmall.svelte';
+    import ArrowRightSmall from '$lib/icons/ArrowRightSmall.svelte';
 
     interface Props {
-        content: AudioContentItem;
         resourceContent: ResourceContent;
     }
 
-    let { content, resourceContent }: Props = $props();
+    let { resourceContent }: Props = $props();
 
     const versions = buildVersionSelectOptions(resourceContent);
+    const audioContent = resourceContent.content as AudioContentItem;
 
+    let hasSteps = $state(false);
     let playlist: AudioPlaylist = createAudioPlaylistContext();
     let selectedStepNumber = $state(1);
     let selectedVersionNumber = $state(
         versions.find((version) => version.id === resourceContent.resourceContentId)?.version || 1
     );
-
-    export function isZipFile(content: AudioContentItem): boolean {
-        return content.webm.url.endsWith('.zip') || content.mp3.url.endsWith('.zip');
-    }
 
     function updateCurrentTrack() {
         if (selectedStepNumber! > playlist.currentTrackIndex + 1) {
@@ -57,7 +55,11 @@
         updateCurrentTrack();
     });
 
-    $inspect(content, resourceContent);
+    onMount(() => {
+        if (audioContent?.webm?.steps?.length) {
+            hasSteps = true;
+        }
+    });
 </script>
 
 <div class="flex flex-col items-start">
@@ -76,7 +78,33 @@
         />
     </div>
 
-    <div class="mb-4">
+    <div class="mb-4 flex flex-col">
+        {#if hasSteps}
+            <div class="mb-2 flex w-[29rem] justify-between">
+                <button
+                    class="btn btn-circle btn-primary text-primary-content"
+                    disabled={selectedStepNumber === 1}
+                    onclick={() => {
+                        selectedStepNumber = selectedStepNumber - 1;
+                    }}
+                >
+                    <ArrowLeftSmall />
+                </button>
+                <div class="flex w-full items-center justify-center">
+                    <h1 class="text-lg font-bold">Step {selectedStepNumber}</h1>
+                </div>
+                <button
+                    class="btn btn-circle btn-primary text-primary-content"
+                    disabled={selectedStepNumber === audioContent?.webm?.steps?.length}
+                    onclick={() => {
+                        selectedStepNumber = selectedStepNumber + 1;
+                    }}
+                >
+                    <ArrowRightSmall />
+                </button>
+            </div>
+        {/if}
+
         <AudioPlayer audioContents={[resourceContent]} />
     </div>
 
