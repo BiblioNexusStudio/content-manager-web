@@ -186,7 +186,11 @@ export const fetchAndFormat = async (
                 return null;
             }
 
-            verseDisplayName = generateVerseRangeDisplayName(passageBookTexts, language, false);
+            // handle the case where verse 0 was requested in addition to only requesting verse 1 but verse 0 doesn't exist in the target Bible
+            verseDisplayName =
+                passageBookTexts.length === 1
+                    ? generateSingleVerseDisplayName(passageBookTexts, language, false)
+                    : generateVerseRangeDisplayName(passageBookTexts, language, false);
         }
     }
 
