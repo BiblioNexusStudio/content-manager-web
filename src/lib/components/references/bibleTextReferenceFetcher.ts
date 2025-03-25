@@ -95,7 +95,10 @@ export const fetchAndFormat = async (
                 }
             }
 
-            verseDisplayName = generateSingleVerseDisplayName(passageBookTexts, language, true);
+            verseDisplayName =
+                startVerseMapping!.targetVerses.length === 1
+                    ? generateSingleVerseDisplayName(passageBookTexts, language, true)
+                    : generateVerseRangeDisplayName(passageBookTexts, language, true);
         } else {
             // multiple vers passage with at least some mappings
             // ! any given VerseMapping.targetVerse in the mapping can be null.
