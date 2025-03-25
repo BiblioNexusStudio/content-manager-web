@@ -277,14 +277,15 @@ function getMultiVersePassageContentFromBookTexts(
 }
 
 function generateVerseReference(bookTexts: BibleBookTexts[], language: Language, hasDifferentMapping: boolean): string {
+    // if both 0 and verse 1 are requested we still only want to display a single reference to only verse 1
     if (
         bookTexts.length === 1 &&
         bookTexts[0]!.chapters.length === 1 &&
-        bookTexts[0]!.chapters[0]!.verses.length === 1
+        bookTexts[0]!.chapters[0]!.verses.filter((v) => v.number !== 0).length === 1
     ) {
         const singleBookText = bookTexts[0]!;
         const singleChapter = singleBookText.chapters[0]!;
-        const singleVerse = singleChapter.verses[0]!;
+        const singleVerse = singleChapter.verses.at(-1)!;
 
         return generateVerseFromReference(
             {
