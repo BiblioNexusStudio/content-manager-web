@@ -162,7 +162,10 @@ export const fetchAndFormat = async (
                 }
             }
 
-            verseDisplayName = generateVerseRangeDisplayName(passageBookTexts, language, true);
+            verseDisplayName =
+                passageStartVerseId === passageEndVerseId
+                    ? generateSingleVerseDisplayName(passageBookTexts, language, true)
+                    : generateVerseRangeDisplayName(passageBookTexts, language, true);
         }
     } else {
         // if passage has no mapping, passage perfectly aligned
