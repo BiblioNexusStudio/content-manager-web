@@ -170,7 +170,7 @@
     });
 </script>
 
-<div class="audio-player border-base-300 bg-base-200 items-center rounded-xl border">
+<div class="audio-player border-base-300 bg-base-100 items-center rounded-xl border">
     {#if deviceCannotPlayAudio}
         <div class="flex h-full w-full flex-col items-center justify-center">
             <h1 class="text-xl">Your device does not support the avaiable audio types.</h1>
@@ -205,7 +205,7 @@
                 oninput={seek}
                 data-app-insights-event-name="audio-player-range-area-clicked"
             />
-            <span class="text-neutral text-sm font-medium"
+            <span class="text-base-content text-sm font-medium"
                 >{formatTime(playlist.currentTrackTimeElapsed)} / {duration ? formatTime(duration) : '--:--'}
             </span>
         </div>

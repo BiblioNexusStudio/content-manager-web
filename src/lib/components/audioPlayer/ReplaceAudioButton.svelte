@@ -1,5 +1,12 @@
 <script lang="ts">
-    export async function uploadAudioFile(): Promise<void> {
+    import Modal from '$lib/components/Modal.svelte';
+
+    let confirmUploadModalOpen = $state(false);
+    let audioFileName = $state('[file name]');
+    let audioFileUploadingModalOpen = $state(false);
+    let isTransacting = $state(false);
+
+    async function uploadAudioFile(): Promise<void> {
         try {
             // Check if showOpenFilePicker is available
             let file: File | null = null;
@@ -59,8 +66,38 @@
             console.error('Error uploading file:', error);
         }
     }
+
+    function openModal() {
+        confirmUploadModalOpen = true;
+    }
+
+    function openUploadingModal() {
+        audioFileUploadingModalOpen = true;
+    }
 </script>
 
-<div>
-    <button class="btn btn-primary" onclick={uploadAudioFile}>Replace Audio</button>
+<div class="mb-4">
+    <button class="btn btn-primary" onclick={uploadAudioFile} data-app-insights-event-name="replace-audio-button-click">
+        Replace Audio
+    </button>
 </div>
+
+<Modal
+    bind:open={confirmUploadModalOpen}
+    header="Confirm Audio File Upload"
+    description={`Are you sure you want to upload ${audioFileName}?`}
+    primaryButtonText="Upload"
+    primaryButtonOnClick={() => {
+        confirmUploadModalOpen = false;
+    }}
+/>
+
+<Modal
+    bind:open={audioFileUploadingModalOpen}
+    header="Audio File Upload in Progress"
+    {isTransacting}
+    description={`Please do not close this tab or window.
+        
+        This page will refresh when the upload is complete.
+    `}
+/>

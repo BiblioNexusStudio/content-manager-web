@@ -121,6 +121,7 @@ export interface ResourceContent {
     hasAudio: boolean;
     audioResources: AudioContentResponse[];
     hasAdditionalReviewer: boolean;
+    resourceContentVersionCreated: string;
 }
 
 export interface ResourceContentNextUpInfo {
