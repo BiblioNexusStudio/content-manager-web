@@ -10,7 +10,7 @@ export interface VersificationResponse {
 
 export interface VerseMapping {
     sourceVerse: VerseReference;
-    targetVerse: VerseReference;
+    targetVerses: VerseReference[];
 }
 
 // returns null if an error occurs, [] if no mappings are found (passage perfectly aligned)
