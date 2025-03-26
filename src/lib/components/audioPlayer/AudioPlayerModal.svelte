@@ -51,9 +51,9 @@
     });
 </script>
 
-<Tooltip position={{ left: '2.5rem', top: '-0.25rem' }} class="border-primary text-primary" text="Show Audio Player">
-    <button class="ml-4 flex" onclick={() => (isAudioPlayerModalOpen = !isAudioPlayerModalOpen)}>
-        <Icon class="grow-0 text-primary hover:brightness-110" style="height: 18px; width: auto;" data={volumeUp} />
+<Tooltip position={{ left: '2.5rem', top: '-0.25rem' }} text="Show Audio Player">
+    <button class="ml-4 flex cursor-pointer" onclick={() => (isAudioPlayerModalOpen = !isAudioPlayerModalOpen)}>
+        <Icon class="text-primary grow-0 hover:brightness-110" style="height: 18px; width: auto;" data={volumeUp} />
     </button>
 </Tooltip>
 

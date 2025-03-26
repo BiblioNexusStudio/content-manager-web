@@ -3,8 +3,8 @@
     import RoleCell from './RoleCell.svelte';
 </script>
 
-<div class="overflow-hidden rounded-lg border-2 border-sky-300">
-    <table class="table table-xs border-sky-200">
+<div class="!border-primary overflow-hidden rounded-lg border-2">
+    <table class="table-xs table border-sky-200">
         <thead>
             <tr class="mt-4">
                 <th class="pl-4">Permissions for Each User Type</th>

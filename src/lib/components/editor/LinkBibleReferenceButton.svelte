@@ -238,14 +238,10 @@
     }
 </script>
 
-<Tooltip
-    position={{ left: '2rem', bottom: '0.2rem' }}
-    class="flex border-primary align-middle text-primary"
-    text="Link Bible Reference"
->
+<Tooltip position={{ left: '2rem', bottom: '0.2rem' }} class="flex align-middle" text="Link Bible Reference">
     <button
         data-app-insights-event-name="editor-toolbar-bible-reference-click"
-        class="btn btn-xs px-1 {disabled && '!bg-base-200'} btn-link hover:bg-[#e6f7fc]"
+        class="btn btn-xs px-1 {disabled && 'bg-base-200!'} btn-ghost"
         {disabled}
         onclick={openModal}
     >
@@ -270,7 +266,7 @@
             <h3 class="mb-2 flex items-center justify-between font-medium">
                 Reference
                 {#if isError}
-                    <span class="text-xs text-error">Error occurred, try again</span>
+                    <span class="text-error text-xs">Error occurred, try again</span>
                 {/if}
             </h3>
             <div class="mb-2 flex gap-2">
@@ -288,7 +284,7 @@
                     }}
                 />
                 <Select
-                    class="select select-bordered flex-grow"
+                    class="select select-bordered grow"
                     isNumber={true}
                     options={[
                         { value: 0, label: 'Chapter' },
@@ -305,7 +301,7 @@
                     }}
                 />
                 <Select
-                    class="select select-bordered flex-grow"
+                    class="select select-bordered grow"
                     isNumber={true}
                     options={[
                         { value: 0, label: 'Verse' },
@@ -335,9 +331,9 @@
         {#if isRange}
             <div class="mb-4">
                 <div class="flex gap-2">
-                    <div class="w-40"></div>
+                    <div class="me-4 w-40"></div>
                     <Select
-                        class="select select-bordered flex-grow"
+                        class="select select-bordered w-40"
                         isNumber={true}
                         options={[
                             { value: 0, label: 'Chapter' },
@@ -355,7 +351,7 @@
                         }}
                     />
                     <Select
-                        class="select select-bordered flex-grow"
+                        class="select select-bordered w-40"
                         isNumber={true}
                         options={[
                             { value: 0, label: 'Verse' },

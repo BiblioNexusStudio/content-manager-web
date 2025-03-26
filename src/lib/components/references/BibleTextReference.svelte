@@ -50,7 +50,14 @@
                     <div class="font-semibold" dir="auto">Chapter {chapter.number}</div>
                 {/if}
                 {#each chapter.verses as verse (verse)}
-                    <div dir="auto"><sup class="font-bold">{verse.number}</sup> {verse.text}</div>
+                    <div dir="auto">
+                        {#if verse.number === 0}
+                            <span class="italic">{verse.text}</span>
+                        {:else}
+                            <sup class="font-bold">{verse.number}</sup>
+                            {verse.text}
+                        {/if}
+                    </div>
                 {/each}
             {/each}
         {/each}

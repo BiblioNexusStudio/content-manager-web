@@ -241,6 +241,7 @@ export interface UserWordCount {
 export interface NotApplicableContent {
     id: number;
     hasAudio: boolean;
+    notApplicableReason: string;
     language: string;
     parentResourceName: string;
     title: string;

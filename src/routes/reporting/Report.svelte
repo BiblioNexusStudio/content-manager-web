@@ -181,17 +181,17 @@
                 </div>
             {/if}
             {#if reportData.acceptsDateRange || reportData.acceptsLanguage || reportData.acceptsParentResource || reportData.acceptsCompany}
-                <button class="btn btn-link !mx-1" onclick={refetch}>
+                <button class="btn btn-link mx-1!" onclick={refetch}>
                     <Icon data={refresh} />
                 </button>
             {/if}
         </div>
         {#if reportData.type === DynamicReportType.BarChart}
-            <div class="relative me-10 ms-5 h-full flex-shrink overflow-hidden">
+            <div class="relative ms-5 me-10 h-full flex-shrink overflow-hidden">
                 <BarChart report={reportData} />
             </div>
         {:else if reportData.type === DynamicReportType.LineChart}
-            <div class="relative me-10 ms-5 h-full flex-shrink overflow-hidden">
+            <div class="relative ms-5 me-10 h-full flex-shrink overflow-hidden">
                 <LineChart report={reportData} />
             </div>
         {:else if reportData.type === DynamicReportType.Table && sortedResults}

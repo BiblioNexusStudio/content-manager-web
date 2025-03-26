@@ -3,20 +3,21 @@
     import Content from '$lib/components/resources/Content.svelte';
     import { beforeNavigate, goto } from '$app/navigation';
     import {
+        type Assignment,
         type ContentTranslation,
         MediaTypeEnum,
-        type ResourceContent,
-        type TiptapContentItem,
-        type ResourceContentNextUpInfo,
-        type ResourceContentCurrentStatusId,
         OpenedSupplementalSideBar,
-        type Assignment,
+        type ResourceContent,
+        type ResourceContentCurrentStatusId,
+        type ResourceContentNextUpInfo,
         ResourceContentVersionReviewLevel,
+        type TiptapContentItem,
     } from '$lib/types/resources';
     import { getFromApi, patchToApi, postToApi } from '$lib/utils/http-service';
     import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
     import { ResourceContentStatusEnum, UserRole } from '$lib/types/base';
     import UserSelector from './UserSelector.svelte';
+    import NotApplicableReasonSelector from './NotApplicableReasonSelector.svelte';
     import {
         currentUser,
         isAuthenticatedStore,
@@ -59,7 +60,7 @@
     import VersionStatusHistorySidebar from './VersionStatusHistorySidebar.svelte';
     import ResourcePopout from '$lib/components/editorMarkPopouts/ResourcePopout.svelte';
     import type { User } from '@auth0/auth0-spa-js';
-    import { bindKeyCombo, bindKey, unbindKeyCombo, unbindKey } from '@rwh/keystrokes';
+    import { bindKey, bindKeyCombo, unbindKey, unbindKeyCombo } from '@rwh/keystrokes';
     import Tooltip from '$lib/components/Tooltip.svelte';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
 
@@ -86,6 +87,7 @@
     // --- declare reactive content states ---
     let shouldTransition = $state(false);
     let assignToUserId: number | null = $state(null);
+    let selectedNotApplicableReason: string | null = $state(null);
     let selectedStepNumber: number | undefined = $state();
     let newTranslationLanguageId: number | null = $state(null); // only community users, only when they click 'translate'
 
@@ -835,7 +837,10 @@
         $isPageTransacting = true;
 
         await takeActionAndCallback(
-            async () => await postToApi(`/resources/content/${resourceContent.resourceContentId}/not-applicable`),
+            async () =>
+                await postToApi(
+                    `/resources/content/${resourceContent.resourceContentId}/not-applicable?notApplicableReason=${selectedNotApplicableReason}`
+                ),
             async () => {
                 if (!$userCan(Permission.SetStatusCompleteNotApplicable)) {
                     await goto(`/`);
@@ -905,7 +910,7 @@
         class="w-screen px-8 pt-1"
         class:absolute={shouldTransition}
     >
-        <div class="flex w-full items-center justify-between border-b-[1px]">
+        <div class="flex w-full items-center justify-between border-b-[1px] py-1">
             <div class="me-2 flex place-items-center">
                 <ExitButton defaultPathIfNoHistory="/resources" />
                 <CurrentTranslations
@@ -924,7 +929,7 @@
                 <div class="flex w-full justify-end">
                     <div class="me-2 flex items-center">
                         {#if $showSavingFailed}
-                            <span class="font-bold text-error">Auto-save failed</span>
+                            <span class="text-error font-bold">Auto-save failed</span>
                         {/if}
                         {#if $isSaving}
                             <Icon data={spinner} pulse class="text-[#0175a2]" />
@@ -934,14 +939,13 @@
                         <div class="flex flex-wrap justify-end">
                             {#if canSetStatusTransitionNotApplicable}
                                 <Tooltip
-                                    position={{ right: '8.5rem', top: '0.25rem' }}
-                                    class="border-[#485467] text-[#485467]"
+                                    position={{ right: '7.5rem', top: '0.25rem' }}
                                     text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+N`}
                                 >
                                     <button
                                         class="btn btn-primary btn-sm ms-2"
                                         disabled={$isPageTransacting}
-                                        onclick={handleNotApplicable}
+                                        onclick={() => (isNotApplicableModalOpen = true)}
                                     >
                                         Not Applicable
                                     </button>
@@ -959,10 +963,9 @@
                             {#if canSendForEditorReview || inPublisherReviewAndCanSendBack}
                                 <Tooltip
                                     position={{
-                                        right: `${canSendForEditorReview ? '7.2rem' : '6.5rem'}`,
+                                        right: `${canSendForEditorReview ? '6.2rem' : '6.5rem'}`,
                                         top: '0.25rem',
                                     }}
-                                    class="border-[#485467] text-[#485467]"
                                     text={canSendForEditorReview ? `CTRL+${isMacOS ? 'CMD' : 'ALT'}+A` : ''}
                                 >
                                     <button
@@ -990,10 +993,9 @@
                             {#if canAssignPublisherForReview}
                                 <Tooltip
                                     position={{
-                                        right: `${canSendForEditorReview ? '7.2rem' : '6.5rem'}`,
+                                        right: `${canSendForEditorReview ? '7.2rem' : '4.5rem'}`,
                                         top: '0.25rem',
                                     }}
-                                    class="border-[#485467] text-[#485467]"
                                     text={isInReview ? `CTRL+${isMacOS ? 'CMD' : 'ALT'}+A` : ''}
                                 >
                                     <button
@@ -1023,8 +1025,7 @@
                             {/if}
                             {#if canSendForCompanyReview}
                                 <Tooltip
-                                    position={{ right: '8.5rem', top: '0.25rem' }}
-                                    class="border-[#485467] text-[#485467]"
+                                    position={{ right: '7.5rem', top: '0.25rem' }}
                                     text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+S`}
                                 >
                                     <button
@@ -1042,8 +1043,7 @@
                             {/if}
                             {#if canSendForPublisherReview}
                                 <Tooltip
-                                    position={{ right: '9.5rem', top: '0.25rem' }}
-                                    class="border-[#485467] text-[#485467]"
+                                    position={{ right: '8.5rem', top: '0.25rem' }}
                                     text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+S`}
                                 >
                                     <button
@@ -1058,8 +1058,9 @@
                                 <button
                                     class="btn btn-primary btn-sm ms-2"
                                     disabled={$isPageTransacting}
-                                    onclick={openAquiferizeModal}>Create Draft</button
-                                >
+                                    onclick={openAquiferizeModal}
+                                    >Create Draft
+                                </button>
                             {/if}
                             {#if canCommunityTranslate}
                                 <button
@@ -1109,7 +1110,7 @@
                 class:pe-3={!$isEditorPaneOnLeft}
                 class:ps-3={$isEditorPaneOnLeft}
             >
-                <div class="h-full rounded-md bg-base-200 px-4 pb-0.5 pt-4">
+                <div class="bg-base-200 h-full rounded-md px-4 pt-4 pb-0.5">
                     <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
                         <div class="flex flex-row items-center">
                             <input
@@ -1124,7 +1125,7 @@
                                 <div class="me-2 font-semibold text-gray-700">Draft</div>
                             {/if}
                         </div>
-                        <div class="mt-[0.9375rem] w-full flex-grow">
+                        <div class="mt-[0.9375rem] w-full grow">
                             <Content
                                 bind:selectedStepNumber
                                 {editableContentStore}
@@ -1166,7 +1167,7 @@
                 class:ps-3={!$isEditorPaneOnLeft}
                 class:pe-3={$isEditorPaneOnLeft}
             >
-                <div class="flex h-full w-full flex-col rounded-md border border-base-300 px-4 pb-1 pt-4">
+                <div class="border-base-300 flex h-full w-full flex-col rounded-md border px-4 pt-4 pb-1">
                     <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
                         <Select
                             value={$sidebarContentStore.selected?.idForSelection ?? null}
@@ -1223,7 +1224,7 @@
                 {isShowingSupplementalSidebar ? 'w-1/5 ps-3' : 'w-0'}"
             >
                 <div
-                    class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
+                    class="border-base-300 flex h-full w-full flex-col rounded-md border {openedSupplementalSideBar ===
                     OpenedSupplementalSideBar.Comments
                         ? ''
                         : 'hidden'}"
@@ -1231,7 +1232,7 @@
                     <CommentsSidebar {commentStores} />
                 </div>
                 <div
-                    class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
+                    class="border-base-300 flex h-full w-full flex-col rounded-md border {openedSupplementalSideBar ===
                     OpenedSupplementalSideBar.BibleReferences
                         ? ''
                         : 'hidden'}"
@@ -1244,7 +1245,7 @@
                     />
                 </div>
                 <div
-                    class="flex h-full w-full flex-col rounded-md border border-base-300 {openedSupplementalSideBar ===
+                    class="border-base-300 flex h-full w-full flex-col rounded-md border {openedSupplementalSideBar ===
                     OpenedSupplementalSideBar.VersionStatusHistory
                         ? ''
                         : 'hidden'}"
@@ -1300,7 +1301,7 @@
     >
         {#if $promptForMachineTranslationRating && currentUserIsAssigned}
             <div class="mb-8 flex flex-col justify-start gap-4">
-                <div class="font-semibold text-error">Please rate the AI translation before reassigning.</div>
+                <div class="text-error font-semibold">Please rate the AI translation before reassigning.</div>
                 <div>
                     <MachineTranslationRating showingInPrompt={true} improvementHorizontalPositionPx={0} />
                 </div>
@@ -1324,18 +1325,18 @@
         primaryButtonDisabled={$isPageTransacting}
     >
         {#if hasUnresolvedThreads && resourceContent?.status !== ResourceContentStatusEnum.New}
-            <p class="py-4 text-lg text-warning">This resource has unresolved comments.</p>
+            <p class="text-warning py-4 text-lg">This resource has unresolved comments.</p>
         {/if}
         {#if resourceContent?.status === ResourceContentStatusEnum.New}
-            <div class="form-control">
+            <div class="form-control mb-4">
                 <label class="label cursor-pointer justify-start space-x-2">
                     <input type="checkbox" bind:checked={createDraft} class="checkbox" />
                     <span class="label-text">Aquiferization Needed</span>
                 </label>
             </div>
-            <label class="form-control" for="aquiferization-assignment">
+            <label class="form-control mb-2" for="aquiferization-assignment">
                 <div class="label">
-                    <span class="label-text">Aquiferization Assignment (optional)</span>
+                    <span class="label-text mb-1">Aquiferization Assignment (optional)</span>
                 </div>
                 <UserSelector
                     users={usersThatCanBeAssigned()}
@@ -1386,10 +1387,13 @@
     <Modal
         header="Mark as Not Applicable?"
         bind:open={isNotApplicableModalOpen}
-        primaryButtonText="Yes"
+        primaryButtonText="Submit"
         primaryButtonOnClick={handleNotApplicable}
         primaryButtonId="not-applicable-yes-button"
-    />
+        primaryButtonDisabled={selectedNotApplicableReason === null || $isPageTransacting}
+    >
+        <NotApplicableReasonSelector bind:selectedReason={selectedNotApplicableReason} />
+    </Modal>
 
     <Modal header="Error" isError={true} bind:description={errorModalMessage} />
 {/key}

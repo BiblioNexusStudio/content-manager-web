@@ -18,14 +18,14 @@
     let companyLeadUserId = $derived(currentCompanyLead?.id ?? 0);
     let dayDiff = $derived(dateDifference($project?.projectedDeliveryDate ?? ''));
     let remainingWords = $derived($project?.counts.remaining ?? 0);
-    let projectDeliverDateTitle = $derived.by(() => {
+    let projectDeliveryDateTitle = $derived.by(() => {
         var title = '';
         if ($project?.projectedDeliveryDate && remainingWords > 0) {
             if (dayDiff > 0) {
-                title = `Overdue by ${dayDiff.toLocaleString()} days. ${remainingWords.toLocaleString()} words remaining`;
+                title = `Overdue by ${dayDiff.toLocaleString()} days. ${remainingWords.toLocaleString()} words remaining.`;
             }
             if (dayDiff < 0) {
-                title = `Due in ${Math.abs(dayDiff).toLocaleString()} days. ${remainingWords.toLocaleString()} words remaining`;
+                title = `Due in ${Math.abs(dayDiff).toLocaleString()} days. ${remainingWords.toLocaleString()} words remaining.`;
             }
         }
         return title;
@@ -105,7 +105,7 @@
             <div>{formatDate($project?.projectedDeliveryDate)}</div>
         </ViewTabSlot>
         {#if $project?.projectedDeliveryDate}
-            <ViewTabSlot title={projectDeliverDateTitle} titleClassProps={dayDiff > 0 ? 'text-error' : ''}
+            <ViewTabSlot title={projectDeliveryDateTitle} titleClassProps={dayDiff > 0 ? 'text-error' : ''}
             ></ViewTabSlot>
         {/if}
     </div>

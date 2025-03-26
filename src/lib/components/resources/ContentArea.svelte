@@ -76,19 +76,11 @@
             </div>
             <div class="relative flex items-center">
                 {#if resourceContent.hasPublishedVersion}
-                    <Tooltip
-                        position={{ left: '1.5rem', top: '-0.25rem' }}
-                        class="border-[#17b26a] text-[#17b26a]"
-                        text="Published"
-                    >
+                    <Tooltip position={{ left: '1.5rem', top: '-0.25rem' }} text="Published">
                         <Icon data={checkCircleO} style="height: 18px; width: auto; color: #17b26a;" />
                     </Tooltip>
                 {:else}
-                    <Tooltip
-                        position={{ left: '1.5rem', top: '-0.25rem' }}
-                        class="border-[#485467] text-[#485467]"
-                        text="Not Published"
-                    >
+                    <Tooltip position={{ left: '1.5rem', top: '-0.25rem' }} text="Not Published">
                         <Icon data={ban} style="height: 18px; width: auto; color: #485467;" />
                     </Tooltip>
                 {/if}
@@ -111,12 +103,11 @@
             {#if sidebarHistoryAvailable && resourceContent.mediaType === MediaTypeEnum.text}
                 <Tooltip
                     position={{ right: '3rem', top: '0.25rem' }}
-                    class="border-[#485467] text-[#485467]"
                     text={historySidebarOpen ? 'Hide Versions' : 'Show Versions'}
                 >
                     <button
                         data-app-insights-event-name="toggle-history-pane-click"
-                        class="btn btn-ghost btn-sm {historySidebarOpen && 'bg-[#e6f7fc]'}"
+                        class="btn btn-ghost btn-sm me-1 {historySidebarOpen && 'bg-primary text-primary-content'}"
                         onclick={() => onToggleHistoryPane()}
                     >
                         <HistoryIcon />
@@ -127,13 +118,12 @@
                 {@const active = openedSupplementalSideBar === OpenedSupplementalSideBar.Comments}
                 <Tooltip
                     position={{ right: '3rem' }}
-                    class="border-[#485467] text-[#485467]"
                     text={active ? 'Hide Comments' : 'Show Comments'}
                     secondLineText={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+M)`}
                 >
                     <button
                         data-app-insights-event-name="toggle-comments-pane-click"
-                        class="btn btn-ghost btn-sm {active && 'bg-[#e6f7fc]'}"
+                        class="btn btn-ghost btn-sm me-1 {active && 'bg-primary text-primary-content'}"
                         onclick={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.Comments)}
                     >
                         <CommentSidebarIcon />
@@ -142,16 +132,15 @@
             {/if}
             <Tooltip
                 position={{ right: '3rem' }}
-                class="border-[#485467] text-[#485467]"
                 text={openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences
                     ? 'Hide Bible References'
                     : 'Show Bible References'}
                 secondLineText={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+B)`}
             >
                 <button
-                    data-app-insights-event-name="toggle-comments-pane-click"
-                    class="btn btn-ghost btn-sm {openedSupplementalSideBar ===
-                        OpenedSupplementalSideBar.BibleReferences && 'bg-[#e6f7fc]'}"
+                    data-app-insights-event-name="toggle-bible-references-pane-click"
+                    class="btn btn-ghost btn-sm me-1 {openedSupplementalSideBar ===
+                        OpenedSupplementalSideBar.BibleReferences && 'bg-primary text-primary-content'}"
                     onclick={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.BibleReferences)}
                 >
                     <BookSidebarIcon />
@@ -159,7 +148,6 @@
             </Tooltip>
             <Tooltip
                 position={{ right: '3rem' }}
-                class="border-[#485467] text-[#485467]"
                 text={openedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory
                     ? 'Hide Status History'
                     : 'Show Status History'}
@@ -167,8 +155,8 @@
             >
                 <button
                     data-app-insights-event-name="toggle-status-history-pane-click"
-                    class="btn btn-ghost btn-sm {openedSupplementalSideBar ===
-                        OpenedSupplementalSideBar.VersionStatusHistory && 'bg-[#e6f7fc]'}"
+                    class="btn btn-ghost btn-sm me-1 {openedSupplementalSideBar ===
+                        OpenedSupplementalSideBar.VersionStatusHistory && 'bg-primary text-primary-content'}"
                     onclick={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.VersionStatusHistory)}
                 >
                     <PersonLinesIcon />

@@ -93,7 +93,7 @@
             <div class="flex h-full flex-col justify-between">
                 <div class="text-3xl">{$translate('page.users.header.value')}</div>
                 <div class="flex items-end justify-between">
-                    <div class="flex w-1/2 space-x-8">
+                    <div class="flex w-[90%] space-x-6">
                         {#if $userCan(Permission.ReadAllUsers)}
                             <Select
                                 class="select select-bordered max-w-xs"
@@ -108,7 +108,7 @@
                         <input
                             bind:value={filterBySearch}
                             type="search"
-                            class="max-h-12 min-h-12 w-[320px] rounded-md border-[1px] py-2 ps-5 text-sm text-gray-900 focus:outline-none"
+                            class="max-h-10 min-h-10 w-[320px] rounded-md border-[1px] py-2 ps-5 text-sm focus:outline-hidden"
                             placeholder={$translate('page.resources.searchBox.value')}
                         />
                         <button class="btn btn-primary" onclick={openModal}>Add</button>
@@ -116,12 +116,12 @@
                 </div>
             </div>
         </div>
-        <div class="col-span-2 mr-4 mt-4"><UserRolesTable /></div>
+        <div class="col-span-2 mt-4 mr-4"><UserRolesTable /></div>
     </div>
 
     <div class="flex flex-row space-x-4 overflow-y-hidden">
-        <div class="my-4 max-h-full flex-[2] overflow-y-auto rounded border-2">
-            <table class="table table-pin-rows">
+        <div class="my-4 max-h-full flex-2 overflow-y-auto rounded-sm border-2">
+            <table class="table-pin-rows table">
                 <thead>
                     <tr class="bg-base-200">
                         <th>{$translate('page.users.name.value')}</th>
@@ -153,7 +153,7 @@
 
                             <td class="px-5">{user.company.name}</td>
                             <td class="px-5">{user.isEmailVerified ? 'Verified' : 'Invited'}</td>
-                            <td class="px-5 text-primary">
+                            <td class="text-primary px-5">
                                 {#if user.role !== UserRole.Publisher && user.role !== UserRole.Admin && !$userIsEqual(user.id)}
                                     <button
                                         data-app-insights-event-name="disable-user-button-click"

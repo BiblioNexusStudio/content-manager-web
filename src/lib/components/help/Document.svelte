@@ -16,7 +16,7 @@
     let titleString = $derived(document.title.replace(/^\d{2}-[A-Za-z]{3}-\d{4}\s*/, ''));
 </script>
 
-<a href={document.url} target="_blank" class="overflow flex w-40 flex-col items-center hover:text-primary">
+<a href={document.url} target="_blank" class="overflow hover:text-primary flex w-40 flex-col items-center">
     <span class="h-20 w-16">
         {#if document.thumbnailUrl}
             <img src={document.thumbnailUrl} alt={document.title} class="h-full w-full object-contain" />
