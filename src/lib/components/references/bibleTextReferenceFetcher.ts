@@ -5,6 +5,7 @@ import { log } from '$lib/logger';
 import type { Language } from '$lib/types/base';
 import { fetchBibleVersification, type VerseMapping } from '$lib/utils/bible-versification-fetcher';
 import { generateVerseId, parseVerseId, type Verse } from '$lib/utils/bible-passage-utils';
+import { fetchLanguageDefaultBible } from '$lib/utils/bibles-fetcher';
 
 export interface BibleTextsReference {
     verseDisplayName: string;
@@ -24,9 +25,14 @@ export const fetchAndFormat = async (
         startVerse -= 1;
     }
 
+    const bibleId =
+        !passedBibleId || passedBibleId === 0
+            ? ((await fetchLanguageDefaultBible(language.id))?.id ?? 1)
+            : passedBibleId;
+
     const [bookTexts, versificationMappings] = await Promise.all([
-        fetchBiblePassages(startVerse, endVerse, language.id, passedBibleId),
-        fetchBibleVersification(startVerse, endVerse, language.id, passedBibleId),
+        fetchBiblePassages(startVerse, endVerse, bibleId),
+        fetchBibleVersification(startVerse, endVerse, bibleId),
     ]);
 
     if (!bookTexts || bookTexts.length === 0) {
@@ -74,8 +80,7 @@ export const fetchAndFormat = async (
                     passageBookTexts = await fetchBiblePassages(
                         startVerseMapping!.targetVerses[0]!.verseId,
                         startVerseMapping!.targetVerses.at(-1)!.verseId,
-                        language.id,
-                        passedBibleId
+                        bibleId
                     );
                 } catch (error) {
                     log.exception(
@@ -135,12 +140,7 @@ export const fetchAndFormat = async (
             // if not, fetch passage content according to new start and end and set as bookTexts
             if (passageBookTexts.length === 0) {
                 try {
-                    passageBookTexts = await fetchBiblePassages(
-                        passageStartVerseId,
-                        passageEndVerseId,
-                        language.id,
-                        passedBibleId
-                    );
+                    passageBookTexts = await fetchBiblePassages(passageStartVerseId, passageEndVerseId, bibleId);
                 } catch (error) {
                     log.exception(
                         new Error(
@@ -277,14 +277,15 @@ function getMultiVersePassageContentFromBookTexts(
 }
 
 function generateVerseReference(bookTexts: BibleBookTexts[], language: Language, hasDifferentMapping: boolean): string {
+    // if both 0 and verse 1 are requested we still only want to display a single reference to only verse 1
     if (
         bookTexts.length === 1 &&
         bookTexts[0]!.chapters.length === 1 &&
-        bookTexts[0]!.chapters[0]!.verses.length === 1
+        bookTexts[0]!.chapters[0]!.verses.filter((v) => v.number !== 0).length === 1
     ) {
         const singleBookText = bookTexts[0]!;
         const singleChapter = singleBookText.chapters[0]!;
-        const singleVerse = singleChapter.verses[0]!;
+        const singleVerse = singleChapter.verses.at(-1)!;
 
         return generateVerseFromReference(
             {
