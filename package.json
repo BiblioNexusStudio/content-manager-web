@@ -5,7 +5,7 @@
     "scripts": {
         "dev": "vite dev",
         "build": "vite build",
-        "build-with-source-maps": "INCLUDE_SOURCE_MAPS=true vite build",
+        "build-with-source-maps": "cross-env INCLUDE_SOURCE_MAPS=true vite build",
         "preview": "vite preview",
         "test": "vitest",
         "lint:unused-translations": "run-script-os",
@@ -47,6 +47,7 @@
         "@typescript-eslint/eslint-plugin": "^5.45.0",
         "@typescript-eslint/parser": "^5.45.0",
         "autoprefixer": "^10.4.14",
+        "cross-env": "^7.0.3",
         "eslint": "^8.28.0",
         "eslint-config-prettier": "^8.5.0",
         "eslint-plugin-svelte": "^2.45.1",
