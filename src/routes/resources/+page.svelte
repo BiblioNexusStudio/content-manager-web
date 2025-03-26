@@ -14,6 +14,7 @@
     import ErrorMessage from '$lib/components/ErrorMessage.svelte';
     import { Icon } from 'svelte-awesome';
     import { volumeUp } from 'svelte-awesome/icons';
+    import { Permission, userCan } from '$lib/stores/auth';
 
     interface PageProps {
         data: PageData;
@@ -35,6 +36,7 @@
     let bookCode = $state($searchParams.bookCode === '' ? null : $searchParams.bookCode);
     let isNotApplicable = $state($searchParams.isNotApplicable === 'true' ? true : false);
     let isPublished = $state($searchParams.isPublished === 'true' ? true : false);
+    let shouldShowNotApplicable = $userCan(Permission.PublishContent);
 
     let chapterRange = $state('');
     $effect(() => calculateChapterRange(bibleBooks));
@@ -146,23 +148,25 @@
             class="input input-bordered input-md w-[11rem]"
             placeholder="Chapter (e.g. 2, 1-5)"
         />
-        <div class="flex flex-col space-y-2">
-            <div class="form-control flex justify-between">
-                <label class="label cursor-pointer py-0">
+        <div class={shouldShowNotApplicable ? 'flex flex-col space-y-2' : 'flex'}>
+            <div class="form-control flex w-full justify-between">
+                <label class="label flex w-full cursor-pointer justify-between py-0">
                     <span class="label-text text-xs">Show Only Published</span>
                     <input type="checkbox" bind:checked={isPublished} class="checkbox no-animation checkbox-xs ms-2" />
                 </label>
             </div>
-            <div class="form-control flex w-full justify-between">
-                <label class="label flex w-full cursor-pointer justify-between py-0">
-                    <span class="label-text text-xs">Show Only N/A</span>
-                    <input
-                        type="checkbox"
-                        bind:checked={isNotApplicable}
-                        class="checkbox no-animation checkbox-xs ms-2"
-                    />
-                </label>
-            </div>
+            {#if shouldShowNotApplicable}
+                <div class="form-control flex w-full justify-between">
+                    <label class="label flex w-full cursor-pointer justify-between py-0">
+                        <span class="label-text text-xs">Show Only N/A</span>
+                        <input
+                            type="checkbox"
+                            bind:checked={isNotApplicable}
+                            class="checkbox no-animation checkbox-xs ms-2"
+                        />
+                    </label>
+                </div>
+            {/if}
         </div>
         <input
             bind:value={searchInputValue}

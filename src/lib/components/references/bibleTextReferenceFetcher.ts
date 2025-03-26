@@ -5,6 +5,7 @@ import { log } from '$lib/logger';
 import type { Language } from '$lib/types/base';
 import { fetchBibleVersification, type VerseMapping } from '$lib/utils/bible-versification-fetcher';
 import { generateVerseId, parseVerseId, type Verse } from '$lib/utils/bible-passage-utils';
+import { fetchLanguageDefaultBible } from '$lib/utils/bibles-fetcher';
 
 export interface BibleTextsReference {
     verseDisplayName: string;
@@ -19,9 +20,19 @@ export const fetchAndFormat = async (
     language: Language,
     passedBibleId?: number
 ): Promise<BibleTextsReference | null> => {
+    // ensure we always include verse 0 along with verse 1 if verse 0 exists
+    if (startVerse % 1000 === 1) {
+        startVerse -= 1;
+    }
+
+    const bibleId =
+        !passedBibleId || passedBibleId === 0
+            ? ((await fetchLanguageDefaultBible(language.id))?.id ?? 1)
+            : passedBibleId;
+
     const [bookTexts, versificationMappings] = await Promise.all([
-        fetchBiblePassages(startVerse, endVerse, language.id, passedBibleId),
-        fetchBibleVersification(startVerse, endVerse, language.id, passedBibleId),
+        fetchBiblePassages(startVerse, endVerse, bibleId),
+        fetchBibleVersification(startVerse, endVerse, bibleId),
     ]);
 
     if (!bookTexts || bookTexts.length === 0) {
@@ -43,39 +54,44 @@ export const fetchAndFormat = async (
     const parsedStartVerse = parseVerseId(startVerse);
     const parsedEndVerse = hasMultipleVerses ? parseVerseId(endVerse) : null;
 
+    // This logic assumes that all returned mappings are an exact range in the target Bible.  This is not necessarily true but is easier to reason about.
+    // In the future we may need to update this logic to handle more complex mappings if real-world scenarios arise where mappings are non-consecutive verses.
     if (passageHasDifferentBaseMappings) {
         if (!hasMultipleVerses) {
             // if passage is single verse and we have base mapping, startVerseMapping will always be defined
             //! startVerseMapping.targetVerse can be null.
-            //! This represents an exclusion = verse does not exist in target bible
+            //! This represents an exclusion = verse does not exist in target Bible
             const startVerseMapping = findMappingByVerseId(startVerse, versificationMappings);
-            if (startVerseMapping!.targetVerse === null) {
+            if (
+                !startVerseMapping ||
+                startVerseMapping!.targetVerses === null ||
+                startVerseMapping!.targetVerses.length === 0
+            ) {
                 // handle exclusion
                 return null;
             }
 
             // does mapping exist in bookTexts?
-            passageBookTexts = getSingleVersePassageContentFromBookTexts(bookTexts, {
-                bookId: parseVerseId(startVerseMapping!.targetVerse.verseId).bookId,
-                chapter: startVerseMapping!.targetVerse.chapter,
-                verse: startVerseMapping!.targetVerse.verse,
-            });
+            passageBookTexts = getMultiVersePassageContentFromBookTexts(
+                bookTexts,
+                parseVerseId(startVerseMapping!.targetVerses[0]!.verseId),
+                parseVerseId(startVerseMapping!.targetVerses.at(-1)!.verseId)
+            );
 
             if (passageBookTexts.length === 0) {
                 //  if not, fetch according to mapping and set as bookTexts
                 try {
                     passageBookTexts = await fetchBiblePassages(
-                        startVerseMapping!.targetVerse.verseId,
-                        startVerseMapping!.targetVerse.verseId,
-                        language.id,
-                        passedBibleId
+                        startVerseMapping!.targetVerses[0]!.verseId,
+                        startVerseMapping!.targetVerses.at(-1)!.verseId,
+                        bibleId
                     );
                 } catch (error) {
                     log.exception(
                         new Error(
-                            `Error fetching mapped verses content - VerseId: ${
-                                startVerseMapping!.targetVerse.verseId
-                            } - Error: ${error}`
+                            `Error fetching mapped verses content - StartVerseId: ${
+                                startVerseMapping!.targetVerses[0]!.verseId
+                            } - EndVerseId: ${startVerseMapping!.targetVerses.at(-1)!.verseId} - Error: ${error}`
                         )
                     );
                     return null;
@@ -88,9 +104,9 @@ export const fetchAndFormat = async (
                 }
             }
 
-            verseDisplayName = generateSingleVerseDisplayName(passageBookTexts, language, true);
+            verseDisplayName = generateVerseReference(passageBookTexts, language, true);
         } else {
-            // multiple vers passage with at least some mappings
+            // multiple verse passage with at least some mappings
             // ! any given VerseMapping.targetVerse in the mapping can be null.
             // ! This represents an exclusion = verse does not exist in target bible
 
@@ -101,50 +117,34 @@ export const fetchAndFormat = async (
             let passageEndVerseId = endVerse;
 
             if (startVerseMapping) {
-                if (startVerseMapping.targetVerse === null) {
+                if (startVerseMapping.targetVerses === null || startVerseMapping.targetVerses.length === 0) {
                     // exclusion - this passage, or part of it, does not exist in target bible
                     return null;
                 } else {
-                    passageStartVerseId = startVerseMapping.targetVerse.verseId;
+                    passageStartVerseId = startVerseMapping.targetVerses[0]!.verseId;
                 }
             }
 
             if (endVerseMapping) {
-                if (endVerseMapping.targetVerse === null) {
+                if (endVerseMapping.targetVerses === null || endVerseMapping.targetVerses.length === 0) {
                     // exclusion - this passage, or part of it, does not exist in target bible
                     return null;
                 } else {
-                    passageEndVerseId = endVerseMapping.targetVerse.verseId;
+                    passageEndVerseId = endVerseMapping.targetVerses.at(-1)!.verseId;
                 }
             }
 
-            const parsedStartVerse = parseVerseId(passageStartVerseId);
-            const parsedEndVerse = parseVerseId(passageEndVerseId);
-
-            // does pasage exist in current bookTexts?
+            // does passage exist in current bookTexts?
             passageBookTexts = getMultiVersePassageContentFromBookTexts(
                 bookTexts,
-                {
-                    bookId: parsedStartVerse.bookId,
-                    chapter: parsedStartVerse.chapter,
-                    verse: parsedStartVerse.verse,
-                },
-                {
-                    bookId: parsedEndVerse.bookId,
-                    chapter: parsedEndVerse.chapter,
-                    verse: parsedEndVerse.verse,
-                }
+                parseVerseId(passageStartVerseId),
+                parseVerseId(passageEndVerseId)
             );
 
             // if not, fetch passage content according to new start and end and set as bookTexts
             if (passageBookTexts.length === 0) {
                 try {
-                    passageBookTexts = await fetchBiblePassages(
-                        passageStartVerseId,
-                        passageEndVerseId,
-                        language.id,
-                        passedBibleId
-                    );
+                    passageBookTexts = await fetchBiblePassages(passageStartVerseId, passageEndVerseId, bibleId);
                 } catch (error) {
                     log.exception(
                         new Error(
@@ -163,7 +163,7 @@ export const fetchAndFormat = async (
                 }
             }
 
-            verseDisplayName = generateVerseRangeDisplayName(passageBookTexts, language, true);
+            verseDisplayName = generateVerseReference(passageBookTexts, language, true);
         }
     } else {
         // if passage has no mapping, passage perfectly aligned
@@ -175,7 +175,7 @@ export const fetchAndFormat = async (
                 return null;
             }
 
-            verseDisplayName = generateSingleVerseDisplayName(passageBookTexts, language, false);
+            verseDisplayName = generateVerseReference(passageBookTexts, language, false);
         } else {
             passageBookTexts = getMultiVersePassageContentFromBookTexts(bookTexts, parsedStartVerse, parsedEndVerse!);
 
@@ -184,7 +184,8 @@ export const fetchAndFormat = async (
                 return null;
             }
 
-            verseDisplayName = generateVerseRangeDisplayName(passageBookTexts, language, false);
+            // handle the case where verse 0 was requested in addition to only requesting verse 1 but verse 0 doesn't exist in the target Bible
+            verseDisplayName = generateVerseReference(passageBookTexts, language, false);
         }
     }
 
@@ -279,46 +280,43 @@ function getMultiVersePassageContentFromBookTexts(
     return passageContent;
 }
 
-function generateSingleVerseDisplayName(
-    bookTexts: BibleBookTexts[],
-    language: Language,
-    hasDifferentMapping: boolean
-): string {
-    const singleBookText = bookTexts[0]!;
-    const singleChapter = singleBookText.chapters[0]!;
-    const singleVerse = singleChapter.verses[0]!;
+function generateVerseReference(bookTexts: BibleBookTexts[], language: Language, hasDifferentMapping: boolean): string {
+    // if both 0 and verse 1 are requested we still only want to display a single reference to only verse 1
+    if (
+        bookTexts.length === 1 &&
+        bookTexts[0]!.chapters.length === 1 &&
+        bookTexts[0]!.chapters[0]!.verses.filter((v) => v.number !== 0).length === 1
+    ) {
+        const singleBookText = bookTexts[0]!;
+        const singleChapter = singleBookText.chapters[0]!;
+        const singleVerse = singleChapter.verses.at(-1)!;
 
-    return generateVerseFromReference(
-        {
-            verseId: 0,
-            book: singleBookText.bookName,
-            chapter: singleChapter.number,
-            verse: singleVerse.number,
-        },
-        language.scriptDirection,
-        hasDifferentMapping
-    );
-}
-
-function generateVerseRangeDisplayName(
-    bookTexts: BibleBookTexts[],
-    language: Language,
-    hasDifferentMapping: boolean
-): string {
-    return generateVerseFromReference(
-        {
-            startVerseId: 0,
-            startBook: bookTexts[0]!.bookName,
-            startChapter: bookTexts[0]!.chapters[0]!.number,
-            startVerse: bookTexts[0]!.chapters[0]!.verses[0]!.number,
-            endVerseId: 0,
-            endBook: bookTexts.at(-1)!.bookName,
-            endChapter: bookTexts.at(-1)!.chapters.at(-1)!.number,
-            endVerse: bookTexts.at(-1)!.chapters.at(-1)!.verses.at(-1)!.number,
-        },
-        language.scriptDirection,
-        hasDifferentMapping
-    );
+        return generateVerseFromReference(
+            {
+                verseId: 0,
+                book: singleBookText.bookName,
+                chapter: singleChapter.number,
+                verse: singleVerse.number,
+            },
+            language.scriptDirection,
+            hasDifferentMapping
+        );
+    } else {
+        return generateVerseFromReference(
+            {
+                startVerseId: 0,
+                startBook: bookTexts[0]!.bookName,
+                startChapter: bookTexts[0]!.chapters[0]!.number,
+                startVerse: bookTexts[0]!.chapters[0]!.verses[0]!.number,
+                endVerseId: 0,
+                endBook: bookTexts.at(-1)!.bookName,
+                endChapter: bookTexts.at(-1)!.chapters.at(-1)!.number,
+                endVerse: bookTexts.at(-1)!.chapters.at(-1)!.verses.at(-1)!.number,
+            },
+            language.scriptDirection,
+            hasDifferentMapping
+        );
+    }
 }
 
 function findMappingByVerseId(verseId: number, versificationMappings: VerseMapping[] | null): VerseMapping | undefined {

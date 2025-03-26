@@ -41,14 +41,16 @@ export function generateVerseFromReference(
 
     let label: string;
     if (instanceOfPassageReference(reference)) {
+        // don't include verse 0 when displaying references
+        const startVerse = reference.startVerse === 0 ? 1 : reference.startVerse;
         if (reference.startBook === reference.endBook) {
             if (reference.startChapter === reference.endChapter) {
-                label = `${reference.startBook} ${reference.startChapter}${rtlSpace}:${rtlSpace}${reference.startVerse}-${reference.endVerse}`;
+                label = `${reference.startBook} ${reference.startChapter}${rtlSpace}:${rtlSpace}${startVerse}-${reference.endVerse}`;
             } else {
-                label = `${reference.startBook} ${reference.startChapter}${rtlSpace}:${rtlSpace}${reference.startVerse}-${reference.endChapter}${rtlSpace}:${rtlSpace}${reference.endVerse}`;
+                label = `${reference.startBook} ${reference.startChapter}${rtlSpace}:${rtlSpace}${startVerse}-${reference.endChapter}${rtlSpace}:${rtlSpace}${reference.endVerse}`;
             }
         } else {
-            label = `${reference.startBook} ${reference.startChapter}${rtlSpace}:${rtlSpace}${reference.startVerse} - ${reference.endBook} ${reference.endChapter}${rtlSpace}:${rtlSpace}${reference.endVerse}`;
+            label = `${reference.startBook} ${reference.startChapter}${rtlSpace}:${rtlSpace}${startVerse} - ${reference.endBook} ${reference.endChapter}${rtlSpace}:${rtlSpace}${reference.endVerse}`;
         }
     } else {
         label = `${reference.book} ${reference.chapter}${rtlSpace}:${rtlSpace}${reference.verse}`;
