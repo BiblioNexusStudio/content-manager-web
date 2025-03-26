@@ -15,12 +15,10 @@
     interface AudioPlayerProps {
         audioContents: ResourceContent[] | null;
         fromAudioPlayerModal?: boolean;
-        versionAudioContents: Version | null;
+        versionAudioContents?: Version | null;
     }
 
     let { audioContents, fromAudioPlayerModal = false, versionAudioContents = null }: AudioPlayerProps = $props();
-
-    $inspect('versionAudioContents', versionAudioContents);
 
     let playlist: AudioPlaylist = getAudioPlaylistContext();
 
@@ -82,7 +80,7 @@
         }
     }
 
-    async function handlePlayerError(errorEvent: Event) {
+    function handlePlayerError(errorEvent: Event) {
         const target = errorEvent?.target as HTMLAudioElement;
 
         if (!target?.error) return;
@@ -172,15 +170,6 @@
                 };
 
                 playlist.tracks = [track];
-
-                // playlist.tracks = versionAudioContents.content?.map((audioContent) => {
-                //     const content = audioContent.content as AudioContentItem;
-
-                //     return {
-                //         url: content[playlist.currentAudioType].url,
-                //         currentTime: 0,
-                //     };
-                // });
             }
         }
     }
@@ -195,7 +184,7 @@
     });
 
     $effect(() => {
-        (async () => {
+        (() => {
             if (!audioContents) return;
             if (audioContents.length > 0) {
                 populatePlaylist();
@@ -345,7 +334,6 @@
         height: var(--square-size);
         width: var(--square-size);
         cursor: pointer;
-        grow: 0;
     }
 
     .audio-control-btn:hover {

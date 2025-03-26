@@ -115,7 +115,7 @@
         <AudioPlayer audioContents={[resourceContent]} {versionAudioContents} />
     </div>
 
-    <ReplaceAudioButton />
+    <ReplaceAudioButton {hasSteps} {selectedStepNumber} resourceContentId={resourceContent.resourceContentId} />
 
     <LicenseInfoButton {resourceContent} />
 </div>

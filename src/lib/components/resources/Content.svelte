@@ -9,7 +9,6 @@
         type ResourceContent,
         type TiptapContentItem,
         type VideoContentItem,
-        type AudioContentItem,
         type Snapshot,
         type Version,
     } from '$lib/types/resources';
@@ -48,7 +47,6 @@
 
     let imageContent = $derived((snapshotOrVersion?.content ?? resourceContent.content) as ImageContentItem);
     let videoContent = $derived((snapshotOrVersion?.content ?? resourceContent.content) as VideoContentItem);
-    let audioContent = $derived((snapshotOrVersion?.content ?? resourceContent.content) as AudioContentItem);
 </script>
 
 {#if resourceContent.mediaType === MediaTypeEnum.image}
@@ -56,7 +54,7 @@
 {:else if resourceContent.mediaType === MediaTypeEnum.video}
     <Video content={videoContent} />
 {:else if resourceContent.mediaType === MediaTypeEnum.audio}
-    <Audio content={audioContent} {resourceContent} />
+    <Audio {resourceContent} />
 {:else if resourceContent.mediaType === MediaTypeEnum.text}
     <Text
         {sidebarIsOpen}
