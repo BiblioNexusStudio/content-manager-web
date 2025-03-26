@@ -62,7 +62,11 @@ export const fetchAndFormat = async (
             //! startVerseMapping.targetVerse can be null.
             //! This represents an exclusion = verse does not exist in target Bible
             const startVerseMapping = findMappingByVerseId(startVerse, versificationMappings);
-            if (startVerseMapping!.targetVerses === null || startVerseMapping!.targetVerses.length === 0) {
+            if (
+                !startVerseMapping ||
+                startVerseMapping!.targetVerses === null ||
+                startVerseMapping!.targetVerses.length === 0
+            ) {
                 // handle exclusion
                 return null;
             }
