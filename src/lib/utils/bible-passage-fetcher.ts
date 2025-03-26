@@ -1,24 +1,15 @@
-import { fetchLanguageDefaultBible } from '$lib/utils/bibles-fetcher';
 import { fetchBibleBookTexts, type BibleBookTexts } from '$lib/utils/bible-book-fetcher';
 import { parseVerseId, type Verse } from './bible-passage-utils';
 
 export async function fetchBiblePassages(
     startVerseId: number,
     endVerseId: number,
-    languageId: number,
-    passedBibleId?: number
+    bibleId: number
 ): Promise<BibleBookTexts[]> {
     const start = parseVerseId(startVerseId);
     const end = parseVerseId(endVerseId);
     const spansMultipleBooks = start.bookId !== end.bookId;
-    let bibleId: number = passedBibleId ?? 1;
-
     const texts: BibleBookTexts[] = [];
-
-    if (!passedBibleId) {
-        const bible = await fetchLanguageDefaultBible(languageId);
-        bibleId = bible?.id ?? 1;
-    }
 
     for (let i = start.bookId; i <= end.bookId; i++) {
         let bookStart = start;
