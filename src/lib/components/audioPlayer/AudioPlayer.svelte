@@ -9,15 +9,18 @@
     import { AudioPlaylist, type AudioType, isAudioContentItem, getAudioPlaylistContext } from './context.svelte';
     import PlaybackSpeedPopover from './PlaybackSpeedPopover.svelte';
     import { onMount } from 'svelte';
-    import type { AudioContentItem, ResourceContent } from '$lib/types/resources';
+    import type { AudioContentItem, ResourceContent, Version } from '$lib/types/resources';
     import { Permission, userCan } from '$lib/stores/auth';
 
     interface AudioPlayerProps {
         audioContents: ResourceContent[] | null;
         fromAudioPlayerModal?: boolean;
+        versionAudioContents: Version | null;
     }
 
-    let { audioContents, fromAudioPlayerModal = false }: AudioPlayerProps = $props();
+    let { audioContents, fromAudioPlayerModal = false, versionAudioContents = null }: AudioPlayerProps = $props();
+
+    $inspect('versionAudioContents', versionAudioContents);
 
     let playlist: AudioPlaylist = getAudioPlaylistContext();
 
@@ -118,31 +121,67 @@
     }
 
     function populatePlaylist() {
-        if (!audioContents || supportedAudioTypes.length === 0) return;
+        if (versionAudioContents === null) {
+            if (!audioContents || supportedAudioTypes.length === 0) return;
 
-        if (!isAudioContentItem(audioContents[0]!.content)) return;
+            if (!isAudioContentItem(audioContents[0]!.content)) return;
 
-        const audioHasSteps = !!audioContents[0]!.content.mp3?.steps?.length;
+            const audioHasSteps = !!audioContents[0]!.content.mp3?.steps?.length;
 
-        if (audioHasSteps) {
-            const content = audioContents[0]!.content as AudioContentItem;
-            const steps = content[playlist.currentAudioType].steps!;
+            if (audioHasSteps) {
+                const content = audioContents[0]!.content as AudioContentItem;
+                const steps = content[playlist.currentAudioType].steps!;
 
-            playlist.tracks = steps.map((step) => {
-                return {
-                    url: step.url,
-                    currentTime: 0,
-                };
-            });
+                playlist.tracks = steps.map((step) => {
+                    return {
+                        url: step.url,
+                        currentTime: 0,
+                    };
+                });
+            } else {
+                playlist.tracks = audioContents?.map((audioContent) => {
+                    const content = audioContent.content as AudioContentItem;
+
+                    return {
+                        url: content[playlist.currentAudioType].url,
+                        currentTime: 0,
+                    };
+                });
+            }
         } else {
-            playlist.tracks = audioContents?.map((audioContent) => {
-                const content = audioContent.content as AudioContentItem;
+            if (!versionAudioContents?.content || supportedAudioTypes.length === 0) return;
 
-                return {
-                    url: content[playlist.currentAudioType].url,
+            if (!isAudioContentItem(versionAudioContents.content)) return;
+
+            const audioHasSteps = !!versionAudioContents.content.mp3?.steps?.length;
+
+            if (audioHasSteps) {
+                const content = versionAudioContents.content as AudioContentItem;
+                const steps = content[playlist.currentAudioType].steps!;
+
+                playlist.tracks = steps.map((step) => {
+                    return {
+                        url: step.url,
+                        currentTime: 0,
+                    };
+                });
+            } else {
+                const track = {
+                    url: versionAudioContents.content[playlist.currentAudioType].url,
                     currentTime: 0,
                 };
-            });
+
+                playlist.tracks = [track];
+
+                // playlist.tracks = versionAudioContents.content?.map((audioContent) => {
+                //     const content = audioContent.content as AudioContentItem;
+
+                //     return {
+                //         url: content[playlist.currentAudioType].url,
+                //         currentTime: 0,
+                //     };
+                // });
+            }
         }
     }
 

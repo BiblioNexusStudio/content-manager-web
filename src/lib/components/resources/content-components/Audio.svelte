@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, untrack } from 'svelte';
-    import type { AudioContentItem, ResourceContent } from '$lib/types/resources';
+    import type { AudioContentItem, ResourceContent, Version } from '$lib/types/resources';
     import ReplaceAudioButton from '$lib/components/audioPlayer/ReplaceAudioButton.svelte';
     import AudioPlayer from '$lib/components/audioPlayer/AudioPlayer.svelte';
     import { createAudioPlaylistContext, type AudioPlaylist } from '$lib/components/audioPlayer/context.svelte';
@@ -8,6 +8,7 @@
     import LicenseInfoButton from '../../../../routes/resources/[resourceContentId]/LicenseInfoButton.svelte';
     import ArrowLeftSmall from '$lib/icons/ArrowLeftSmall.svelte';
     import ArrowRightSmall from '$lib/icons/ArrowRightSmall.svelte';
+    import { getFromApi } from '$lib/utils/http-service';
 
     interface Props {
         resourceContent: ResourceContent;
@@ -24,6 +25,7 @@
     let selectedVersionNumber = $state(
         versions.find((version) => version.id === resourceContent.resourceContentId)?.version || 1
     );
+    let versionAudioContents: Version | null = $state(null);
 
     function updateCurrentTrack() {
         if (selectedStepNumber! > playlist.currentTrackIndex + 1) {
@@ -38,16 +40,21 @@
             version: resourceContent.versions.length ? resourceContent.versions.length + 1 : 1,
             created: resourceContent.resourceContentVersionCreated,
             id: resourceContent.resourceContentId,
-            isPublished: false,
+            isPublished: true,
         };
 
         return [versionZero, ...resourceContent.versions];
     }
 
-    function goToDifferentAudioResourcePageVersion(selectedVersionNumber: number) {
-        if (!selectedVersionNumber) return;
+    async function loadAudioResourceVersion() {
         const selectedVersion = versions.find((version) => version.version === selectedVersionNumber)!;
-        //window.location.href = `/resources/${selectedVersion.id}`;
+
+        if (selectedVersion.isPublished) {
+            versionAudioContents = null;
+            return;
+        }
+
+        versionAudioContents = await getFromApi<Version>(`/resources/content/versions/${selectedVersion.id}`, fetch);
     }
 
     $effect(() => {
@@ -72,9 +79,7 @@
             }))}
             class="select select-bordered w-lg"
             isNumber={true}
-            onChange={() => {
-                goToDifferentAudioResourcePageVersion(selectedVersionNumber);
-            }}
+            onChange={loadAudioResourceVersion}
         />
     </div>
 
@@ -107,7 +112,7 @@
             </div>
         {/if}
 
-        <AudioPlayer audioContents={[resourceContent]} />
+        <AudioPlayer audioContents={[resourceContent]} {versionAudioContents} />
     </div>
 
     <ReplaceAudioButton />
