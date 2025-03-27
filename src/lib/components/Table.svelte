@@ -47,7 +47,7 @@
         searchable = false,
         searchText = $bindable(),
         noItemsAfterSearchText = undefined,
-        isLoading = false,
+        isLoading = $bindable(),
         currentPage = $bindable(),
         totalItems = undefined,
         itemsPerPage = $bindable(),

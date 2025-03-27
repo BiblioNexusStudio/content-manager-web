@@ -44,6 +44,7 @@ export enum DynamicReportType {
 export interface BasicDynamicReport {
     name: string;
     slug: string;
+    showInDropdown: boolean;
 }
 
 export interface DynamicReport {

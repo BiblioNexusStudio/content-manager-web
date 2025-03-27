@@ -61,6 +61,7 @@ export enum Permission {
     ReadProjects = 'read:projects',
     ReadProjectsInCompany = 'read:projects-in-company',
     ReadReports = 'read:reports',
+    ReadReportsInCompany = 'read:reports-in-company',
     ReadResources = 'read:resources',
     ReadResourceLists = 'read:resource-lists',
     ReadUsers = 'read:users',

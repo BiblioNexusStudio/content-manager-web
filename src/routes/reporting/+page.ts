@@ -14,7 +14,10 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             getFromApi<ResourceItemsSummary>('/reports/resources/item-totals', fetch),
             getFromApi<BasicDynamicReport[]>('/reports/dynamic', fetch),
         ]);
+
         return { summary, reports, resourceItemsSummary };
+    } else if (get(userCan)(Permission.ReadReportsInCompany)) {
+        redirect(302, `/reporting/managers`);
     } else {
         redirect(302, '/');
     }

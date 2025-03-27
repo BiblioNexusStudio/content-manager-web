@@ -5,22 +5,10 @@ import { Permission, userCan } from '$lib/stores/auth';
 import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 import { sideBarHiddenOnPage } from '$lib/stores/app';
-import { buildQueryString, searchParametersForLoad, ssp } from '$lib/utils/sveltekit-search-params';
+import { buildQueryString, searchParametersForLoad } from '$lib/utils/sveltekit-search-params';
 import type { Company } from '$lib/types/base';
 import errorGotoPath from '$lib/stores/error-goto-path';
-
-export const _defaultTableRowsPerPage = 100;
-
-export const _searchParamsConfig = {
-    paginationStart: ssp.number(0),
-    paginationEnd: ssp.number(_defaultTableRowsPerPage),
-    languageId: ssp.number(0),
-    parentResourceId: ssp.number(0),
-    companyId: ssp.number(0),
-    startDate: ssp.string(''),
-    endDate: ssp.string(''),
-    sort: ssp.string(''),
-};
+import { _searchParamsConfig } from '../../../../lib/components/reporting/Constants';
 
 export const load: PageLoad = async ({ params, url, parent, fetch }) => {
     await parent();
@@ -43,6 +31,7 @@ export const load: PageLoad = async ({ params, url, parent, fetch }) => {
         ]);
         const reportDataPromise = getFromApi<DynamicReport>(`/reports/dynamic/${params.slug}?${queryString}`, fetch);
         const [reportData, companies] = await Promise.all([reportDataPromise, companiesPromise]);
+
         return {
             reportData,
             companies,

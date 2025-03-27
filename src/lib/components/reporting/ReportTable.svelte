@@ -2,15 +2,16 @@
     import Table from '$lib/components/Table.svelte';
     import type { DynamicReport, DynamicReportResult } from '$lib/types/reporting';
     import { convertPascalCaseToHumanReadable } from '$lib/utils/reporting';
-    import type { searchParameters } from '$lib/utils/sveltekit-search-params';
+    import type { searchParameters, SubscribedSearchParams } from '$lib/utils/sveltekit-search-params';
 
     interface Props {
-        searchParams: ReturnType<typeof searchParameters<{ sort: string }>>;
+        searchParams: SubscribedSearchParams<ReturnType<typeof searchParameters<{ sort: string }>>>;
         report: DynamicReport;
         sortedAndPaginatedResults: DynamicReportResult[];
+        isLoading?: boolean;
     }
 
-    let { searchParams, report, sortedAndPaginatedResults }: Props = $props();
+    let { searchParams = $bindable(), report, sortedAndPaginatedResults, isLoading = $bindable() }: Props = $props();
 
     let columnWidths = $derived(calculateColumnWidths(report));
 
@@ -24,7 +25,8 @@
 </script>
 
 <Table
-    bind:searchParams={$searchParams}
+    bind:searchParams
+    bind:isLoading
     columns={report.columns.map((name, index) => ({
         text: convertPascalCaseToHumanReadable(name),
         width: columnWidths[index],
