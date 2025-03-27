@@ -1111,20 +1111,24 @@
                 class:ps-3={$isEditorPaneOnLeft}
             >
                 <div class="bg-base-200 h-full rounded-md px-4 pt-4 pb-0.5">
-                    <div class="mx-auto flex h-full w-full max-w-4xl flex-col">
-                        <div class="flex flex-row items-center">
-                            <input
-                                bind:value={$editableDisplayNameStore}
-                                class="input input-bordered h-8 w-full max-w-[18rem] leading-8"
-                                dir="auto"
-                                type="text"
-                                readonly={!canMakeContentEdits || !resourceContent.isDraft || $isPageTransacting}
-                            />
-                            {#if resourceContent.isDraft}
-                                <div class="grow"></div>
-                                <div class="me-2 font-semibold text-gray-700">Draft</div>
-                            {/if}
-                        </div>
+                    <div
+                        class={`flex h-full w-full max-w-4xl flex-col ${mediaType === MediaTypeEnum.audio ? '' : 'mx-auto'}`}
+                    >
+                        {#if mediaType !== MediaTypeEnum.audio}
+                            <div class="flex flex-row items-center">
+                                <input
+                                    bind:value={$editableDisplayNameStore}
+                                    class="input input-bordered h-8 w-full max-w-[18rem] leading-8"
+                                    dir="auto"
+                                    type="text"
+                                    readonly={!canMakeContentEdits || !resourceContent.isDraft || $isPageTransacting}
+                                />
+                                {#if resourceContent.isDraft}
+                                    <div class="grow"></div>
+                                    <div class="me-2 font-semibold text-gray-700">Draft</div>
+                                {/if}
+                            </div>
+                        {/if}
                         <div class="mt-[0.9375rem] w-full grow">
                             <Content
                                 bind:selectedStepNumber
@@ -1140,7 +1144,7 @@
                             />
                         </div>
                         <div class="flex flex-row items-center space-x-4">
-                            {#if resourceContent.parentResourceLicenseInfo}
+                            {#if resourceContent.parentResourceLicenseInfo && resourceContent.mediaType !== MediaTypeEnum.audio}
                                 <LicenseInfoButton {resourceContent} />
                             {/if}
                             {#if mediaType === MediaTypeEnum.text}

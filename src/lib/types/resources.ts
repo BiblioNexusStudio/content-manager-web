@@ -64,6 +64,7 @@ export interface AudioContentItemDetails {
 export interface AudioContentStepItem {
     file: string;
     stepNumber: number;
+    url: string;
 }
 
 export type Content = ImageContentItem | VideoContentItem | AudioContentItem | TiptapContentItem[];
@@ -121,6 +122,7 @@ export interface ResourceContent {
     hasAudio: boolean;
     audioResources: AudioContentResponse[];
     hasAdditionalReviewer: boolean;
+    resourceContentVersionCreated: string;
 }
 
 export interface ResourceContentNextUpInfo {
@@ -217,4 +219,23 @@ export enum ResourceContentVersionReviewLevel {
 
 export interface AudioContentResponse {
     contentId: number;
+}
+
+export interface UploadAudioFileResponse {
+    resourceContentId: number;
+    stepNumber?: number;
+    uploadId: number;
+}
+
+export interface AudioUploadStatus {
+    uploadId: number;
+    status: string;
+    created: string;
+}
+
+export enum PollingStatus {
+    pending = 'Pending',
+    processing = 'Processing',
+    completed = 'Completed',
+    failed = 'Failed',
 }

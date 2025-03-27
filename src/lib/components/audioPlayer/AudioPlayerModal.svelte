@@ -58,5 +58,5 @@
 </Tooltip>
 
 <Modal bind:open={isAudioPlayerModalOpen} closeWhenClickOutside={true}>
-    <AudioPlayer {audioContents} />
+    <AudioPlayer {audioContents} fromAudioPlayerModal={true} />
 </Modal>

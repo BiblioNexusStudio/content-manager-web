@@ -7,7 +7,10 @@ const API_KEY = config.PUBLIC_AQUIFER_API_KEY;
 const BASE_URL = config.PUBLIC_AQUIFER_API_URL;
 const SOURCE_HEADER = 'admin-cms';
 
-type CustomFetchOptions = ExtendType<FetchOptions, 'body', object | undefined>;
+type CustomFetchOptions = ExtendType<FetchOptions, 'body', object | undefined> & {
+    isFormData?: boolean;
+    formData?: FormData;
+};
 type RequestBody = Record<string, unknown>;
 
 interface FetchOptions extends RequestInit {
@@ -28,7 +31,7 @@ async function rawApiFetch(path: string, injectedFetch: typeof window.fetch | nu
     const fetchOptions: FetchOptions = options as FetchOptions;
 
     fetchOptions.headers = {
-        ...(options.body ? { 'Content-Type': 'application/json' } : null),
+        ...(!options.isFormData && options.body ? { 'Content-Type': 'application/json' } : null),
         ...options.headers,
     };
 
@@ -44,8 +47,10 @@ async function rawApiFetch(path: string, injectedFetch: typeof window.fetch | nu
         fetchOptions.headers['bn-source'] = SOURCE_HEADER;
     }
 
-    if (options.body) {
+    if (options.body && !options.isFormData) {
         fetchOptions.body = JSON.stringify(options.body);
+    } else if (options.isFormData) {
+        fetchOptions.body = options.formData as FormData;
     }
 
     const pathWithSlash = pathPrefixedWithSlash(path);
@@ -95,6 +100,15 @@ export async function getFromApi<T = never>(
 
 export async function postToApi<T = never>(path: string, body: RequestBody | undefined = undefined): Promise<T | null> {
     const response = await rawApiFetch(path, null, { body: body || {}, method: 'POST' });
+    const text = await response.text();
+    if (text === '') {
+        return null;
+    }
+    return JSON.parse(text);
+}
+
+export async function postFormDataToApi<T = never>(path: string, formData: FormData): Promise<T | null> {
+    const response = await rawApiFetch(path, null, { formData: formData, method: 'POST', isFormData: true });
     const text = await response.text();
     if (text === '') {
         return null;

@@ -1,6 +1,6 @@
 import { log } from '$lib/logger';
-import type { AudioContentItem, Content, ResourceContent } from '$lib/types/resources';
-import { asyncMap, filterBoolean } from '$lib/utils/array';
+import type { AudioContentItem, Content } from '$lib/types/resources';
+import { asyncMap } from '$lib/utils/array';
 import { getContext, setContext } from 'svelte';
 import { unzip } from 'unzipit';
 
@@ -79,23 +79,19 @@ export function getAudioPlaylistContext<AudioPlaylist>() {
     return getContext(key) as AudioPlaylist;
 }
 
-export async function fetchFiaAudioFromZip(
-    audioResourceContent: ResourceContent[],
+export async function fetchFiaAudioFromAudioContentItem(
+    audioContentItem: AudioContentItem,
     audioType: AudioType = 'webm'
 ): Promise<AudioTracklist | []> {
-    return filterBoolean(
-        await asyncMap(audioResourceContent, async (resourceContent): Promise<AudioTracklist | []> => {
-            try {
-                const audioItem = resourceContent.content as AudioContentItem;
-                const audioTypeSteps = audioItem[audioType].steps;
-                if (!audioTypeSteps) return [];
-                return await readFilesIntoObjectUrlsMapping(audioItem[audioType].url, audioTypeSteps);
-            } catch (error) {
-                log.exception(error as Error);
-                return [];
-            }
-        })
-    ).flat();
+    try {
+        const audioItem = audioContentItem;
+        const audioTypeSteps = audioItem[audioType].steps;
+        if (!audioTypeSteps) return [];
+        return await readFilesIntoObjectUrlsMapping(audioItem[audioType].url, audioTypeSteps);
+    } catch (error) {
+        log.exception(error as Error);
+        return [];
+    }
 }
 
 interface ObjectUrlMapping {
