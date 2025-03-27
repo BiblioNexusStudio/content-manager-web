@@ -93,9 +93,11 @@ export function createSidebarContentStore(resourceContent: ResourceContent) {
 
     function calculateSnapshotOrVersionName(snapshotOrVersion: BasicSnapshot | BasicVersion, isFirstSnapshot: boolean) {
         if ('version' in snapshotOrVersion) {
-            return `${formatDate(snapshotOrVersion.created)} - Version ${snapshotOrVersion.version}${
-                snapshotOrVersion.isPublished ? ' (Published)' : ''
-            }`;
+            return snapshotOrVersion.isEnglishSource
+                ? `${formatDate(snapshotOrVersion.created)} - English Source`
+                : `${formatDate(snapshotOrVersion.created)} - Version ${snapshotOrVersion.version}${
+                      snapshotOrVersion.isPublished ? ' (Published)' : ''
+                  }`;
         } else {
             if (isFirstSnapshot) {
                 return `${formatDate(snapshotOrVersion.created)} - Source`;
