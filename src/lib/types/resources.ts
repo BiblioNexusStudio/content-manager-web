@@ -159,6 +159,7 @@ export interface BasicVersion {
     created: string;
     version: number;
     isPublished: boolean;
+    isEnglishSource: boolean;
 }
 
 export interface Snapshot {
