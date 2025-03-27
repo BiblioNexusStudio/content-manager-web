@@ -220,3 +220,22 @@ export enum ResourceContentVersionReviewLevel {
 export interface AudioContentResponse {
     contentId: number;
 }
+
+export interface UploadAudioFileResponse {
+    resourceContentId: number;
+    stepNumber?: number;
+    uploadId: number;
+}
+
+export interface AudioUploadStatus {
+    uploadId: number;
+    status: string;
+    created: string;
+}
+
+export enum PollingStatus {
+    pending = 'Pending',
+    processing = 'Processing',
+    completed = 'Completed',
+    failed = 'Failed',
+}

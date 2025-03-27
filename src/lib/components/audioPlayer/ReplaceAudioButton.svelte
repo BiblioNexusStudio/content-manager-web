@@ -1,7 +1,7 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
-    import { postFormDataToApi } from '$lib/utils/http-service';
-
+    import { postFormDataToApi, getFromApi } from '$lib/utils/http-service';
+    import { type UploadAudioFileResponse, type AudioUploadStatus, PollingStatus } from '$lib/types/resources';
     interface Props {
         hasSteps: boolean;
         selectedStepNumber: number;
@@ -36,11 +36,15 @@
     ];
 
     let confirmUploadModalOpen = $state(false);
-    let errorMessageModalOpen = $state(false);
     let audioFileName = $state('[file name]');
     let audioFileUploadingModalOpen = $state(false);
     let isTransacting = $state(false);
     let file: File | null = $state(null);
+
+    let startPolling = $state(false);
+    let pollId = $state<number | null>(null);
+    let pollStatus = $state<AudioUploadStatus | null>(null);
+    let errorMessageModalOpen = $state(false);
 
     async function uploadAudioFile(): Promise<void> {
         try {
@@ -91,11 +95,10 @@
                 url = `${url}?stepNumber=${selectedStepNumber}`;
             }
 
-            await postFormDataToApi(url, formData);
+            const response = await postFormDataToApi<UploadAudioFileResponse>(url, formData);
 
-            audioFileUploadingModalOpen = false;
-
-            location.reload();
+            pollId = response?.uploadId ?? null;
+            startPolling = true;
         } catch {
             isTransacting = false;
             audioFileUploadingModalOpen = false;
@@ -103,6 +106,36 @@
             errorMessageModalOpen = true;
         }
     }
+
+    function pollForStatus(startPolling: boolean, pollId: number | null) {
+        if (!startPolling || !pollId) return;
+        const interval = setInterval(async () => {
+            if (startPolling && pollId) {
+                pollStatus = await getFromApi<AudioUploadStatus>(`/uploads/${pollId}`);
+                if (pollStatus.status === PollingStatus.completed) {
+                    startPolling = false;
+                    pollId = null;
+                    pollStatus = null;
+                    isTransacting = false;
+                    clearInterval(interval);
+                    window.location.reload();
+                } else if (pollStatus.status === PollingStatus.failed) {
+                    startPolling = false;
+                    pollId = null;
+                    pollStatus = null;
+                    isTransacting = false;
+                    clearInterval(interval);
+                    errorMessageModalOpen = true;
+                }
+            } else {
+                clearInterval(interval);
+            }
+        }, 5000);
+    }
+
+    $effect(() => {
+        pollForStatus(startPolling, pollId);
+    });
 </script>
 
 <div class="mb-4">
@@ -119,15 +152,20 @@
     primaryButtonOnClick={uploadFileAfterConfirm}
 />
 
-<Modal
-    bind:open={audioFileUploadingModalOpen}
-    header="Audio File Upload in Progress"
-    {isTransacting}
-    description={`Please do not close this tab or window.
-        
-        This page will refresh when the upload is complete.
-    `}
-/>
+<Modal bind:open={audioFileUploadingModalOpen} header="Audio File Upload in Progress" {isTransacting}>
+    <div class="flex flex-col">
+        <div class="mb-4">Please do not close this tab or window.</div>
+        <div class="mb-4">This page will refresh when the upload is complete.</div>
+        {#if startPolling}
+            <div class="mb-4 flex text-lg font-bold">
+                <span>Uploading Status: {pollStatus?.status ?? PollingStatus.pending}</span>
+                <div class="flex items-end">
+                    <div class="loading loading-dots loading-xs"></div>
+                </div>
+            </div>
+        {/if}
+    </div>
+</Modal>
 
 <Modal
     bind:open={errorMessageModalOpen}
