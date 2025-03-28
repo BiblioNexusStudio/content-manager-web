@@ -47,7 +47,7 @@
             {/if}
             {#each text.chapters as chapter (chapter)}
                 {#if !bibleTextsReference.isSingleChapter}
-                    <div class="font-semibold" dir="auto">Chapter {chapter.number}</div>
+                    <div class="pt-4 font-semibold" dir="auto">Chapter {chapter.number}</div>
                 {/if}
                 {#each chapter.verses as verse (verse)}
                     <div dir="auto">
