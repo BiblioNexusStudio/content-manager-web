@@ -187,40 +187,46 @@ function generateVerseReference(
     language: Language,
     hasDifferentMapping: boolean
 ): string {
+    const targetBibleStartBook = targetBibleTextRange[0]!;
+    const targetBibleStartChapterNumber = targetBibleTextRange[0]!.chapters[0]!.number;
+    const targetBibleStartVerseNumber = targetBibleTextRange[0]!.chapters[0]!.verses[0]!.number;
+
+    const targetBibleEndBook = targetBibleTextRange.at(-1)!;
+    const targetBibleEndChapterNumber = targetBibleTextRange.at(-1)!.chapters.at(-1)!.number;
+    const targetBibleEndVerseNumber = targetBibleTextRange.at(-1)!.chapters.at(-1)!.verses.at(-1)!.number;
+
+    // Don't display mappings as different where the source verse range is 0-N and the target verse range is 1-N (where N >= 1) or vice-versa.
+    // Because we hide verse 0 in the UI it doesn't make sense to display these as a different mapping.
+    if (hasDifferentMapping) {
+        const sourceBibleStartVerse = parseVerseId(sourceBibleStartVerseId);
+        const sourceBibleEndVerse = parseVerseId(sourceBibleEndVerseId);
+
+        if (
+            targetBibleStartBook.bookNumber === sourceBibleStartVerse.bookId &&
+            targetBibleStartChapterNumber === sourceBibleStartVerse.chapter &&
+            ((targetBibleStartVerseNumber === 1 && sourceBibleStartVerse.verse === 0) ||
+                (targetBibleStartVerseNumber === 0 && sourceBibleStartVerse.verse === 1)) &&
+            targetBibleEndBook.bookNumber === sourceBibleEndVerse.bookId &&
+            targetBibleEndChapterNumber === sourceBibleEndVerse.chapter &&
+            targetBibleEndVerseNumber === sourceBibleEndVerse.verse
+        ) {
+            hasDifferentMapping = false;
+        }
+    }
+
     // if both 0 and verse 1 are requested we still only want to display a single reference to only verse 1
     if (
         targetBibleTextRange.length === 1 &&
         targetBibleTextRange[0]!.chapters.length === 1 &&
         targetBibleTextRange[0]!.chapters[0]!.verses.filter((v) => v.number !== 0).length === 1
     ) {
-        const singleBookText = targetBibleTextRange[0]!;
-        const singleChapter = singleBookText.chapters[0]!;
-        const singleVerse = singleChapter.verses.at(-1)!;
-
-        // there's one mapping that we don't want to display as different: where the source verse range is 0-1 and the target verse is 1
-        if (hasDifferentMapping) {
-            const parsedStartVerse = parseVerseId(sourceBibleStartVerseId);
-            const parsedEndVerse = parseVerseId(sourceBibleEndVerseId);
-
-            if (
-                parsedStartVerse.verse === 0 &&
-                parsedEndVerse.verse === 1 &&
-                parsedStartVerse.bookId === parsedEndVerse.bookId &&
-                parsedStartVerse.chapter === parsedEndVerse.chapter &&
-                singleBookText.bookNumber === parsedStartVerse.bookId &&
-                singleChapter.number === parsedStartVerse.chapter &&
-                singleVerse.number === parsedEndVerse.verse
-            ) {
-                hasDifferentMapping = false;
-            }
-        }
-
         return generateVerseFromReference(
             {
                 verseId: 0,
-                book: singleBookText.bookName,
-                chapter: singleChapter.number,
-                verse: singleVerse.number,
+                book: targetBibleStartBook.bookName,
+                chapter: targetBibleStartChapterNumber,
+                // purposely using the end verse number here to display verse 1 if verse 0 is also in the range
+                verse: targetBibleEndVerseNumber,
             },
             language.scriptDirection,
             hasDifferentMapping
@@ -229,13 +235,13 @@ function generateVerseReference(
         return generateVerseFromReference(
             {
                 startVerseId: 0,
-                startBook: targetBibleTextRange[0]!.bookName,
-                startChapter: targetBibleTextRange[0]!.chapters[0]!.number,
-                startVerse: targetBibleTextRange[0]!.chapters[0]!.verses[0]!.number,
+                startBook: targetBibleStartBook.bookName,
+                startChapter: targetBibleStartChapterNumber,
+                startVerse: targetBibleStartVerseNumber,
                 endVerseId: 0,
-                endBook: targetBibleTextRange.at(-1)!.bookName,
-                endChapter: targetBibleTextRange.at(-1)!.chapters.at(-1)!.number,
-                endVerse: targetBibleTextRange.at(-1)!.chapters.at(-1)!.verses.at(-1)!.number,
+                endBook: targetBibleEndBook.bookName,
+                endChapter: targetBibleEndChapterNumber,
+                endVerse: targetBibleEndVerseNumber,
             },
             language.scriptDirection,
             hasDifferentMapping
