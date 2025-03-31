@@ -12,10 +12,10 @@
     import { onMount } from 'svelte';
     import { isAuthorizationError } from '$lib/utils/http-errors';
     import { _defaultTableRowsPerPage, _searchParamsConfig } from './+page';
-    import ReportTablePagination from '../reporting/[slug]/ReportTablePagination.svelte';
-    import BarChart from './BarChart.svelte';
-    import LineChart from './LineChart.svelte';
-    import ReportTable from './ReportTable.svelte';
+    import ReportTablePagination from '$lib/components/reporting/ReportTablePagination.svelte';
+    import BarChartReport from '$lib/components/reporting/BarChartReport.svelte';
+    import LineChartReport from '$lib/components/reporting/LineChartReport.svelte';
+    import ReportTable from '$lib/components/reporting/ReportTable.svelte';
 
     interface Props {
         reportData?: DynamicReport | null;
@@ -188,17 +188,17 @@
         </div>
         {#if reportData.type === DynamicReportType.BarChart}
             <div class="relative ms-5 me-10 h-full flex-shrink overflow-hidden">
-                <BarChart report={reportData} />
+                <BarChartReport report={reportData} />
             </div>
         {:else if reportData.type === DynamicReportType.LineChart}
             <div class="relative ms-5 me-10 h-full flex-shrink overflow-hidden">
-                <LineChart report={reportData} />
+                <LineChartReport report={reportData} />
             </div>
         {:else if reportData.type === DynamicReportType.Table && sortedResults}
             <div>
                 <div class="relative flex-shrink overflow-hidden">
                     <ReportTable
-                        bind:searchParams={$searchParams}
+                        {searchParams}
                         report={reportData}
                         sortedAndPaginatedResults={sortedResults.slice(
                             $searchParams.paginationStart,
