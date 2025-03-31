@@ -162,20 +162,38 @@ function getPassageContentFromBookTexts(
     startVerse: Verse,
     endVerse: Verse
 ): BibleBookTexts[] {
-    const passageContent: BibleBookTexts[] = bookTexts;
+    let passageContent: BibleBookTexts[] = bookTexts.filter(
+        (b) =>
+            b !== null && b.bookNumber <= startVerse.bookId && b.bookNumber >= endVerse.bookId && b.chapters.length > 0
+    );
 
-    passageContent.filter((b) => b.bookNumber <= startVerse.bookId && b.bookNumber >= endVerse!.bookId);
     for (let i = 0; i < passageContent.length; i++) {
-        passageContent[i]!.chapters = passageContent[i]!.chapters.filter(
-            (b) => b.number >= startVerse.chapter && b.number <= endVerse.chapter
-        );
-        passageContent[i]!.chapters[0]!.verses = passageContent[i]!.chapters[0]!.verses.filter(
-            (v) => v.number >= startVerse.verse
-        );
-        passageContent[i]!.chapters.at(-1)!.verses = passageContent[i]!.chapters.at(-1)!.verses.filter(
-            (v) => v.number <= endVerse.verse
-        );
+        const book = passageContent[i]!;
+
+        if (book.bookNumber === startVerse.bookId) {
+            book.chapters = book.chapters.filter((c) => c.number >= startVerse.chapter);
+        }
+
+        if (book.bookNumber === endVerse.bookId) {
+            book.chapters = book.chapters.filter((c) => c.number <= endVerse.chapter);
+        }
+
+        if (book.chapters.length > 0) {
+            if (book.bookNumber === startVerse.bookId) {
+                book.chapters[0]!.verses = book.chapters[0]!.verses.filter((v) => v.number >= startVerse.verse);
+            }
+
+            if (book.bookNumber === endVerse.bookId) {
+                book.chapters.at(-1)!.verses = book.chapters.at(-1)!.verses.filter((v) => v.number <= endVerse.verse);
+            }
+        }
+
+        // it's possible that all verses were filtered out of some chapters
+        book.chapters = book.chapters.filter((c) => c.verses.length > 0);
     }
+
+    // it's possible that all chapters were filtered out of some books
+    passageContent = passageContent.filter((b) => b.chapters.length > 0);
 
     return passageContent;
 }
