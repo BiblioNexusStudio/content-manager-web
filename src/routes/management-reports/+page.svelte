@@ -41,7 +41,7 @@
     });
 </script>
 
-<div class="m-4">
+<div class="m-8">
     <h1 class="mb-4 text-3xl capitalize">Reporting</h1>
     {#if errorMessage}
         <Modal
@@ -60,7 +60,7 @@
         />
     {/if}
     {#if allReports.length}
-        <div class="mx-4 mb-4 grid-cols-3">
+        <div class="mb-4 grid-cols-3">
             <Select
                 class="select select-bordered max-w-[14rem] flex-grow"
                 bind:value={report}
@@ -78,7 +78,7 @@
     {/if}
     {#if report !== ''}
         <div
-            class="overflow-contain m-4 overflow-y-auto rounded-lg border"
+            class="overflow-contain my-4 overflow-y-auto rounded-lg border"
             style={errorMessage !== null ? 'display:none' : ''}
         >
             <div class="overflow-contain relative m-4 flex-shrink overflow-y-auto p-4">
