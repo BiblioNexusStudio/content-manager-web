@@ -180,13 +180,13 @@
 
                 playlist.tracks = steps.map((step) => {
                     return {
-                        url: step.url,
+                        url: step?.url ?? '',
                         currentTime: 0,
                     };
                 });
             } else {
                 const track = {
-                    url: versionAudioContents.content[playlist.currentAudioType].url,
+                    url: versionAudioContents?.content[playlist.currentAudioType]?.url ?? '',
                     currentTime: 0,
                 };
 
