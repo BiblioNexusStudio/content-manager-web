@@ -1,8 +1,5 @@
-import { log } from '$lib/logger';
-import type { AudioContentItem, Content, ResourceContent } from '$lib/types/resources';
-import { asyncMap, filterBoolean } from '$lib/utils/array';
+import type { AudioContentItem, Content } from '$lib/types/resources';
 import { getContext, setContext } from 'svelte';
-import { unzip } from 'unzipit';
 
 export type AudioTracklist = AudioTrack[];
 
@@ -77,61 +74,6 @@ export function setAudioPlaylistContext(playlist: AudioPlaylist) {
 
 export function getAudioPlaylistContext<AudioPlaylist>() {
     return getContext(key) as AudioPlaylist;
-}
-
-export async function fetchFiaAudioFromZip(
-    audioResourceContent: ResourceContent[],
-    audioType: AudioType = 'webm'
-): Promise<AudioTracklist | []> {
-    return filterBoolean(
-        await asyncMap(audioResourceContent, async (resourceContent): Promise<AudioTracklist | []> => {
-            try {
-                const audioItem = resourceContent.content as AudioContentItem;
-                const audioTypeSteps = audioItem[audioType].steps;
-                if (!audioTypeSteps) return [];
-                return await readFilesIntoObjectUrlsMapping(audioItem[audioType].url, audioTypeSteps);
-            } catch (error) {
-                log.exception(error as Error);
-                return [];
-            }
-        })
-    ).flat();
-}
-
-interface ObjectUrlMapping {
-    url?: string | null;
-    file: string;
-    stepNumber: number;
-}
-
-export async function readFilesIntoObjectUrlsMapping<T extends ObjectUrlMapping>(zipUrl: string, mapping: T[]) {
-    const { entries } = await unzip(zipUrl);
-    const fileAndBlob = await asyncMap(Object.entries(entries), async ([key, value]) => [key, await value.blob()]);
-    const blobsByFile = Object.fromEntries(fileAndBlob);
-
-    const maxStep = Math.max(...mapping.map((m) => m.stepNumber));
-    const result = new Array(maxStep);
-
-    for (let i = 0; i < maxStep; i++) {
-        result[i] = {
-            currentTime: 0,
-            url: '',
-        };
-    }
-
-    mapping.forEach((map) => {
-        const fileSplit = map.file.split('.');
-        const extension = fileSplit[fileSplit.length - 1];
-
-        result[map.stepNumber - 1] = {
-            currentTime: 0,
-            url: blobsByFile[map.file]
-                ? URL.createObjectURL(new Blob([blobsByFile[map.file]], { type: 'audio/' + extension }))
-                : null,
-        };
-    });
-
-    return result;
 }
 
 export function isAudioContentItem(item: Content): item is AudioContentItem {
