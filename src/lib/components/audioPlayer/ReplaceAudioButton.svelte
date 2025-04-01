@@ -6,9 +6,10 @@
         hasSteps: boolean;
         selectedStepNumber: number;
         resourceContentId: number;
+        stepHasAudio: boolean;
     }
 
-    let { hasSteps, selectedStepNumber, resourceContentId }: Props = $props();
+    let { hasSteps, selectedStepNumber, resourceContentId, stepHasAudio }: Props = $props();
 
     const acceptedAudioTypes = [
         'audio/aac',
@@ -139,7 +140,12 @@
 </script>
 
 <div class="mb-4">
-    <button class="btn btn-primary" onclick={uploadAudioFile} data-app-insights-event-name="replace-audio-button-click">
+    <button
+        class="btn btn-primary"
+        onclick={uploadAudioFile}
+        disabled={hasSteps && !stepHasAudio}
+        data-app-insights-event-name="replace-audio-button-click"
+    >
         Replace Audio
     </button>
 </div>

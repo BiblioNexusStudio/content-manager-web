@@ -20,6 +20,7 @@
     const audioContent = resourceContent.content as AudioContentItem;
 
     let hasSteps = $state(false);
+    let stepHasAudio = $state(false);
     let playlist: AudioPlaylist = createAudioPlaylistContext();
     let selectedStepNumber = $state(1);
     let selectedVersionNumber = $state(
@@ -112,10 +113,15 @@
             </div>
         {/if}
 
-        <AudioPlayer audioContents={[resourceContent]} {versionAudioContents} />
+        <AudioPlayer audioContents={[resourceContent]} {versionAudioContents} bind:stepHasAudio />
     </div>
 
-    <ReplaceAudioButton {hasSteps} {selectedStepNumber} resourceContentId={resourceContent.resourceContentId} />
+    <ReplaceAudioButton
+        {hasSteps}
+        {stepHasAudio}
+        {selectedStepNumber}
+        resourceContentId={resourceContent.resourceContentId}
+    />
 
     <LicenseInfoButton {resourceContent} />
 </div>

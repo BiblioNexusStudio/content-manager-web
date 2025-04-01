@@ -16,9 +16,15 @@
         audioContents: ResourceContent[] | null;
         fromAudioPlayerModal?: boolean;
         versionAudioContents?: Version | null;
+        stepHasAudio?: boolean;
     }
 
-    let { audioContents, fromAudioPlayerModal = false, versionAudioContents = null }: AudioPlayerProps = $props();
+    let {
+        audioContents,
+        fromAudioPlayerModal = false,
+        versionAudioContents = null,
+        stepHasAudio = $bindable(),
+    }: AudioPlayerProps = $props();
 
     let playlist: AudioPlaylist = getAudioPlaylistContext();
 
@@ -211,6 +217,14 @@
         if (!playlist || !audioElement) return;
         if (audioElement !== playlist.element) {
             playlist.element = audioElement;
+        }
+    });
+
+    $effect(() => {
+        if (playlist.currentTrackSrc() === '') {
+            stepHasAudio = false;
+        } else {
+            stepHasAudio = true;
         }
     });
 </script>
