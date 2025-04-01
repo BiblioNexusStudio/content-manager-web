@@ -130,7 +130,22 @@
                 const content = audioContents[0]!.content as AudioContentItem;
                 const steps = content[playlist.currentAudioType].steps!;
 
-                playlist.tracks = steps.map((step) => {
+                const stepsCopyWithMissingSteps = [];
+                for (let i = 0; i < 6; i++) {
+                    let step = steps.find((s) => s.stepNumber === i + 1);
+
+                    if (step) {
+                        stepsCopyWithMissingSteps[i] = step;
+                    } else {
+                        stepsCopyWithMissingSteps[i] = {
+                            stepNumber: i + 1,
+                            file: '',
+                            url: '',
+                        };
+                    }
+                }
+
+                playlist.tracks = stepsCopyWithMissingSteps.map((step) => {
                     return {
                         url: step.url,
                         currentTime: 0,

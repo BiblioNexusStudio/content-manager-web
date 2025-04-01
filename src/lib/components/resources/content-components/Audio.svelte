@@ -102,7 +102,7 @@
                 <button
                     data-app-insights-event-name="audio-resource-item-forward-arrow-click"
                     class="btn btn-circle btn-primary text-primary-content"
-                    disabled={selectedStepNumber === audioContent?.webm?.steps?.length}
+                    disabled={selectedStepNumber === 6}
                     onclick={() => {
                         selectedStepNumber = selectedStepNumber + 1;
                     }}
