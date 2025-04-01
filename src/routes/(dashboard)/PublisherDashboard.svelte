@@ -96,6 +96,7 @@
             tab: ssp.string(Tab.myWork),
             project: ssp.string(''),
             status: ssp.string(''),
+            language: ssp.string(''),
             isFilteringUnresolved: ssp.boolean(false),
             isShowingOnlyUnread: ssp.boolean(false),
         },
@@ -328,8 +329,10 @@
                     (!project || rpc.projectName === project)
             );
         } else if (tab === Tab.myProjects) {
-            currentAssignedProjects = assignedProjects.filter((ap) =>
-                ap.name.toLowerCase().includes(search.toLowerCase())
+            currentAssignedProjects = assignedProjects.filter(
+                (ap) =>
+                    ap.name.toLowerCase().includes(search.toLowerCase()) &&
+                    ($searchParams.language === '' || ap.language === $searchParams.language)
             );
         } else if (tab === Tab.community) {
             currentCommunityPendingContents = communityPendingContents.filter(
@@ -527,9 +530,18 @@
     {#if $searchParams.tab === Tab.myProjects}
         <div class="mt-4 flex flex-row">
             <input
-                class="input input-bordered max-w-xs focus:outline-hidden"
+                class="input input-bordered me-4 max-w-xs focus:outline-hidden"
                 bind:value={search}
                 placeholder="Search"
+            />
+            <Select
+                class="select select-bordered max-w-[14rem] grow"
+                bind:value={$searchParams.language}
+                onChange={resetSelection}
+                options={[
+                    { value: '', label: 'Language' },
+                    ...data.languages.map((l) => ({ value: l.englishDisplay, label: l.englishDisplay })),
+                ]}
             />
             <a class="btn btn-primary ms-4" href="/projects/new">Create Project</a>
         </div>
