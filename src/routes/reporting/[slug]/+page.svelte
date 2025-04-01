@@ -1,18 +1,18 @@
 <script lang="ts">
     import type { PageData } from './$types';
     import { DynamicReportType, type DynamicReportResult, type DynamicReport } from '$lib/types/reporting';
-    import BarChart from './BarChart.svelte';
+    import BarChart from '$lib/components/reporting/BarChartReport.svelte';
     import { searchParameters } from '$lib/utils/sveltekit-search-params';
     import { _searchParamsConfig, _defaultTableRowsPerPage } from './+page';
     import DatePicker from '$lib/components/DatePicker.svelte';
     import { Icon } from 'svelte-awesome';
     import refresh from 'svelte-awesome/icons/refresh';
-    import LineChart from './LineChart.svelte';
-    import ReportTable from './ReportTable.svelte';
     import { createListSorter } from '$lib/utils/sorting';
-    import ReportTablePagination from './ReportTablePagination.svelte';
     import Select from '$lib/components/Select.svelte';
     import { companiesToIgnore } from '$lib/types/base';
+    import ReportTablePagination from '$lib/components/reporting/ReportTablePagination.svelte';
+    import ReportTable from '$lib/components/reporting/ReportTable.svelte';
+    import LineChartReport from '$lib/components/reporting/LineChartReport.svelte';
 
     interface Props {
         data: PageData;
@@ -158,7 +158,7 @@
         </div>
     {:else if reportData.type === DynamicReportType.LineChart}
         <div class="relative ms-5 me-10 h-full shrink overflow-hidden">
-            <LineChart report={reportData} />
+            <LineChartReport report={reportData} />
         </div>
     {:else if reportData.type === DynamicReportType.Table}
         <div>
