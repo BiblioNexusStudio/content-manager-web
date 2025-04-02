@@ -25,7 +25,9 @@ export async function fetchBibleVersification(
     try {
         // If we have multiple books, fetch versification for each book
         for (let i = start.bookId; i <= end.bookId; i++) {
-            const response = await getFromApi<VersificationResponse>(`/bibles/${bibleId}/versification?bookId=${i}`);
+            const response = await getFromApi<VersificationResponse>(
+                `/bibles/${bibleId}/versification?bookId=${i}&v=2`
+            );
             if (response.verseMappings && response.verseMappings.length > 0) {
                 for (const mapping of response.verseMappings) {
                     allMappings.push(mapping);
