@@ -92,109 +92,116 @@
     <div class="mb-8 flex flex-col">
         <div class="w-full pb-2 text-lg font-bold">Basic Information</div>
         <div class="grid grid-cols-2 gap-4">
-            <div class="flex flex-row items-center border-b p-2">
-                <div class="text-md">Title <span class="text-error">*</span></div>
-                <div class="grow"></div>
-                <input bind:value={title} class="input input-bordered input-sm w-full max-w-[50%]" />
-            </div>
-            <div class="flex flex-row items-center border-b p-2">
-                <div class="text-md">Source Language <span class="text-error">*</span></div>
-                <div class="grow"></div>
-                <Select
-                    bind:value={sourceLanguageId}
-                    class="select select-bordered select-sm w-full max-w-[50%]"
-                    disabled={selectedResourceIds.length > 0}
-                    isNumber={true}
-                    options={[
-                        { value: null, label: 'Select Source Language' },
-                        ...(languages || []).map((l) => ({
-                            value: l.id,
-                            label: l.englishDisplay,
-                        })),
-                    ]}
-                />
-            </div>
-            <div class="flex flex-row items-center border-b p-2">
-                <div class="text-md">Target Language <span class="text-error">*</span></div>
-                <div class="grow"></div>
-                <Select
-                    bind:value={targetLanguageId}
-                    class="select select-bordered select-sm w-full max-w-[50%]"
-                    disabled={!sourceLanguageId || selectedResourceIds.length > 0}
-                    isNumber={true}
-                    options={[
-                        { value: null, label: 'Select Target Language' },
-                        ...(languages || [])
-                            // only allow English resources to be Aquiferized (for now)
-                            .filter(
-                                (l) =>
-                                    l.id !== sourceLanguageId || (sourceLanguageId === l.id && l.iso6393Code === 'eng')
-                            )
-                            .map((l) => ({
-                                value: l.id,
-                                label:
-                                    l.id === sourceLanguageId ? l.englishDisplay + ' (Aquiferize)' : l.englishDisplay,
-                            })),
-                    ]}
-                />
-            </div>
-            <div class="flex flex-row items-center border-b p-2">
-                <div class="text-md">Project Manager <span class="text-error">*</span></div>
-                <div class="grow"></div>
-                <Select
-                    bind:value={projectManagerUserId}
-                    class="select select-bordered select-sm w-full max-w-[50%]"
-                    isNumber={true}
-                    options={[
-                        { value: null, label: 'Select User' },
-                        ...(users || [])
-                            .filter((u) => u.role === UserRole.Publisher)
-                            .map((u) => ({ value: u.id, label: u.name })),
-                    ]}
-                />
-            </div>
-            <div class="flex flex-row items-center border-b p-2">
-                <div class="text-md">Company <span class="text-error">*</span></div>
-                <div class="grow"></div>
-                <Select
-                    bind:value={companyId}
-                    class="select select-bordered select-sm w-full max-w-[50%]"
-                    isNumber={true}
-                    options={[
-                        { value: null, label: 'Select Company' },
-                        ...(companies || [])
-                            .filter((c) => c.name !== 'N/A')
-                            .map((c) => ({ value: c.id, label: c.name })),
-                    ]}
-                />
-            </div>
-            <div class="flex flex-row items-center border-b p-2">
-                <div class="text-md">Company Lead <span class="text-error">*</span></div>
-                <div class="grow"></div>
-                <Select
-                    bind:value={companyLeadUserId}
-                    class="select select-bordered select-sm w-full max-w-[50%]"
-                    isNumber={true}
-                    options={[
-                        { value: null, label: 'Select User' },
-                        ...(users || [])
-                            .filter((u) => u.role === UserRole.Manager)
-                            .map((c) => ({ value: c.id, label: c.name })),
-                    ]}
-                />
-            </div>
-            <div class="flex flex-row items-center border-b p-2">
-                {#if !isForAquiferization}
-                    <div class="text-md">Create project from already translated items</div>
+            <div class="w-full">
+                <div class="flex flex-row items-center border-b p-2">
+                    <div class="text-md">Title <span class="text-error">*</span></div>
                     <div class="grow"></div>
-                    <label class="flex items-center">
-                        <input
-                            type="checkbox"
-                            class="toggle me-0.5"
-                            bind:checked={isTranslatedChecked}
-                            disabled={isForAquiferization || selectedResourceIds.length > 0}
-                        />
-                    </label>
+                    <input bind:value={title} class="input input-bordered input-sm w-full max-w-[50%]" />
+                </div>
+                <div class="flex flex-row items-center border-b p-2">
+                    <div class="text-md">Source Language <span class="text-error">*</span></div>
+                    <div class="grow"></div>
+                    <Select
+                        bind:value={sourceLanguageId}
+                        class="select select-bordered select-sm w-full max-w-[50%]"
+                        disabled={selectedResourceIds.length > 0}
+                        isNumber={true}
+                        options={[
+                            { value: null, label: 'Select Source Language' },
+                            ...(languages || []).map((l) => ({
+                                value: l.id,
+                                label: l.englishDisplay,
+                            })),
+                        ]}
+                    />
+                </div>
+                <div class="flex flex-row items-center border-b p-2">
+                    <div class="text-md">Target Language <span class="text-error">*</span></div>
+                    <div class="grow"></div>
+                    <Select
+                        bind:value={targetLanguageId}
+                        class="select select-bordered select-sm w-full max-w-[50%]"
+                        disabled={!sourceLanguageId || selectedResourceIds.length > 0}
+                        isNumber={true}
+                        options={[
+                            { value: null, label: 'Select Target Language' },
+                            ...(languages || [])
+                                // only allow English resources to be Aquiferized (for now)
+                                .filter(
+                                    (l) =>
+                                        l.id !== sourceLanguageId ||
+                                        (sourceLanguageId === l.id && l.iso6393Code === 'eng')
+                                )
+                                .map((l) => ({
+                                    value: l.id,
+                                    label:
+                                        l.id === sourceLanguageId
+                                            ? l.englishDisplay + ' (Aquiferize)'
+                                            : l.englishDisplay,
+                                })),
+                        ]}
+                    />
+                </div>
+            </div>
+            <div class="w-full">
+                <div class="flex flex-row items-center border-b p-2">
+                    <div class="text-md">Project Manager <span class="text-error">*</span></div>
+                    <div class="grow"></div>
+                    <Select
+                        bind:value={projectManagerUserId}
+                        class="select select-bordered select-sm w-full max-w-[50%]"
+                        isNumber={true}
+                        options={[
+                            { value: null, label: 'Select User' },
+                            ...(users || [])
+                                .filter((u) => u.role === UserRole.Publisher)
+                                .map((u) => ({ value: u.id, label: u.name })),
+                        ]}
+                    />
+                </div>
+                <div class="flex flex-row items-center border-b p-2">
+                    <div class="text-md">Company <span class="text-error">*</span></div>
+                    <div class="grow"></div>
+                    <Select
+                        bind:value={companyId}
+                        class="select select-bordered select-sm w-full max-w-[50%]"
+                        isNumber={true}
+                        options={[
+                            { value: null, label: 'Select Company' },
+                            ...(companies || [])
+                                .filter((c) => c.name !== 'N/A')
+                                .map((c) => ({ value: c.id, label: c.name })),
+                        ]}
+                    />
+                </div>
+                <div class="flex flex-row items-center border-b p-2">
+                    <div class="text-md">Company Lead <span class="text-error">*</span></div>
+                    <div class="grow"></div>
+                    <Select
+                        bind:value={companyLeadUserId}
+                        class="select select-bordered select-sm w-full max-w-[50%]"
+                        isNumber={true}
+                        options={[
+                            { value: null, label: 'Select User' },
+                            ...(users || [])
+                                .filter((u) => u.role === UserRole.Manager)
+                                .map((c) => ({ value: c.id, label: c.name })),
+                        ]}
+                    />
+                </div>
+                {#if !isForAquiferization}
+                    <div class="flex flex-row items-center border-b p-2">
+                        <div class="text-md">Create project from already translated items</div>
+                        <div class="grow"></div>
+                        <label class="flex items-center">
+                            <input
+                                type="checkbox"
+                                class="toggle me-0.5"
+                                bind:checked={isTranslatedChecked}
+                                disabled={isForAquiferization || selectedResourceIds.length > 0}
+                            />
+                        </label>
+                    </div>
                 {/if}
             </div>
         </div>
