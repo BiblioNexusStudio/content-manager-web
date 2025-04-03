@@ -35,7 +35,7 @@
     });
 
     let isForAquiferization = $derived(
-        !!sourceLanguageId && !!targetLanguageId && sourceLanguageId === targetLanguageId
+        !isTranslatedChecked && !!sourceLanguageId && !!targetLanguageId && sourceLanguageId === targetLanguageId
     );
     let isAlreadyTranslated = $derived(!isForAquiferization && isTranslatedChecked);
 
@@ -203,6 +203,9 @@
                                 class="toggle me-0.5"
                                 bind:checked={isTranslatedChecked}
                                 disabled={isForAquiferization || selectedResourceIds.length > 0}
+                                onchange={() => {
+                                    targetLanguageId = null;
+                                }}
                             />
                         </label>
                     </div>
