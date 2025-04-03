@@ -106,7 +106,7 @@
                         `/resources/unaquiferized?${searchParams.toString()}`
                     )) ?? [];
             } else if (isAlreadyTranslated) {
-                !!targetLanguageId && searchParams.set('languageId', targetLanguageId.toString());
+                !!sourceLanguageId && searchParams.set('languageId', sourceLanguageId.toString());
                 fetchedContentForLeft =
                     (await getFromApi<ResourceContentForSelection[]>(
                         `/resources/translated?${searchParams.toString()}`
