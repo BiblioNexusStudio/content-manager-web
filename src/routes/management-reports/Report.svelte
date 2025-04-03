@@ -16,6 +16,7 @@
     import BarChartReport from '$lib/components/reporting/BarChartReport.svelte';
     import LineChartReport from '$lib/components/reporting/LineChartReport.svelte';
     import ReportTable from '$lib/components/reporting/ReportTable.svelte';
+    import { currentUser } from '$lib/stores/auth';
 
     interface Props {
         reportData?: DynamicReport | null;
@@ -43,7 +44,6 @@
     let endDate = $state($searchParams.endDate);
     let languageId = $state($searchParams.languageId);
     let parentResourceId = $state($searchParams.parentResourceId);
-    let companyId = $state($searchParams.companyId);
     let report = $derived($searchParams.report);
 
     $effect(() => {
@@ -61,12 +61,15 @@
         }
     }
     async function fetchReport() {
+        console.log($currentUser?.company);
+        let companyId = reportData?.acceptsCompany ? ($currentUser?.company.id ?? 0) : 0;
+
         const queryString = buildQueryString([
             { key: 'startDate', value: $searchParams.startDate, ignoreIfEquals: '' },
             { key: 'endDate', value: $searchParams.endDate, ignoreIfEquals: '' },
             { key: 'languageId', value: $searchParams.languageId, ignoreIfEquals: 0 },
             { key: 'parentResourceId', value: $searchParams.parentResourceId, ignoreIfEquals: 0 },
-            { key: 'companyId', value: $searchParams.companyId, ignoreIfEquals: 0 },
+            { key: 'companyId', value: companyId, ignoreIfEquals: 0 },
         ]);
 
         try {
@@ -91,8 +94,7 @@
             startDate !== $searchParams.startDate ||
             endDate !== $searchParams.endDate ||
             languageId !== $searchParams.languageId ||
-            parentResourceId !== $searchParams.parentResourceId ||
-            companyId !== $searchParams.companyId
+            parentResourceId !== $searchParams.parentResourceId
         ) {
             $searchParams.paginationStart = 0;
             $searchParams.paginationEnd = _defaultTableRowsPerPage;
@@ -102,7 +104,6 @@
         $searchParams.endDate = endDate ?? '';
         $searchParams.languageId = languageId;
         $searchParams.parentResourceId = parentResourceId;
-        $searchParams.companyId = companyId;
 
         fetchReport();
     }
@@ -156,19 +157,6 @@
                     options={[
                         { value: 0, label: 'All Resources' },
                         ...parentResources.map((t) => ({ value: t.id, label: t.displayName })),
-                    ]}
-                />
-            {/if}
-            {#if reportData.acceptsCompany}
-                <Select
-                    bind:value={companyId}
-                    isNumber={true}
-                    class="select select-bordered min-w-[10rem] flex-shrink"
-                    options={[
-                        { value: 0, label: 'Select Company' },
-                        ...(companies
-                            ?.filter((c) => !companiesToIgnore.includes(c.name))
-                            ?.map((c) => ({ value: c.id, label: c.name })) ?? []),
                     ]}
                 />
             {/if}

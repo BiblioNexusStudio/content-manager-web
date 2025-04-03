@@ -7,13 +7,14 @@
     import Modal from '$lib/components/Modal.svelte';
     import { _defaultTableRowsPerPage, _searchParamsConfig } from './+page';
     import Report from './Report.svelte';
+    import { filterToOnlyDynamicReports } from '$lib/utils/reporting';
 
     interface Props {
         data: PageData;
     }
 
     let { data }: Props = $props();
-    let allReports = $derived(data?.managerDynamicReports ?? []);
+    let allReports = $derived(filterToOnlyDynamicReports(data?.managerDynamicReports ?? []));
     const searchParams = searchParameters(_searchParamsConfig, {
         runLoadAgainWhenParamsChange: ['startDate', 'endDate', 'languageId', 'parentResourceId', 'companyId', 'report'],
     });
