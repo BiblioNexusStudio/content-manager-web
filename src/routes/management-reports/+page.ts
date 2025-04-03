@@ -5,7 +5,6 @@ import { Permission, userCan } from '$lib/stores/auth';
 import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 import errorGotoPath from '$lib/stores/error-goto-path';
-import type { Company } from '$lib/types/base';
 import { ssp } from '$lib/utils/sveltekit-search-params';
 
 export const _defaultTableRowsPerPage = 100;
@@ -28,16 +27,10 @@ export const load: PageLoad = async ({ parent, fetch }) => {
     errorGotoPath.set('/reporting');
 
     if (get(userCan)(Permission.ReadReportsInCompany)) {
-        const managerDynamicReportsPromise = getFromApi<BasicDynamicReport[]>(`/reports/dynamic`, fetch);
-        const companiesPromise = get(userCan)(Permission.ReadUsers)
-            ? getFromApi<Company[]>(`/companies`, fetch)
-            : Promise.resolve([] as Company[]);
-
-        const [managerDynamicReports, companies] = await Promise.all([managerDynamicReportsPromise, companiesPromise]);
+        const managerDynamicReports = await getFromApi<BasicDynamicReport[]>(`/reports/dynamic`, fetch);
 
         return {
             managerDynamicReports,
-            companies,
         };
     } else {
         redirect(302, '/');
