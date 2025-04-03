@@ -42,7 +42,7 @@
     });
 </script>
 
-<div class="m-8 flex flex-col overflow-y-hidden">
+<div class="m-8 flex h-full max-h-screen flex-col overflow-y-hidden">
     <h1 class="mb-4 text-3xl capitalize">Reporting</h1>
     {#if errorMessage}
         <Modal
