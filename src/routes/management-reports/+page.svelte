@@ -16,7 +16,7 @@
     let { data }: Props = $props();
     let allReports = $derived(filterToOnlyDynamicReports(data?.managerDynamicReports ?? []));
     const searchParams = searchParameters(_searchParamsConfig, {
-        runLoadAgainWhenParamsChange: ['startDate', 'endDate', 'languageId', 'parentResourceId', 'companyId', 'report'],
+        runLoadAgainWhenParamsChange: ['startDate', 'endDate', 'languageId', 'parentResourceId', 'report'],
     });
     let report = $state($searchParams.report);
     let loading = $state(false);
@@ -61,7 +61,7 @@
         />
     {/if}
     {#if allReports.length}
-        <div class="mb-4 grid-cols-3">
+        <div class="grid-cols-3">
             <Select
                 class="select select-bordered max-w-[14rem] flex-grow"
                 bind:value={report}
@@ -81,14 +81,9 @@
             />
         </div>
     {/if}
+    <div class="divider"></div>
     {#if report !== ''}
-        <Report
-            parentResources={data.parentResources}
-            languages={data.languages}
-            companies={data.companies}
-            bind:loading
-            bind:errorMessage
-        />
+        <Report parentResources={data.parentResources} languages={data.languages} bind:loading bind:errorMessage />
     {:else if allReports.length === 0}
         <p class="w-full text-center">No reports for managers at this time.</p>
     {:else if loading}

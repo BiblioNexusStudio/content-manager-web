@@ -1,7 +1,7 @@
 <script lang="ts">
     import DatePicker from '$lib/components/DatePicker.svelte';
     import Select from '$lib/components/Select.svelte';
-    import { companiesToIgnore, type Company, type Language, type ParentResource } from '$lib/types/base';
+    import { type Language, type ParentResource } from '$lib/types/base';
     import { DynamicReportType, type DynamicReport, type DynamicReportResult } from '$lib/types/reporting';
     import Icon from 'svelte-awesome';
     import { refresh } from 'svelte-awesome/icons';
@@ -20,7 +20,6 @@
 
     interface Props {
         reportData?: DynamicReport | null;
-        companies: Company[];
         languages: Language[];
         parentResources: ParentResource[];
         loading?: boolean;
@@ -29,7 +28,6 @@
 
     let {
         reportData = $bindable(),
-        companies,
         languages,
         parentResources,
         loading = $bindable(),
@@ -136,43 +134,45 @@
                 />
             {/if}
         </div>
-        <div class="flex flex-row space-x-6">
-            {#if reportData.acceptsLanguage}
-                <Select
-                    bind:value={languageId}
-                    isNumber={true}
-                    class="select select-bordered min-w-[10rem] flex-shrink"
-                    options={[
-                        { value: 0, label: 'All Languages' },
-                        ...languages.map((l) => ({ value: l.id, label: l.englishDisplay })),
-                    ]}
-                />
-            {/if}
-            {#if reportData.acceptsParentResource}
-                <Select
-                    bind:value={parentResourceId}
-                    isNumber={true}
-                    class="select select-bordered min-w-[10rem] flex-shrink"
-                    options={[
-                        { value: 0, label: 'All Resources' },
-                        ...parentResources.map((t) => ({ value: t.id, label: t.displayName })),
-                    ]}
-                />
-            {/if}
-            {#if reportData.acceptsDateRange}
-                <div class="flex flex-row items-center space-x-2">
-                    <span>Date Range: </span>
-                    <DatePicker bind:date={startDate} latestDate={endDate} />
-                    <span>-</span>
-                    <DatePicker bind:date={endDate} earliestDate={startDate} />
-                </div>
-            {/if}
-            {#if reportData.acceptsDateRange || reportData.acceptsLanguage || reportData.acceptsParentResource || reportData.acceptsCompany}
-                <button class="btn btn-link mx-1!" onclick={refetch}>
-                    <Icon data={refresh} />
-                </button>
-            {/if}
-        </div>
+        {#if reportData.acceptsLanguage || reportData.acceptsParentResource || reportData.acceptsDateRange}
+            <div class="flex flex-row space-x-6">
+                {#if reportData.acceptsLanguage}
+                    <Select
+                        bind:value={languageId}
+                        isNumber={true}
+                        class="select select-bordered min-w-[10rem] flex-shrink"
+                        options={[
+                            { value: 0, label: 'All Languages' },
+                            ...languages.map((l) => ({ value: l.id, label: l.englishDisplay })),
+                        ]}
+                    />
+                {/if}
+                {#if reportData.acceptsParentResource}
+                    <Select
+                        bind:value={parentResourceId}
+                        isNumber={true}
+                        class="select select-bordered min-w-[10rem] flex-shrink"
+                        options={[
+                            { value: 0, label: 'All Resources' },
+                            ...parentResources.map((t) => ({ value: t.id, label: t.displayName })),
+                        ]}
+                    />
+                {/if}
+                {#if reportData.acceptsDateRange}
+                    <div class="flex flex-row items-center space-x-2">
+                        <span>Date Range: </span>
+                        <DatePicker bind:date={startDate} latestDate={endDate} />
+                        <span>-</span>
+                        <DatePicker bind:date={endDate} earliestDate={startDate} />
+                    </div>
+                {/if}
+                {#if reportData.acceptsDateRange || reportData.acceptsLanguage || reportData.acceptsParentResource || reportData.acceptsCompany}
+                    <button class="btn btn-link mx-1!" onclick={refetch}>
+                        <Icon data={refresh} />
+                    </button>
+                {/if}
+            </div>
+        {/if}
         {#if reportData.type === DynamicReportType.BarChart}
             <div class="relative ms-5 me-10 h-full flex-shrink overflow-hidden">
                 <BarChartReport report={reportData} />
