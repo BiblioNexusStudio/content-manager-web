@@ -77,20 +77,13 @@
         </div>
     {/if}
     {#if report !== ''}
-        <div
-            class="overflow-contain my-4 overflow-y-auto rounded-lg border"
-            style={errorMessage !== null ? 'display:none' : ''}
-        >
-            <div class="overflow-contain relative m-4 flex-shrink overflow-y-auto p-4">
-                <Report
-                    parentResources={data.parentResources}
-                    languages={data.languages}
-                    companies={data.companies}
-                    bind:loading
-                    bind:errorMessage
-                />
-            </div>
-        </div>
+        <Report
+            parentResources={data.parentResources}
+            languages={data.languages}
+            companies={data.companies}
+            bind:loading
+            bind:errorMessage
+        />
     {:else if allReports.length === 0}
         <p class="w-full text-center">No reports for managers at this time.</p>
     {:else if loading}

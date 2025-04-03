@@ -124,7 +124,7 @@
 </script>
 
 {#if reportData}
-    <div class="flex max-h-full max-h-screen flex-shrink flex-col space-y-4 p-4">
+    <div class="flex max-h-full max-h-screen flex-shrink flex-col space-y-4 overflow-y-auto">
         <div class="flex items-center justify-between">
             <h1 class="text-3xl capitalize">{reportData.name}</h1>
             {#if reportData.type === DynamicReportType.Table && reportData.results.length > _defaultTableRowsPerPage}
@@ -196,7 +196,7 @@
             </div>
         {:else if reportData.type === DynamicReportType.Table && sortedResults}
             <div>
-                <div class="relative flex-shrink overflow-hidden">
+                <div class="relative flex-shrink">
                     <ReportTable
                         {searchParams}
                         report={reportData}
