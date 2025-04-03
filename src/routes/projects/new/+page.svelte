@@ -41,8 +41,8 @@
 
     let canSave = $derived(
         !!title &&
-            (isAlreadyTranslated || !!sourceLanguageId) &&
-            !!targetLanguageId &&
+            !!sourceLanguageId &&
+            (isTranslatedChecked || !!targetLanguageId) &&
             !!projectManagerUserId &&
             !!companyId &&
             !!companyLeadUserId &&
@@ -100,7 +100,7 @@
                 </div>
                 <div class="flex flex-row items-center border-b p-2">
                     <div class="text-md">
-                        {!isAlreadyTranslated ? 'Source ' : ''}Language <span class="text-error">*</span>
+                        {!isTranslatedChecked ? 'Source ' : ''}Language <span class="text-error">*</span>
                     </div>
                     <div class="grow"></div>
                     <Select
@@ -109,7 +109,7 @@
                         disabled={selectedResourceIds.length > 0}
                         isNumber={true}
                         options={[
-                            { value: null, label: 'Select ' + (!isAlreadyTranslated ? 'Source ' : '') + 'Language' },
+                            { value: null, label: 'Select ' + (!isTranslatedChecked ? 'Source ' : '') + 'Language' },
                             ...(languages || []).map((l) => ({
                                 value: l.id,
                                 label: l.englishDisplay,
@@ -117,14 +117,14 @@
                         ]}
                     />
                 </div>
-                {#if !isAlreadyTranslated}
+                {#if !isTranslatedChecked}
                     <div class="flex flex-row items-center border-b p-2">
                         <div class="text-md">Target Language <span class="text-error">*</span></div>
                         <div class="grow"></div>
                         <Select
                             bind:value={targetLanguageId}
                             class="select select-bordered select-sm w-full max-w-[50%]"
-                            disabled={(!isAlreadyTranslated && !sourceLanguageId) || selectedResourceIds.length > 0}
+                            disabled={(!isTranslatedChecked && !sourceLanguageId) || selectedResourceIds.length > 0}
                             isNumber={true}
                             options={[
                                 { value: null, label: 'Select Target Language' },
