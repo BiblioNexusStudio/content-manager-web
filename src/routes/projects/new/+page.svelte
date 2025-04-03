@@ -19,7 +19,7 @@
     const { languages, users, companies } = data;
 
     let title = $state('');
-    let sourceLanguageId: number | null = $state(null);
+    let sourceLanguageId: number | null = $state((languages || []).find((l) => l.iso6393Code === 'eng')?.id ?? null);
     let targetLanguageId: number | null = $state(null);
     let projectManagerUserId: number | null = $state(null);
     let companyId: number | null = $state(null);
