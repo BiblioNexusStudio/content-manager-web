@@ -52,6 +52,7 @@
     let currentAssignedProjects: Project[] = $state([]);
     let currentCommunityPendingContents: ResourcePendingReview[] = $state([]);
     let currentNotifications: FlattenedNotificationsContent[] = $state([]);
+    let currentNotApplicableContent: NotApplicableContent[] = $state([]);
     let selectedMyWorkTableItems: ResourceAssignedToSelf[] = $state([]);
     let selectedReviewPendingTableItems: ResourcePendingReview[] = $state([]);
     let selectedCommunityPendingTableItems: ResourcePendingReview[] = $state([]);
@@ -228,7 +229,9 @@
         }
     }
 
-    function projectNamesForContents(contents: ResourceAssignedToSelf[] | ResourcePendingReview[]) {
+    function projectNamesForContents(
+        contents: ResourceAssignedToSelf[] | ResourcePendingReview[] | NotApplicableContent[]
+    ) {
         return Array.from(new Set(filterBoolean(contents.map((c) => c.projectName)))).sort();
     }
 
@@ -284,10 +287,13 @@
                 ? projectNamesForContents(assignedContents)
                 : tab === Tab.reviewPending
                   ? projectNamesForContents(reviewPendingContents)
-                  : [];
+                  : tab === Tab.notApplicable
+                    ? projectNamesForContents(notApplicableContent)
+                    : [];
         if (
             $searchParams.project &&
-            ((tab !== Tab.myWork && tab !== Tab.reviewPending) || !projectNames.includes($searchParams.project))
+            ((tab !== Tab.myWork && tab !== Tab.reviewPending && tab !== Tab.notApplicable) ||
+                !projectNames.includes($searchParams.project))
         ) {
             $searchParams.project = '';
         }
@@ -296,6 +302,9 @@
             (tab !== Tab.myWork || !statusesForContents(assignedContents).includes($searchParams.status))
         ) {
             $searchParams.status = '';
+        }
+        if ($searchParams.language && tab !== Tab.myProjects && tab !== Tab.notApplicable) {
+            $searchParams.language = '';
         }
     }
 
@@ -347,6 +356,13 @@
                 } else {
                     return true;
                 }
+            });
+        } else if (tab === Tab.notApplicable) {
+            currentNotApplicableContent = notApplicableContent.filter((nac) => {
+                return (
+                    ($searchParams.project === '' || nac.projectName === $searchParams.project) &&
+                    ($searchParams.language === '' || nac.language === $searchParams.language)
+                );
             });
         }
     };
@@ -546,6 +562,28 @@
             <a class="btn btn-primary ms-4" href="/projects/new">Create Project</a>
         </div>
     {/if}
+    {#if $searchParams.tab === Tab.notApplicable}
+        <div class="mt-4 flex flex-row">
+            <Select
+                class="select select-bordered me-4 max-w-[14rem] grow"
+                bind:value={$searchParams.project}
+                onChange={resetSelection}
+                options={[
+                    { value: '', label: 'Project' },
+                    ...projectNamesForContents(notApplicableContent).map((p) => ({ value: p, label: p })),
+                ]}
+            />
+            <Select
+                class="select select-bordered max-w-[14rem] grow"
+                bind:value={$searchParams.language}
+                onChange={resetSelection}
+                options={[
+                    { value: '', label: 'Language' },
+                    ...data.languages.map((l) => ({ value: l.englishDisplay, label: l.englishDisplay })),
+                ]}
+            />
+        </div>
+    {/if}
     <div class="flex flex-row space-x-4 overflow-y-hidden">
         {#if $searchParams.tab === Tab.myWork}
             <Table
@@ -682,7 +720,7 @@
                 class="my-4"
                 enableSelectAll={false}
                 columns={notApplicableContentsColumns}
-                items={notApplicableContent}
+                items={currentNotApplicableContent}
                 idColumn="id"
                 itemUrlPrefix="/resources/"
                 noItemsText="No items pending review."
