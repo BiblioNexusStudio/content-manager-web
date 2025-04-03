@@ -49,7 +49,11 @@
     let showingAquiferizeEditorReviewModal = $state(false);
 
     let chapters = $derived(
-        parseNumbersListFromString(chaptersString, 1, bibleBooks?.find((b) => b.code === bookCode)?.totalChapters ?? 0)
+        parseNumbersListFromString(
+            chaptersString ? chaptersString : 'all',
+            1,
+            bibleBooks?.find((b) => b.code === bookCode)?.totalChapters ?? 0
+        )
     );
 
     $effect(() => {
