@@ -110,10 +110,13 @@
                         isNumber={true}
                         options={[
                             { value: null, label: 'Select ' + (!isTranslatedChecked ? 'Source ' : '') + 'Language' },
-                            ...(languages || []).map((l) => ({
-                                value: l.id,
-                                label: l.englishDisplay,
-                            })),
+                            ...(languages || [])
+                                // don't allow English resource contents to be put into an already translated project
+                                .filter((l) => !isTranslatedChecked || l.iso6393Code !== 'eng')
+                                .map((l) => ({
+                                    value: l.id,
+                                    label: l.englishDisplay,
+                                })),
                         ]}
                     />
                 </div>
@@ -129,7 +132,7 @@
                             options={[
                                 { value: null, label: 'Select Target Language' },
                                 ...(languages || [])
-                                    // only allow English resource contents to be Aquiferized (for now)
+                                    // only allow English resource contents to be Aquiferized
                                     .filter(
                                         (l) =>
                                             l.id !== sourceLanguageId ||
@@ -204,6 +207,7 @@
                                 bind:checked={isTranslatedChecked}
                                 disabled={isForAquiferization || selectedResourceIds.length > 0}
                                 onchange={() => {
+                                    sourceLanguageId = null;
                                     targetLanguageId = null;
                                 }}
                             />
