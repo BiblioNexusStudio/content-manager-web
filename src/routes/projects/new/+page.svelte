@@ -19,7 +19,8 @@
     const { languages, users, companies } = data;
 
     let title = $state('');
-    let languageId: number | null = $state(null);
+    let sourceLanguageId: number | null = $state(null);
+    let targetLanguageId: number | null = $state(null);
     let projectManagerUserId: number | null = $state(null);
     let companyId: number | null = $state(null);
     let companyLeadUserId: number | null = $state(null);
@@ -33,12 +34,15 @@
         !isShowingErrorModal && (errorMessage = '');
     });
 
-    let isForAquiferization = $derived((languages || []).find((l) => l.id === languageId)?.iso6393Code === 'eng');
+    let isForAquiferization = $derived(
+        !!sourceLanguageId && !!targetLanguageId && sourceLanguageId === targetLanguageId
+    );
     let isAlreadyTranslated = $derived(!isForAquiferization && isTranslatedChecked);
 
     let canSave = $derived(
         !!title &&
-            !!languageId &&
+            !!sourceLanguageId &&
+            !!targetLanguageId &&
             !!projectManagerUserId &&
             !!companyId &&
             !!companyLeadUserId &&
@@ -50,7 +54,8 @@
         try {
             const project = await postToApi<{ id: number }>('/projects', {
                 title,
-                languageId,
+                sourceLanguageId,
+                targetLanguageId,
                 projectManagerUserId,
                 companyId,
                 companyLeadUserId,
@@ -93,19 +98,43 @@
                 <input bind:value={title} class="input input-bordered input-sm w-full max-w-[50%]" />
             </div>
             <div class="flex flex-row items-center border-b p-2">
-                <div class="text-md">Language <span class="text-error">*</span></div>
+                <div class="text-md">Source Language <span class="text-error">*</span></div>
                 <div class="grow"></div>
                 <Select
-                    bind:value={languageId}
+                    bind:value={sourceLanguageId}
                     class="select select-bordered select-sm w-full max-w-[50%]"
                     disabled={selectedResourceIds.length > 0}
                     isNumber={true}
                     options={[
-                        { value: null, label: 'Select Language' },
+                        { value: null, label: 'Select Source Language' },
                         ...(languages || []).map((l) => ({
                             value: l.id,
-                            label: l.iso6393Code === 'eng' ? 'English (Aquiferize)' : l.englishDisplay,
+                            label: l.englishDisplay,
                         })),
+                    ]}
+                />
+            </div>
+            <div class="flex flex-row items-center border-b p-2">
+                <div class="text-md">Target Language <span class="text-error">*</span></div>
+                <div class="grow"></div>
+                <Select
+                    bind:value={targetLanguageId}
+                    class="select select-bordered select-sm w-full max-w-[50%]"
+                    disabled={!sourceLanguageId || selectedResourceIds.length > 0}
+                    isNumber={true}
+                    options={[
+                        { value: null, label: 'Select Target Language' },
+                        ...(languages || [])
+                            // only allow English resources to be Aquiferized (for now)
+                            .filter(
+                                (l) =>
+                                    l.id !== sourceLanguageId || (sourceLanguageId === l.id && l.iso6393Code === 'eng')
+                            )
+                            .map((l) => ({
+                                value: l.id,
+                                label:
+                                    l.id === sourceLanguageId ? l.englishDisplay + ' (Aquiferize)' : l.englishDisplay,
+                            })),
                     ]}
                 />
             </div>
@@ -173,10 +202,11 @@
     <div class="short:h-[30rem] flex flex-col overflow-hidden">
         <div class="text-lg font-bold">Add Content</div>
         <!-- the key ensures we reset the project content selection when language changes -->
-        {#key languageId?.toString() + isAlreadyTranslated.toString()}
+        {#key sourceLanguageId?.toString() + '-' + sourceLanguageId?.toString() + '-' + isAlreadyTranslated.toString()}
             <ProjectContentSelector
-                disabled={!languageId}
-                {languageId}
+                disabled={!sourceLanguageId || !targetLanguageId}
+                {sourceLanguageId}
+                {targetLanguageId}
                 {data}
                 {isForAquiferization}
                 {isAlreadyTranslated}
