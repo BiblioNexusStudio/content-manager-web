@@ -61,8 +61,7 @@
         }
     }
     async function fetchReport() {
-        console.log($currentUser?.company);
-        let companyId = reportData?.acceptsCompany ? ($currentUser?.company.id ?? 0) : 0;
+        let companyId = $currentUser?.company.id ?? 0;
 
         const queryString = buildQueryString([
             { key: 'startDate', value: $searchParams.startDate, ignoreIfEquals: '' },
@@ -127,7 +126,7 @@
 {#if reportData}
     <div class="flex max-h-full max-h-screen flex-shrink flex-col space-y-4 overflow-y-auto">
         <div class="flex items-center justify-between">
-            <h1 class="text-3xl capitalize">{reportData.name}</h1>
+            <h1 class="text-2xl capitalize">{reportData.name}</h1>
             {#if reportData.type === DynamicReportType.Table && reportData.results.length > _defaultTableRowsPerPage}
                 <ReportTablePagination
                     bind:paginationStart={$searchParams.paginationStart}

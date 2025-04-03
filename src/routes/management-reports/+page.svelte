@@ -70,6 +70,10 @@
                     $searchParams.report = r as string;
                     $searchParams.paginationStart = 0;
                     $searchParams.paginationEnd = _defaultTableRowsPerPage;
+                    $searchParams.endDate = '';
+                    $searchParams.startDate = '';
+                    $searchParams.languageId = 0;
+                    $searchParams.parentResourceId = 0;
                     return false;
                 }}
                 isNumber={false}
