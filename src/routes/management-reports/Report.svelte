@@ -13,10 +13,10 @@
     import { isAuthorizationError } from '$lib/utils/http-errors';
     import { _defaultTableRowsPerPage, _searchParamsConfig } from './+page';
     import ReportTablePagination from '$lib/components/reporting/ReportTablePagination.svelte';
-    import BarChartReport from '$lib/components/reporting/BarChartReport.svelte';
     import LineChartReport from '$lib/components/reporting/LineChartReport.svelte';
     import ReportTable from '$lib/components/reporting/ReportTable.svelte';
     import { currentUser } from '$lib/stores/auth';
+    import BarChartReport from '$lib/components/reporting/BarChartReport.svelte';
 
     interface Props {
         reportData?: DynamicReport | null;
@@ -122,7 +122,7 @@
 </script>
 
 {#if reportData}
-    <div class="flex max-h-full max-h-screen flex-shrink flex-col space-y-4 overflow-y-auto">
+    <div class="flex h-full max-h-screen flex-shrink flex-col space-y-4 overflow-y-auto">
         <div class="flex items-center justify-between">
             <h1 class="text-2xl capitalize">{reportData.name}</h1>
             {#if reportData.type === DynamicReportType.Table && reportData.results.length > _defaultTableRowsPerPage}
@@ -174,7 +174,7 @@
             </div>
         {/if}
         {#if reportData.type === DynamicReportType.BarChart}
-            <div class="relative ms-5 me-10 h-full flex-shrink overflow-hidden">
+            <div class="relative ms-5 me-10 h-full shrink overflow-hidden">
                 <BarChartReport report={reportData} />
             </div>
         {:else if reportData.type === DynamicReportType.LineChart}
