@@ -195,18 +195,14 @@
                 <LineChartReport report={reportData} />
             </div>
         {:else if reportData.type === DynamicReportType.Table && sortedResults}
-            <div>
-                <div class="relative flex-shrink">
-                    <ReportTable
-                        {searchParams}
-                        report={reportData}
-                        sortedAndPaginatedResults={sortedResults.slice(
-                            $searchParams.paginationStart,
-                            $searchParams.paginationEnd
-                        )}
-                    />
-                </div>
-            </div>
+            <ReportTable
+                {searchParams}
+                report={reportData}
+                sortedAndPaginatedResults={sortedResults.slice(
+                    $searchParams.paginationStart,
+                    $searchParams.paginationEnd
+                )}
+            />
         {:else}
             <p>Unsupported report type</p>
         {/if}
