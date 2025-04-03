@@ -126,7 +126,7 @@
                         options={[
                             { value: null, label: 'Select Target Language' },
                             ...(languages || [])
-                                // only allow English resources to be Aquiferized (for now)
+                                // only allow English resource contents to be Aquiferized (for now)
                                 .filter(
                                     (l) =>
                                         l.id !== sourceLanguageId ||
@@ -209,7 +209,7 @@
     <div class="short:h-[30rem] flex flex-col overflow-hidden">
         <div class="text-lg font-bold">Add Content</div>
         <!-- the key ensures we reset the project content selection when language changes -->
-        {#key sourceLanguageId?.toString() + '-' + sourceLanguageId?.toString() + '-' + isAlreadyTranslated.toString()}
+        {#key sourceLanguageId?.toString() + '-' + targetLanguageId?.toString() + '-' + isAlreadyTranslated.toString()}
             <ProjectContentSelector
                 disabled={!sourceLanguageId || !targetLanguageId}
                 {sourceLanguageId}
