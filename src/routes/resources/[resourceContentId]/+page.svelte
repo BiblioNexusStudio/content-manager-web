@@ -925,163 +925,166 @@
                 <Related relatedContent={resourceContent.associatedResources} />
             </div>
 
-            <div class="flex">
-                <div class="flex w-full justify-end">
-                    <div class="me-2 flex items-center">
-                        {#if $showSavingFailed}
-                            <span class="text-error font-bold">Auto-save failed</span>
-                        {/if}
-                        {#if $isSaving}
-                            <Icon data={spinner} pulse class="text-[#0175a2]" />
-                        {/if}
-                    </div>
-                    {#if !isStatusInAwaitingAiDraft}
-                        <div class="flex flex-wrap justify-end">
-                            {#if canSetStatusTransitionNotApplicable}
-                                <Tooltip
-                                    position={{ right: '7.5rem', top: '0.25rem' }}
-                                    text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+N`}
-                                >
-                                    <button
-                                        class="btn btn-primary btn-sm ms-2"
-                                        disabled={$isPageTransacting}
-                                        onclick={() => (isNotApplicableModalOpen = true)}
-                                    >
-                                        Not Applicable
-                                    </button>
-                                </Tooltip>
+            {#if resourceContent.mediaType !== MediaTypeEnum.audio}
+                <div class="flex">
+                    <div class="flex w-full justify-end">
+                        <div class="me-2 flex items-center">
+                            {#if $showSavingFailed}
+                                <span class="text-error font-bold">Auto-save failed</span>
                             {/if}
-                            {#if canSetStatusCompleteNotApplicable}
-                                <button
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={handleConfirmNotApplicable}
-                                >
-                                    Confirm
-                                </button>
-                            {/if}
-                            {#if canSendForEditorReview || inPublisherReviewAndCanSendBack}
-                                <Tooltip
-                                    position={{
-                                        right: `${canSendForEditorReview ? '6.2rem' : '6.5rem'}`,
-                                        top: '0.25rem',
-                                    }}
-                                    text={canSendForEditorReview ? `CTRL+${isMacOS ? 'CMD' : 'ALT'}+A` : ''}
-                                >
-                                    <button
-                                        class="btn btn-primary btn-sm ms-2"
-                                        disabled={$isPageTransacting}
-                                        onclick={openAssignUserModal}
-                                    >
-                                        {#if canSendForEditorReview}
-                                            Assign User
-                                        {:else if inPublisherReviewAndCanSendBack}
-                                            Send Back
-                                        {/if}
-                                    </button>
-                                </Tooltip>
-                            {/if}
-                            {#if canPullBackToCompanyReview}
-                                <button
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={pullBackToCompanyReview}
-                                >
-                                    Pull Back to Company Review
-                                </button>
-                            {/if}
-                            {#if canAssignPublisherForReview}
-                                <Tooltip
-                                    position={{
-                                        right: `${canSendForEditorReview ? '7.2rem' : '4.5rem'}`,
-                                        top: '0.25rem',
-                                    }}
-                                    text={isInReview ? `CTRL+${isMacOS ? 'CMD' : 'ALT'}+A` : ''}
-                                >
-                                    <button
-                                        class="btn btn-primary btn-sm ms-2"
-                                        disabled={$isPageTransacting}
-                                        onclick={openAssignReviewModal}
-                                        >{isInReview ? 'Assign' : 'Review'}
-                                    </button>
-                                </Tooltip>
-                            {/if}
-                            {#if canPublish}
-                                <button
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={() => publishOrOpenModal(resourceContent.status)}
-                                    >Publish
-                                </button>
-                            {/if}
-                            {#if canUnpublish}
-                                <button
-                                    data-app-insights-event-name="resource-unpublish-click"
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={unpublish}
-                                    >Unpublish
-                                </button>
-                            {/if}
-                            {#if canSendForCompanyReview}
-                                <Tooltip
-                                    position={{ right: '7.5rem', top: '0.25rem' }}
-                                    text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+S`}
-                                >
-                                    <button
-                                        class="btn btn-primary btn-sm ms-2"
-                                        disabled={$isPageTransacting}
-                                        onclick={sendForCompanyReview}
-                                        >{resourceContent.hasAdditionalReviewer &&
-                                        (resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview ||
-                                            resourceContent.status ===
-                                                ResourceContentStatusEnum.TranslationEditorReview)
-                                            ? 'Send to Review'
-                                            : 'Send to Manager'}
-                                    </button>
-                                </Tooltip>
-                            {/if}
-                            {#if canSendForPublisherReview}
-                                <Tooltip
-                                    position={{ right: '8.5rem', top: '0.25rem' }}
-                                    text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+S`}
-                                >
-                                    <button
-                                        class="btn btn-primary btn-sm ms-2"
-                                        disabled={$isPageTransacting}
-                                        onclick={sendForPublisherReview}
-                                        >Send to Publisher
-                                    </button>
-                                </Tooltip>
-                            {/if}
-                            {#if canAquiferize}
-                                <button
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={openAquiferizeModal}
-                                    >Create Draft
-                                </button>
-                            {/if}
-                            {#if canCommunityTranslate}
-                                <button
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={handleCommunityTranslate}
-                                    >Translate
-                                </button>
-                            {/if}
-                            {#if canCommunitySendToPublisher}
-                                <button
-                                    class="btn btn-primary btn-sm ms-2"
-                                    disabled={$isPageTransacting}
-                                    onclick={handleCommunitySendToPublisher}
-                                    >Send to Publisher
-                                </button>
+                            {#if $isSaving}
+                                <Icon data={spinner} pulse class="text-[#0175a2]" />
                             {/if}
                         </div>
-                    {/if}
+                        {#if !isStatusInAwaitingAiDraft}
+                            <div class="flex flex-wrap justify-end">
+                                {#if canSetStatusTransitionNotApplicable}
+                                    <Tooltip
+                                        position={{ right: '7.5rem', top: '0.25rem' }}
+                                        text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+N`}
+                                    >
+                                        <button
+                                            class="btn btn-primary btn-sm ms-2"
+                                            disabled={$isPageTransacting}
+                                            onclick={() => (isNotApplicableModalOpen = true)}
+                                        >
+                                            Not Applicable
+                                        </button>
+                                    </Tooltip>
+                                {/if}
+                                {#if canSetStatusCompleteNotApplicable}
+                                    <button
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={handleConfirmNotApplicable}
+                                    >
+                                        Confirm
+                                    </button>
+                                {/if}
+                                {#if canSendForEditorReview || inPublisherReviewAndCanSendBack}
+                                    <Tooltip
+                                        position={{
+                                            right: `${canSendForEditorReview ? '6.2rem' : '6.5rem'}`,
+                                            top: '0.25rem',
+                                        }}
+                                        text={canSendForEditorReview ? `CTRL+${isMacOS ? 'CMD' : 'ALT'}+A` : ''}
+                                    >
+                                        <button
+                                            class="btn btn-primary btn-sm ms-2"
+                                            disabled={$isPageTransacting}
+                                            onclick={openAssignUserModal}
+                                        >
+                                            {#if canSendForEditorReview}
+                                                Assign User
+                                            {:else if inPublisherReviewAndCanSendBack}
+                                                Send Back
+                                            {/if}
+                                        </button>
+                                    </Tooltip>
+                                {/if}
+                                {#if canPullBackToCompanyReview}
+                                    <button
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={pullBackToCompanyReview}
+                                    >
+                                        Pull Back to Company Review
+                                    </button>
+                                {/if}
+                                {#if canAssignPublisherForReview}
+                                    <Tooltip
+                                        position={{
+                                            right: `${canSendForEditorReview ? '7.2rem' : '4.5rem'}`,
+                                            top: '0.25rem',
+                                        }}
+                                        text={isInReview ? `CTRL+${isMacOS ? 'CMD' : 'ALT'}+A` : ''}
+                                    >
+                                        <button
+                                            class="btn btn-primary btn-sm ms-2"
+                                            disabled={$isPageTransacting}
+                                            onclick={openAssignReviewModal}
+                                            >{isInReview ? 'Assign' : 'Review'}
+                                        </button>
+                                    </Tooltip>
+                                {/if}
+                                {#if canPublish}
+                                    <button
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={() => publishOrOpenModal(resourceContent.status)}
+                                        >Publish
+                                    </button>
+                                {/if}
+                                {#if canUnpublish}
+                                    <button
+                                        data-app-insights-event-name="resource-unpublish-click"
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={unpublish}
+                                        >Unpublish
+                                    </button>
+                                {/if}
+                                {#if canSendForCompanyReview}
+                                    <Tooltip
+                                        position={{ right: '7.5rem', top: '0.25rem' }}
+                                        text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+S`}
+                                    >
+                                        <button
+                                            class="btn btn-primary btn-sm ms-2"
+                                            disabled={$isPageTransacting}
+                                            onclick={sendForCompanyReview}
+                                            >{resourceContent.hasAdditionalReviewer &&
+                                            (resourceContent.status ===
+                                                ResourceContentStatusEnum.AquiferizeEditorReview ||
+                                                resourceContent.status ===
+                                                    ResourceContentStatusEnum.TranslationEditorReview)
+                                                ? 'Send to Review'
+                                                : 'Send to Manager'}
+                                        </button>
+                                    </Tooltip>
+                                {/if}
+                                {#if canSendForPublisherReview}
+                                    <Tooltip
+                                        position={{ right: '8.5rem', top: '0.25rem' }}
+                                        text={`CTRL+${isMacOS ? 'CMD' : 'ALT'}+S`}
+                                    >
+                                        <button
+                                            class="btn btn-primary btn-sm ms-2"
+                                            disabled={$isPageTransacting}
+                                            onclick={sendForPublisherReview}
+                                            >Send to Publisher
+                                        </button>
+                                    </Tooltip>
+                                {/if}
+                                {#if canAquiferize}
+                                    <button
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={openAquiferizeModal}
+                                        >Create Draft
+                                    </button>
+                                {/if}
+                                {#if canCommunityTranslate}
+                                    <button
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={handleCommunityTranslate}
+                                        >Translate
+                                    </button>
+                                {/if}
+                                {#if canCommunitySendToPublisher}
+                                    <button
+                                        class="btn btn-primary btn-sm ms-2"
+                                        disabled={$isPageTransacting}
+                                        onclick={handleCommunitySendToPublisher}
+                                        >Send to Publisher
+                                    </button>
+                                {/if}
+                            </div>
+                        {/if}
+                    </div>
                 </div>
-            </div>
+            {/if}
         </div>
 
         <ContentArea

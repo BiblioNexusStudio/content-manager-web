@@ -9,6 +9,7 @@
     import ArrowLeftSmall from '$lib/icons/ArrowLeftSmall.svelte';
     import ArrowRightSmall from '$lib/icons/ArrowRightSmall.svelte';
     import { getFromApi } from '$lib/utils/http-service';
+    import { Permission, userCan } from '$lib/stores/auth';
 
     interface Props {
         resourceContent: ResourceContent;
@@ -116,12 +117,14 @@
         <AudioPlayer audioContents={[resourceContent]} {versionAudioContents} bind:stepHasAudio />
     </div>
 
-    <ReplaceAudioButton
-        {hasSteps}
-        {stepHasAudio}
-        {selectedStepNumber}
-        resourceContentId={resourceContent.resourceContentId}
-    />
+    {#if $userCan(Permission.PublishContent)}
+        <ReplaceAudioButton
+            {hasSteps}
+            {stepHasAudio}
+            {selectedStepNumber}
+            resourceContentId={resourceContent.resourceContentId}
+        />
+    {/if}
 
     <LicenseInfoButton {resourceContent} />
 </div>
