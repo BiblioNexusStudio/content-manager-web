@@ -3,6 +3,8 @@ import type { FlattenedNotificationsContent, NotificationsContent } from './+pag
 import { formatNotificationsDateString } from '$lib/utils/date-time';
 import { patchToApi, postToApi } from '$lib/utils/http-service';
 import { _NotificationKind as NotificationKind } from './+page';
+import type { User } from '$lib/types/base';
+import { parseCommentDbTextIntoDisplayHtml } from '$lib/components/mentions/mentions.svelte';
 
 export const notificationsContentColumns: column<FlattenedNotificationsContent>[] = [
     { text: 'Time', itemKey: 'time', sortKey: undefined },
@@ -11,7 +13,8 @@ export const notificationsContentColumns: column<FlattenedNotificationsContent>[
 ];
 
 export const flattenNotificationsContent = (
-    notificationsContent: NotificationsContent[]
+    notificationsContent: NotificationsContent[],
+    userList: User[]
 ): FlattenedNotificationsContent[] => {
     return notificationsContent
         .filter((notification) => notification.kind === NotificationKind.comment)
@@ -20,7 +23,7 @@ export const flattenNotificationsContent = (
                 id: notification.comment?.id,
                 name: notification.comment?.user.name,
                 time: formatNotificationsDateString(notification.comment?.created ?? ''),
-                notification: notification.comment?.text,
+                notification: parseCommentDbTextIntoDisplayHtml(notification.comment?.text ?? '', userList),
                 notoficationId: notification.comment?.id,
                 isRead: notification.isRead,
                 resourceContentId: notification.comment?.resourceContentId,

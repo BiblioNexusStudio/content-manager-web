@@ -710,7 +710,7 @@
                                                 'parentResourceDisplayName'
                                             ]}
                                         </div>
-                                        <div>{notificationItem['notification']}</div>
+                                        <div>{@html notificationItem['notification']}</div>
                                     </div>
                                 </TableCell>
                             </tr>

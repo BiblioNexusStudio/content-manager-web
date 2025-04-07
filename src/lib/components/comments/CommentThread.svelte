@@ -3,7 +3,6 @@
     import CheckLongIcon from '$lib/icons/CheckLongIcon.svelte';
     import { formatUtcToLocalTimeAndDate } from '$lib/utils/date-time';
     import CommentButton from '$lib/components/comments/CommentButton.svelte';
-    import CommentTextArea from '$lib/components/comments/CommentTextArea.svelte';
     import { tick } from 'svelte';
     import type { Comment, CreateThreadResponse } from '$lib/types/comments';
     import { patchToApi, postToApi } from '$lib/utils/http-service';
@@ -12,6 +11,9 @@
     import type { CommentStores } from '$lib/stores/comments';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
     import { onMount } from 'svelte';
+    import CommentEditableDiv from './CommentEditableDiv.svelte';
+    import { parseCommentDbTextIntoDisplayHtml, parseHtmlIntoCommentDbText } from '../mentions/mentions.svelte';
+    import { page } from '$app/state';
 
     interface Props {
         showParent?: boolean;
@@ -119,7 +121,7 @@
                 res = await postToApi<CreateThreadResponse>('/comments/threads', {
                     threadType: 'ResourceContentVersion',
                     typeId: $commentThreads?.threadTypeId,
-                    comment: currentCommentValue,
+                    comment: parseHtmlIntoCommentDbText(currentCommentValue, page.data.users),
                 });
 
                 $commentThreads?.threads.push({
@@ -138,7 +140,7 @@
             } else {
                 res = await postToApi('/comments', {
                     threadId: threadId,
-                    comment: currentCommentValue,
+                    comment: parseHtmlIntoCommentDbText(currentCommentValue, page.data.users),
                 });
             }
 
@@ -169,7 +171,7 @@
         isSendingComment = true;
         try {
             await patchToApi(`/comments/${comment.id}`, {
-                comment: currentCommentValue,
+                comment: parseHtmlIntoCommentDbText(currentCommentValue, page.data.users),
             });
 
             comment.comment = currentCommentValue;
@@ -246,7 +248,7 @@
                 {/if}
             </div>
             {#if editingCommentId === comment.id}
-                <CommentTextArea disabled={isSendingComment} bind:value={currentCommentValue}></CommentTextArea>
+                <CommentEditableDiv disabled={isSendingComment} bind:value={currentCommentValue}></CommentEditableDiv>
                 {#if wasSavingCommentError}
                     <div class="text-error me-4 flex justify-end">Error editing comment.</div>
                 {/if}
@@ -265,7 +267,7 @@
                 </div>
             {:else}
                 <div class="mt-2 whitespace-pre-wrap">
-                    {comment.comment}
+                    {@html parseCommentDbTextIntoDisplayHtml(comment.comment, page.data.users)}
                 </div>
             {/if}
         </div>
@@ -304,7 +306,7 @@
                 {:else}
                     <div class="divider mx-2 my-1"></div>
                 {/if}
-                <CommentTextArea disabled={isSendingComment} bind:value={currentCommentValue}></CommentTextArea>
+                <CommentEditableDiv disabled={isSendingComment} bind:value={currentCommentValue}></CommentEditableDiv>
             </div>
             {#if wasSavingCommentError}
                 <div class="text-error me-4 flex justify-end">Error saving new comment.</div>
