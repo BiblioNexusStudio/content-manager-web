@@ -27,7 +27,7 @@
 </script>
 
 <!-- window that appears near input node -->
-<MarkPopout bind:show bind:markSpan={inputElement} anchorPosition="auto">
+<MarkPopout bind:show bind:markSpan={inputElement}>
     <ul role="listbox" class="m-4 flex max-h-60 flex-col space-y-2 overflow-y-auto py-2" bind:this={ulElement}>
         {#each userList as user, index (user.id)}
             <li
