@@ -913,15 +913,17 @@
         <div class="flex w-full items-center justify-between border-b-[1px] py-1">
             <div class="me-2 flex place-items-center">
                 <ExitButton defaultPathIfNoHistory="/resources" />
-                <CurrentTranslations
-                    currentResourceId={resourceContent.resourceContentId}
-                    languages={data.languages}
-                    translations={resourceContent.contentTranslations}
-                    project={resourceContent.project}
-                    englishTranslation={englishContentTranslation}
-                    {canCreateTranslation}
-                    openModal={openAddTranslationModal}
-                />
+                {#if resourceContent.mediaType !== MediaTypeEnum.audio}
+                    <CurrentTranslations
+                        currentResourceId={resourceContent.resourceContentId}
+                        languages={data.languages}
+                        translations={resourceContent.contentTranslations}
+                        project={resourceContent.project}
+                        englishTranslation={englishContentTranslation}
+                        {canCreateTranslation}
+                        openModal={openAddTranslationModal}
+                    />
+                {/if}
                 <Related relatedContent={resourceContent.associatedResources} />
             </div>
 
