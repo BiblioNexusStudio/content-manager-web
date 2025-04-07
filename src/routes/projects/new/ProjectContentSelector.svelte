@@ -14,7 +14,8 @@
     interface Props {
         data: PageData;
         disabled: boolean;
-        languageId: number | null;
+        sourceLanguageId: number | null;
+        targetLanguageId: number | null;
         finalizedResourceIds: number[];
         isForAquiferization: boolean;
         isAlreadyTranslated: boolean;
@@ -23,7 +24,8 @@
     let {
         data,
         disabled,
-        languageId,
+        sourceLanguageId,
+        targetLanguageId,
         finalizedResourceIds = $bindable(),
         isForAquiferization,
         isAlreadyTranslated,
@@ -47,7 +49,11 @@
     let showingAquiferizeEditorReviewModal = $state(false);
 
     let chapters = $derived(
-        parseNumbersListFromString(chaptersString, 1, bibleBooks?.find((b) => b.code === bookCode)?.totalChapters ?? 0)
+        parseNumbersListFromString(
+            chaptersString ? chaptersString : 'all',
+            1,
+            bibleBooks?.find((b) => b.code === bookCode)?.totalChapters ?? 0
+        )
     );
 
     $effect(() => {
@@ -94,18 +100,20 @@
 
         try {
             if (isForAquiferization) {
+                !!targetLanguageId && searchParams.set('languageId', targetLanguageId.toString());
                 fetchedContentForLeft =
                     (await getFromApi<ResourceContentForSelection[]>(
                         `/resources/unaquiferized?${searchParams.toString()}`
                     )) ?? [];
             } else if (isAlreadyTranslated) {
-                !!languageId && searchParams.set('languageId', languageId.toString());
+                !!sourceLanguageId && searchParams.set('languageId', sourceLanguageId.toString());
                 fetchedContentForLeft =
                     (await getFromApi<ResourceContentForSelection[]>(
                         `/resources/translated?${searchParams.toString()}`
                     )) ?? [];
             } else {
-                !!languageId && searchParams.set('languageId', languageId.toString());
+                !!sourceLanguageId && searchParams.set('sourceLanguageId', sourceLanguageId.toString());
+                !!targetLanguageId && searchParams.set('targetLanguageId', targetLanguageId.toString());
                 fetchedContentForLeft =
                     (await getFromApi<ResourceContentForSelection[]>(
                         `/resources/untranslated?${searchParams.toString()}`
