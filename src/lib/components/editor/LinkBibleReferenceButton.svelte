@@ -376,16 +376,14 @@
                 </div>
             </div>
         {/if}
-        {#if languageId === 1}
-            <label class="flex items-center">
-                <input type="checkbox" class="mr-2" bind:checked={updateAssociation} />
-                {#if existingReference}
-                    <span>Update resource's Bible reference association</span>
-                {:else}
-                    <span>Associate Bible reference with this resource</span>
-                {/if}
-            </label>
-        {/if}
+        <label class="flex items-center">
+            <input type="checkbox" class="mr-2" bind:checked={updateAssociation} />
+            {#if existingReference}
+                <span>Update resource's Bible reference association</span>
+            {:else}
+                <span>Associate Bible reference with this resource</span>
+            {/if}
+        </label>
     {/await}
     {#snippet additionalButtons()}
         {#if existingReference}
