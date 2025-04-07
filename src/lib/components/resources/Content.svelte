@@ -2,6 +2,7 @@
     import Image from './content-components/Image.svelte';
     import Video from './content-components/Video.svelte';
     import Text from './content-components/Text.svelte';
+    import Audio from './content-components/Audio.svelte';
     import {
         MediaTypeEnum,
         type ImageContentItem,
@@ -52,6 +53,8 @@
     <Image content={imageContent} />
 {:else if resourceContent.mediaType === MediaTypeEnum.video}
     <Video content={videoContent} />
+{:else if resourceContent.mediaType === MediaTypeEnum.audio}
+    <Audio {resourceContent} />
 {:else if resourceContent.mediaType === MediaTypeEnum.text}
     <Text
         {sidebarIsOpen}

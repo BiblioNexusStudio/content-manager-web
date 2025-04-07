@@ -7,15 +7,16 @@
     import Modal from '$lib/components/Modal.svelte';
     import { _defaultTableRowsPerPage, _searchParamsConfig } from './+page';
     import Report from './Report.svelte';
+    import { filterToOnlyDynamicReports } from '$lib/utils/reporting';
 
     interface Props {
         data: PageData;
     }
 
     let { data }: Props = $props();
-    let allReports = $derived(data?.managerDynamicReports ?? []);
+    let allReports = $derived(filterToOnlyDynamicReports(data?.managerDynamicReports ?? []));
     const searchParams = searchParameters(_searchParamsConfig, {
-        runLoadAgainWhenParamsChange: ['startDate', 'endDate', 'languageId', 'parentResourceId', 'companyId', 'report'],
+        runLoadAgainWhenParamsChange: ['startDate', 'endDate', 'languageId', 'parentResourceId', 'report'],
     });
     let report = $state($searchParams.report);
     let loading = $state(false);
@@ -41,7 +42,7 @@
     });
 </script>
 
-<div class="m-8">
+<div class="flex h-full max-h-screen flex-col overflow-y-hidden p-4">
     <h1 class="mb-4 text-3xl capitalize">Reporting</h1>
     {#if errorMessage}
         <Modal
@@ -60,7 +61,7 @@
         />
     {/if}
     {#if allReports.length}
-        <div class="mb-4 grid-cols-3">
+        <div class="grid-cols-3">
             <Select
                 class="select select-bordered max-w-[14rem] flex-grow"
                 bind:value={report}
@@ -69,6 +70,10 @@
                     $searchParams.report = r as string;
                     $searchParams.paginationStart = 0;
                     $searchParams.paginationEnd = _defaultTableRowsPerPage;
+                    $searchParams.endDate = '';
+                    $searchParams.startDate = '';
+                    $searchParams.languageId = 0;
+                    $searchParams.parentResourceId = 0;
                     return false;
                 }}
                 isNumber={false}
@@ -76,21 +81,9 @@
             />
         </div>
     {/if}
+    <div class="divider"></div>
     {#if report !== ''}
-        <div
-            class="overflow-contain my-4 overflow-y-auto rounded-lg border"
-            style={errorMessage !== null ? 'display:none' : ''}
-        >
-            <div class="overflow-contain relative m-4 flex-shrink overflow-y-auto p-4">
-                <Report
-                    parentResources={data.parentResources}
-                    languages={data.languages}
-                    companies={data.companies}
-                    bind:loading
-                    bind:errorMessage
-                />
-            </div>
-        </div>
+        <Report parentResources={data.parentResources} languages={data.languages} bind:loading bind:errorMessage />
     {:else if allReports.length === 0}
         <p class="w-full text-center">No reports for managers at this time.</p>
     {:else if loading}

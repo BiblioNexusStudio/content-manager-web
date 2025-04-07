@@ -52,6 +52,7 @@
     let currentAssignedProjects: Project[] = $state([]);
     let currentCommunityPendingContents: ResourcePendingReview[] = $state([]);
     let currentNotifications: FlattenedNotificationsContent[] = $state([]);
+    let currentNotApplicableContent: NotApplicableContent[] = $state([]);
     let selectedMyWorkTableItems: ResourceAssignedToSelf[] = $state([]);
     let selectedReviewPendingTableItems: ResourcePendingReview[] = $state([]);
     let selectedCommunityPendingTableItems: ResourcePendingReview[] = $state([]);
@@ -96,6 +97,7 @@
             tab: ssp.string(Tab.myWork),
             project: ssp.string(''),
             status: ssp.string(''),
+            language: ssp.string(''),
             isFilteringUnresolved: ssp.boolean(false),
             isShowingOnlyUnread: ssp.boolean(false),
         },
@@ -227,7 +229,9 @@
         }
     }
 
-    function projectNamesForContents(contents: ResourceAssignedToSelf[] | ResourcePendingReview[]) {
+    function projectNamesForContents(
+        contents: ResourceAssignedToSelf[] | ResourcePendingReview[] | NotApplicableContent[]
+    ) {
         return Array.from(new Set(filterBoolean(contents.map((c) => c.projectName)))).sort();
     }
 
@@ -283,10 +287,13 @@
                 ? projectNamesForContents(assignedContents)
                 : tab === Tab.reviewPending
                   ? projectNamesForContents(reviewPendingContents)
-                  : [];
+                  : tab === Tab.notApplicable
+                    ? projectNamesForContents(notApplicableContent)
+                    : [];
         if (
             $searchParams.project &&
-            ((tab !== Tab.myWork && tab !== Tab.reviewPending) || !projectNames.includes($searchParams.project))
+            ((tab !== Tab.myWork && tab !== Tab.reviewPending && tab !== Tab.notApplicable) ||
+                !projectNames.includes($searchParams.project))
         ) {
             $searchParams.project = '';
         }
@@ -295,6 +302,9 @@
             (tab !== Tab.myWork || !statusesForContents(assignedContents).includes($searchParams.status))
         ) {
             $searchParams.status = '';
+        }
+        if ($searchParams.language && tab !== Tab.myProjects && tab !== Tab.notApplicable) {
+            $searchParams.language = '';
         }
     }
 
@@ -328,8 +338,10 @@
                     (!project || rpc.projectName === project)
             );
         } else if (tab === Tab.myProjects) {
-            currentAssignedProjects = assignedProjects.filter((ap) =>
-                ap.name.toLowerCase().includes(search.toLowerCase())
+            currentAssignedProjects = assignedProjects.filter(
+                (ap) =>
+                    ap.name.toLowerCase().includes(search.toLowerCase()) &&
+                    ($searchParams.language === '' || ap.language === $searchParams.language)
             );
         } else if (tab === Tab.community) {
             currentCommunityPendingContents = communityPendingContents.filter(
@@ -344,6 +356,13 @@
                 } else {
                     return true;
                 }
+            });
+        } else if (tab === Tab.notApplicable) {
+            currentNotApplicableContent = notApplicableContent.filter((nac) => {
+                return (
+                    ($searchParams.project === '' || nac.projectName === $searchParams.project) &&
+                    ($searchParams.language === '' || nac.language === $searchParams.language)
+                );
             });
         }
     };
@@ -527,11 +546,42 @@
     {#if $searchParams.tab === Tab.myProjects}
         <div class="mt-4 flex flex-row">
             <input
-                class="input input-bordered max-w-xs focus:outline-hidden"
+                class="input input-bordered me-4 max-w-xs focus:outline-hidden"
                 bind:value={search}
                 placeholder="Search"
             />
+            <Select
+                class="select select-bordered max-w-[14rem] grow"
+                bind:value={$searchParams.language}
+                onChange={resetSelection}
+                options={[
+                    { value: '', label: 'Language' },
+                    ...data.languages.map((l) => ({ value: l.englishDisplay, label: l.englishDisplay })),
+                ]}
+            />
             <a class="btn btn-primary ms-4" href="/projects/new">Create Project</a>
+        </div>
+    {/if}
+    {#if $searchParams.tab === Tab.notApplicable}
+        <div class="mt-4 flex flex-row">
+            <Select
+                class="select select-bordered me-4 max-w-[14rem] grow"
+                bind:value={$searchParams.project}
+                onChange={resetSelection}
+                options={[
+                    { value: '', label: 'Project' },
+                    ...projectNamesForContents(notApplicableContent).map((p) => ({ value: p, label: p })),
+                ]}
+            />
+            <Select
+                class="select select-bordered max-w-[14rem] grow"
+                bind:value={$searchParams.language}
+                onChange={resetSelection}
+                options={[
+                    { value: '', label: 'Language' },
+                    ...data.languages.map((l) => ({ value: l.englishDisplay, label: l.englishDisplay })),
+                ]}
+            />
         </div>
     {/if}
     <div class="flex flex-row space-x-4 overflow-y-hidden">
@@ -670,7 +720,7 @@
                 class="my-4"
                 enableSelectAll={false}
                 columns={notApplicableContentsColumns}
-                items={notApplicableContent}
+                items={currentNotApplicableContent}
                 idColumn="id"
                 itemUrlPrefix="/resources/"
                 noItemsText="No items pending review."

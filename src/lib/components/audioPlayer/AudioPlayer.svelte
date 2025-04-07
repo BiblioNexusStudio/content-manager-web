@@ -1,26 +1,30 @@
 <script lang="ts">
     import { Icon } from 'svelte-awesome';
     import refresh from 'svelte-awesome/icons/refresh';
+    import externalLink from 'svelte-awesome/icons/externalLink';
     import ArrowBack10Icon from './icons/ArrowBack10Icon.svelte';
     import PauseMediaIcon from './icons/PauseMediaIcon.svelte';
     import PlayMediaIcon from './icons/PlayMediaIcon.svelte';
     import ArrowForward10Icon from './icons/ArrowForward10Icon.svelte';
-    import {
-        AudioPlaylist,
-        type AudioType,
-        fetchFiaAudioFromZip,
-        isAudioContentItem,
-        getAudioPlaylistContext,
-    } from './context.svelte';
+    import { AudioPlaylist, type AudioType, isAudioContentItem, getAudioPlaylistContext } from './context.svelte';
     import PlaybackSpeedPopover from './PlaybackSpeedPopover.svelte';
     import { onMount } from 'svelte';
-    import type { AudioContentItem, ResourceContent } from '$lib/types/resources';
+    import type { AudioContentItem, ResourceContent, Version } from '$lib/types/resources';
+    import { Permission, userCan } from '$lib/stores/auth';
 
     interface AudioPlayerProps {
         audioContents: ResourceContent[] | null;
+        fromAudioPlayerModal?: boolean;
+        versionAudioContents?: Version | null;
+        stepHasAudio?: boolean;
     }
 
-    let { audioContents }: AudioPlayerProps = $props();
+    let {
+        audioContents,
+        fromAudioPlayerModal = false,
+        versionAudioContents = null,
+        stepHasAudio = $bindable(),
+    }: AudioPlayerProps = $props();
 
     let playlist: AudioPlaylist = getAudioPlaylistContext();
 
@@ -82,7 +86,7 @@
         }
     }
 
-    async function handlePlayerError(errorEvent: Event) {
+    function handlePlayerError(errorEvent: Event) {
         const target = errorEvent?.target as HTMLAudioElement;
 
         if (!target?.error) return;
@@ -96,7 +100,7 @@
             // and try to play the next supported audio type.
             supportedAudioTypes = supportedAudioTypes.slice(1);
             selectAudioType();
-            await populatePlaylist();
+            populatePlaylist();
         }
     }
 
@@ -120,25 +124,80 @@
         playlist.currentAudioType = supportedAudioTypes[0] || 'webm';
     }
 
-    async function populatePlaylist() {
-        if (!audioContents || supportedAudioTypes.length === 0) return;
+    function populatePlaylist() {
+        if (versionAudioContents === null) {
+            if (!audioContents || supportedAudioTypes.length === 0) return;
 
-        if (!isAudioContentItem(audioContents[0]!.content)) return;
+            if (!isAudioContentItem(audioContents[0]!.content)) return;
 
-        const audioHasSteps = !!audioContents[0]!.content.mp3?.steps?.length;
+            const audioHasSteps = !!audioContents[0]!.content.mp3?.steps?.length;
 
-        if (audioHasSteps) {
-            playlist.tracks = await fetchFiaAudioFromZip(audioContents, playlist.currentAudioType);
+            if (audioHasSteps) {
+                const content = audioContents[0]!.content as AudioContentItem;
+                const steps = content[playlist.currentAudioType].steps!;
+
+                const stepsCopyWithMissingSteps = [];
+                for (let i = 0; i < 6; i++) {
+                    let step = steps.find((s) => s.stepNumber === i + 1);
+
+                    if (step) {
+                        stepsCopyWithMissingSteps[i] = step;
+                    } else {
+                        stepsCopyWithMissingSteps[i] = {
+                            stepNumber: i + 1,
+                            file: '',
+                            url: '',
+                        };
+                    }
+                }
+
+                playlist.tracks = stepsCopyWithMissingSteps.map((step) => {
+                    return {
+                        url: step.url,
+                        currentTime: 0,
+                    };
+                });
+            } else {
+                playlist.tracks = audioContents?.map((audioContent) => {
+                    const content = audioContent.content as AudioContentItem;
+
+                    return {
+                        url: content[playlist.currentAudioType].url,
+                        currentTime: 0,
+                    };
+                });
+            }
         } else {
-            playlist.tracks = audioContents?.map((audioContent) => {
-                const content = audioContent.content as AudioContentItem;
+            if (!versionAudioContents?.content || supportedAudioTypes.length === 0) return;
 
-                return {
-                    url: content[playlist.currentAudioType].url,
+            if (!isAudioContentItem(versionAudioContents.content)) return;
+
+            const audioHasSteps = !!versionAudioContents.content.mp3?.steps?.length;
+
+            if (audioHasSteps) {
+                const content = versionAudioContents.content as AudioContentItem;
+                const steps = content[playlist.currentAudioType].steps!;
+
+                playlist.tracks = steps.map((step) => {
+                    return {
+                        url: step?.url ?? '',
+                        currentTime: 0,
+                    };
+                });
+            } else {
+                const track = {
+                    url: versionAudioContents?.content[playlist.currentAudioType]?.url ?? '',
                     currentTime: 0,
                 };
-            });
+
+                playlist.tracks = [track];
+            }
         }
+    }
+
+    function goToAudioResourcePage() {
+        const resourceContentId = audioContents && audioContents[0]?.resourceContentId;
+        window.location.href = `/resources/${resourceContentId}`;
     }
 
     onMount(() => {
@@ -146,10 +205,10 @@
     });
 
     $effect(() => {
-        (async () => {
+        (() => {
             if (!audioContents) return;
             if (audioContents.length > 0) {
-                await populatePlaylist();
+                populatePlaylist();
             }
         })();
     });
@@ -160,9 +219,17 @@
             playlist.element = audioElement;
         }
     });
+
+    $effect(() => {
+        if (playlist.currentTrackSrc() === '') {
+            stepHasAudio = false;
+        } else {
+            stepHasAudio = true;
+        }
+    });
 </script>
 
-<div class="audio-player border-base-300 bg-base-200 items-center rounded-xl border">
+<div class="audio-player border-base-300 bg-base-100 items-center rounded-xl border">
     {#if deviceCannotPlayAudio}
         <div class="flex h-full w-full flex-col items-center justify-center">
             <h1 class="text-xl">Your device does not support the avaiable audio types.</h1>
@@ -197,7 +264,7 @@
                 oninput={seek}
                 data-app-insights-event-name="audio-player-range-area-clicked"
             />
-            <span class="text-neutral text-sm font-medium"
+            <span class="text-base-content text-sm font-medium"
                 >{formatTime(playlist.currentTrackTimeElapsed)} / {duration ? formatTime(duration) : '--:--'}
             </span>
         </div>
@@ -241,6 +308,17 @@
                 </button>
 
                 <PlaybackSpeedPopover />
+                {#if $userCan(Permission.PublishContent) && fromAudioPlayerModal}
+                    <button
+                        onclick={goToAudioResourcePage}
+                        class="audio-control-btn"
+                        title="Go to audio resource page"
+                        aria-label="Go to audio resource page"
+                        data-app-insights-event-name="audio-player-go-to-audio-resource-button-clicked"
+                    >
+                        <Icon class="text-primary h-[35px] w-[35px] grow-0" data={externalLink} />
+                    </button>
+                {/if}
             {/if}
         </div>
     {/if}
@@ -285,7 +363,6 @@
         height: var(--square-size);
         width: var(--square-size);
         cursor: pointer;
-        grow: 0;
     }
 
     .audio-control-btn:hover {
