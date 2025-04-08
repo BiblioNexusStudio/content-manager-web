@@ -291,10 +291,6 @@ function createUserMentionAction(): UserMentionAction {
     }
 
     function mapCursorPositionToInnerHtml(innerText: string, innerHtml: string, cursorPosition: number) {
-        if (cursorPosition < 0 || cursorPosition > innerText.length) {
-            throw new Error('Cursor position is out of bounds');
-        }
-
         let textPos = 0;
         let htmlPos = 0;
         let insideTag = false;
@@ -355,25 +351,26 @@ function createUserMentionAction(): UserMentionAction {
 
     action.selectUser = function (user: User) {
         //! we should never have lastWorkingMention === null here
+        if (lastWorkingMention === null) {
+            throw new Error('lastWorkingMention is null on user select');
+        }
+
         const innerHtml = mentionsWindowProps.inputElement!.innerHTML;
-        const innerText = mentionsWindowProps.inputElement!.innerText;
-        const innerTextCursorPosition = getCursorPosition();
-        const generatedMention = generateMentionDisplay(user.name) + ' ';
+        const replacePattern = new RegExp(`(^|\\s)${lastWorkingMention!.text}`, 'g');
+        let dbtext = parseHtmlIntoCommentDbText(innerHtml, users);
 
-        const innerHTMLCursorPosition = mapCursorPositionToInnerHtml(innerText, innerHtml, innerTextCursorPosition);
+        dbtext = dbtext.replace(replacePattern, ` ${generateMentionPlaceholder(user)} `);
 
-        mentionsWindowProps.inputElement!.innerHTML =
-            innerHtml.slice(0, innerHTMLCursorPosition - lastWorkingMention!.text.length) +
-            generatedMention +
-            innerHtml.slice(innerHTMLCursorPosition) +
-            ' ';
+        const newInnerHtml = parseCommentDbTextIntoDisplayHtml(dbtext, users);
+
+        mentionsWindowProps.inputElement!.innerHTML = newInnerHtml;
 
         // Trigger a custom input event to notify Svelte of the change
         const event = new Event('input', { bubbles: true });
         mentionsWindowProps.inputElement!.dispatchEvent(event);
 
         // Focus back on the textarea
-        const newCursorPosition = lastWorkingMention!.start + user.name.length + 2; // +2 for @ and space
+        const newCursorPosition = lastWorkingMention!.end - lastWorkingMention!.text.length + user.name.length + 2; // +2 for @ and space
         setTimeout(() => {
             mentionsWindowProps.inputElement?.focus();
             setCursorPosition(newCursorPosition);
