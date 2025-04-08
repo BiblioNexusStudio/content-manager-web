@@ -32,7 +32,7 @@
     <input
         type="date"
         bind:value={internalDate}
-        onblur={update}
+        oninput={update}
         min={earliestDate}
         max={latestDate}
         class="h-auto w-full rounded-md border px-4 py-2"

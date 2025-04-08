@@ -13,6 +13,7 @@
     import ReportTablePagination from '$lib/components/reporting/ReportTablePagination.svelte';
     import ReportTable from '$lib/components/reporting/ReportTable.svelte';
     import LineChartReport from '$lib/components/reporting/LineChartReport.svelte';
+    import { reportingPageLoading } from '$lib/stores/reporting';
 
     interface Props {
         data: PageData;
@@ -29,6 +30,7 @@
     let languageId = $state($searchParams.languageId);
     let parentResourceId = $state($searchParams.parentResourceId);
     let companyId = $state($searchParams.companyId);
+    let reportParamsUpdated = $state(false);
 
     let reportData = $derived(
         data?.reportData ?? {
@@ -63,11 +65,25 @@
         $searchParams.languageId = languageId;
         $searchParams.parentResourceId = parentResourceId;
         $searchParams.companyId = companyId;
+        reportParamsUpdated = false;
     }
 
     $effect(() => {
         initializeFromReport(reportData);
     });
+
+    $effect(() => {
+        if (
+            startDate !== $searchParams.startDate ||
+            endDate !== $searchParams.endDate ||
+            languageId !== $searchParams.languageId ||
+            parentResourceId !== $searchParams.parentResourceId ||
+            companyId !== $searchParams.companyId
+        ) {
+            reportParamsUpdated = true;
+        }
+    });
+
     let sortReportTable = $derived(
         createListSorter<DynamicReportResult>(
             Object.fromEntries(reportData.columns.map((name, index) => [name, { primarySortKeys: [index] }]))
@@ -146,8 +162,8 @@
                 <DatePicker bind:date={endDate} earliestDate={startDate} />
             </div>
         {/if}
-        {#if reportData.acceptsDateRange || reportData.acceptsLanguage || reportData.acceptsParentResource || reportData.acceptsCompany}
-            <button class="btn btn-link mx-1!" onclick={refetch}>
+        {#if (reportData.acceptsDateRange || reportData.acceptsLanguage || reportData.acceptsParentResource || reportData.acceptsCompany) && (reportParamsUpdated || $reportingPageLoading)}
+            <button class="btn btn-link mx-1! {$reportingPageLoading && 'animate-spin'}" onclick={refetch}>
                 <Icon data={refresh} />
             </button>
         {/if}
