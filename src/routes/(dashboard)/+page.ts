@@ -10,7 +10,7 @@ import type { HelpDocumentResponse } from '$lib/types/helpDocuments';
 import { flattenNotificationsContent } from './notifications-helpers';
 
 export const load: PageLoad = async ({ parent, fetch }) => {
-    await parent();
+    const parentData = await parent();
 
     if (get(userCan)(Permission.ReviewContent) || get(userCan)(Permission.PublishContent)) {
         const [
@@ -27,7 +27,7 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             getFromApi<NotificationsContent[]>('/notifications', fetch),
         ]);
 
-        const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent);
+        const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent, parentData.users ?? []);
 
         return {
             publisherDashboard: {
@@ -53,7 +53,7 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             getFromApi<NotificationsContent[]>('/notifications', fetch),
         ]);
 
-        const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent);
+        const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent, parentData.users ?? []);
 
         return {
             managerDashboard: {
@@ -74,7 +74,7 @@ export const load: PageLoad = async ({ parent, fetch }) => {
                 getFromApi<NotificationsContent[]>('/notifications', fetch),
             ]);
 
-        const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent);
+        const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent, parentData.users ?? []);
 
         return {
             communityReviewerDashboard: {
@@ -92,7 +92,7 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             getFromApi<NotificationsContent[]>('/notifications', fetch),
         ]);
 
-        const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent);
+        const flattenedNotificationsContent = flattenNotificationsContent(notificationsContent, parentData.users ?? []);
 
         return {
             editorDashboard: { assignedResourceContent, assignedResourceHistoryContent, flattenedNotificationsContent },
