@@ -36,7 +36,10 @@
                 tabindex="0"
                 onclick={() => mentions.selectUser(user)}
                 onkeydown={(event) => handleKeydown(event, user)}
-                class={`cursor-pointer rounded-lg p-2 hover:bg-blue-200 ${index === selectedUserIndex ? 'bg-blue-200' : 'bg-gray-100'}`}
+                class="hover:bg-primary-content cursor-pointer rounded-lg p-2"
+                class:bg-base-100={index !== selectedUserIndex}
+                class:bg-primary-content={index === selectedUserIndex}
+                class:text-primary={index === selectedUserIndex}
             >
                 {user.name}
             </li>

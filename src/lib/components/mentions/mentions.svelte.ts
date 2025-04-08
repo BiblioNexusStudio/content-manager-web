@@ -434,7 +434,7 @@ export function parseHtmlIntoCommentDbText(html: string, userList: User[]) {
 }
 
 export function generateMentionDisplay(userName: string) {
-    return `<span class="text-blue-500 bg-blue-100 p-1 rounded-sm">@${userName}</span>`;
+    return `<span class="text-neutral bg-primary p-1 rounded-sm">@${userName}</span>`;
 }
 
 export function generateMentionPlaceholder(user: User) {
