@@ -3,6 +3,7 @@
 import { goto } from '$app/navigation';
 import { page } from '$app/stores';
 import { get, writable, type Updater, type Writable } from 'svelte/store';
+import { reportingPageLoading } from '$lib/stores/reporting';
 
 function noop<T>(_value: T) {
     // no-op
@@ -194,7 +195,9 @@ export function searchParameters<T extends object>(
                                     new URLSearchParams(window.location.search).get(param as string)
                             ))
                     ) {
+                        reportingPageLoading.set(true);
                         await goto(queryAndHash, GOTO_OPTIONS);
+                        reportingPageLoading.set(false);
                     } else {
                         history.replaceState(history.state, '', queryAndHash);
                         _set(mixSearchAndOptions(new URLSearchParams(queryAndHash), options));
