@@ -82,13 +82,13 @@
         </div>
     {/if}
     <div class="divider"></div>
-    {#if report !== ''}
-        <Report parentResources={data.parentResources} languages={data.languages} bind:loading bind:errorMessage />
-    {:else if allReports.length === 0}
-        <p class="w-full text-center">No reports for managers at this time.</p>
-    {:else if loading}
+    {#if loading}
         <div class="max-h-52">
             <CenteredSpinner />
         </div>
+    {:else if report !== ''}
+        <Report parentResources={data.parentResources} languages={data.languages} bind:loading bind:errorMessage />
+    {:else if allReports.length === 0}
+        <p class="w-full text-center">No reports for managers at this time.</p>
     {/if}
 </div>

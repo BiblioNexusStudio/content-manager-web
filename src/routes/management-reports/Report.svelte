@@ -43,6 +43,7 @@
     let languageId = $state($searchParams.languageId);
     let parentResourceId = $state($searchParams.parentResourceId);
     let report = $derived($searchParams.report);
+    let reportParamsUpdated = $state(false);
 
     $effect(() => {
         initializeFromReport(reportData);
@@ -101,9 +102,21 @@
         $searchParams.endDate = endDate ?? '';
         $searchParams.languageId = languageId;
         $searchParams.parentResourceId = parentResourceId;
+        reportParamsUpdated = false;
 
         fetchReport();
     }
+
+    $effect(() => {
+        if (
+            startDate !== $searchParams.startDate ||
+            endDate !== $searchParams.endDate ||
+            languageId !== $searchParams.languageId ||
+            parentResourceId !== $searchParams.parentResourceId
+        ) {
+            reportParamsUpdated = true;
+        }
+    });
 
     let sortReportTable = $derived(
         reportData &&
@@ -166,8 +179,8 @@
                         <DatePicker bind:date={endDate} earliestDate={startDate} />
                     </div>
                 {/if}
-                {#if reportData.acceptsDateRange || reportData.acceptsLanguage || reportData.acceptsParentResource || reportData.acceptsCompany}
-                    <button class="btn btn-link mx-1!" onclick={refetch}>
+                {#if (reportData.acceptsDateRange || reportData.acceptsLanguage || reportData.acceptsParentResource || reportData.acceptsCompany) && (reportParamsUpdated || loading)}
+                    <button class="btn btn-link mx-1! {loading && 'animate-spin'}" onclick={refetch}>
                         <Icon data={refresh} />
                     </button>
                 {/if}
