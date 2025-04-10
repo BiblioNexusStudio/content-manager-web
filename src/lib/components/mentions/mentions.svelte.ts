@@ -319,6 +319,14 @@ function createUserMentionAction(): UserMentionAction {
         return htmlPos;
     }
 
+    function resetMentionState() {
+        mentionsWindowProps.show = false;
+        mentionsWindowProps.userList = users;
+        mentionsWindowProps.selectedUserIndex = 0;
+        selectedUserIndex = 0;
+        lastWorkingMention = null;
+    }
+
     function action(el: HTMLDivElement, params: { dbValue: string; userList: User[]; currentUser: User }) {
         if (!el) return;
 
@@ -345,6 +353,7 @@ function createUserMentionAction(): UserMentionAction {
                 el.removeEventListener('keyup', handleInput);
                 el.removeEventListener('keydown', handleKeyDown);
                 unmount(mentionsWindow);
+                resetMentionState();
             },
         };
     }
@@ -376,12 +385,7 @@ function createUserMentionAction(): UserMentionAction {
             setCursorPosition(newCursorPosition);
         }, 0);
 
-        // Reset the mention state
-        mentionsWindowProps.show = false;
-        mentionsWindowProps.userList = users;
-        mentionsWindowProps.selectedUserIndex = 0;
-        selectedUserIndex = 0;
-        lastWorkingMention = null;
+        resetMentionState();
     };
 
     return action;
