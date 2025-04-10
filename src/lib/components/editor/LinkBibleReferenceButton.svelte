@@ -19,7 +19,6 @@
     interface Props {
         editor: Editor;
         resourceContent: ResourceContent;
-        languageId: number;
     }
 
     $effect(() => {
@@ -40,7 +39,7 @@
         }
     });
 
-    let { editor, resourceContent, languageId }: Props = $props();
+    let { editor, resourceContent }: Props = $props();
 
     let bibleBooksPromise: Promise<BibleBook[] | null> | null = $state(null);
     let bibleBooks: BibleBook[] | null = $state(null);
@@ -165,33 +164,29 @@
     }
 
     async function deleteIfOnlyOneReference(currentMark: ReturnType<typeof editor.getAttributes>) {
-        if (languageId === 1) {
-            const references = parseBibleReferences(editor.state.toJSON());
-            if (
-                currentMark.verses &&
-                references.filter(
-                    ({ startVerse, endVerse }) =>
-                        startVerse.toString() === currentMark.verses[0].startVerse.toString() &&
-                        endVerse.toString() === currentMark.verses[0].endVerse.toString()
-                ).length === 1
-            ) {
-                await deleteToApi('/resources/bible-references', {
-                    resourceContentId: resourceContent.resourceContentId,
-                    startVerseId: parseInt(currentMark.verses[0].startVerse.toString()),
-                    endVerseId: parseInt(currentMark.verses[0].endVerse.toString()),
-                });
-            }
+        const references = parseBibleReferences(editor.state.toJSON());
+        if (
+            currentMark.verses &&
+            references.filter(
+                ({ startVerse, endVerse }) =>
+                    startVerse.toString() === currentMark.verses[0].startVerse.toString() &&
+                    endVerse.toString() === currentMark.verses[0].endVerse.toString()
+            ).length === 1
+        ) {
+            await deleteToApi('/resources/bible-references', {
+                resourceContentId: resourceContent.resourceContentId,
+                startVerseId: parseInt(currentMark.verses[0].startVerse.toString()),
+                endVerseId: parseInt(currentMark.verses[0].endVerse.toString()),
+            });
         }
     }
 
     async function addReference(startVerseId: string, endVerseId: string) {
-        if (languageId === 1) {
-            await postToApi('/resources/bible-references', {
-                resourceContentId: resourceContent.resourceContentId,
-                startVerseId: parseInt(startVerseId),
-                endVerseId: parseInt(endVerseId),
-            });
-        }
+        await postToApi('/resources/bible-references', {
+            resourceContentId: resourceContent.resourceContentId,
+            startVerseId: parseInt(startVerseId),
+            endVerseId: parseInt(endVerseId),
+        });
     }
 
     function referenceExistsAlready(start: string, end: string) {
@@ -210,8 +205,7 @@
             const { startVerse: startVerseId, endVerse: endVerseId } = mark.verses[0];
             const parsedStart = parseVerseId(startVerseId.toString());
             const parsedEnd = parseVerseId(endVerseId.toString());
-            updateAssociation =
-                languageId === 1 && referenceExistsAlready(startVerseId.toString(), endVerseId.toString());
+            updateAssociation = referenceExistsAlready(startVerseId.toString(), endVerseId.toString());
             isRange = startVerseId !== endVerseId;
             bookId = parsedStart.bookId;
             startChapter = parsedStart.chapter;
