@@ -17,6 +17,7 @@
     import ReportTable from '$lib/components/reporting/ReportTable.svelte';
     import { currentUser } from '$lib/stores/auth';
     import BarChartReport from '$lib/components/reporting/BarChartReport.svelte';
+    import CenteredSpinner from '$lib/components/CenteredSpinner.svelte';
 
     interface Props {
         reportData?: DynamicReport | null;
@@ -43,7 +44,7 @@
     let languageId = $state($searchParams.languageId);
     let parentResourceId = $state($searchParams.parentResourceId);
     let report = $derived($searchParams.report);
-    let reportParamsUpdated = $state(false);
+    let refetching = $state(false);
 
     $effect(() => {
         initializeFromReport(reportData);
@@ -83,10 +84,12 @@
             }
         } finally {
             loading = false;
+            refetching = false;
         }
     }
 
     function refetch() {
+        refetching = true;
         loading = true;
         if (
             startDate !== $searchParams.startDate ||
@@ -102,21 +105,9 @@
         $searchParams.endDate = endDate ?? '';
         $searchParams.languageId = languageId;
         $searchParams.parentResourceId = parentResourceId;
-        reportParamsUpdated = false;
 
         fetchReport();
     }
-
-    $effect(() => {
-        if (
-            startDate !== $searchParams.startDate ||
-            endDate !== $searchParams.endDate ||
-            languageId !== $searchParams.languageId ||
-            parentResourceId !== $searchParams.parentResourceId
-        ) {
-            reportParamsUpdated = true;
-        }
-    });
 
     let sortReportTable = $derived(
         reportData &&
@@ -134,7 +125,11 @@
     });
 </script>
 
-{#if reportData}
+{#if loading && !refetching}
+    <div class="max-h-52">
+        <CenteredSpinner />
+    </div>
+{:else if reportData}
     <div class="flex h-full max-h-screen flex-shrink flex-col space-y-4 overflow-y-auto">
         <div class="flex items-center justify-between">
             <h1 class="text-2xl capitalize">{reportData.name}</h1>
@@ -179,8 +174,8 @@
                         <DatePicker bind:date={endDate} earliestDate={startDate} />
                     </div>
                 {/if}
-                {#if (reportData.acceptsDateRange || reportData.acceptsLanguage || reportData.acceptsParentResource || reportData.acceptsCompany) && (reportParamsUpdated || loading)}
-                    <button class="btn btn-link mx-1! {loading && 'animate-spin'}" onclick={refetch}>
+                {#if reportData.acceptsDateRange || reportData.acceptsLanguage || reportData.acceptsParentResource || reportData.acceptsCompany}
+                    <button class="btn btn-link mx-1! {refetching && 'animate-spin'}" onclick={refetch}>
                         <Icon data={refresh} />
                     </button>
                 {/if}
