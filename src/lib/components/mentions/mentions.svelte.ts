@@ -335,7 +335,7 @@ function createUserMentionAction(): UserMentionAction {
 
         // update the params with the element and comment dbValue that has been parsed for display
         mentionsWindowProps.inputElement = el;
-        users = params.userList;
+        users = params.userList ?? [];
         currentUser = params.currentUser;
 
         if (params.dbValue !== '') {
@@ -402,6 +402,11 @@ export function parseCommentDbTextIntoDisplayHtml(dbText: string, userList: User
     const parsedUserMatches = matches.map((match) => {
         let userName = '';
         const userId = parseInt(match.match(/\d+/)![0]);
+
+        if (!userList) {
+            return generateMentionDisplay(match.match(/[A-Za-z\s'()`+]+/)![0]);
+        }
+
         const user = userList.find((u) => u.id === userId);
 
         if (user) {
