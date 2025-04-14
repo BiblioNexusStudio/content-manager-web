@@ -117,7 +117,11 @@ function createUserMentionAction(): UserMentionAction {
             setCursorPosition(cursorPosition);
             lastWorkingMention = completedMentionAtCursor;
             mentionsWindowProps.userList = filterUsers();
-            mentionsWindowProps.show = true;
+            if (mentionsWindowProps.userList.length > 0) {
+                mentionsWindowProps.show = true;
+            } else {
+                mentionsWindowProps.show = false;
+            }
 
             return;
         }
@@ -135,7 +139,11 @@ function createUserMentionAction(): UserMentionAction {
         if (currentMention !== null) {
             lastWorkingMention = currentMention;
             mentionsWindowProps.userList = filterUsers();
-            mentionsWindowProps.show = true;
+            if (mentionsWindowProps.userList.length > 0) {
+                mentionsWindowProps.show = true;
+            } else {
+                mentionsWindowProps.show = false;
+            }
         }
     }
 
@@ -365,13 +373,27 @@ function createUserMentionAction(): UserMentionAction {
         }
 
         const innerHtml = mentionsWindowProps.inputElement!.innerHTML;
-        const replacePattern = new RegExp(`(^|\\s)${lastWorkingMention!.text}`, 'g');
+        const replacePattern = new RegExp(`(^|\\s)${lastWorkingMention!.text}(\\s|$)*`, 'g');
         let dbtext = parseHtmlIntoCommentDbText(innerHtml, users);
 
-        dbtext = dbtext.replace(replacePattern, ` ${generateMentionPlaceholder(user)} `);
+        let newCursorPosition = lastWorkingMention!.end - lastWorkingMention!.text.length + user.name.length + 1; // +1 for @
+        let replacementText = generateMentionPlaceholder(user);
+        const replacementMatches = dbtext.match(replacePattern);
+
+        if (replacementMatches) {
+            if (replacementMatches[0].slice(0, 1) === ' ') {
+                // we have a space in front
+                replacementText = ` ${replacementText} `;
+                newCursorPosition++;
+            } else {
+                replacementText = `${replacementText} `;
+                newCursorPosition++;
+            }
+
+            dbtext = dbtext.replace(replacementMatches[0], replacementText);
+        }
 
         const newInnerHtml = parseCommentDbTextIntoDisplayHtml(dbtext, users);
-
         mentionsWindowProps.inputElement!.innerHTML = newInnerHtml;
 
         // Trigger a custom input event to notify Svelte of the change
@@ -379,7 +401,6 @@ function createUserMentionAction(): UserMentionAction {
         mentionsWindowProps.inputElement!.dispatchEvent(event);
 
         // Focus back on the textarea
-        const newCursorPosition = lastWorkingMention!.end - lastWorkingMention!.text.length + user.name.length + 2; // +2 for @ and space
         setTimeout(() => {
             mentionsWindowProps.inputElement?.focus();
             setCursorPosition(newCursorPosition);
