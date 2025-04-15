@@ -115,26 +115,7 @@
 
     function onError(event: Event) {
         if ('error' in event) {
-            const errorEvent = event as ErrorEvent;
-            let logString = `${errorEvent.error}`;
-
-            if (errorEvent.message) {
-                logString += `, Message: ${errorEvent.message}`;
-            }
-
-            if (errorEvent.filename) {
-                logString += `, file: ${errorEvent.filename}`;
-            }
-
-            if (errorEvent.lineno >= 0) {
-                logString += `, line: ${errorEvent.lineno}`;
-            }
-
-            if (errorEvent.colno >= 0) {
-                logString += `, column: ${errorEvent.colno}`;
-            }
-
-            log.exception(logString);
+            log.exception(event.error);
         }
     }
 
