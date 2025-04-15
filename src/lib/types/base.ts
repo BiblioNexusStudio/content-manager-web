@@ -88,6 +88,8 @@ export interface Language {
     id: number;
     iso6393Code: string;
     englishDisplay: string;
+    displayName: string;
+    isActive: boolean;
     scriptDirection: ScriptDirection;
 }
 

@@ -1,20 +1,30 @@
 <script lang="ts">
     import InfoIcon from '$lib/icons/InfoIcon.svelte';
     import Select from '$lib/components/Select.svelte';
-    import { UserRole, type Company } from '$lib/types/base';
+    import { UserRole, type Company, type Language } from '$lib/types/base';
     import { postToApi } from '$lib/utils/http-service';
     import { isApiErrorWithMessage, isAuthorizationError } from '$lib/utils/http-errors';
     import { invalidateAll } from '$app/navigation';
     import { Permission, currentUser, userCan } from '$lib/stores/auth';
     import { log } from '$lib/logger';
 
+    interface UserApiPost {
+        email: string | null;
+        firstName: string | null;
+        lastName: string | null;
+        role: string;
+        companyId: number | null;
+        languageId?: number;
+    }
+
     interface Props {
         open: boolean;
         header: string;
         companies: Company[] | undefined;
         roles: UserRole[];
+        languages: Language[];
     }
-    let { open = $bindable(), header, companies, roles }: Props = $props();
+    let { open = $bindable(), header, companies, roles, languages }: Props = $props();
     let dialog: HTMLDialogElement;
     let firstName: string | null = $state(null);
     let firstNameErr: string | null = $state(null);
@@ -23,6 +33,7 @@
     let email: string | null = $state(null);
     let emailErr: string | null = $state(null);
     let role: UserRole | null = $state(null);
+    let languageId: number | null = $state(0);
     let isSaving = $state(false);
     let errorMessage: string | null = $state(null);
     let isValidInput = $state(true);
@@ -34,11 +45,26 @@
     });
 
     let companyId = $state(onlyCreateUserInCompany ? $currentUser!.company.id : null);
-    let canSave = $derived(!!firstName && !!lastName && !!email && !!companyId && !!role && isValidInput);
+    let canSave = $derived(
+        !!firstName &&
+            !!lastName &&
+            !!email &&
+            !!companyId &&
+            !!role &&
+            isValidInput &&
+            (role !== UserRole.CommunityReviewer || (role === UserRole.CommunityReviewer && languageId > 0))
+    );
 
     $effect(() => {
         if (!firstNameErr && !lastNameErr && !emailErr && !errorMessage) {
             isValidInput = true;
+        }
+    });
+
+    $effect(() => {
+        if (role === UserRole.CommunityReviewer) {
+            const CommunityReviewerCompany = companies?.find((c) => c.name === 'Community Reviewers');
+            companyId = CommunityReviewerCompany?.id || null;
         }
     });
 
@@ -94,13 +120,19 @@
 
         try {
             if (canSave) {
-                await postToApi('/users/create', {
+                let userApiPost: UserApiPost = {
                     email,
                     firstName,
                     lastName,
                     role: (role as string).replaceAll(' ', ''),
                     companyId,
-                });
+                };
+
+                if (role === UserRole.CommunityReviewer && languageId) {
+                    userApiPost['languageId'] = languageId;
+                }
+
+                await postToApi('/users/create', { ...userApiPost });
                 errorMessage = null;
                 await invalidateAll();
             }
@@ -138,6 +170,40 @@
 
         <div class="flex flex-col p-10">
             <div class="flex flex-col p-2">
+                <div class="text-md">
+                    Role <span class="text-error">*</span>
+                </div>
+                <Select class="select select-bordered w-full" options={getRoles()} isNumber={false} bind:value={role} />
+            </div>
+            {#if roles.includes(UserRole.CommunityReviewer) && role === UserRole.CommunityReviewer}
+                <div class="flex flex-col p-2">
+                    <div class="text-md">
+                        Language <span class="text-error">*</span>
+                    </div>
+                    <Select
+                        class="select select-bordered w-full"
+                        options={[
+                            { value: 0, label: 'Select Language' },
+                            ...languages.map((lang) => ({ value: lang.id, label: lang.englishDisplay })),
+                        ]}
+                        isNumber={true}
+                        bind:value={languageId}
+                    />
+                </div>
+            {/if}
+            <div class="flex flex-col p-2">
+                <div class="text-md">Company <span class="text-error">*</span></div>
+                {#if companies}
+                    <Select
+                        class="select select-bordered w-full"
+                        options={buildOptions(companies)}
+                        isNumber={true}
+                        bind:value={companyId}
+                        disabled={onlyCreateUserInCompany || role === UserRole.CommunityReviewer}
+                    />
+                {/if}
+            </div>
+            <div class="flex flex-col p-2">
                 <div class="text-md flex flex-row justify-between">
                     <div>First Name <span class="text-error">*</span></div>
                     {#if firstNameErr}
@@ -171,7 +237,7 @@
                     }}
                 />
             </div>
-            <div class="flex flex-col p-2">
+            <div class="flex flex-col border-b p-2 pb-4">
                 <div class="text-md flex flex-row justify-between">
                     <div>Email <span class="text-error">*</span></div>
                     {#if emailErr}
@@ -188,24 +254,6 @@
                         errorMessage = null;
                     }}
                 />
-            </div>
-            <div class="flex flex-col p-2">
-                <div class="text-md">Company <span class="text-error">*</span></div>
-                {#if companies}
-                    <Select
-                        class="select select-bordered w-full"
-                        options={buildOptions(companies)}
-                        isNumber={true}
-                        bind:value={companyId}
-                        disabled={onlyCreateUserInCompany}
-                    />
-                {/if}
-            </div>
-            <div class="flex flex-col border-b p-2 pb-4">
-                <div class="text-md">
-                    Role <span class="text-error">*</span>
-                </div>
-                <Select class="select select-bordered w-full" options={getRoles()} isNumber={false} bind:value={role} />
             </div>
         </div>
         <div class="flex w-full flex-row justify-end pr-4">

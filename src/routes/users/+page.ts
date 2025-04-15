@@ -18,10 +18,17 @@ export const load: PageLoad = async ({ parent, fetch }) => {
             getFromApi<User[]>(`/users`, fetch),
             getFromApi<Company[]>(`/companies`, fetch),
         ]);
+
+        const roles = [UserRole.Editor, UserRole.Manager, UserRole.ReportViewer, UserRole.Reviewer];
+
+        if (get(userCan)(Permission.PublishContent)) {
+            roles.push(UserRole.CommunityReviewer);
+        }
+
         return {
             users,
             companies,
-            roles: [UserRole.Editor, UserRole.Manager, UserRole.ReportViewer, UserRole.Reviewer],
+            roles,
         };
     } else {
         redirect(302, '/');

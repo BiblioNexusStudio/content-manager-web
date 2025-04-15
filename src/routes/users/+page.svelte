@@ -24,10 +24,10 @@
     let errorModalDescription: string | null = $state(null);
     let errorModalHeader = $state('');
     let isModalOpen = $state(false);
-
     let users = $state(data.users);
     let companies = $derived(data.companies);
     let roles = $derived(data.roles);
+    let languages = $derived(data.languages);
     let userToDisable: User | undefined = $state(undefined);
     const roleOptions = [UserRole.Editor, UserRole.Reviewer];
     const userCanUpdate = $userCan(Permission.UpdateUser) || $userCan(Permission.UpdateUsersInCompany);
@@ -170,7 +170,7 @@
         </div>
     </div>
 </div>
-<NewUserModal {companies} {roles} header="Add User" bind:open={isModalOpen} />
+<NewUserModal {languages} {companies} {roles} header="Add User" bind:open={isModalOpen} />
 <Modal
     header="Confirm Disable User"
     bind:open={isDisableUserModalOpen}
