@@ -76,6 +76,7 @@ export interface ProjectResponse {
     id: number;
     name: string;
     language: string;
+    sourceLanguage?: string;
     projectManager: string;
     company: string;
     companyLead?: string;

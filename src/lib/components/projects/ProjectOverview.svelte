@@ -57,9 +57,22 @@
         <ViewTabSlot title="Title">
             <div class="w-2/3 text-end">{$project?.name ?? ''}</div>
         </ViewTabSlot>
-        <ViewTabSlot title="Language">
+        {#if $project?.sourceLanguage}
+            <ViewTabSlot title="Source Language">
+                <div>{$project?.sourceLanguage ?? ''}</div>
+            </ViewTabSlot>
+        {/if}
+        <ViewTabSlot title="Target Language">
             <div>{$project?.language ?? ''}</div>
         </ViewTabSlot>
+        {#if $project?.projectedDeliveryDate}
+            <div class="xl:hidden">
+                <ViewTabSlot title={projectDeliveryDateTitle} titleClassProps={dayDiff > 0 ? 'text-error' : ''}
+                ></ViewTabSlot>
+            </div>
+        {/if}
+    </div>
+    <div class="flex flex-col">
         <ViewTabSlot title="Project Manager">
             {#if $users && !canOnlyViewProjectsInCompany}
                 <Select
@@ -77,8 +90,6 @@
                 <div>{$project?.projectManager}</div>
             {/if}
         </ViewTabSlot>
-    </div>
-    <div class="flex flex-col">
         <ViewTabSlot title="Company">
             <div>{$project?.company ?? ''}</div>
         </ViewTabSlot>
@@ -105,8 +116,10 @@
             <div>{formatDate($project?.projectedDeliveryDate)}</div>
         </ViewTabSlot>
         {#if $project?.projectedDeliveryDate}
-            <ViewTabSlot title={projectDeliveryDateTitle} titleClassProps={dayDiff > 0 ? 'text-error' : ''}
-            ></ViewTabSlot>
+            <div class="hidden xl:flex">
+                <ViewTabSlot title={projectDeliveryDateTitle} titleClassProps={dayDiff > 0 ? 'text-error' : ''}
+                ></ViewTabSlot>
+            </div>
         {/if}
     </div>
 </div>
