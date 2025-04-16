@@ -51,10 +51,8 @@ export const fetchAndFormat = async (
     }
 
     if (!startVerseMapping || !endVerseMapping) {
-        log.exception(
-            new Error(
-                `Missing versification mapping: sourceStartVerseId: ${startVerse}; sourceEndVerseId: ${endVerse}; targetBibleId: ${bibleId}; languageId: ${language.id}`
-            )
+        log.trace(
+            `Missing versification mapping. No verse will be displayed. Data: sourceStartVerseId: ${startVerse}; sourceEndVerseId: ${endVerse}; targetBibleId: ${bibleId}; languageId: ${language.id}.`
         );
         return null;
     }
