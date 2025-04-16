@@ -45,7 +45,11 @@
     let selectedNotifications: FlattenedNotificationsContent[] = $state([]);
     let helpDocs = $derived.by(() => {
         return data.communityReviewerDashboard!.helpDocs?.howTos.filter((item) => {
-            return item.title === 'Commenting' || item.title === 'Versions and Bible Panes';
+            return (
+                item.title === 'Commenting' ||
+                item.title === 'Versions and Bible Panes' ||
+                item.title.startsWith('Community')
+            );
         });
     });
 
