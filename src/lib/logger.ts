@@ -1,4 +1,4 @@
-import { ApplicationInsights } from '@microsoft/applicationinsights-web';
+import { ApplicationInsights, SeverityLevel } from '@microsoft/applicationinsights-web';
 import config from '$lib/config';
 import { browser } from '$app/environment';
 import { isAuthenticatedStore, profile } from './stores/auth';
@@ -97,6 +97,24 @@ export const log = {
                     ...getBrowserAndScreenSize(),
                 },
             });
+    },
+    trace: (message: string) => {
+        // eslint-disable-next-line
+        console.info(message);
+
+        appInsights.trackTrace(
+            {
+                message,
+                severityLevel: SeverityLevel.Information,
+            },
+            {
+                ...additionalProperties,
+                ...getUserProperties(),
+                ...getBrowserAndScreenSize(),
+                isAuthenticated: get(isAuthenticatedStore) ?? 'undefined',
+                commitSha: config.PUBLIC_COMMIT_SHA,
+            }
+        );
     },
     trackEvent: (eventName: string) => {
         browser &&
