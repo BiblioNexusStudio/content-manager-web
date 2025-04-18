@@ -1103,7 +1103,6 @@
             {commentStores}
             {selectedStepNumber}
             {isMacOS}
-            bind:openedSupplementalSideBar={$currentPreferredOpenedSupplementalSideBar}
         />
 
         <div class="flex h-[calc(100vh-170px)]">

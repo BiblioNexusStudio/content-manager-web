@@ -14,6 +14,7 @@
     import { onMount } from 'svelte';
     import PersonLinesIcon from '$lib/icons/PersonLinesIcon.svelte';
     import AudioPlayerModal from '../audioPlayer/AudioPlayerModal.svelte';
+    import { currentPreferredOpenedSupplementalSideBar } from '$lib/stores/preferred-opened-supplemental-sidebar';
 
     interface Props {
         resourceContent: ResourceContent;
@@ -23,7 +24,6 @@
         commentStores: CommentStores;
         resourceContentStatuses: ResourceContentStatus[];
         selectedStepNumber: number | undefined;
-        openedSupplementalSideBar: OpenedSupplementalSideBar;
         isMacOS?: boolean;
     }
 
@@ -34,7 +34,6 @@
         onToggleHistoryPane,
         commentStores,
         resourceContentStatuses,
-        openedSupplementalSideBar = $bindable(),
         selectedStepNumber,
         isMacOS,
     }: Props = $props();
@@ -52,10 +51,10 @@
     });
 
     const toggleOpenedSupplementalSideBar = (sidebar: OpenedSupplementalSideBar) => {
-        if (openedSupplementalSideBar === sidebar) {
-            openedSupplementalSideBar = OpenedSupplementalSideBar.None;
+        if ($currentPreferredOpenedSupplementalSideBar === sidebar) {
+            $currentPreferredOpenedSupplementalSideBar = OpenedSupplementalSideBar.None;
         } else {
-            openedSupplementalSideBar = sidebar;
+            $currentPreferredOpenedSupplementalSideBar = sidebar;
         }
     };
 </script>
@@ -116,7 +115,7 @@
                 </Tooltip>
             {/if}
             {#if $commentThreads?.threads.length}
-                {@const active = openedSupplementalSideBar === OpenedSupplementalSideBar.Comments}
+                {@const active = $currentPreferredOpenedSupplementalSideBar === OpenedSupplementalSideBar.Comments}
                 <Tooltip
                     position={{ right: '3rem' }}
                     text={active ? 'Hide Comments' : 'Show Comments'}
@@ -133,14 +132,14 @@
             {/if}
             <Tooltip
                 position={{ right: '3rem' }}
-                text={openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences
+                text={$currentPreferredOpenedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences
                     ? 'Hide Bible References'
                     : 'Show Bible References'}
                 secondLineText={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+B)`}
             >
                 <button
                     data-app-insights-event-name="toggle-bible-references-pane-click"
-                    class="btn btn-ghost btn-sm me-1 {openedSupplementalSideBar ===
+                    class="btn btn-ghost btn-sm me-1 {$currentPreferredOpenedSupplementalSideBar ===
                         OpenedSupplementalSideBar.BibleReferences && 'bg-primary text-primary-content'}"
                     onclick={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.BibleReferences)}
                 >
@@ -149,14 +148,14 @@
             </Tooltip>
             <Tooltip
                 position={{ right: '3rem' }}
-                text={openedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory
+                text={$currentPreferredOpenedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory
                     ? 'Hide Status History'
                     : 'Show Status History'}
                 secondLineText={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+H)`}
             >
                 <button
                     data-app-insights-event-name="toggle-status-history-pane-click"
-                    class="btn btn-ghost btn-sm me-1 {openedSupplementalSideBar ===
+                    class="btn btn-ghost btn-sm me-1 {$currentPreferredOpenedSupplementalSideBar ===
                         OpenedSupplementalSideBar.VersionStatusHistory && 'bg-primary text-primary-content'}"
                     onclick={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.VersionStatusHistory)}
                 >
