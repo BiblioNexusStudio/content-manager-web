@@ -63,7 +63,7 @@
     import { bindKey, bindKeyCombo, unbindKey, unbindKeyCombo } from '@rwh/keystrokes';
     import Tooltip from '$lib/components/Tooltip.svelte';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
-    import { currentPreferredOpenedSupplementalSideBar } from '$lib/stores/resource-extra-info-panel';
+    import { currentPreferredOpenedSupplementalSideBar } from '$lib/stores/preferred-opened-supplemental-sidebar';
 
     interface PageProps {
         data: PageData;

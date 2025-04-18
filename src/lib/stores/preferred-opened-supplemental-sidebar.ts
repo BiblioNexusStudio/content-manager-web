@@ -3,14 +3,14 @@ import { get, writable } from 'svelte/store';
 import { currentUser } from './auth';
 import { OpenedSupplementalSideBar } from '$lib/types/resources';
 
-const storedPreferredExtraInfoPanel =
+const storedPreferredOpenedSupplementalSideBar =
     (browser &&
         get(currentUser) !== null &&
         localStorage.getItem(`biblionexus_sidepanel_setting_${get(currentUser)!.id}`)) ||
     OpenedSupplementalSideBar.None;
 
 export const currentPreferredOpenedSupplementalSideBar = writable<number>(
-    storedPreferredExtraInfoPanel as OpenedSupplementalSideBar
+    storedPreferredOpenedSupplementalSideBar as OpenedSupplementalSideBar
 );
 
 currentPreferredOpenedSupplementalSideBar.subscribe((val) => {
