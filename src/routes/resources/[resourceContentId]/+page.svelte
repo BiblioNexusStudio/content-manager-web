@@ -94,7 +94,7 @@
 
     // --- comments ---
     let commentStores: CommentStores = $state(createCommentStores());
-    let commentThreads: Writable<CommentThreadsResponse | null> = $derived(commentStores.commentThreads);
+    let commentThreads: Writable<CommentThreadsResponse | null> = commentStores.commentThreads;
     let removeAllInlineThreads: Readable<() => void> = commentStores.removeAllInlineThreads;
     let hasUnresolvedThreads = $derived($commentThreads?.threads.some((x) => !x.resolved && x.id !== -1) || false);
 
@@ -458,6 +458,7 @@
     $effect(() => handleFetchedResource(resourceContent));
 
     function handleFetchedResource(resourceContent: ResourceContent) {
+        console.log('handleFetchedResource called');
         resetSaveState();
 
         $isPageTransacting = false;
