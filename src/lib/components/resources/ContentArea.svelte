@@ -14,7 +14,6 @@
     import { onMount } from 'svelte';
     import PersonLinesIcon from '$lib/icons/PersonLinesIcon.svelte';
     import AudioPlayerModal from '../audioPlayer/AudioPlayerModal.svelte';
-    import { currentPreferredOpenedSupplementalSideBar } from '$lib/stores/preferred-opened-supplemental-sidebar';
 
     interface Props {
         resourceContent: ResourceContent;
@@ -41,11 +40,6 @@
     }: Props = $props();
 
     const commentThreads = commentStores.commentThreads;
-    $effect(() => {
-        console.log('commentThreads', $commentThreads);
-        console.log('preferrecOpenedSupSidebar', $currentPreferredOpenedSupplementalSideBar);
-        console.log('openedSupplementalSideBar', openedSupplementalSideBar);
-    });
 
     const audioIsAvailable = !!(
         resourceContent.hasAudio && resourceContent.status === ResourceContentStatusEnum.Complete

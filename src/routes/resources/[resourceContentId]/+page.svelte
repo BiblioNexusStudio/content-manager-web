@@ -458,7 +458,6 @@
     $effect(() => handleFetchedResource(resourceContent));
 
     function handleFetchedResource(resourceContent: ResourceContent) {
-        console.log('handleFetchedResource called');
         resetSaveState();
 
         $isPageTransacting = false;
