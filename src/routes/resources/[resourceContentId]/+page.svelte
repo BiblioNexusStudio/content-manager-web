@@ -63,6 +63,7 @@
     import { bindKey, bindKeyCombo, unbindKey, unbindKeyCombo } from '@rwh/keystrokes';
     import Tooltip from '$lib/components/Tooltip.svelte';
     import { searchParameters, ssp } from '$lib/utils/sveltekit-search-params';
+    import { currentPreferredOpenedSupplementalSideBar } from '$lib/stores/resource-extra-info-panel';
 
     interface PageProps {
         data: PageData;
@@ -93,7 +94,7 @@
 
     // --- comments ---
     let commentStores: CommentStores = $state(createCommentStores());
-    let commentThreads: Writable<CommentThreadsResponse | null> = commentStores.commentThreads;
+    let commentThreads: Writable<CommentThreadsResponse | null> = $derived(commentStores.commentThreads);
     let removeAllInlineThreads: Readable<() => void> = commentStores.removeAllInlineThreads;
     let hasUnresolvedThreads = $derived($commentThreads?.threads.some((x) => !x.resolved && x.id !== -1) || false);
 
@@ -122,8 +123,10 @@
     let referenceCharacterCountsByStep: number[] = $state([]);
 
     // --- side bar ---
-    let openedSupplementalSideBar = $state(OpenedSupplementalSideBar.None);
-    let isShowingSupplementalSidebar = $derived(openedSupplementalSideBar !== OpenedSupplementalSideBar.None);
+    let isShowingSupplementalSidebar = $derived(
+        $currentPreferredOpenedSupplementalSideBar !== OpenedSupplementalSideBar.None
+    );
+
     let sidebarContentStore: ReturnType<typeof createSidebarContentStore> = $derived(
         createSidebarContentStore(resourceContent)
     );
@@ -387,9 +390,10 @@
 
         bindKey('m', () => {
             if (isControlAltPressed) {
-                const commentsAlreadyOpened = openedSupplementalSideBar === OpenedSupplementalSideBar.Comments;
+                const commentsAlreadyOpened =
+                    $currentPreferredOpenedSupplementalSideBar === OpenedSupplementalSideBar.Comments;
 
-                openedSupplementalSideBar = commentsAlreadyOpened
+                $currentPreferredOpenedSupplementalSideBar = commentsAlreadyOpened
                     ? OpenedSupplementalSideBar.None
                     : OpenedSupplementalSideBar.Comments;
 
@@ -403,9 +407,10 @@
 
         bindKey('b', () => {
             if (isControlAltPressed) {
-                const biblePaneAlreadyOpened = openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences;
+                const biblePaneAlreadyOpened =
+                    $currentPreferredOpenedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences;
 
-                openedSupplementalSideBar = biblePaneAlreadyOpened
+                $currentPreferredOpenedSupplementalSideBar = biblePaneAlreadyOpened
                     ? OpenedSupplementalSideBar.None
                     : OpenedSupplementalSideBar.BibleReferences;
 
@@ -420,9 +425,9 @@
         bindKey('h', () => {
             if (isControlAltPressed) {
                 const historyPaneAlreadyOpened =
-                    openedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory;
+                    $currentPreferredOpenedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory;
 
-                openedSupplementalSideBar = historyPaneAlreadyOpened
+                $currentPreferredOpenedSupplementalSideBar = historyPaneAlreadyOpened
                     ? OpenedSupplementalSideBar.None
                     : OpenedSupplementalSideBar.VersionStatusHistory;
 
@@ -435,7 +440,7 @@
         });
 
         if ($searchParams.commentId) {
-            openedSupplementalSideBar = OpenedSupplementalSideBar.Comments;
+            $currentPreferredOpenedSupplementalSideBar = OpenedSupplementalSideBar.Comments;
         }
     });
 
@@ -1098,7 +1103,7 @@
             {commentStores}
             {selectedStepNumber}
             {isMacOS}
-            bind:openedSupplementalSideBar
+            bind:openedSupplementalSideBar={$currentPreferredOpenedSupplementalSideBar}
         />
 
         <div class="flex h-[calc(100vh-170px)]">
@@ -1233,7 +1238,7 @@
                 {isShowingSupplementalSidebar ? 'w-1/5 ps-3' : 'w-0'}"
             >
                 <div
-                    class="border-base-300 flex h-full w-full flex-col rounded-md border {openedSupplementalSideBar ===
+                    class="border-base-300 flex h-full w-full flex-col rounded-md border {$currentPreferredOpenedSupplementalSideBar ===
                     OpenedSupplementalSideBar.Comments
                         ? ''
                         : 'hidden'}"
@@ -1241,26 +1246,28 @@
                     <CommentsSidebar {commentStores} />
                 </div>
                 <div
-                    class="border-base-300 flex h-full w-full flex-col rounded-md border {openedSupplementalSideBar ===
+                    class="border-base-300 flex h-full w-full flex-col rounded-md border {$currentPreferredOpenedSupplementalSideBar ===
                     OpenedSupplementalSideBar.BibleReferences
                         ? ''
                         : 'hidden'}"
                 >
                     <BibleReferencesSidebar
-                        visible={openedSupplementalSideBar === OpenedSupplementalSideBar.BibleReferences}
+                        visible={$currentPreferredOpenedSupplementalSideBar ===
+                            OpenedSupplementalSideBar.BibleReferences}
                         language={resourceContent.language}
                         languages={data.languages}
                         references={getSortedReferences(resourceContent)}
                     />
                 </div>
                 <div
-                    class="border-base-300 flex h-full w-full flex-col rounded-md border {openedSupplementalSideBar ===
+                    class="border-base-300 flex h-full w-full flex-col rounded-md border {$currentPreferredOpenedSupplementalSideBar ===
                     OpenedSupplementalSideBar.VersionStatusHistory
                         ? ''
                         : 'hidden'}"
                 >
                     <VersionStatusHistorySidebar
-                        visible={openedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory}
+                        visible={$currentPreferredOpenedSupplementalSideBar ===
+                            OpenedSupplementalSideBar.VersionStatusHistory}
                         resourceContentVersionId={resourceContent.resourceContentVersionId}
                     />
                 </div>

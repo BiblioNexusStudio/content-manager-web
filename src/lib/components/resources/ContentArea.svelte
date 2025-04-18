@@ -21,9 +21,9 @@
         historySidebarOpen: boolean;
         onToggleHistoryPane: (animateOpen?: boolean) => void;
         commentStores: CommentStores;
-        openedSupplementalSideBar: OpenedSupplementalSideBar;
         resourceContentStatuses: ResourceContentStatus[];
         selectedStepNumber: number | undefined;
+        openedSupplementalSideBar: OpenedSupplementalSideBar;
         isMacOS?: boolean;
     }
 
@@ -33,8 +33,8 @@
         historySidebarOpen,
         onToggleHistoryPane,
         commentStores,
-        openedSupplementalSideBar = $bindable(),
         resourceContentStatuses,
+        openedSupplementalSideBar = $bindable(),
         selectedStepNumber,
         isMacOS,
     }: Props = $props();
