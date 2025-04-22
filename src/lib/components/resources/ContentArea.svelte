@@ -15,6 +15,7 @@
     import PersonLinesIcon from '$lib/icons/PersonLinesIcon.svelte';
     import AudioPlayerModal from '../audioPlayer/AudioPlayerModal.svelte';
     import { currentPreferredOpenedSupplementalSideBar } from '$lib/stores/preferred-opened-supplemental-sidebar';
+    import { Permission, userCan } from '$lib/stores/auth';
 
     interface Props {
         resourceContent: ResourceContent;
@@ -92,12 +93,14 @@
         </div>
     </div>
     <div class="flex flex-col items-end space-y-1">
-        {#if resourceContent.assignedUser}
-            <div class="text-md flex">
-                Assigned: {resourceContent.assignedUser.name}
-            </div>
-        {:else if resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview || resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview}
-            <div class="text-md flex">Assigned: External User</div>
+        {#if !$userCan(Permission.CreateCommunityContent)}
+            {#if resourceContent.assignedUser}
+                <div class="text-md flex">
+                    Assigned: {resourceContent.assignedUser.name}
+                </div>
+            {:else if resourceContent.status === ResourceContentStatusEnum.AquiferizeEditorReview || resourceContent.status === ResourceContentStatusEnum.TranslationEditorReview}
+                <div class="text-md flex">Assigned: External User</div>
+            {/if}
         {/if}
         <div class="flex">
             {#if sidebarHistoryAvailable && resourceContent.mediaType === MediaTypeEnum.text}
@@ -146,22 +149,24 @@
                     <BookSidebarIcon />
                 </button>
             </Tooltip>
-            <Tooltip
-                position={{ right: '3rem' }}
-                text={$currentPreferredOpenedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory
-                    ? 'Hide Status History'
-                    : 'Show Status History'}
-                secondLineText={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+H)`}
-            >
-                <button
-                    data-app-insights-event-name="toggle-status-history-pane-click"
-                    class="btn btn-ghost btn-sm me-1 {$currentPreferredOpenedSupplementalSideBar ===
-                        OpenedSupplementalSideBar.VersionStatusHistory && 'bg-primary text-primary-content'}"
-                    onclick={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.VersionStatusHistory)}
+            {#if !$userCan(Permission.CreateCommunityContent)}
+                <Tooltip
+                    position={{ right: '3rem' }}
+                    text={$currentPreferredOpenedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory
+                        ? 'Hide Status History'
+                        : 'Show Status History'}
+                    secondLineText={`(CTRL+${isMacOS ? 'CMD' : 'ALT'}+H)`}
                 >
-                    <PersonLinesIcon />
-                </button>
-            </Tooltip>
+                    <button
+                        data-app-insights-event-name="toggle-status-history-pane-click"
+                        class="btn btn-ghost btn-sm me-1 {$currentPreferredOpenedSupplementalSideBar ===
+                            OpenedSupplementalSideBar.VersionStatusHistory && 'bg-primary text-primary-content'}"
+                        onclick={() => toggleOpenedSupplementalSideBar(OpenedSupplementalSideBar.VersionStatusHistory)}
+                    >
+                        <PersonLinesIcon />
+                    </button>
+                </Tooltip>
+            {/if}
         </div>
     </div>
 </div>
