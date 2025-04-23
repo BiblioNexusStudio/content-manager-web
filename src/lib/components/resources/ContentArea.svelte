@@ -93,7 +93,7 @@
         </div>
     </div>
     <div class="flex flex-col items-end space-y-1">
-        {#if !$userCan(Permission.CreateCommunityContent)}
+        {#if $userCan(Permission.AssignContent)}
             {#if resourceContent.assignedUser}
                 <div class="text-md flex">
                     Assigned: {resourceContent.assignedUser.name}
