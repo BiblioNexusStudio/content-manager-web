@@ -149,7 +149,7 @@
                     <BookSidebarIcon />
                 </button>
             </Tooltip>
-            {#if !$userCan(Permission.CreateCommunityContent)}
+            {#if $userCan(Permission.AssignContent)}
                 <Tooltip
                     position={{ right: '3rem' }}
                     text={$currentPreferredOpenedSupplementalSideBar === OpenedSupplementalSideBar.VersionStatusHistory
