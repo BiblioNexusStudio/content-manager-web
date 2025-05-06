@@ -35,25 +35,6 @@ jobs:
               with:
                   current_branch: ${{ github.ref_name }}
 
-    deploy_to_dev:
-        needs:
-            - check_should_deploy
-        if: needs.check_should_deploy.outputs.should_deploy == 'true'
-        name: Deploy to dev
-        runs-on: ubuntu-latest
-        environment:
-            name: dev
-            url: ${{ steps.deploy.outputs.deployed-url }}
-        steps:
-            - name: Checkout source code
-              uses: actions/checkout@v4.1.7
-            - uses: ./.github/actions/build-and-deploy-to-env
-              id: deploy
-              with:
-                  environment: dev
-                  api-token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_DEV }}
-                  override-output-url: ${{ vars.URL_DEV }}
-
     deploy_to_qa:
         needs:
             - check_should_deploy
