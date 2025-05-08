@@ -849,11 +849,7 @@
                 if ($currentUser) {
                     $currentUser.canBeAssignedContent = true;
                 }
-                if (nextUpInfo && nextUpInfo?.nextUpResourceContentId) {
-                    await goto(`/resources/${nextUpInfo?.nextUpResourceContentId}`);
-                } else {
-                    await goto(`/`);
-                }
+                await handleNextUpInfo(nextUpInfo);
             }
         );
     }
