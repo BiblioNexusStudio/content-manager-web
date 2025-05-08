@@ -543,6 +543,20 @@
         return nextUpInfo;
     }
 
+    async function callNextUpCommunityApi(resourceContentId: number) {
+        let nextUpInfo: ResourceContentNextUpInfo | null = null;
+
+        try {
+            nextUpInfo = await getFromApi<ResourceContentNextUpInfo>(
+                `/resources/content/${resourceContentId}/next-up/community`
+            );
+        } catch (error) {
+            log.exception(error);
+        }
+
+        return nextUpInfo;
+    }
+
     async function handleNextUpInfo(nextUpInfo: ResourceContentNextUpInfo | null) {
         if (nextUpInfo === null) {
             return;
@@ -824,6 +838,8 @@
     async function handleCommunitySendToPublisher() {
         $isPageTransacting = true;
 
+        const nextUpInfo = await callNextUpCommunityApi(resourceContent.resourceContentId);
+
         await takeActionAndCallback(
             async () =>
                 await postToApi(
@@ -833,7 +849,7 @@
                 if ($currentUser) {
                     $currentUser.canBeAssignedContent = true;
                 }
-                await goto(`/`);
+                await handleNextUpInfo(nextUpInfo);
             }
         );
     }
