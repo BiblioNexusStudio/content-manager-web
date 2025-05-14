@@ -6,6 +6,7 @@ export interface BasicBible {
     name: string;
     languageId: number;
     isLanguageDefault: boolean;
+    abbreviation: string;
 }
 const fetchBibles = async (): Promise<BasicBible[]> => {
     try {
@@ -27,7 +28,11 @@ export const fetchLanguageDefaultBible = async (languageId: number): Promise<Bas
 export const fetchLanguageBiblesAndEnglishDefault = async (languageId: number) => {
     const bibles = await fetchBibles();
     const filteredBibles = bibles.filter(
-        (b) => b.languageId === languageId || (b.languageId === 1 && b.isLanguageDefault)
+        (b) =>
+            b.languageId === languageId ||
+            (b.languageId === 1 && b.isLanguageDefault) ||
+            b.abbreviation === 'ULT' ||
+            b.abbreviation === 'UST'
     );
     return filteredBibles;
 };
